@@ -1,6 +1,7 @@
 # CalmEd
 
-### Language
+### Languages
+- [English](README.md)
 - [Serbian](README.sr.md)
 
 ### Requirements

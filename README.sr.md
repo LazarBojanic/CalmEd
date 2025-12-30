@@ -2,14 +2,15 @@
 
 ### Languages
 - [English](README.md)
+- [Serbian](README.sr.md)
 
-### Requirements
+### Preduslovi
 - JDK 21 (https://www.azul.com/downloads/?version=java-21-lts&architecture=x86-64-bit&package=jdk#zulu)
 - Android SDK _mora se instalirati preko Android Studia_ (https://developer.android.com/studio)
 - PostgreSQL (https://www.postgresql.org/download/)
 - IDE _poželjno Intellij_ (https://www.jetbrains.com/idea/download/)
 
-### Setup
+### Podešavanje
 - {backend_root_dir}: CalmEd/backend/calmed-backend
 - {frontend_root_dir}: CalmEd/frontend/calmed-frontend-tourettes
 - Otvoriti oba projekta posebno u Intellij-u.
