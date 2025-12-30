@@ -1,0 +1,23 @@
+ktor:
+    application:
+        modules:
+            - com.calmed.calmedbackend.ApplicationKt.module
+    deployment:
+        host: $KTOR_DEPLOYMENT_HOST:127.0.0.1
+        port: $KTOR_DEPLOYMENT_PORT:8080
+    development: $KTOR_DEVELOPMENT
+jwt:
+    alg: $JWT_ALG:HS256
+    iss: $JWT_ISS
+    aud: $JWT_AUD
+    access_ttl: $JWT_ACCESS_TTL:PT15M
+    refresh_ttl: $JWT_REFRESH_TTL:P30D
+    secret: $JWT_SECRET:secret
+database:
+    username: $DATABASE_USERNAME:postgres
+    password: $DATABASE_PASSWORD:postgres
+    ip: $DATABASE_IP:127.0.0.1
+    port: $DATABASE_PORT:5432
+    name: $DATABASE_NAME:calmed
+    dialect: $DATABASE_DIALECT:postgresql
+    driver: $DATABASE_DRIVER:org.postgresql.Driver
