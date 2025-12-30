@@ -5,14 +5,14 @@ ktor:
     deployment:
         host: $KTOR_DEPLOYMENT_HOST:127.0.0.1
         port: $KTOR_DEPLOYMENT_PORT:8080
-    development: $KTOR_DEVELOPMENT
+    development: $KTOR_DEVELOPMENT:true
 jwt:
-    alg: $JWT_ALG:HS256
+    alg: $JWT_ALG
     iss: $JWT_ISS
     aud: $JWT_AUD
-    access_ttl: $JWT_ACCESS_TTL:PT15M
-    refresh_ttl: $JWT_REFRESH_TTL:P30D
-    secret: $JWT_SECRET:secret
+    access_ttl: $JWT_ACCESS_TTL
+    refresh_ttl: $JWT_REFRESH_TTL
+    secret: $JWT_SECRET
 database:
     username: $DATABASE_USERNAME:postgres
     password: $DATABASE_PASSWORD:postgres
