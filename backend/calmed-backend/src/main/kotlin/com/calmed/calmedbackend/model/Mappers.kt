@@ -5,7 +5,7 @@ import com.calmed.calmedbackend.model.joined.MessageJoined
 import com.calmed.calmedbackend.model.raw.message.Message
 import com.calmed.calmedbackend.model.raw.message.MessageEntity
 
-enum class MapMode{
+enum class MapMode {
 	CREATE, UPDATE
 }
 
@@ -13,7 +13,7 @@ fun MessageEntity.toRaw(): Message = Message(
 	id = this.id.value,
 	text = this.text,
 	createdAt = this.createdAt,
-	updatedAt = this.updatedAt,
+	updatedAt = this.updatedAt
 )
 
 fun MessageEntity.setFrom(d: Message, mode: MapMode) {
@@ -22,7 +22,8 @@ fun MessageEntity.setFrom(d: Message, mode: MapMode) {
 	updatedAt = d.updatedAt
 	when (mode) {
 		MapMode.CREATE -> {
-			createdAt = d.createdAt; updatedAt = d.updatedAt
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
 		}
 
 		MapMode.UPDATE -> {
@@ -36,7 +37,7 @@ fun Message.join(): MessageJoined {
 		id = this.id,
 		text = this.text,
 		createdAt = this.createdAt,
-		updatedAt = this.updatedAt,
+		updatedAt = this.updatedAt
 	)
 }
 
@@ -45,6 +46,6 @@ fun MessageJoined.toDto(): MessageDto {
 		id = this.id,
 		text = this.text,
 		createdAt = this.createdAt,
-		updatedAt = this.updatedAt,
+		updatedAt = this.updatedAt
 	)
 }

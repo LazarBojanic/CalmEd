@@ -4,6 +4,8 @@ val kotlin_version: String by project
 val logback_version: String by project
 val postgres_version: String by project
 val ktor_version: String by project
+val commons_email2_jakarta_version: String by project
+val java_jwt_version: String by project
 
 plugins {
 	kotlin("jvm") version "2.3.0"
@@ -48,4 +50,6 @@ dependencies {
 	implementation("io.ktor:ktor-server-config-yaml")
 	testImplementation("io.ktor:ktor-server-test-host")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+	implementation("org.apache.commons:commons-email2-jakarta:$commons_email2_jakarta_version")
+	implementation("com.auth0:java-jwt:$java_jwt_version")
 }

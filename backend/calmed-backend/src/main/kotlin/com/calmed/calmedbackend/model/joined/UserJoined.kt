@@ -1,26 +1,20 @@
-package com.calmed.calmedbackend.model
+package com.calmed.calmedbackend.model.joined
 
 import com.calmed.calmedbackend.util.InstantSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer
-import java.util.UUID
 import kotlinx.serialization.Serializable
 import java.time.Instant
+import java.util.UUID
 
 @Serializable
-data class TokenClaims(
-	val type: TokenType,
+data class UserJoined(
 	@Serializable(with = UUIDSerializer::class)
-	val userId: UUID,
+	val id: UUID,
 	val email: String,
-	val ip: String?,
-	val userAgent: String?,
+	val username: String,
+	val isEmailVerified: Boolean,
 	@Serializable(with = InstantSerializer::class)
-	val issuedAt: Instant,
+	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
-	val expiresAt: Instant,
-	@Serializable(with = InstantSerializer::class)
-	val revokedAt: Instant?
+	val updatedAt: Instant,
 )
-enum class TokenType{
-	ACCESS, REFRESH
-}
