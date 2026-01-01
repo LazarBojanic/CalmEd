@@ -82,6 +82,7 @@ fun AuthCredentialEntity.toRaw(): AuthCredential {
 fun RefreshTokenEntity.toRaw(): RefreshToken {
 	return RefreshToken(
 		id = this.id.value,
+		replacedBy = this.replacedBy,
 		userId = this.userId,
 		tokenHash = this.tokenHash,
 		issuedAt = this.issuedAt,
@@ -117,6 +118,7 @@ fun AuthCredential.join(userJoined: UserJoined): AuthCredentialJoined {
 fun RefreshToken.join(userJoined: UserJoined): RefreshTokenJoined {
 	return RefreshTokenJoined(
 		id = this.id,
+		replacedBy = this.replacedBy,
 		userJoined = userJoined,
 		tokenHash = this.tokenHash,
 		issuedAt = this.issuedAt,

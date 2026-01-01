@@ -8,6 +8,7 @@ import java.util.UUID
 
 class RefreshTokenEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	companion object : UUIDEntityClass<RefreshTokenEntity>(RefreshTokenTable)
+	var replacedBy by RefreshTokenTable.replacedBy
 	var userId by RefreshTokenTable.userId
 	var tokenHash by RefreshTokenTable.tokenHash
 	var issuedAt by RefreshTokenTable.issuedAt

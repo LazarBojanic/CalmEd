@@ -2,7 +2,6 @@ package com.calmed.calmedbackend.service.implementation
 
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.JWTVerifier
 import com.calmed.calmedbackend.auth.JwtConfig
 import com.calmed.calmedbackend.auth.TokenType
@@ -82,8 +81,10 @@ class AuthService(
 		return TokenPairDto("", "")
 	}
 
+	//todo revoke != rotate
 	override suspend fun logout(userId: UUID): Boolean {
-		return refreshTokenService.revokeAllByUserId(userId)
+		return refreshTokenService.revokeAllByUserId(userId, null)
+
 	}
 
 	override suspend fun generateAccessToken(
@@ -130,6 +131,7 @@ class AuthService(
 		val refresh = generateRefreshToken(id, email, now, expRefresh)
 		val refreshHash = hashTextSHA512(refresh)
 		val refreshToken = RefreshToken.createNew(
+			replacedBy = null,
 			userId = id,
 			tokenHash = refreshHash,
 			issuedAt = now,
@@ -156,13 +158,27 @@ class AuthService(
 				throw IllegalArgumentException("Refresh token expired")
 			}
 			val userId = UUID.fromString(decoded.subject)
+			val jit = UUID.fromString(decoded.getClaim("jit").asString())
 			val email = decoded.getClaim("email").asString()
-			val stored = refreshTokenService.getByTokenHash(hashTextSHA512(refreshDto.refresh))
-				?: throw IllegalArgumentException("Refresh token not found or revoked")
-			refreshTokenService.revokeByTokenHash(hashTextSHA512(refreshDto.refresh))
-			return createTokens(userId, email)
+			val expRefresh = now.plus(jwtConfig.refreshTtl)
+			val refresh = generateRefreshToken(userId, email, now, expRefresh)
+			val refreshHash = hashTextSHA512(refresh)
+			val refreshToken = RefreshToken.createNew(
+				replacedBy = null,
+				userId = userId,
+				tokenHash = refreshHash,
+				issuedAt = now,
+				expiresAt = expRefresh,
+				revokedAt = null
+			)
+			val createdRefreshToken = refreshTokenService.create(refreshToken)
+			if (createdRefreshToken != null) {
+				refreshTokenService.revokeById(jit, createdRefreshToken.id)
+				return createTokens(userId, email)
+			}
+			return TokenPairDto("", "")
 		}
-		catch (e: Exception) {
+		catch (_: Exception) {
 			return TokenPairDto("", "")
 		}
 	}

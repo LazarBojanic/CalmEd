@@ -11,6 +11,8 @@ data class RefreshToken(
 	@Serializable(with = UUIDSerializer::class)
 	val id: UUID,
 	@Serializable(with = UUIDSerializer::class)
+	val replacedBy: UUID?,
+	@Serializable(with = UUIDSerializer::class)
 	val userId: UUID,
 	val tokenHash: String,
 	@Serializable(with = InstantSerializer::class)
@@ -26,6 +28,7 @@ data class RefreshToken(
 ) {
 	companion object {
 		fun createNew(
+			replacedBy: UUID?,
 			userId: UUID,
 			tokenHash: String,
 			issuedAt: Instant,
@@ -39,6 +42,7 @@ data class RefreshToken(
 			val uat = updatedAt ?: now
 			return RefreshToken(
 				id = UUID.randomUUID(),
+				replacedBy = replacedBy,
 				userId = userId,
 				tokenHash = tokenHash,
 				issuedAt = issuedAt,
@@ -47,7 +51,9 @@ data class RefreshToken(
 				createdAt = cat,
 				updatedAt = uat
 			)
-
 		}
+	}
+	fun isActive(now: Instant = Instant.now()): Boolean {
+		return revokedAt == null && expiresAt.isAfter(now)
 	}
 }

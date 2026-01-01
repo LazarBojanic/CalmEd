@@ -9,6 +9,8 @@ import java.util.UUID
 data class RefreshTokenJoined (
 	@Serializable(with = UUIDSerializer::class)
 	val id: UUID,
+	@Serializable(with = UUIDSerializer::class)
+	val replacedBy: UUID?,
 	val userJoined: UserJoined,
 	val tokenHash: String,
 	@Serializable(with = InstantSerializer::class)

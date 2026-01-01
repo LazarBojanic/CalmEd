@@ -28,12 +28,6 @@ class RefreshTokenRepository : IRefreshTokenRepository {
 		}
 	}
 
-	override suspend fun findByTokenHash(tokenHash: String): RefreshToken? {
-		return dbQuery {
-			RefreshTokenEntity.find { RefreshTokenTable.tokenHash eq tokenHash }.firstOrNull()?.toRaw()
-		}
-	}
-
 	override suspend fun create(refreshToken: RefreshToken): RefreshToken? {
 		return dbQuery {
 			RefreshTokenEntity.new(refreshToken.id) {
