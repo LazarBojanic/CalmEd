@@ -1,21 +1,21 @@
-package com.calmed.calmedbackend.model.joined
+package com.calmed.calmedbackend.auth
 
-import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialType
 import com.calmed.calmedbackend.util.InstantSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer
+import java.util.UUID
 import kotlinx.serialization.Serializable
 import java.time.Instant
-import java.util.UUID
 
 @Serializable
-data class AuthCredentialJoined(
+data class TokenClaims(
 	@Serializable(with = UUIDSerializer::class)
 	val id: UUID,
-	val user: UserJoined,
-	val type: AuthCredentialType,
-	val passwordHash: String,
+	val email: String,
 	@Serializable(with = InstantSerializer::class)
-	val createdAt: Instant,
+	val issuedAt: Instant,
 	@Serializable(with = InstantSerializer::class)
-	val updatedAt: Instant,
+	val expiresAt: Instant,
+	@Serializable(with = InstantSerializer::class)
+	val revokedAt: Instant?,
+	val type: TokenType
 )
