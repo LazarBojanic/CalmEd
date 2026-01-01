@@ -76,4 +76,10 @@ class RefreshTokenService(
 	override suspend fun delete(id: UUID): Boolean {
 		return refreshTokenRepository.delete(id)
 	}
+	override suspend fun checkReuseAndRevoke(refreshToken: RefreshToken) {
+		if (refreshToken.revokedAt != null && refreshToken.replacedBy != null) {
+			revokeAllByUserId(refreshToken.userId, null)
+			error("Refresh token reuse detected for user ${refreshToken.userId}")
+		}
+	}
 }

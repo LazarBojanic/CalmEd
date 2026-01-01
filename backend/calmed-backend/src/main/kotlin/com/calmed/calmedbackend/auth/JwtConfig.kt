@@ -11,8 +11,6 @@ import java.time.Duration
 data class JwtConfig(
 	val algAccess: Algorithm,
 	val algRefresh: Algorithm,
-	val accessSecret: String,
-	val refreshSecret: String,
 	val iss: String,
 	val aud: String,
 	val accessTtl: Duration,
@@ -22,29 +20,19 @@ data class JwtConfig(
 		fun from(config: ApplicationConfig): JwtConfig {
 			val accessSecret = config.property("jwt.access_secret").getString()
 			val refreshSecret = config.property("jwt.refresh_secret").getString()
-			val algAccessString = config.property("jwt.alg_access").getString()
-			val algRefreshString = config.property("jwt.alg_refresh").getString()
-			val algAccess = parseAlg(algAccessString, accessSecret)
-			val algRefresh = parseAlg(algRefreshString, refreshSecret)
-			val iss = config.property("jwt.iss").getString()
-			val aud = config.property("jwt.aud").getString()
-			val accessTtlString = config.property("jwt.access_ttl").getString()
-			val refreshTtlString = config.property("jwt.refresh_ttl").getString()
-			val accessTtl = Duration.parse(accessTtlString)
-			val refreshTtl = Duration.parse(refreshTtlString)
+
 			return JwtConfig(
-				algAccess = algAccess,
-				algRefresh = algRefresh,
-				accessSecret = accessSecret,
-				refreshSecret = refreshSecret,
-				iss = iss,
-				aud = aud,
-				accessTtl = accessTtl,
-				refreshTtl = refreshTtl
+				algAccess = parseAlg(config.property("jwt.alg_access").getString(), accessSecret),
+				algRefresh = parseAlg(config.property("jwt.alg_refresh").getString(), refreshSecret),
+				iss = config.property("jwt.iss").getString(),
+				aud = config.property("jwt.aud").getString(),
+				accessTtl = Duration.parse(config.property("jwt.access_ttl").getString()),
+				refreshTtl = Duration.parse(config.property("jwt.refresh_ttl").getString())
 			)
 		}
-		fun parseAlg(algorithm: String, secret: String): Algorithm {
-			return when(algorithm) {
+
+		private fun parseAlg(alg: String, secret: String): Algorithm {
+			return when (alg) {
 				"HS512" -> HMAC512(secret)
 				else -> HMAC256(secret)
 			}

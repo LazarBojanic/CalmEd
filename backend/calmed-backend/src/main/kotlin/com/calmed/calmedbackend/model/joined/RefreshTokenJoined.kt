@@ -23,4 +23,8 @@ data class RefreshTokenJoined (
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
 	val updatedAt: Instant
-)
+){
+	fun isActive(now: Instant = Instant.now()): Boolean {
+		return revokedAt == null && expiresAt.isAfter(now)
+	}
+}

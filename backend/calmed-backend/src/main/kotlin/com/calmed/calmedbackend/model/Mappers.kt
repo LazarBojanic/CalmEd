@@ -129,6 +129,20 @@ fun RefreshToken.join(userJoined: UserJoined): RefreshTokenJoined {
 	)
 }
 
+fun RefreshTokenJoined.toRaw(): RefreshToken {
+	return RefreshToken(
+		id = this.id,
+		replacedBy = this.replacedBy,
+		userId = userJoined.id,
+		tokenHash = this.tokenHash,
+		issuedAt = this.issuedAt,
+		expiresAt = this.expiresAt,
+		revokedAt = this.revokedAt,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
 fun UserEntity.setFrom(d: User, mapMode: MapMode) {
 	email = d.email
 	username = d.username

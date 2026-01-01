@@ -13,6 +13,7 @@ import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialType
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.user.User
+import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
@@ -31,7 +32,6 @@ class AuthService(
 		return JWT.require(jwtConfig.algAccess)
 			.withIssuer(jwtConfig.iss)
 			.withAudience(jwtConfig.aud)
-			.acceptLeeway(2)
 			.build()
 	}
 
@@ -39,174 +39,179 @@ class AuthService(
 		return JWT.require(jwtConfig.algRefresh)
 			.withIssuer(jwtConfig.iss)
 			.withAudience(jwtConfig.aud)
-			.acceptLeeway(2)
 			.build()
 	}
 
-	override suspend fun register(registerDto: RegisterDto): TokenPairDto {
-		require(validatePassword(registerDto.password, registerDto.confirmPassword))
-		val existing = userService.getByEmail(registerDto.email)
-		require(existing == null)
-		val user = User.createNew(
-			email = registerDto.email,
-			username = registerDto.username,
-			isEmailVerified = false
-		)
-		val userJoined = userService.create(user)
-		if (userJoined != null) {
-			val authCredential = AuthCredential.createNew(
-				userId = userJoined.id,
+	override suspend fun register(dto: RegisterDto): TokenPairDto {
+		require(validatePassword(dto.password, dto.confirmPassword))
+		require(userService.getByEmail(dto.email) == null)
+		val user = userService.create(
+			User.createNew(dto.email, dto.username, false)
+		) ?: error("User creation failed")
+
+		authCredentialService.create(
+			AuthCredential.createNew(
+				userId = user.id,
 				type = AuthCredentialType.BASIC,
-				passwordHash = hashTextBCrypt(registerDto.password)
+				passwordHash = hashTextBCrypt(dto.password)
 			)
+		)
 
-			authCredentialService.create(authCredential)
-			return createTokens(userJoined.id, userJoined.email)
-		}
-
-		return TokenPairDto("", "")
+		return createTokenPair(user.id, user.email)
 	}
 
-	override suspend fun login(loginDto: LoginDto): TokenPairDto {
-		val userJoined = userService.getByEmail(loginDto.email)
-		if (userJoined != null) {
-			val authCredential =
-				authCredentialService.getByUserIdAndType(userJoined.id, AuthCredentialType.BASIC)
+	override suspend fun login(dto: LoginDto): TokenPairDto {
+		val user = userService.getByEmail(dto.email)
+			?: error("Invalid credentials")
+		val cred = authCredentialService
+			.getByUserIdAndType(user.id, AuthCredentialType.BASIC)
+			?: error("Invalid credentials")
 
-			if (authCredential != null && verifyTextBCrypt(loginDto.password, authCredential.passwordHash)) {
-				return createTokens(userJoined.id, userJoined.email)
-			}
-		}
+		require(verifyTextBCrypt(dto.password, cred.passwordHash))
 
-		return TokenPairDto("", "")
+		return createTokenPair(user.id, user.email)
 	}
 
-	//todo revoke != rotate
 	override suspend fun logout(userId: UUID): Boolean {
 		return refreshTokenService.revokeAllByUserId(userId, null)
+	}
 
+	override suspend fun createTokenPair(
+		userId: UUID,
+		email: String
+	): TokenPairDto {
+		val now = Instant.now()
+		val access = generateAccessToken(userId, email, now)
+		val refresh = generateAndStoreRefreshToken(userId, email, now)
+
+		return TokenPairDto(access, refresh)
 	}
 
 	override suspend fun generateAccessToken(
 		id: UUID,
 		email: String,
-		now: Instant,
-		exp: Instant
+		now: Instant
 	): String {
 		return JWT.create()
 			.withIssuer(jwtConfig.iss)
 			.withAudience(jwtConfig.aud)
 			.withSubject(id.toString())
 			.withIssuedAt(now)
-			.withExpiresAt(exp)
+			.withExpiresAt(now.plus(jwtConfig.accessTtl))
+			.withJWTId(UUID.randomUUID().toString())
 			.withClaim("typ", TokenType.ACCESS.name)
 			.withClaim("email", email)
-			.withJWTId(UUID.randomUUID().toString())
 			.sign(jwtConfig.algAccess)
 	}
 
-	override suspend fun generateRefreshToken(
-		id: UUID,
+	override suspend fun generateAndStoreRefreshToken(
+		userId: UUID,
 		email: String,
-		now: Instant,
-		exp: Instant
+		now: Instant
 	): String {
-		return JWT.create()
+		val refreshId = UUID.randomUUID()
+		val expires = now.plus(jwtConfig.refreshTtl)
+		val jwt = JWT.create()
 			.withIssuer(jwtConfig.iss)
 			.withAudience(jwtConfig.aud)
-			.withSubject(id.toString())
+			.withSubject(userId.toString())
 			.withIssuedAt(now)
-			.withExpiresAt(exp)
+			.withExpiresAt(expires)
+			.withJWTId(refreshId.toString())
 			.withClaim("typ", TokenType.REFRESH.name)
 			.withClaim("email", email)
-			.withJWTId(UUID.randomUUID().toString())
 			.sign(jwtConfig.algRefresh)
-	}
 
-	override suspend fun createTokens(id: UUID, email: String): TokenPairDto {
-		val now = Instant.now()
-		val expAccess = now.plus(jwtConfig.accessTtl)
-		val expRefresh = now.plus(jwtConfig.refreshTtl)
-		val access = generateAccessToken(id, email, now, expAccess)
-		val refresh = generateRefreshToken(id, email, now, expRefresh)
-		val refreshHash = hashTextSHA512(refresh)
-		val refreshToken = RefreshToken.createNew(
-			replacedBy = null,
-			userId = id,
-			tokenHash = refreshHash,
-			issuedAt = now,
-			expiresAt = expRefresh,
-			revokedAt = null
-		)
-		refreshTokenService.create(refreshToken)
-
-		return TokenPairDto(access, refresh)
-	}
-
-	override suspend fun refresh(refreshDto: RefreshDto): TokenPairDto {
-		require(refreshDto.refresh.isNotBlank())
-
-		try {
-			val decoded = refreshVerifier().verify(refreshDto.refresh)
-			val tokenType = decoded.getClaim("typ").asString()
-			if (tokenType != TokenType.REFRESH.name) {
-				throw IllegalArgumentException("Not a refresh token")
-			}
-			val now = Instant.now()
-			val expiresAt = decoded.expiresAt.toInstant()
-			if (expiresAt.isBefore(now)) {
-				throw IllegalArgumentException("Refresh token expired")
-			}
-			val userId = UUID.fromString(decoded.subject)
-			val jit = UUID.fromString(decoded.getClaim("jit").asString())
-			val email = decoded.getClaim("email").asString()
-			val expRefresh = now.plus(jwtConfig.refreshTtl)
-			val refresh = generateRefreshToken(userId, email, now, expRefresh)
-			val refreshHash = hashTextSHA512(refresh)
-			val refreshToken = RefreshToken.createNew(
+		refreshTokenService.create(
+			RefreshToken.createNew(
 				replacedBy = null,
 				userId = userId,
-				tokenHash = refreshHash,
+				tokenHash = hashTextSHA512(jwt),
 				issuedAt = now,
-				expiresAt = expRefresh,
+				expiresAt = expires,
 				revokedAt = null
-			)
-			val createdRefreshToken = refreshTokenService.create(refreshToken)
-			if (createdRefreshToken != null) {
-				refreshTokenService.revokeById(jit, createdRefreshToken.id)
-				return createTokens(userId, email)
-			}
-			return TokenPairDto("", "")
-		}
-		catch (_: Exception) {
-			return TokenPairDto("", "")
-		}
+			).copy(id = refreshId)
+		)
+
+		return jwt
 	}
 
-	override suspend fun validatePassword(password: String, confirmPassword: String): Boolean {
-		val longerThanEight = password.length >= 8
-		val hasUppercase = password.any { it.isUpperCase() }
-		val hasLowercase = password.any { it.isLowerCase() }
-		val hasDigit = password.any { it.isDigit() }
-		val match = password == confirmPassword
-		return longerThanEight && hasUppercase && hasLowercase && hasDigit && match
+	override suspend fun refresh(dto: RefreshDto): TokenPairDto {
+		val now = Instant.now()
+		require(dto.refresh.isNotBlank()) { "Refresh token cannot be blank" }
+		val decoded = refreshVerifier().verify(dto.refresh)
+		val tokenType = decoded.getClaim("typ").asString()
+		require(tokenType == TokenType.REFRESH.name) { "Not a refresh token" }
+		val refreshId = UUID.fromString(decoded.id)
+		val userId = UUID.fromString(decoded.subject)
+		val email = decoded.getClaim("email").asString()
+		val stored = refreshTokenService.getById(refreshId)
+			?: error("Refresh token not found")
+
+		refreshTokenService.checkReuseAndRevoke(stored.toRaw())
+
+		require(stored.isActive()) { "Refresh token is revoked or expired" }
+		require(stored.tokenHash == hashTextSHA512(dto.refresh)) { "Refresh token mismatch" }
+		val newRefreshId = UUID.randomUUID()
+		val newExpires = now.plus(jwtConfig.refreshTtl)
+		val newRefreshTokenJwt = JWT.create()
+			.withIssuer(jwtConfig.iss)
+			.withAudience(jwtConfig.aud)
+			.withSubject(userId.toString())
+			.withIssuedAt(now)
+			.withExpiresAt(newExpires)
+			.withJWTId(newRefreshId.toString())
+			.withClaim("typ", TokenType.REFRESH.name)
+			.withClaim("email", email)
+			.sign(jwtConfig.algRefresh)
+		val newRefreshToken = RefreshToken.createNew(
+			replacedBy = null,
+			userId = userId,
+			tokenHash = hashTextSHA512(newRefreshTokenJwt),
+			issuedAt = now,
+			expiresAt = newExpires,
+			revokedAt = null
+		).copy(id = newRefreshId)
+
+		refreshTokenService.create(newRefreshToken)
+
+		refreshTokenService.revokeById(refreshId, newRefreshId)
+		val accessToken = generateAccessToken(userId, email, now)
+
+		return TokenPairDto(accessToken, newRefreshTokenJwt)
+	}
+
+	override suspend fun validatePassword(
+		p: String,
+		c: String
+	): Boolean {
+		val validLength = p.length >= 8
+		val hasUpper = p.any(Char::isUpperCase)
+		val hasLower = p.any(Char::isLowerCase)
+		val hasDigit = p.any(Char::isDigit)
+		val matches = p == c
+
+		return validLength && hasUpper && hasLower && hasDigit && matches
 	}
 
 	override suspend fun hashTextBCrypt(text: String): String {
-		require(text.isNotBlank()) { "Text must not be blank" }
-		return BCrypt.withDefaults().hashToString(12, text.toCharArray())
+		return BCrypt.withDefaults()
+			.hashToString(12, text.toCharArray())
 	}
 
-	override suspend fun verifyTextBCrypt(text: String, hash: String): Boolean {
-		require(text.isNotBlank()) { "Text must not be blank" }
-		require(hash.isNotBlank()) { "Hash must not be blank" }
-		val result = BCrypt.verifyer().verify(text.toCharArray(), hash)
-		return result.verified
+	override suspend fun verifyTextBCrypt(
+		text: String,
+		hash: String
+	): Boolean {
+		return BCrypt.verifyer()
+			.verify(text.toCharArray(), hash)
+			.verified
 	}
 
 	override suspend fun hashTextSHA512(text: String): String {
-		val md = MessageDigest.getInstance("SHA-512")
-		val bytes = md.digest(text.toByteArray())
-		return bytes.joinToString("") { "%02x".format(it) }
+		val digest = MessageDigest.getInstance("SHA-512")
+			.digest(text.toByteArray())
+
+		return digest.joinToString("") { "%02x".format(it) }
 	}
 }

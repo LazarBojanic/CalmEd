@@ -14,4 +14,5 @@ interface IRefreshTokenService {
 	suspend fun create(refreshToken: RefreshToken): RefreshTokenJoined?
 	suspend fun update(refreshToken: RefreshToken): RefreshTokenJoined?
 	suspend fun delete(id: UUID): Boolean
+	suspend fun checkReuseAndRevoke(refreshToken: RefreshToken)
 }
