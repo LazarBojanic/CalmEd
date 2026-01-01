@@ -3,6 +3,7 @@ package com.calmed.calmedbackend.model
 import com.calmed.calmedbackend.model.dto.response.MessageDto
 import com.calmed.calmedbackend.model.joined.AuthCredentialJoined
 import com.calmed.calmedbackend.model.joined.MessageJoined
+import com.calmed.calmedbackend.model.joined.RefreshTokenJoined
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialEntity
@@ -24,11 +25,9 @@ fun MessageEntity.toRaw(): Message = Message(
 	updatedAt = this.updatedAt
 )
 
-fun MessageEntity.setFrom(d: Message, mode: MapMode) {
+fun MessageEntity.setFrom(d: Message, mapMode: MapMode) {
 	text = d.text
-	createdAt = d.createdAt
-	updatedAt = d.updatedAt
-	when (mode) {
+	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
 			updatedAt = d.updatedAt
@@ -58,7 +57,7 @@ fun MessageJoined.toDto(): MessageDto {
 	)
 }
 
-fun UserEntity.toRaw() : User {
+fun UserEntity.toRaw(): User {
 	return User(
 		id = this.id.value,
 		email = this.email,
@@ -69,7 +68,7 @@ fun UserEntity.toRaw() : User {
 	)
 }
 
-fun AuthCredentialEntity.toRaw() : AuthCredential {
+fun AuthCredentialEntity.toRaw(): AuthCredential {
 	return AuthCredential(
 		id = this.id.value,
 		userId = this.userId,
@@ -80,7 +79,7 @@ fun AuthCredentialEntity.toRaw() : AuthCredential {
 	)
 }
 
-fun RefreshTokenEntity.toRaw() : RefreshToken {
+fun RefreshTokenEntity.toRaw(): RefreshToken {
 	return RefreshToken(
 		id = this.id.value,
 		userId = this.userId,
@@ -93,7 +92,7 @@ fun RefreshTokenEntity.toRaw() : RefreshToken {
 	)
 }
 
-fun User.join() : UserJoined {
+fun User.join(): UserJoined {
 	return UserJoined(
 		id = this.id,
 		email = this.email,
@@ -104,10 +103,77 @@ fun User.join() : UserJoined {
 	)
 }
 
-fun AuthCredential.join(user: User): AuthCredentialJoined{
+fun AuthCredential.join(userJoined: UserJoined): AuthCredentialJoined {
 	return AuthCredentialJoined(
 		id = this.id,
-		userId = user.id,
-
+		userJoined = userJoined,
+		type = this.type,
+		passwordHash = this.passwordHash,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
 	)
+}
+
+fun RefreshToken.join(userJoined: UserJoined): RefreshTokenJoined {
+	return RefreshTokenJoined(
+		id = this.id,
+		userJoined = userJoined,
+		tokenHash = this.tokenHash,
+		issuedAt = this.issuedAt,
+		expiresAt = this.expiresAt,
+		revokedAt = this.revokedAt,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun UserEntity.setFrom(d: User, mapMode: MapMode) {
+	email = d.email
+	username = d.username
+	isEmailVerified = d.isEmailVerified
+	when (mapMode) {
+		MapMode.CREATE -> {
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
+		}
+
+		MapMode.UPDATE -> {
+			updatedAt = d.updatedAt
+		}
+	}
+}
+
+fun AuthCredentialEntity.setFrom(d: AuthCredential, mapMode: MapMode) {
+	userId = d.userId
+	type = d.type
+	passwordHash = d.passwordHash
+	when (mapMode) {
+		MapMode.CREATE -> {
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
+		}
+
+		MapMode.UPDATE -> {
+			updatedAt = d.updatedAt
+		}
+	}
+}
+
+fun RefreshTokenEntity.setFrom(d: RefreshToken, mapMode: MapMode) {
+	userId = d.userId
+	tokenHash = d.tokenHash
+	issuedAt = d.issuedAt
+	expiresAt = d.expiresAt
+	revokedAt = d.revokedAt
+	when (mapMode) {
+		MapMode.CREATE -> {
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
+		}
+
+		MapMode.UPDATE -> {
+			updatedAt = d.updatedAt
+		}
+	}
+
 }

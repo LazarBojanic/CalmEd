@@ -1,10 +1,14 @@
 package com.calmed.calmedbackend.repository.implementation
 
 import com.calmed.calmedbackend.database.dbQuery
+import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
 import com.calmed.calmedbackend.model.raw.user.UserTable
+import com.calmed.calmedbackend.model.setFrom
+import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.repository.specification.IUserRepository
+import org.jetbrains.exposed.v1.core.eq
 import java.util.UUID
 
 class UserRepository : IUserRepository {
@@ -15,22 +19,39 @@ class UserRepository : IUserRepository {
 	}
 
 	override suspend fun findById(id: UUID): User? {
-		TODO("Not yet implemented")
+		return dbQuery { UserEntity.findById(id)?.toRaw() }
 	}
 
 	override suspend fun findByEmail(email: String): User? {
-		TODO("Not yet implemented")
+		return dbQuery {
+			UserEntity
+				.find { UserTable.email eq email }
+				.firstOrNull()
+				?.toRaw()
+		}
+
 	}
 
 	override suspend fun create(user: User): User? {
-		TODO("Not yet implemented")
+		return dbQuery {
+			UserEntity.new(user.id) {
+				setFrom(user, MapMode.CREATE)
+			}.toRaw()
+		}
 	}
 
 	override suspend fun update(user: User): User? {
-		TODO("Not yet implemented")
+		return dbQuery {
+			val e = UserEntity.findById(user.id) ?: return@dbQuery null
+			e.setFrom(user, MapMode.UPDATE)
+			e.toRaw()
+		}
 	}
 
 	override suspend fun delete(id: UUID): Boolean {
-		TODO("Not yet implemented")
+		return dbQuery {
+			val e = UserEntity.findById(id) ?: return@dbQuery false
+			e.delete(); true
+		}
 	}
 }

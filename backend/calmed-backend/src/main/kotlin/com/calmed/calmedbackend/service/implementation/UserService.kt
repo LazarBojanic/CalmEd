@@ -1,32 +1,41 @@
 package com.calmed.calmedbackend.service.implementation
 
+import com.calmed.calmedbackend.model.join
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.raw.user.User
+import com.calmed.calmedbackend.repository.specification.IUserRepository
 import com.calmed.calmedbackend.service.specification.IUserService
 import java.util.UUID
 
-class UserService : IUserService {
+class UserService(
+	private val userRepository: IUserRepository
+) : IUserService {
+
 	override suspend fun getAll(): List<UserJoined> {
-		TODO("Not yet implemented")
+		return userRepository.findAll().map { it.join() }
 	}
 
 	override suspend fun getById(id: UUID): UserJoined? {
-		TODO("Not yet implemented")
+		val user = userRepository.findById(id) ?: return null
+		return user.join()
 	}
 
 	override suspend fun getByEmail(email: String): UserJoined? {
-		TODO("Not yet implemented")
+		val user = userRepository.findByEmail(email) ?: return null
+		return user.join()
 	}
 
 	override suspend fun create(user: User): UserJoined? {
-		TODO("Not yet implemented")
+		val created = userRepository.create(user) ?: return null
+		return created.join()
 	}
 
 	override suspend fun update(user: User): UserJoined? {
-		TODO("Not yet implemented")
+		val updated = userRepository.update(user) ?: return null
+		return updated.join()
 	}
 
 	override suspend fun delete(id: UUID): Boolean {
-		TODO("Not yet implemented")
+		return userRepository.delete(id)
 	}
 }

@@ -1,28 +1,71 @@
 package com.calmed.calmedbackend.service.implementation
 
+import com.calmed.calmedbackend.model.join
 import com.calmed.calmedbackend.model.joined.RefreshTokenJoined
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
+import com.calmed.calmedbackend.repository.specification.IRefreshTokenRepository
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
+import com.calmed.calmedbackend.service.specification.IUserService
+import java.time.Instant
 import java.util.UUID
 
-class RefreshTokenService : IRefreshTokenService {
+class RefreshTokenService(
+	private val refreshTokenRepository: IRefreshTokenRepository,
+	private val userService: IUserService
+) : IRefreshTokenService {
 	override suspend fun getAll(): List<RefreshTokenJoined> {
-		TODO("Not yet implemented")
+		val result = mutableListOf<RefreshTokenJoined>()
+		for (token in refreshTokenRepository.findAll()) {
+			val user = userService.getById(token.userId) ?: continue
+			result.add(token.join(user))
+		}
+		return result
 	}
 
 	override suspend fun getById(id: UUID): RefreshTokenJoined? {
-		TODO("Not yet implemented")
+		val token = refreshTokenRepository.findById(id) ?: return null
+		val user = userService.getById(token.userId) ?: return null
+		return token.join(user)
+	}
+
+	override suspend fun revokeAllByUserId(userId: UUID): Boolean {
+		try{
+			val now = Instant.now()
+			val token = refreshTokenRepository.findAllByUserId(userId)
+			for(token in token) {
+				val updated = token.copy(revokedAt = now)
+				refreshTokenRepository.update(updated)
+			}
+			return true
+		}
+		catch(e: Exception){
+			return false
+		}
+	}
+
+	override suspend fun getByTokenHash(tokenHash: String): RefreshTokenJoined? {
+		for (token in refreshTokenRepository.findAll()) {
+			if (token.tokenHash == tokenHash) {
+				val user = userService.getById(token.userId) ?: return null
+				return token.join(user)
+			}
+		}
+		return null
 	}
 
 	override suspend fun create(refreshToken: RefreshToken): RefreshTokenJoined? {
-		TODO("Not yet implemented")
+		val created = refreshTokenRepository.create(refreshToken) ?: return null
+		val user = userService.getById(created.userId) ?: return null
+		return created.join(user)
 	}
 
 	override suspend fun update(refreshToken: RefreshToken): RefreshTokenJoined? {
-		TODO("Not yet implemented")
+		val updated = refreshTokenRepository.update(refreshToken) ?: return null
+		val user = userService.getById(updated.userId) ?: return null
+		return updated.join(user)
 	}
 
 	override suspend fun delete(id: UUID): Boolean {
-		TODO("Not yet implemented")
+		return refreshTokenRepository.delete(id)
 	}
 }

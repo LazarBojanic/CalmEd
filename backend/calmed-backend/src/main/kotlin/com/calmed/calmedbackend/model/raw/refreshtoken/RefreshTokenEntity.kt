@@ -9,10 +9,10 @@ import java.util.UUID
 class RefreshTokenEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	companion object : UUIDEntityClass<RefreshTokenEntity>(RefreshTokenTable)
 	var userId by RefreshTokenTable.userId
-	val tokenHash by RefreshTokenTable.tokenHash
-	val issuedAt by RefreshTokenTable.issuedAt
-	val expiresAt by RefreshTokenTable.expiresAt
-	val revokedAt by RefreshTokenTable.revokedAt
-	val createdAt by RefreshTokenTable.createdAt
-	val updatedAt by RefreshTokenTable.updatedAt
+	var tokenHash by RefreshTokenTable.tokenHash
+	var issuedAt by RefreshTokenTable.issuedAt
+	var expiresAt by RefreshTokenTable.expiresAt
+	var revokedAt by RefreshTokenTable.revokedAt
+	var createdAt by RefreshTokenTable.createdAt
+	var updatedAt by RefreshTokenTable.updatedAt
 }

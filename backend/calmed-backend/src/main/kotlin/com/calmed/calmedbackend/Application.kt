@@ -4,8 +4,11 @@ import com.calmed.calmedbackend.auth.configureSecurity
 import com.calmed.calmedbackend.database.configureDatabase
 import com.calmed.calmedbackend.di.configureFrameworks
 import com.calmed.calmedbackend.http.configureHTTP
+import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialTable
 import com.calmed.calmedbackend.model.raw.message.Message
 import com.calmed.calmedbackend.model.raw.message.MessageTable
+import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenTable
+import com.calmed.calmedbackend.model.raw.user.UserTable
 import com.calmed.calmedbackend.routing.configureRouting
 import com.calmed.calmedbackend.service.specification.IMessageService
 import com.calmed.calmedbackend.util.configureMonitoring
@@ -25,15 +28,18 @@ fun main(args: Array<String>) {
 }
 
 suspend fun Application.module() {
+	configureFrameworks()
 	configureHTTP()
 	configureSecurity()
 	configureSerialization()
 	configureMonitoring()
 	configureDatabase()
-	configureFrameworks()
 	configureRouting()
 
 	val allTables = arrayOf(
+		UserTable,
+		AuthCredentialTable,
+		RefreshTokenTable,
 		MessageTable
 	)
 	transaction{

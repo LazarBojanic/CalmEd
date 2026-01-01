@@ -11,7 +11,7 @@ import java.util.UUID
 data class AuthCredentialJoined(
 	@Serializable(with = UUIDSerializer::class)
 	val id: UUID,
-	val user: UserJoined,
+	val userJoined: UserJoined,
 	val type: AuthCredentialType,
 	val passwordHash: String,
 	@Serializable(with = InstantSerializer::class)
