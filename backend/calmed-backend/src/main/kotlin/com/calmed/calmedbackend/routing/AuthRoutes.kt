@@ -3,6 +3,7 @@ package com.calmed.calmedbackend.routing
 import com.calmed.calmedbackend.model.dto.request.LoginDto
 import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
+import com.calmed.calmedbackend.model.dto.response.ErrorDto
 import com.calmed.calmedbackend.model.toDto
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IMessageService
@@ -22,33 +23,100 @@ import kotlin.getValue
 
 fun Route.authRoutes() {
 	val authService by inject<IAuthService>()
+
 	route("/auth/register") {
 		post {
-			val registerDto = call.receive<RegisterDto>()
-			val tokenPairDto = authService.register(registerDto)
-			call.respond(HttpStatusCode.OK, tokenPairDto)
+			try {
+				val registerDto = call.receive<RegisterDto>()
+				val tokenPairDto = authService.register(registerDto)
+				call.respond(HttpStatusCode.OK, tokenPairDto)
+			}
+			catch (e: IllegalArgumentException) {
+				call.respond(
+					HttpStatusCode.BadRequest,
+					ErrorDto("Bad Request")
+				)
+			}
+			catch (e: IllegalStateException) {
+				call.respond(
+					HttpStatusCode.InternalServerError,
+					ErrorDto("Internal Server Error")
+				)
+			}
 		}
 	}
+
 	route("/auth/login") {
 		post {
-			val loginDto = call.receive<LoginDto>()
-			val tokenPairDto = authService.login(loginDto)
-			call.respond(HttpStatusCode.OK, tokenPairDto)
+			try {
+				val loginDto = call.receive<LoginDto>()
+				val tokenPairDto = authService.login(loginDto)
+				call.respond(HttpStatusCode.OK, tokenPairDto)
+			}
+			catch (e: IllegalArgumentException) {
+				call.respond(
+					HttpStatusCode.Unauthorized,
+					ErrorDto(
+						error = "Unauthorized"
+					)
+				)
+			}
 		}
 	}
+
 	route("/auth/refresh") {
 		post {
-			val refreshDto = call.receive<RefreshDto>()
-			val tokenPairDto = authService.refresh(refreshDto)
-			call.respond(HttpStatusCode.OK, tokenPairDto)
+			try {
+				val refreshDto = call.receive<RefreshDto>()
+				val tokenPairDto = authService.refresh(refreshDto)
+				call.respond(HttpStatusCode.OK, tokenPairDto)
+			}
+			catch (e: IllegalArgumentException) {
+				call.respond(
+					HttpStatusCode.Unauthorized,
+					ErrorDto(
+						error = "Unauthorized"
+					)
+				)
+			}
+			catch (e: Exception) {
+				call.respond(
+					HttpStatusCode.InternalServerError,
+					ErrorDto(
+						error = "Internal Server Error"
+					)
+				)
+			}
 		}
 	}
+
 	authenticate("auth-jwt") {
 		post("/auth/logout") {
-			val principal = call.principal<JWTPrincipal>()!!
-			val userId = UUID.fromString(principal.subject!!)
-			authService.logout(userId)
-			call.respond(HttpStatusCode.OK)
+			try {
+				val principal = call.principal<JWTPrincipal>()!!
+				val userId = UUID.fromString(principal.subject!!)
+				val success = authService.logout(userId)
+
+				if (success) {
+					call.respond(HttpStatusCode.OK)
+				}
+				else {
+					call.respond(
+						HttpStatusCode.InternalServerError,
+						ErrorDto(
+							error = "Internal Server Error"
+						)
+					)
+				}
+			}
+			catch (e: Exception) {
+				call.respond(
+					HttpStatusCode.BadRequest,
+					ErrorDto(
+						error = "Bad Request"
+					)
+				)
+			}
 		}
 	}
 }

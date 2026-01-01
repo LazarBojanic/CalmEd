@@ -28,6 +28,16 @@ class RefreshTokenService(
 		return token.join(user)
 	}
 
+	override suspend fun getAllByUserId(userId: UUID): List<RefreshTokenJoined> {
+		val result = mutableListOf<RefreshTokenJoined>()
+		val existing = refreshTokenRepository.findAllByUserId(userId)
+		for (token in existing) {
+			val user = userService.getById(token.userId) ?: continue
+			result.add(token.join(user))
+		}
+		return result
+	}
+
 	override suspend fun revokeAllByUserId(userId: UUID): Boolean {
 		try{
 			val now = Instant.now()
@@ -44,11 +54,19 @@ class RefreshTokenService(
 	}
 
 	override suspend fun getByTokenHash(tokenHash: String): RefreshTokenJoined? {
-		for (token in refreshTokenRepository.findAll()) {
-			if (token.tokenHash == tokenHash) {
-				val user = userService.getById(token.userId) ?: return null
-				return token.join(user)
-			}
+		val existing = refreshTokenRepository.findByTokenHash(tokenHash)
+		if(existing != null){
+			val user = userService.getById(existing.userId) ?: return null
+			return existing.join(user)
+		}
+		return null
+	}
+
+	override suspend fun revokeByTokenHash(tokenHash: String): RefreshTokenJoined? {
+		val existing = refreshTokenRepository.findByTokenHash(tokenHash)
+		if(existing != null){
+			val updated = existing.copy(revokedAt = Instant.now())
+			return update(updated)
 		}
 		return null
 	}

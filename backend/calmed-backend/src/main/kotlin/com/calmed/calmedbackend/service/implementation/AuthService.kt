@@ -20,8 +20,6 @@ import com.calmed.calmedbackend.service.specification.IRefreshTokenService
 import com.calmed.calmedbackend.service.specification.IUserService
 import java.security.MessageDigest
 import java.time.Instant
-import java.util.Locale
-import java.util.Locale.getDefault
 import java.util.UUID
 
 class AuthService(
@@ -30,8 +28,16 @@ class AuthService(
 	private val refreshTokenService: IRefreshTokenService,
 	private val jwtConfig: JwtConfig
 ) : IAuthService {
-	override fun verifier(): JWTVerifier {
-		return JWT.require(jwtConfig.alg)
+	override fun accessVerifier(): JWTVerifier {
+		return JWT.require(jwtConfig.algAccess)
+			.withIssuer(jwtConfig.iss)
+			.withAudience(jwtConfig.aud)
+			.acceptLeeway(2)
+			.build()
+	}
+
+	override fun refreshVerifier(): JWTVerifier {
+		return JWT.require(jwtConfig.algRefresh)
 			.withIssuer(jwtConfig.iss)
 			.withAudience(jwtConfig.aud)
 			.acceptLeeway(2)
@@ -39,10 +45,10 @@ class AuthService(
 	}
 
 	override suspend fun register(registerDto: RegisterDto): TokenPairDto {
-		require(registerDto.password == registerDto.confirmPassword)
+		require(validatePassword(registerDto.password, registerDto.confirmPassword))
 		val existing = userService.getByEmail(registerDto.email)
 		require(existing == null)
-		val user: User = User.createNew(
+		val user = User.createNew(
 			email = registerDto.email,
 			username = registerDto.username,
 			isEmailVerified = false
@@ -54,25 +60,25 @@ class AuthService(
 				type = AuthCredentialType.BASIC,
 				passwordHash = hashTextBCrypt(registerDto.password)
 			)
-			val authCredentialJoined = authCredentialService.create(authCredential)
-			if (authCredentialJoined != null) {
-				return createTokens(userJoined.id, userJoined.email)
-			}
+
+			authCredentialService.create(authCredential)
+			return createTokens(userJoined.id, userJoined.email)
 		}
+
 		return TokenPairDto("", "")
 	}
 
 	override suspend fun login(loginDto: LoginDto): TokenPairDto {
 		val userJoined = userService.getByEmail(loginDto.email)
 		if (userJoined != null) {
-			val authCredential = authCredentialService.getByUserIdAndType(userJoined.id, AuthCredentialType.BASIC)
-			if (authCredential != null) {
-				val passwordVerified = verifyTextBCrypt(loginDto.password, authCredential.passwordHash)
-				if (passwordVerified) {
-					return createTokens(userJoined.id, userJoined.email)
-				}
+			val authCredential =
+				authCredentialService.getByUserIdAndType(userJoined.id, AuthCredentialType.BASIC)
+
+			if (authCredential != null && verifyTextBCrypt(loginDto.password, authCredential.passwordHash)) {
+				return createTokens(userJoined.id, userJoined.email)
 			}
 		}
+
 		return TokenPairDto("", "")
 	}
 
@@ -80,30 +86,9 @@ class AuthService(
 		return refreshTokenService.revokeAllByUserId(userId)
 	}
 
-	override suspend fun hash256(text: String): String {
-		return MessageDigest.getInstance("SHA-256")
-			.digest(text.toByteArray())
-			.joinToString("") { "%02x".format(it) }
-	}
-
-	override suspend fun hashTextBCrypt(text: String): String {
-		require(text.isNotBlank()) { "Text must not be blank" }
-		return BCrypt
-			.withDefaults()
-			.hashToString(12, text.toCharArray())
-	}
-
-	override suspend fun verifyTextBCrypt(text: String, hash: String): Boolean {
-		require(text.isNotBlank()) { "Text must not be blank" }
-		require(hash.isNotBlank()) { "Hash must not be blank" }
-		val result = BCrypt.verifyer().verify(text.toCharArray(), hash)
-		return result.verified
-	}
-
-	override suspend fun generateToken(
+	override suspend fun generateAccessToken(
 		id: UUID,
 		email: String,
-		tokenType: TokenType,
 		now: Instant,
 		exp: Instant
 	): String {
@@ -113,62 +98,99 @@ class AuthService(
 			.withSubject(id.toString())
 			.withIssuedAt(now)
 			.withExpiresAt(exp)
-			.withClaim("typ", tokenType.name)
+			.withClaim("typ", TokenType.ACCESS.name)
 			.withClaim("email", email)
-			.sign(Algorithm.HMAC256(jwtConfig.secret))
+			.withJWTId(UUID.randomUUID().toString())
+			.sign(jwtConfig.algAccess)
+	}
+
+	override suspend fun generateRefreshToken(
+		id: UUID,
+		email: String,
+		now: Instant,
+		exp: Instant
+	): String {
+		return JWT.create()
+			.withIssuer(jwtConfig.iss)
+			.withAudience(jwtConfig.aud)
+			.withSubject(id.toString())
+			.withIssuedAt(now)
+			.withExpiresAt(exp)
+			.withClaim("typ", TokenType.REFRESH.name)
+			.withClaim("email", email)
+			.withJWTId(UUID.randomUUID().toString())
+			.sign(jwtConfig.algRefresh)
 	}
 
 	override suspend fun createTokens(id: UUID, email: String): TokenPairDto {
 		val now = Instant.now()
 		val expAccess = now.plus(jwtConfig.accessTtl)
 		val expRefresh = now.plus(jwtConfig.refreshTtl)
-		val access = generateToken(id, email, TokenType.ACCESS, now, expAccess)
-		val refresh = generateToken(id, email, TokenType.REFRESH, now, expRefresh)
-		val refreshHash = hash256(refresh)
+		val access = generateAccessToken(id, email, now, expAccess)
+		val refresh = generateRefreshToken(id, email, now, expRefresh)
+		val refreshHash = hashTextSHA512(refresh)
 		val refreshToken = RefreshToken.createNew(
 			userId = id,
 			tokenHash = refreshHash,
 			issuedAt = now,
 			expiresAt = expRefresh,
-			revokedAt = null,
-			createdAt = now,
-			updatedAt = now
+			revokedAt = null
 		)
-		val refreshTokenJoined = refreshTokenService.create(refreshToken)
-		if (refreshTokenJoined != null) {
-			return TokenPairDto(access, refresh)
-		}
-		return TokenPairDto("", "")
+		refreshTokenService.create(refreshToken)
+
+		return TokenPairDto(access, refresh)
 	}
 
 	override suspend fun refresh(refreshDto: RefreshDto): TokenPairDto {
-		require(refreshDto.refresh.isNotBlank()) { "Refresh token required" }
+		require(refreshDto.refresh.isNotBlank())
+
 		try {
-			val decoded = verifier().verify(refreshDto.refresh)
+			val decoded = refreshVerifier().verify(refreshDto.refresh)
 			val tokenType = decoded.getClaim("typ").asString()
 			if (tokenType != TokenType.REFRESH.name) {
-				return TokenPairDto("", "")
+				throw IllegalArgumentException("Not a refresh token")
 			}
-			val expiresAt = decoded.expiresAt.toInstant()
 			val now = Instant.now()
+			val expiresAt = decoded.expiresAt.toInstant()
 			if (expiresAt.isBefore(now)) {
-				return TokenPairDto("", "")
+				throw IllegalArgumentException("Refresh token expired")
 			}
 			val userId = UUID.fromString(decoded.subject)
 			val email = decoded.getClaim("email").asString()
-			val refreshHash = hash256(refreshDto.refresh)
-			val storedToken = refreshTokenService.getByTokenHash(refreshHash)
-			//TODO fix - revoke only those that have expired
-			if(storedToken != null) {
-				if(storedToken.revokedAt == null && storedToken.expiresAt.isBefore(now)){
-					refreshTokenService.revokeAllByUserId(userId)
-				}
-			}
-
+			val stored = refreshTokenService.getByTokenHash(hashTextSHA512(refreshDto.refresh))
+				?: throw IllegalArgumentException("Refresh token not found or revoked")
+			refreshTokenService.revokeByTokenHash(hashTextSHA512(refreshDto.refresh))
 			return createTokens(userId, email)
 		}
 		catch (e: Exception) {
 			return TokenPairDto("", "")
 		}
+	}
+
+	override suspend fun validatePassword(password: String, confirmPassword: String): Boolean {
+		val longerThanEight = password.length >= 8
+		val hasUppercase = password.any { it.isUpperCase() }
+		val hasLowercase = password.any { it.isLowerCase() }
+		val hasDigit = password.any { it.isDigit() }
+		val match = password == confirmPassword
+		return longerThanEight && hasUppercase && hasLowercase && hasDigit && match
+	}
+
+	override suspend fun hashTextBCrypt(text: String): String {
+		require(text.isNotBlank()) { "Text must not be blank" }
+		return BCrypt.withDefaults().hashToString(12, text.toCharArray())
+	}
+
+	override suspend fun verifyTextBCrypt(text: String, hash: String): Boolean {
+		require(text.isNotBlank()) { "Text must not be blank" }
+		require(hash.isNotBlank()) { "Hash must not be blank" }
+		val result = BCrypt.verifyer().verify(text.toCharArray(), hash)
+		return result.verified
+	}
+
+	override suspend fun hashTextSHA512(text: String): String {
+		val md = MessageDigest.getInstance("SHA-512")
+		val bytes = md.digest(text.toByteArray())
+		return bytes.joinToString("") { "%02x".format(it) }
 	}
 }

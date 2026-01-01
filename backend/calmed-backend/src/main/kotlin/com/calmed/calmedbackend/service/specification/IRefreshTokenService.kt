@@ -9,6 +9,8 @@ interface IRefreshTokenService {
 	suspend fun getAll(): List<RefreshTokenJoined>
 	suspend fun getById(id: UUID): RefreshTokenJoined?
 	suspend fun getByTokenHash(tokenHash: String): RefreshTokenJoined?
+	suspend fun getAllByUserId(userId: UUID): List<RefreshTokenJoined>
+	suspend fun revokeByTokenHash(tokenHash: String): RefreshTokenJoined?
 	suspend fun revokeAllByUserId(userId: UUID): Boolean
 	suspend fun create(refreshToken: RefreshToken): RefreshTokenJoined?
 	suspend fun update(refreshToken: RefreshToken): RefreshTokenJoined?

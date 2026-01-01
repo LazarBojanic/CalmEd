@@ -11,14 +11,17 @@ import java.time.Instant
 import java.util.UUID
 
 interface IAuthService {
-	fun verifier(): JWTVerifier
+	fun accessVerifier(): JWTVerifier
+	fun refreshVerifier(): JWTVerifier
 	suspend fun register(registerDto: RegisterDto): TokenPairDto
 	suspend fun login(loginDto: LoginDto): TokenPairDto
 	suspend fun logout(userId: UUID): Boolean
-	suspend fun hash256(text: String): String
-	suspend fun generateToken(id: UUID, email: String, tokenType: TokenType, now: Instant, exp: Instant): String
+	suspend fun generateAccessToken(id: UUID, email: String, now: Instant, exp: Instant): String
+	suspend fun generateRefreshToken(id: UUID, email: String, now: Instant, exp: Instant): String
 	suspend fun hashTextBCrypt(text: String): String
 	suspend fun verifyTextBCrypt(text: String, hash: String): Boolean
 	suspend fun createTokens(id: UUID, email: String): TokenPairDto
 	suspend fun refresh(refreshDto: RefreshDto): TokenPairDto
+	suspend fun validatePassword(password: String, confirmPassword: String): Boolean
+	suspend fun hashTextSHA512(text: String): String
 }

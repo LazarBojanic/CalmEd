@@ -20,14 +20,10 @@ import org.koin.ktor.ext.inject
 
 fun main(args: Array<String>) {
 	io.ktor.server.netty.EngineMain.main(args)
-
-
-
-
-
 }
 
 suspend fun Application.module() {
+	val dev: Boolean = environment.config.property("ktor.development").getString().toBoolean()
 	configureFrameworks()
 	configureHTTP()
 	configureSecurity()
@@ -42,6 +38,12 @@ suspend fun Application.module() {
 		RefreshTokenTable,
 		MessageTable
 	)
+	transaction {
+		if(dev){
+			exec("DROP SCHEMA IF EXISTS public CASCADE;")
+			exec("CREATE SCHEMA public;")
+		}
+	}
 	transaction{
 		SchemaUtils.createMissingTablesAndColumns(*allTables)
 	}

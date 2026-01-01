@@ -7,12 +7,14 @@ ktor:
         port: $KTOR_DEPLOYMENT_PORT:8080
     development: $KTOR_DEVELOPMENT:true
 jwt:
-    alg: $JWT_ALG:placeholder
+    alg_access: $JWT_ALG_ACCESS:placeholder
+    alg_refresh: $JWT_ALG_REFRESH:placeholder
     iss: $JWT_ISS:placeholder
     aud: $JWT_AUD:placeholder
     access_ttl: $JWT_ACCESS_TTL:placeholder
     refresh_ttl: $JWT_REFRESH_TTL:placeholder
-    secret: $JWT_SECRET:placeholder
+    access_secret: $JWT_ACCESS_SECRET:placeholder
+    refresh_secret: $JWT_REFRESH_SECRET:placeholder
 database:
     username: $DATABASE_USERNAME:postgres
     password: $DATABASE_PASSWORD:postgres
