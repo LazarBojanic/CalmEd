@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.service.implementation
 
+import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.join
 import com.calmed.calmedbackend.model.joined.RefreshTokenJoined
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
@@ -13,73 +14,137 @@ class RefreshTokenService(
 	private val refreshTokenRepository: IRefreshTokenRepository,
 	private val userService: IUserService
 ) : IRefreshTokenService {
-	override suspend fun getAll(): List<RefreshTokenJoined> {
+	override suspend fun getAll(): AppResult<List<RefreshTokenJoined>> {
 		val result = mutableListOf<RefreshTokenJoined>()
+
 		for (token in refreshTokenRepository.findAll()) {
-			val user = userService.getById(token.userId) ?: continue
-			result.add(token.join(user))
-		}
-		return result
-	}
+			val userResult = userService.getById(token.userId)
 
-	override suspend fun getById(id: UUID): RefreshTokenJoined? {
-		val token = refreshTokenRepository.findById(id) ?: return null
-		val user = userService.getById(token.userId) ?: return null
-		return token.join(user)
-	}
-
-	override suspend fun getAllByUserId(userId: UUID): List<RefreshTokenJoined> {
-		val result = mutableListOf<RefreshTokenJoined>()
-		val existing = refreshTokenRepository.findAllByUserId(userId)
-		for (token in existing) {
-			val user = userService.getById(token.userId) ?: continue
-			result.add(token.join(user))
-		}
-		return result
-	}
-
-	override suspend fun revokeById(id: UUID, replacedBy: UUID?): Boolean {
-		val existing = refreshTokenRepository.findById(id)
-		if(existing != null) {
-			update(existing.copy(revokedAt = Instant.now(), replacedBy = replacedBy))
-			return true
-		}
-		return false
-	}
-
-	override suspend fun revokeAllByUserId(userId: UUID, replacedBy: UUID?): Boolean {
-		try{
-			val now = Instant.now()
-			val existing = refreshTokenRepository.findAllByUserId(userId)
-			for(token in existing){
-				update(token.copy(revokedAt = now, replacedBy = replacedBy))
+			if (userResult is AppResult.Success) {
+				result.add(token.join(userResult.data))
 			}
-			return true
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
 		}
-		catch(e: Exception){
-			return false
+
+		return AppResult.Success(result)
+	}
+
+	override suspend fun getById(id: UUID): AppResult<RefreshTokenJoined> {
+		val token = refreshTokenRepository.findById(id)
+
+		if (token != null) {
+			val userResult = userService.getById(token.userId)
+
+			if (userResult is AppResult.Success) {
+				return AppResult.Success(token.join(userResult.data))
+			}
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
+		}
+		else {
+			return AppResult.Failure("Refresh token not found.")
 		}
 	}
 
-	override suspend fun create(refreshToken: RefreshToken): RefreshTokenJoined? {
-		val created = refreshTokenRepository.create(refreshToken) ?: return null
-		val user = userService.getById(created.userId) ?: return null
-		return created.join(user)
+	override suspend fun getAllByUserId(userId: UUID): AppResult<List<RefreshTokenJoined>> {
+		val result = mutableListOf<RefreshTokenJoined>()
+		val tokens = refreshTokenRepository.findAllByUserId(userId)
+
+		for (token in tokens) {
+			val userResult = userService.getById(token.userId)
+
+			if (userResult is AppResult.Success) {
+				result.add(token.join(userResult.data))
+			}
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
+		}
+
+		return AppResult.Success(result)
 	}
 
-	override suspend fun update(refreshToken: RefreshToken): RefreshTokenJoined? {
-		val updated = refreshTokenRepository.update(refreshToken) ?: return null
-		val user = userService.getById(updated.userId) ?: return null
-		return updated.join(user)
-	}
+	override suspend fun revokeById(id: UUID, replacedBy: UUID?): AppResult<Unit> {
+		val existing = refreshTokenRepository.findById(id)
 
-	override suspend fun delete(id: UUID): Boolean {
-		return refreshTokenRepository.delete(id)
-	}
-	override suspend fun checkReuseAndRevoke(refreshToken: RefreshToken) {
-		if (refreshToken.revokedAt != null && refreshToken.replacedBy != null) {
-			revokeAllByUserId(refreshToken.userId, null)
-			error("Refresh token reuse detected for user ${refreshToken.userId}")
+		if (existing != null) {
+			refreshTokenRepository.update(
+				existing.copy(
+					revokedAt = Instant.now(),
+					replacedBy = replacedBy
+				)
+			)
+			return AppResult.Success(Unit)
+		}
+		else {
+			return AppResult.Failure("Refresh token not found.")
 		}
 	}
+
+	override suspend fun revokeAllByUserId(userId: UUID, replacedBy: UUID?): AppResult<Unit> {
+		val now = Instant.now()
+		val tokens = refreshTokenRepository.findAllByUserId(userId)
+
+		for (token in tokens) {
+			refreshTokenRepository.update(
+				token.copy(
+					revokedAt = now,
+					replacedBy = replacedBy
+				)
+			)
+		}
+
+		return AppResult.Success(Unit)
+	}
+
+	override suspend fun create(refreshToken: RefreshToken): AppResult<RefreshTokenJoined> {
+		val created = refreshTokenRepository.create(refreshToken)
+
+		if (created != null) {
+			val userResult = userService.getById(created.userId)
+
+			if (userResult is AppResult.Success) {
+				return AppResult.Success(created.join(userResult.data))
+			}
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
+		}
+		else {
+			return AppResult.Failure("Failed to create refresh token.")
+		}
+	}
+
+	override suspend fun update(refreshToken: RefreshToken): AppResult<RefreshTokenJoined> {
+		val updated = refreshTokenRepository.update(refreshToken)
+
+		if (updated != null) {
+			val userResult = userService.getById(updated.userId)
+
+			if (userResult is AppResult.Success) {
+				return AppResult.Success(updated.join(userResult.data))
+			}
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
+		}
+		else {
+			return AppResult.Failure("Failed to update refresh token.")
+		}
+	}
+
+	override suspend fun delete(id: UUID): AppResult<Unit> {
+		val deleted = refreshTokenRepository.delete(id)
+
+		if (deleted) {
+			return AppResult.Success(Unit)
+		}
+		else {
+			return AppResult.Failure("Failed to delete refresh token.")
+		}
+	}
+
 }

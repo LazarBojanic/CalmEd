@@ -11,7 +11,7 @@ fun Application.configureRouting() {
 	routing {
 		authRoutes()
 		authenticate("auth-jwt") {
-			messageRoutes()
+
 		}
 	}
 }

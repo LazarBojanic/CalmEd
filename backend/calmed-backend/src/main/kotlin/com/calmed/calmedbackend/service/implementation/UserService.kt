@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.service.implementation
 
+import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.join
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.raw.user.User
@@ -11,31 +12,57 @@ class UserService(
 	private val userRepository: IUserRepository
 ) : IUserService {
 
-	override suspend fun getAll(): List<UserJoined> {
-		return userRepository.findAll().map { it.join() }
+	override suspend fun getAll(): AppResult<List<UserJoined>> {
+		val users = userRepository.findAll()
+		return AppResult.Success(users.map { it.join() })
 	}
 
-	override suspend fun getById(id: UUID): UserJoined? {
-		val user = userRepository.findById(id) ?: return null
-		return user.join()
+	override suspend fun getById(id: UUID): AppResult<UserJoined> {
+		val user = userRepository.findById(id)
+		if (user != null) {
+			return AppResult.Success(user.join())
+		}
+		else {
+			return AppResult.Failure("User not found.")
+		}
 	}
 
-	override suspend fun getByEmail(email: String): UserJoined? {
-		val user = userRepository.findByEmail(email) ?: return null
-		return user.join()
+	override suspend fun getByEmail(email: String): AppResult<UserJoined> {
+		val user = userRepository.findByEmail(email)
+		if (user != null) {
+			return AppResult.Success(user.join())
+		}
+		else {
+			return AppResult.Failure("User not found.")
+		}
 	}
 
-	override suspend fun create(user: User): UserJoined? {
-		val created = userRepository.create(user) ?: return null
-		return created.join()
+	override suspend fun create(user: User): AppResult<UserJoined> {
+		val created = userRepository.create(user)
+		if (created != null) {
+			return AppResult.Success(created.join())
+		}
+		else {
+			return AppResult.Failure("Failed to create user.")
+		}
 	}
 
-	override suspend fun update(user: User): UserJoined? {
-		val updated = userRepository.update(user) ?: return null
-		return updated.join()
+	override suspend fun update(user: User): AppResult<UserJoined> {
+		val updated = userRepository.update(user)
+		if (updated != null) {
+			return AppResult.Success(updated.join())
+		}
+		else {
+			return AppResult.Failure("Failed to update user.")
+		}
 	}
 
-	override suspend fun delete(id: UUID): Boolean {
-		return userRepository.delete(id)
+	override suspend fun delete(id: UUID): AppResult<Unit> {
+		if (userRepository.delete(id)) {
+			return AppResult.Success(Unit)
+		}
+		else {
+			return AppResult.Failure("Failed to delete user.")
+		}
 	}
 }

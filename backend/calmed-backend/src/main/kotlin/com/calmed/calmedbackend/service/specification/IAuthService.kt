@@ -4,6 +4,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt
 import com.auth0.jwt.JWT
 import com.auth0.jwt.interfaces.JWTVerifier
 import com.calmed.calmedbackend.auth.TokenType
+import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.LoginDto
 import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
@@ -20,15 +21,15 @@ interface IAuthService {
 	fun accessVerifier(): JWTVerifier
 	fun refreshVerifier(): JWTVerifier
 
-	suspend fun register(dto: RegisterDto): TokenPairDto
-	suspend fun login(dto: LoginDto): TokenPairDto
-	suspend fun logout(userId: UUID): Boolean
-	suspend fun createTokenPair(userId: UUID, email: String): TokenPairDto
-	suspend fun generateAccessToken(id: UUID, email: String, now: Instant): String
-	suspend fun generateAndStoreRefreshToken(userId: UUID, email: String, now: Instant): String
-	suspend fun refresh(dto: RefreshDto): TokenPairDto
-	suspend fun validatePassword(p: String, c: String): Boolean
-	suspend fun hashTextBCrypt(text: String): String
-	suspend fun verifyTextBCrypt(text: String, hash: String): Boolean
-	suspend fun hashTextSHA512(text: String): String
+	suspend fun register(dto: RegisterDto): AppResult<TokenPairDto>
+	suspend fun login(dto: LoginDto): AppResult<TokenPairDto>
+	suspend fun logout(userId: UUID): AppResult<Unit>
+	suspend fun createTokenPair(userId: UUID, email: String): AppResult<TokenPairDto>
+	suspend fun generateAccessToken(id: UUID, email: String, now: Instant): AppResult<String>
+	suspend fun generateAndStoreRefreshToken(userId: UUID, email: String, now: Instant): AppResult<String>
+	suspend fun refresh(dto: RefreshDto): AppResult<TokenPairDto>
+	suspend fun validatePassword(p: String?, c: String?): AppResult<Unit>
+	suspend fun hashTextBCrypt(text: String?): AppResult<String>
+	suspend fun verifyTextBCrypt(text: String?, hash: String?): AppResult<Unit>
+	suspend fun hashTextSHA512(text: String?): AppResult<String>
 }

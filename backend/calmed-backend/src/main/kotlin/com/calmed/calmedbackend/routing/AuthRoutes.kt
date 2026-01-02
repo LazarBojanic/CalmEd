@@ -1,12 +1,12 @@
 package com.calmed.calmedbackend.routing
 
+import com.calmed.calmedbackend.error.exception.BusinessException
+import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.LoginDto
 import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
-import com.calmed.calmedbackend.model.dto.response.ErrorDto
 import com.calmed.calmedbackend.model.toDto
 import com.calmed.calmedbackend.service.specification.IAuthService
-import com.calmed.calmedbackend.service.specification.IMessageService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
@@ -26,96 +26,60 @@ fun Route.authRoutes() {
 
 	route("/auth/register") {
 		post {
-			try {
-				val registerDto = call.receive<RegisterDto>()
-				val tokenPairDto = authService.register(registerDto)
-				call.respond(HttpStatusCode.OK, tokenPairDto)
+			val registerDto = call.receive<RegisterDto>()
+			val tokenPairDto = authService.register(registerDto)
+			if (tokenPairDto is AppResult.Success) {
+				call.respond(HttpStatusCode.OK, tokenPairDto.data)
 			}
-			catch (e: IllegalArgumentException) {
-				call.respond(
-					HttpStatusCode.BadRequest,
-					ErrorDto("Bad Request")
-				)
-			}
-			catch (e: IllegalStateException) {
-				call.respond(
-					HttpStatusCode.InternalServerError,
-					ErrorDto("Internal Server Error")
-				)
+			else {
+				throw BusinessException(HttpStatusCode.Unauthorized, "Failed to register.")
 			}
 		}
 	}
 
 	route("/auth/login") {
 		post {
-			try {
-				val loginDto = call.receive<LoginDto>()
-				val tokenPairDto = authService.login(loginDto)
-				call.respond(HttpStatusCode.OK, tokenPairDto)
+			val loginDto = call.receive<LoginDto>()
+			val tokenPairDto = authService.login(loginDto)
+			if (tokenPairDto is AppResult.Success) {
+				call.respond(HttpStatusCode.OK, tokenPairDto.data)
 			}
-			catch (e: IllegalArgumentException) {
-				call.respond(
-					HttpStatusCode.Unauthorized,
-					ErrorDto(
-						error = "Unauthorized"
-					)
-				)
+			else {
+				throw BusinessException(HttpStatusCode.Unauthorized, "Failed to login.")
 			}
 		}
 	}
 
 	route("/auth/refresh") {
 		post {
-			try {
-				val refreshDto = call.receive<RefreshDto>()
-				val tokenPairDto = authService.refresh(refreshDto)
-				call.respond(HttpStatusCode.OK, tokenPairDto)
+			val refreshDto = call.receive<RefreshDto>()
+			val tokenPairDto = authService.refresh(refreshDto)
+			if (tokenPairDto is AppResult.Success) {
+				call.respond(HttpStatusCode.OK, tokenPairDto.data)
 			}
-			catch (e: IllegalArgumentException) {
-				call.respond(
-					HttpStatusCode.Unauthorized,
-					ErrorDto(
-						error = "Unauthorized"
-					)
-				)
-			}
-			catch (e: Exception) {
-				call.respond(
-					HttpStatusCode.InternalServerError,
-					ErrorDto(
-						error = "Internal Server Error"
-					)
-				)
+			else {
+				throw BusinessException(HttpStatusCode.Unauthorized, "Failed to refresh.")
 			}
 		}
 	}
 
 	authenticate("auth-jwt") {
-		post("/auth/logout") {
-			try {
-				val principal = call.principal<JWTPrincipal>()!!
-				val userId = UUID.fromString(principal.subject!!)
-				val success = authService.logout(userId)
-
-				if (success) {
-					call.respond(HttpStatusCode.OK)
+		route("/auth/logout") {
+			post {
+				val jwt = call.principal<JWTPrincipal>()
+				if (jwt != null) {
+					val id = UUID.fromString(jwt.subject)
+					val tokenPairDto = authService.logout(id)
+					if (tokenPairDto is AppResult.Success) {
+						call.respond(HttpStatusCode.OK, tokenPairDto.data)
+					}
+					else {
+						throw BusinessException(HttpStatusCode.Unauthorized, "Failed to logout.")
+					}
 				}
 				else {
-					call.respond(
-						HttpStatusCode.InternalServerError,
-						ErrorDto(
-							error = "Internal Server Error"
-						)
-					)
+					throw BusinessException(HttpStatusCode.Unauthorized, "Failed to logout.")
 				}
-			}
-			catch (e: Exception) {
-				call.respond(
-					HttpStatusCode.BadRequest,
-					ErrorDto(
-						error = "Bad Request"
-					)
-				)
 			}
 		}
 	}

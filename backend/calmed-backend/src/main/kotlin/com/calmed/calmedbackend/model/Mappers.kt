@@ -1,14 +1,12 @@
 package com.calmed.calmedbackend.model
 
-import com.calmed.calmedbackend.model.dto.response.MessageDto
+import com.calmed.calmedbackend.model.dto.response.UserDto
 import com.calmed.calmedbackend.model.joined.AuthCredentialJoined
 import com.calmed.calmedbackend.model.joined.MessageJoined
 import com.calmed.calmedbackend.model.joined.RefreshTokenJoined
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialEntity
-import com.calmed.calmedbackend.model.raw.message.Message
-import com.calmed.calmedbackend.model.raw.message.MessageEntity
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenEntity
 import com.calmed.calmedbackend.model.raw.user.User
@@ -16,45 +14,6 @@ import com.calmed.calmedbackend.model.raw.user.UserEntity
 
 enum class MapMode {
 	CREATE, UPDATE
-}
-
-fun MessageEntity.toRaw(): Message = Message(
-	id = this.id.value,
-	text = this.text,
-	createdAt = this.createdAt,
-	updatedAt = this.updatedAt
-)
-
-fun MessageEntity.setFrom(d: Message, mapMode: MapMode) {
-	text = d.text
-	when (mapMode) {
-		MapMode.CREATE -> {
-			createdAt = d.createdAt
-			updatedAt = d.updatedAt
-		}
-
-		MapMode.UPDATE -> {
-			updatedAt = d.updatedAt
-		}
-	}
-}
-
-fun Message.join(): MessageJoined {
-	return MessageJoined(
-		id = this.id,
-		text = this.text,
-		createdAt = this.createdAt,
-		updatedAt = this.updatedAt
-	)
-}
-
-fun MessageJoined.toDto(): MessageDto {
-	return MessageDto(
-		id = this.id,
-		text = this.text,
-		createdAt = this.createdAt,
-		updatedAt = this.updatedAt
-	)
 }
 
 fun UserEntity.toRaw(): User {
@@ -192,4 +151,13 @@ fun RefreshTokenEntity.setFrom(d: RefreshToken, mapMode: MapMode) {
 		}
 	}
 
+}
+
+fun UserJoined.toDto(): UserDto{
+	return UserDto(
+		id = this.id,
+		email = this.email,
+		username = this.username,
+		isEmailVerified = this.isEmailVerified
+	)
 }

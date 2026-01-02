@@ -1,6 +1,5 @@
 package com.calmed.calmedbackend.auth
 
-import com.calmed.calmedbackend.model.dto.response.ErrorDto
 import com.calmed.calmedbackend.service.specification.IAuthService
 import io.ktor.http.*
 import io.ktor.server.application.*

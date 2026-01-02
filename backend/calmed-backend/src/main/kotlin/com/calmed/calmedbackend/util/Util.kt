@@ -10,5 +10,13 @@ class Util {
 				isLenient = true
 			}
 		}
+		fun printError(cause: Throwable) {
+			println("========== ERROR ==========")
+			println("Type: ${cause::class.simpleName}")
+			println("Message: ${cause.message}")
+			println("Stacktrace:")
+			cause.printStackTrace()
+			println("===========================")
+		}
 	}
 }

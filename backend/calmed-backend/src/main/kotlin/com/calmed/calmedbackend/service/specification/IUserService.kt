@@ -1,14 +1,15 @@
 package com.calmed.calmedbackend.service.specification
 
+import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.raw.user.User
 import java.util.UUID
 
 interface IUserService {
-	suspend fun getAll(): List<UserJoined>
-	suspend fun getById(id: UUID): UserJoined?
-	suspend fun getByEmail(email: String): UserJoined?
-	suspend fun create(user: User): UserJoined?
-	suspend fun update(user: User): UserJoined?
-	suspend fun delete(id: UUID): Boolean
+	suspend fun getAll(): AppResult<List<UserJoined>>
+	suspend fun getById(id: UUID): AppResult<UserJoined>
+	suspend fun getByEmail(email: String): AppResult<UserJoined>
+	suspend fun create(user: User): AppResult<UserJoined>
+	suspend fun update(user: User): AppResult<UserJoined>
+	suspend fun delete(id: UUID): AppResult<Unit>
 }

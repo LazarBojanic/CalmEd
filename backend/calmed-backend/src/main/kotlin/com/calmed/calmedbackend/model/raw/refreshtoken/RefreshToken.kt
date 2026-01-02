@@ -54,6 +54,8 @@ data class RefreshToken(
 		}
 	}
 	fun isActive(now: Instant = Instant.now()): Boolean {
-		return revokedAt == null && expiresAt.isAfter(now)
+		val isExpired: Boolean = expiresAt.isBefore(now)
+		val isRevoked: Boolean = revokedAt != null || replacedBy != null
+		return !isExpired && !isRevoked
 	}
 }

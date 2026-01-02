@@ -1,10 +1,10 @@
 package com.calmed.calmedbackend.service.implementation
 
+import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.join
 import com.calmed.calmedbackend.model.joined.AuthCredentialJoined
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialType
-import com.calmed.calmedbackend.model.raw.message.Message
 import com.calmed.calmedbackend.repository.specification.IAuthCredentialRepository
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IUserService
@@ -15,43 +15,107 @@ class AuthCredentialService(
 	private val userService: IUserService
 ) : IAuthCredentialService {
 
-	override suspend fun getAll(): List<AuthCredentialJoined> {
+	override suspend fun getAll(): AppResult<List<AuthCredentialJoined>> {
 		val result = mutableListOf<AuthCredentialJoined>()
-		for (cred in authCredentialRepository.findAll()) {
-			val user = userService.getById(cred.userId) ?: continue
-			result.add(cred.join(user))
+
+		for (authCredential in authCredentialRepository.findAll()) {
+			val userResult = userService.getById(authCredential.userId)
+
+			if (userResult is AppResult.Success) {
+				result.add(authCredential.join(userResult.data))
+			}
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
 		}
-		return result
+
+		return AppResult.Success(result)
 	}
 
-	override suspend fun getById(id: UUID): AuthCredentialJoined? {
-		val cred = authCredentialRepository.findById(id) ?: return null
-		val user = userService.getById(cred.userId) ?: return null
-		return cred.join(user)
+	override suspend fun getById(id: UUID): AppResult<AuthCredentialJoined> {
+		val authCredential = authCredentialRepository.findById(id)
+
+		if (authCredential != null) {
+			val userResult = userService.getById(authCredential.userId)
+
+			if (userResult is AppResult.Success) {
+				return AppResult.Success(authCredential.join(userResult.data))
+			}
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
+		}
+		else {
+			return AppResult.Failure("Failed to retrieve credentials.")
+		}
 	}
 
 	override suspend fun getByUserIdAndType(
 		userId: UUID,
 		type: AuthCredentialType
-	): AuthCredentialJoined? {
-		val cred = authCredentialRepository.findByUserIdAndType(userId, type) ?: return null
-		val user = userService.getById(userId) ?: return null
-		return cred.join(user)
+	): AppResult<AuthCredentialJoined> {
+
+		val authCredential = authCredentialRepository.findByUserIdAndType(userId, type)
+
+		if (authCredential != null) {
+			val userResult = userService.getById(authCredential.userId)
+
+			if (userResult is AppResult.Success) {
+				return AppResult.Success(authCredential.join(userResult.data))
+			}
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
+		}
+		else {
+			return AppResult.Failure("Failed to retrieve credentials.")
+		}
 	}
 
-	override suspend fun create(authCredential: AuthCredential): AuthCredentialJoined? {
-		val created = authCredentialRepository.create(authCredential) ?: return null
-		val user = userService.getById(created.userId) ?: return null
-		return created.join(user)
+	override suspend fun create(authCredential: AuthCredential): AppResult<AuthCredentialJoined> {
+		val created = authCredentialRepository.create(authCredential)
+
+		if (created != null) {
+			val userResult = userService.getById(created.userId)
+
+			if (userResult is AppResult.Success) {
+				return AppResult.Success(created.join(userResult.data))
+			}
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
+		}
+		else {
+			return AppResult.Failure("Failed to create auth credential.")
+		}
 	}
 
-	override suspend fun update(authCredential: AuthCredential): AuthCredentialJoined? {
-		val updated = authCredentialRepository.update(authCredential) ?: return null
-		val user = userService.getById(updated.userId) ?: return null
-		return updated.join(user)
+	override suspend fun update(authCredential: AuthCredential): AppResult<AuthCredentialJoined> {
+		val updated = authCredentialRepository.update(authCredential)
+
+		if (updated != null) {
+			val userResult = userService.getById(updated.userId)
+
+			if (userResult is AppResult.Success) {
+				return AppResult.Success(updated.join(userResult.data))
+			}
+			else {
+				return AppResult.Failure("Failed to retrieve user.")
+			}
+		}
+		else {
+			return AppResult.Failure("Failed to update auth credential.")
+		}
 	}
 
-	override suspend fun delete(id: UUID): Boolean {
-		return authCredentialRepository.delete(id)
+	override suspend fun delete(id: UUID): AppResult<Unit> {
+		val deleted = authCredentialRepository.delete(id)
+
+		if (deleted) {
+			return AppResult.Success(Unit)
+		}
+		else {
+			return AppResult.Failure("Failed to delete credential.")
+		}
 	}
 }

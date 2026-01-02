@@ -1,6 +1,6 @@
 package com.calmed.calmedbackend.repository.implementation
 
-import com.calmed.calmedbackend.database.dbQuery
+import com.calmed.calmedbackend.database.tx
 import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenEntity
@@ -12,16 +12,27 @@ import org.jetbrains.exposed.v1.core.eq
 import java.util.UUID
 
 class RefreshTokenRepository : IRefreshTokenRepository {
+
 	override suspend fun findAll(): List<RefreshToken> {
-		return dbQuery { RefreshTokenEntity.all().map { it.toRaw() } }
+		return tx {
+			RefreshTokenEntity.all().map { it.toRaw() }
+		}
 	}
 
 	override suspend fun findById(id: UUID): RefreshToken? {
-		return dbQuery { RefreshTokenEntity.findById(id)?.toRaw() }
+		return tx {
+			val e = RefreshTokenEntity.findById(id)
+			if (e != null) {
+				return@tx e.toRaw()
+			}
+			else {
+				return@tx null
+			}
+		}
 	}
 
 	override suspend fun findAllByUserId(userId: UUID): List<RefreshToken> {
-		return dbQuery {
+		return tx {
 			RefreshTokenEntity
 				.find { RefreshTokenTable.userId eq userId }
 				.map { it.toRaw() }
@@ -29,25 +40,42 @@ class RefreshTokenRepository : IRefreshTokenRepository {
 	}
 
 	override suspend fun create(refreshToken: RefreshToken): RefreshToken? {
-		return dbQuery {
-			RefreshTokenEntity.new(refreshToken.id) {
-				setFrom(refreshToken, MapMode.CREATE)
-			}.toRaw()
+		return tx {
+			val existing = RefreshTokenEntity.findById(refreshToken.id)
+			if (existing == null) {
+				return@tx RefreshTokenEntity.new(refreshToken.id) {
+					setFrom(refreshToken, MapMode.CREATE)
+				}.toRaw()
+			}
+			else {
+				return@tx null
+			}
 		}
 	}
 
 	override suspend fun update(refreshToken: RefreshToken): RefreshToken? {
-		return 	dbQuery {
-			val e = RefreshTokenEntity.findById(refreshToken.id) ?: return@dbQuery null
-			e.setFrom(refreshToken, MapMode.UPDATE)
-			e.toRaw()
+		return tx {
+			val e = RefreshTokenEntity.findById(refreshToken.id)
+			if (e != null) {
+				e.setFrom(refreshToken, MapMode.UPDATE)
+				return@tx e.toRaw()
+			}
+			else {
+				return@tx null
+			}
 		}
 	}
 
 	override suspend fun delete(id: UUID): Boolean {
-		return dbQuery {
-			val e = RefreshTokenEntity.findById(id) ?: return@dbQuery false
-			e.delete(); true
+		return tx {
+			val e = RefreshTokenEntity.findById(id)
+			if (e != null) {
+				e.delete()
+				return@tx true
+			}
+			else {
+				return@tx false
+			}
 		}
 	}
 }

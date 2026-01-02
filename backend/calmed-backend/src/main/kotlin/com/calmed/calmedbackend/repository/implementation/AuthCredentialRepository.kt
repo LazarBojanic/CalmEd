@@ -1,6 +1,6 @@
 package com.calmed.calmedbackend.repository.implementation
 
-import com.calmed.calmedbackend.database.dbQuery
+import com.calmed.calmedbackend.database.tx
 import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialEntity
@@ -15,30 +15,42 @@ import java.util.UUID
 
 class AuthCredentialRepository : IAuthCredentialRepository {
 	override suspend fun findAll(): List<AuthCredential> {
-		return dbQuery { AuthCredentialEntity.all().map { it.toRaw() } }
+		return tx { AuthCredentialEntity.all().map { it.toRaw() } }
 	}
 
 	override suspend fun findById(id: UUID): AuthCredential? {
-		return dbQuery { AuthCredentialEntity.findById(id)?.toRaw() }
+		return tx {
+			val e = AuthCredentialEntity.findById(id)
+			if (e != null) {
+				return@tx e.toRaw()
+			}
+			else {
+				return@tx null
+			}
+		}
 	}
 
 	override suspend fun findByUserIdAndType(
 		userId: UUID,
 		type: AuthCredentialType
 	): AuthCredential? {
-		return dbQuery {
-			AuthCredentialEntity
+		return tx {
+			val e = AuthCredentialEntity
 				.find {
-					(AuthCredentialTable.userId eq userId) and
-						(AuthCredentialTable.type eq type)
+					(AuthCredentialTable.userId eq userId) and (AuthCredentialTable.type eq type)
 				}
 				.firstOrNull()
-				?.toRaw()
+			if(e != null){
+				return@tx e.toRaw()
+			}
+			else{
+				return@tx null
+			}
 		}
 	}
 
 	override suspend fun findAllByUserId(userId: UUID): Set<AuthCredential> {
-		return dbQuery {
+		return tx {
 			AuthCredentialEntity
 				.find { AuthCredentialTable.userId eq userId }
 				.map { it.toRaw() }
@@ -47,25 +59,42 @@ class AuthCredentialRepository : IAuthCredentialRepository {
 	}
 
 	override suspend fun create(authCredential: AuthCredential): AuthCredential? {
-		return dbQuery {
-			AuthCredentialEntity.new(authCredential.id) {
-				setFrom(authCredential, MapMode.CREATE)
-			}.toRaw()
+		return tx {
+			val e = AuthCredentialEntity.findById(authCredential.id)
+			if(e != null){
+				return@tx AuthCredentialEntity.new(authCredential.id) {
+					setFrom(authCredential, MapMode.CREATE)
+				}.toRaw()
+			}
+			else{
+				return@tx null
+			}
 		}
 	}
 
 	override suspend fun update(authCredential: AuthCredential): AuthCredential? {
-		return dbQuery {
-			val e = AuthCredentialEntity.findById(authCredential.id) ?: return@dbQuery null
-			e.setFrom(authCredential, MapMode.UPDATE)
-			e.toRaw()
+		return tx {
+			val e = AuthCredentialEntity.findById(authCredential.id)
+			if (e != null) {
+				e.setFrom(authCredential, MapMode.UPDATE)
+				return@tx e.toRaw()
+			}
+			else {
+				return@tx null
+			}
 		}
 	}
 
 	override suspend fun delete(id: UUID): Boolean {
-		return dbQuery {
-			val e = AuthCredentialEntity.findById(id) ?: return@dbQuery false
-			e.delete(); true
+		return tx {
+			val e = AuthCredentialEntity.findById(id)
+			if (e != null) {
+				e.delete()
+				return@tx true
+			}
+			else {
+				return@tx false
+			}
 		}
 	}
 }

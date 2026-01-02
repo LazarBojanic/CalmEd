@@ -7,6 +7,9 @@ val ktor_version: String by project
 val commons_email2_jakarta_version: String by project
 val java_jwt_version: String by project
 val lib_bcrypt: String by project
+val HikariCP_version: String by project
+val flyway_database_postgresql_version: String by project
+
 
 plugins {
 	kotlin("jvm") version "2.3.0"
@@ -54,4 +57,6 @@ dependencies {
 	implementation("org.apache.commons:commons-email2-jakarta:$commons_email2_jakarta_version")
 	implementation("com.auth0:java-jwt:$java_jwt_version")
 	implementation("at.favre.lib:bcrypt:$lib_bcrypt")
+	implementation("com.zaxxer:HikariCP:$HikariCP_version")
+	implementation("org.flywaydb:flyway-database-postgresql:$flyway_database_postgresql_version")
 }
