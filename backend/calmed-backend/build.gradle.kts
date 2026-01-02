@@ -4,7 +4,7 @@ val kotlin_version: String by project
 val logback_version: String by project
 val postgres_version: String by project
 val ktor_version: String by project
-val commons_email2_jakarta_version: String by project
+val commons_email_version: String by project
 val java_jwt_version: String by project
 val lib_bcrypt: String by project
 val HikariCP_version: String by project
@@ -54,7 +54,7 @@ dependencies {
 	implementation("io.ktor:ktor-server-config-yaml")
 	testImplementation("io.ktor:ktor-server-test-host")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-	implementation("org.apache.commons:commons-email2-jakarta:$commons_email2_jakarta_version")
+	implementation("org.apache.commons:commons-email:$commons_email_version")
 	implementation("com.auth0:java-jwt:$java_jwt_version")
 	implementation("at.favre.lib:bcrypt:$lib_bcrypt")
 	implementation("com.zaxxer:HikariCP:$HikariCP_version")

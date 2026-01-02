@@ -1,12 +1,10 @@
-package com.calmed.calmedbackend.auth
+package com.calmed.calmedbackend.config
 
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.algorithms.Algorithm.HMAC256
-import com.auth0.jwt.algorithms.Algorithm.HMAC384
 import com.auth0.jwt.algorithms.Algorithm.HMAC512
 import io.ktor.server.config.*
 import java.time.Duration
-
 
 data class JwtConfig(
 	val algAccess: Algorithm,

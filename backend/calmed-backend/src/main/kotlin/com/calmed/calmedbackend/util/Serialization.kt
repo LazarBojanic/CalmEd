@@ -6,6 +6,6 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 
 fun Application.configureSerialization() {
 	install(ContentNegotiation) {
-		json(Util.Companion.jsonFormat())
+		json(Util.jsonFormat())
 	}
 }

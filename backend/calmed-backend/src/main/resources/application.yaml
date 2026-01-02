@@ -23,3 +23,9 @@ database:
     name: $DATABASE_NAME:calmed
     dialect: $DATABASE_DIALECT:postgresql
     driver: $DATABASE_DRIVER:org.postgresql.Driver
+email:
+    host: $EMAIL_HOST:smtp.gmail.com
+    port: $EMAIL_PORT:587
+    email: $EMAIL_EMAIL:placeholder
+    password: $EMAIL_PASSWORD:placeholder
+    ssl: $EMAIL_SSL:true

@@ -3,10 +3,10 @@ package com.calmed.calmedbackend.service.implementation
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTVerificationException
-import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
-import com.calmed.calmedbackend.auth.JwtConfig
+import com.calmed.calmedbackend.config.JwtConfig
 import com.calmed.calmedbackend.auth.TokenType
+import com.calmed.calmedbackend.config.EmailConfig
 import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.LoginDto
@@ -30,7 +30,8 @@ class AuthService(
 	private val userService: IUserService,
 	private val authCredentialService: IAuthCredentialService,
 	private val refreshTokenService: IRefreshTokenService,
-	private val jwtConfig: JwtConfig
+	private val jwtConfig: JwtConfig,
+	private val emailConfig: EmailConfig
 ) : IAuthService {
 	override fun accessVerifier(): JWTVerifier {
 		return JWT.require(jwtConfig.algAccess)
