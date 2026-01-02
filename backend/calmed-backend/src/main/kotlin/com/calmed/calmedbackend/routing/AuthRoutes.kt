@@ -5,7 +5,6 @@ import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.LoginDto
 import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
-import com.calmed.calmedbackend.model.toDto
 import com.calmed.calmedbackend.service.specification.IAuthService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
@@ -19,7 +18,6 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 import java.util.UUID
-import kotlin.getValue
 
 fun Route.authRoutes() {
 	val authService by inject<IAuthService>()
@@ -28,11 +26,15 @@ fun Route.authRoutes() {
 		post {
 			val registerDto = call.receive<RegisterDto>()
 			val tokenPairDto = authService.register(registerDto)
-			if (tokenPairDto is AppResult.Success) {
-				call.respond(HttpStatusCode.OK, tokenPairDto.data)
-			}
-			else {
-				throw BusinessException(HttpStatusCode.Unauthorized, "Failed to register.")
+
+			when (tokenPairDto) {
+				is AppResult.Success -> {
+					call.respond(HttpStatusCode.Created, tokenPairDto.data)
+				}
+
+				is AppResult.Failure -> {
+					throw BusinessException(HttpStatusCode.BadRequest, tokenPairDto.message)
+				}
 			}
 		}
 	}
@@ -41,11 +43,15 @@ fun Route.authRoutes() {
 		post {
 			val loginDto = call.receive<LoginDto>()
 			val tokenPairDto = authService.login(loginDto)
-			if (tokenPairDto is AppResult.Success) {
-				call.respond(HttpStatusCode.OK, tokenPairDto.data)
-			}
-			else {
-				throw BusinessException(HttpStatusCode.Unauthorized, "Failed to login.")
+
+			when (tokenPairDto) {
+				is AppResult.Success -> {
+					call.respond(HttpStatusCode.OK, tokenPairDto.data)
+				}
+
+				is AppResult.Failure -> {
+					throw BusinessException(HttpStatusCode.Unauthorized, tokenPairDto.message)
+				}
 			}
 		}
 	}
@@ -54,11 +60,15 @@ fun Route.authRoutes() {
 		post {
 			val refreshDto = call.receive<RefreshDto>()
 			val tokenPairDto = authService.refresh(refreshDto)
-			if (tokenPairDto is AppResult.Success) {
-				call.respond(HttpStatusCode.OK, tokenPairDto.data)
-			}
-			else {
-				throw BusinessException(HttpStatusCode.Unauthorized, "Failed to refresh.")
+
+			when (tokenPairDto) {
+				is AppResult.Success -> {
+					call.respond(HttpStatusCode.OK, tokenPairDto.data)
+				}
+
+				is AppResult.Failure -> {
+					throw BusinessException(HttpStatusCode.Unauthorized, tokenPairDto.message)
+				}
 			}
 		}
 	}
@@ -69,16 +79,20 @@ fun Route.authRoutes() {
 				val jwt = call.principal<JWTPrincipal>()
 				if (jwt != null) {
 					val id = UUID.fromString(jwt.subject)
-					val tokenPairDto = authService.logout(id)
-					if (tokenPairDto is AppResult.Success) {
-						call.respond(HttpStatusCode.OK, tokenPairDto.data)
-					}
-					else {
-						throw BusinessException(HttpStatusCode.Unauthorized, "Failed to logout.")
+					val logoutResult = authService.logout(id)
+
+					when (logoutResult) {
+						is AppResult.Success -> {
+							call.respond(HttpStatusCode.OK, mapOf("message" to "Logged out successfully"))
+						}
+
+						is AppResult.Failure -> {
+							throw BusinessException(HttpStatusCode.InternalServerError, logoutResult.message)
+						}
 					}
 				}
 				else {
-					throw BusinessException(HttpStatusCode.Unauthorized, "Failed to logout.")
+					throw BusinessException(HttpStatusCode.Unauthorized, "Invalid authentication")
 				}
 			}
 		}

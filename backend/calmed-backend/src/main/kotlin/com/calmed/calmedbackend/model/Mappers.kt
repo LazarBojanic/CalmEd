@@ -2,7 +2,6 @@ package com.calmed.calmedbackend.model
 
 import com.calmed.calmedbackend.model.dto.response.UserDto
 import com.calmed.calmedbackend.model.joined.AuthCredentialJoined
-import com.calmed.calmedbackend.model.joined.MessageJoined
 import com.calmed.calmedbackend.model.joined.RefreshTokenJoined
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential

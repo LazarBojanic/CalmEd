@@ -1,6 +1,6 @@
 package com.calmed.calmedbackend.repository.implementation
 
-import com.calmed.calmedbackend.database.tx
+import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
@@ -14,74 +14,74 @@ import java.util.UUID
 class UserRepository : IUserRepository {
 
 	override suspend fun findAll(): List<User> {
-		return tx {
+		return withTransaction {
 			UserEntity.all().map { it.toRaw() }
 		}
 	}
 
 	override suspend fun findById(id: UUID): User? {
-		return tx {
+		return withTransaction {
 			val e = UserEntity.findById(id)
 			if (e != null) {
-				return@tx e.toRaw()
+				return@withTransaction e.toRaw()
 			}
 			else {
-				return@tx null
+				return@withTransaction null
 			}
 		}
 	}
 
 	override suspend fun findByEmail(email: String): User? {
-		return tx {
+		return withTransaction {
 			val e = UserEntity
 				.find { UserTable.email eq email }
 				.firstOrNull()
 
 			if (e != null) {
-				return@tx e.toRaw()
+				return@withTransaction e.toRaw()
 			}
 			else {
-				return@tx null
+				return@withTransaction null
 			}
 		}
 	}
 
 	override suspend fun create(user: User): User? {
-		return tx {
+		return withTransaction {
 			val existing = UserEntity.findById(user.id)
 			if (existing == null) {
-				return@tx UserEntity.new(user.id) {
+				return@withTransaction UserEntity.new(user.id) {
 					setFrom(user, MapMode.CREATE)
 				}.toRaw()
 			}
 			else {
-				return@tx null
+				return@withTransaction null
 			}
 		}
 	}
 
 	override suspend fun update(user: User): User? {
-		return tx {
+		return withTransaction {
 			val e = UserEntity.findById(user.id)
 			if (e != null) {
 				e.setFrom(user, MapMode.UPDATE)
-				return@tx e.toRaw()
+				return@withTransaction e.toRaw()
 			}
 			else {
-				return@tx null
+				return@withTransaction null
 			}
 		}
 	}
 
 	override suspend fun delete(id: UUID): Boolean {
-		return tx {
+		return withTransaction {
 			val e = UserEntity.findById(id)
 			if (e != null) {
 				e.delete()
-				return@tx true
+				return@withTransaction true
 			}
 			else {
-				return@tx false
+				return@withTransaction false
 			}
 		}
 	}

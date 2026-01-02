@@ -3,9 +3,13 @@ package com.calmed.calmedbackend.database
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.application.Application
+import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager.Companion.currentOrNull
+import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 data class EnvironmentDatabaseConfig(
 	val databaseName: String,
@@ -56,15 +60,13 @@ private fun dataSource(environmentDatabaseConfig: EnvironmentDatabaseConfig): Hi
 	return HikariDataSource(config)
 }
 
-suspend fun <T> tx(block: suspend () -> T): T {
-	return if (TransactionManager.currentOrNull() != null) {
-		block()
-	}
-	else {
-		suspendTransaction { block() }
-	}
+suspend fun <T> dbTransaction(block: suspend () -> T): T {
+	return newSuspendedTransaction { block() }
 }
 
+suspend fun <T> withTransaction(block: suspend () -> T): T {
+	return suspendTransaction { block() }
+}
 
 
 

@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.model.joined
 
+import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.util.InstantSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer
 import kotlinx.serialization.Serializable
@@ -26,7 +27,20 @@ data class RefreshTokenJoined (
 ){
 	fun isActive(now: Instant = Instant.now()): Boolean {
 		val isExpired: Boolean = expiresAt.isBefore(now)
-		val isRevoked: Boolean = revokedAt != null || replacedBy != null
-		return !isExpired && !isRevoked
+		val isRevoked: Boolean = revokedAt != null
+		val isReplaced: Boolean = replacedBy != null
+		return !isExpired && !isRevoked && !isReplaced
+	}
+
+	fun isRevoked(): Boolean {
+		return revokedAt != null || replacedBy != null
+	}
+
+	fun revoke(replacedBy: UUID? = null, revokedAt: Instant = Instant.now()): RefreshTokenJoined {
+		return this.copy(
+			revokedAt = revokedAt,
+			replacedBy = replacedBy,
+			updatedAt = Instant.now()
+		)
 	}
 }

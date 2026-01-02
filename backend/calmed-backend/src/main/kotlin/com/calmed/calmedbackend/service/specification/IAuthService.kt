@@ -26,7 +26,7 @@ interface IAuthService {
 	suspend fun logout(userId: UUID): AppResult<Unit>
 	suspend fun createTokenPair(userId: UUID, email: String): AppResult<TokenPairDto>
 	suspend fun generateAccessToken(id: UUID, email: String, now: Instant): AppResult<String>
-	suspend fun generateAndStoreRefreshToken(userId: UUID, email: String, now: Instant): AppResult<String>
+	suspend fun generateRefreshToken(userId: UUID, email: String, now: Instant): AppResult<String>
 	suspend fun refresh(dto: RefreshDto): AppResult<TokenPairDto>
 	suspend fun validatePassword(p: String?, c: String?): AppResult<Unit>
 	suspend fun hashTextBCrypt(text: String?): AppResult<String>

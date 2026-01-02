@@ -1,6 +1,6 @@
 package com.calmed.calmedbackend.repository.implementation
 
-import com.calmed.calmedbackend.database.tx
+import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenEntity
@@ -14,25 +14,25 @@ import java.util.UUID
 class RefreshTokenRepository : IRefreshTokenRepository {
 
 	override suspend fun findAll(): List<RefreshToken> {
-		return tx {
+		return withTransaction {
 			RefreshTokenEntity.all().map { it.toRaw() }
 		}
 	}
 
 	override suspend fun findById(id: UUID): RefreshToken? {
-		return tx {
+		return withTransaction {
 			val e = RefreshTokenEntity.findById(id)
 			if (e != null) {
-				return@tx e.toRaw()
+				return@withTransaction e.toRaw()
 			}
 			else {
-				return@tx null
+				return@withTransaction null
 			}
 		}
 	}
 
 	override suspend fun findAllByUserId(userId: UUID): List<RefreshToken> {
-		return tx {
+		return withTransaction {
 			RefreshTokenEntity
 				.find { RefreshTokenTable.userId eq userId }
 				.map { it.toRaw() }
@@ -40,41 +40,41 @@ class RefreshTokenRepository : IRefreshTokenRepository {
 	}
 
 	override suspend fun create(refreshToken: RefreshToken): RefreshToken? {
-		return tx {
+		return withTransaction {
 			val existing = RefreshTokenEntity.findById(refreshToken.id)
 			if (existing == null) {
-				return@tx RefreshTokenEntity.new(refreshToken.id) {
+				return@withTransaction RefreshTokenEntity.new(refreshToken.id) {
 					setFrom(refreshToken, MapMode.CREATE)
 				}.toRaw()
 			}
 			else {
-				return@tx null
+				return@withTransaction null
 			}
 		}
 	}
 
 	override suspend fun update(refreshToken: RefreshToken): RefreshToken? {
-		return tx {
+		return withTransaction {
 			val e = RefreshTokenEntity.findById(refreshToken.id)
 			if (e != null) {
 				e.setFrom(refreshToken, MapMode.UPDATE)
-				return@tx e.toRaw()
+				return@withTransaction e.toRaw()
 			}
 			else {
-				return@tx null
+				return@withTransaction null
 			}
 		}
 	}
 
 	override suspend fun delete(id: UUID): Boolean {
-		return tx {
+		return withTransaction {
 			val e = RefreshTokenEntity.findById(id)
 			if (e != null) {
 				e.delete()
-				return@tx true
+				return@withTransaction true
 			}
 			else {
-				return@tx false
+				return@withTransaction false
 			}
 		}
 	}
