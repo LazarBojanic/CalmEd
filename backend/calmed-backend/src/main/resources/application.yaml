@@ -26,6 +26,9 @@ database:
 email:
     host: $EMAIL_HOST:smtp.gmail.com
     port: $EMAIL_PORT:587
-    email: $EMAIL_EMAIL:placeholder
+    username: $EMAIL_USERNAME:placeholder
     password: $EMAIL_PASSWORD:placeholder
     ssl: $EMAIL_SSL:true
+    from_email: $EMAIL_FROM_EMAIL:placeholder
+    from_name: $EMAIL_FROM_NAME:placeholder
+    verification_base_url: $EMAIL_VERIFICATION_BASE_URL:placeholder

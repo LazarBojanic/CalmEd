@@ -32,4 +32,10 @@ interface IAuthService {
 	suspend fun hashTextBCrypt(text: String?): AppResult<String>
 	suspend fun verifyTextBCrypt(text: String?, hash: String?): AppResult<Unit>
 	suspend fun hashTextSHA512(text: String?): AppResult<String>
+
+	suspend fun sendVerificationEmail(userId: UUID, email: String): AppResult<Unit>
+	suspend fun verifyEmail(token: String): AppResult<Unit>
+	suspend fun resendVerificationEmail(email: String): AppResult<Unit>
+	suspend fun generateEmailVerificationToken(userId: UUID, email: String): AppResult<String>
+
 }

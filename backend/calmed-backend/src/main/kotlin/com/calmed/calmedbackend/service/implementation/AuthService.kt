@@ -3,10 +3,11 @@ package com.calmed.calmedbackend.service.implementation
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
-import com.calmed.calmedbackend.config.JwtConfig
 import com.calmed.calmedbackend.auth.TokenType
 import com.calmed.calmedbackend.config.EmailConfig
+import com.calmed.calmedbackend.config.JwtConfig
 import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.LoginDto
@@ -22,7 +23,14 @@ import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
 import com.calmed.calmedbackend.service.specification.IUserService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.apache.commons.mail.DefaultAuthenticator
+import org.apache.commons.mail.HtmlEmail
+import org.apache.commons.mail.SimpleEmail
 import java.security.MessageDigest
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
@@ -74,7 +82,21 @@ class AuthService(
 							)
 							val createdAuthCredential = authCredentialService.create(authCredential)
 							if (createdAuthCredential is AppResult.Success) {
-								// 6. Generate tokens
+								// 6. Send verification email (async - don't block registration)
+								CoroutineScope(Dispatchers.IO).launch {
+									val emailSentResult = sendVerificationEmail(
+										createdUser.data.id,
+										createdUser.data.email
+									)
+									if (emailSentResult is AppResult.Success
+									) {
+										println("Email sent to ${createdUser.data.email}")
+									}
+									else if(emailSentResult is AppResult.Failure) {
+										println(emailSentResult.message)
+									}
+								}
+								// 7. Generate tokens
 								return@withTransaction createTokenPair(createdUser.data.id, createdUser.data.email)
 							}
 							else {
@@ -429,5 +451,235 @@ class AuthService(
 		else {
 			return AppResult.Failure("Text must not be null.")
 		}
+	}
+
+	// ========== EMAIL VERIFICATION METHODS ==========
+	override suspend fun sendVerificationEmail(userId: UUID, email: String): AppResult<Unit> {
+		return try {
+			val tokenResult = generateEmailVerificationToken(userId, email)
+			if (tokenResult is AppResult.Success) {
+				val token = tokenResult.data
+				val verificationLink = buildVerificationLink(token)
+
+				sendEmail(
+					to = email,
+					subject = "Verify your email address",
+					body = buildVerificationEmailBody(verificationLink)
+				)
+
+				AppResult.Success(Unit)
+			}
+			else {
+				AppResult.Failure("Email verification failed.")
+			}
+		}
+		catch (e: Exception) {
+			AppResult.Failure("Failed to send verification email: ${e.message}.")
+		}
+	}
+
+	override suspend fun verifyEmail(token: String): AppResult<Unit> {
+		return withTransaction {
+			try {
+				// Verify the token
+				val decodedToken = verifyEmailVerificationToken(token)
+				if (decodedToken != null) {
+					val userId = UUID.fromString(decodedToken.subject)
+					val email = decodedToken.getClaim("email").asString()
+
+					if (userId != null && email != null) {
+						// Get the user
+						val userResult = userService.getById(userId)
+						if (userResult is AppResult.Success) {
+							val user = userResult.data
+							// Check if email matches
+							if (user.email == email) {
+								// Check if already verified
+								if (!user.isEmailVerified) {
+									// Update user to mark email as verified
+									val updatedUser = User(
+										id = user.id,
+										email = user.email,
+										username = user.username,
+										isEmailVerified = true,
+										createdAt = user.createdAt,
+										updatedAt = Instant.now()
+									)
+									val updateResult = userService.update(updatedUser)
+									if (updateResult is AppResult.Success) {
+										return@withTransaction AppResult.Success(Unit)
+									}
+									else {
+										return@withTransaction AppResult.Failure("Failed to update user verification status.")
+
+									}
+								}
+								else {
+									return@withTransaction AppResult.Success(Unit)
+								}
+
+							}
+							else {
+								return@withTransaction AppResult.Failure("Email does not match.")
+							}
+
+						}
+						else {
+							return@withTransaction AppResult.Failure("User not found.")
+						}
+
+					}
+					else {
+						return@withTransaction AppResult.Failure("Invalid verification token.")
+					}
+
+				}
+				else {
+					return@withTransaction AppResult.Failure("Invalid or expired verification token.")
+				}
+
+			}
+			catch (e: Exception) {
+				AppResult.Failure("Email verification failed: ${e.message}.")
+			}
+		}
+	}
+
+	override suspend fun resendVerificationEmail(email: String): AppResult<Unit> {
+		return withTransaction {
+			// Find user by email
+			val userResult = userService.getByEmail(email)
+			if (userResult is AppResult.Success) {
+				val user = userResult.data
+				// Check if already verified
+				if (!user.isEmailVerified) {
+					// Send verification email
+					return@withTransaction sendVerificationEmail(user.id, user.email)
+				}
+				else {
+					return@withTransaction AppResult.Failure("Email is already verified.")
+				}
+			}
+			else {
+				return@withTransaction AppResult.Failure("User not found.")
+			}
+		}
+	}
+
+	override suspend fun generateEmailVerificationToken(userId: UUID, email: String): AppResult<String> {
+		return try {
+			val now = Instant.now()
+			val expiresAt = now.plus(Duration.ofHours(24)) // 24 hours for email verification
+			val token = JWT.create()
+				.withIssuer(jwtConfig.iss)
+				.withAudience(jwtConfig.aud)
+				.withSubject(userId.toString())
+				.withIssuedAt(now)
+				.withExpiresAt(expiresAt)
+				.withJWTId(UUID.randomUUID().toString())
+				.withClaim("typ", TokenType.EMAIL_VERIFICATION.name)
+				.withClaim("email", email)
+				.sign(jwtConfig.algAccess)
+
+			AppResult.Success(token)
+		}
+		catch (e: Exception) {
+			AppResult.Failure("Failed to generate email verification token: ${e.message}.")
+		}
+	}
+
+	// ========== PRIVATE HELPER METHODS ==========
+	private fun verifyEmailVerificationToken(token: String): DecodedJWT? {
+		return try {
+			JWT.require(jwtConfig.algAccess)
+				.withIssuer(jwtConfig.iss)
+				.withAudience(jwtConfig.aud)
+				.withClaim("typ", TokenType.EMAIL_VERIFICATION.name)
+				.build()
+				.verify(token)
+		}
+		catch (e: JWTVerificationException) {
+			null
+		}
+	}
+
+	private fun buildVerificationLink(token: String): String {
+		// Use the base URL from email config or default to localhost
+		return "${emailConfig.verificationBaseUrl}/auth/verify-email?token=$token"
+	}
+
+	private fun buildVerificationEmailBody(verificationLink: String): String {
+		return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Verify Your Email - Calmed</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { padding: 30px; background-color: #f9f9f9; border-radius: 0 0 5px 5px; }
+                    .button { display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                    .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Welcome to Calmed!</h1>
+                </div>
+                <div class="content">
+                    <h2>Verify Your Email Address</h2>
+                    <p>Thank you for registering with Calmed. To complete your registration and start using our platform, please verify your email address by clicking the button below:</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="$verificationLink" class="button">Verify Email Address</a>
+                    </div>
+                    
+                    <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; background-color: #eee; padding: 10px; border-radius: 3px;">
+                        $verificationLink
+                    </p>
+                    
+                    <p>This verification link will expire in <strong>24 hours</strong>.</p>
+                    
+                    <p>If you didn't create an account with Calmed, you can safely ignore this email.</p>
+                    
+                    <div class="footer">
+                        <p>Best regards,<br>The Calmed Team</p>
+                        <p>© ${
+			Instant.now().atZone(java.time.ZoneId.systemDefault()).year
+		} Calmed. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        """.trimIndent()
+	}
+
+	private fun sendEmail(to: String, subject: String, body: String) {
+		val email = HtmlEmail()
+
+		email.hostName = emailConfig.host
+		email.setSmtpPort(emailConfig.port)
+
+		email.setAuthenticator(
+			DefaultAuthenticator(
+				emailConfig.username,
+				emailConfig.password
+			)
+		)
+
+		// ✅ Gmail 587 settings
+		email.isSSLOnConnect = false
+		email.isStartTLSEnabled = true
+		email.isStartTLSRequired = true
+
+		email.setFrom(emailConfig.fromEmail, emailConfig.fromName)
+		email.subject = subject
+		email.setHtmlMsg(body)
+		email.setTextMsg("Please verify your email by opening this link.")
+		email.addTo(to)
+
+		email.send()
 	}
 }
