@@ -101,23 +101,29 @@ class AuthService(
 								return@withTransaction createTokenPair(createdUser.data.id, createdUser.data.email)
 							}
 							else {
-								return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to create authentication credentials.")
+								return@withTransaction AppResult.Failure(
+									HttpStatusCode.InternalServerError,
+									"Failed to create authentication credentials."
+								)
 							}
 						}
 						else {
-							return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to hash password.")
+							return@withTransaction AppResult.Failure(
+								HttpStatusCode.InternalServerError,
+								"Failed to hash password."
+							)
 						}
 					}
 					else {
-						return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to create user.")
+						return@withTransaction AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to create user.")
 					}
 				}
 				else {
-					return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Email already exists.")
+					return@withTransaction AppResult.Failure(HttpStatusCode.BadRequest, "Email already exists.")
 				}
 			}
 			else {
-				return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid password.")
+				return@withTransaction AppResult.Failure(HttpStatusCode.BadRequest, "Invalid password.")
 			}
 		}
 	}
@@ -146,11 +152,14 @@ class AuthService(
 							return@withTransaction createTokenPair(userResult.data.id, userResult.data.email)
 						}
 						else {
-							return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid password.")
+							return@withTransaction AppResult.Failure(HttpStatusCode.BadRequest, "Invalid password.")
 						}
 					}
 					else {
-						return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "No authentication credentials found.")
+						return@withTransaction AppResult.Failure(
+							HttpStatusCode.InternalServerError,
+							"No authentication credentials found."
+						)
 					}
 				}
 				else {
@@ -158,7 +167,7 @@ class AuthService(
 				}
 			}
 			else {
-				return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid email or password.")
+				return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid email.")
 			}
 		}
 	}
@@ -190,7 +199,10 @@ class AuthService(
 							refreshVerifier().verify(refreshTokenJwt)
 						}
 						catch (e: JWTVerificationException) {
-							return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to decode refresh token.")
+							return@withTransaction AppResult.Failure(
+								HttpStatusCode.NotFound,
+								"Failed to decode refresh token."
+							)
 						}
 						val refreshTokenId = UUID.fromString(decodedRefreshToken.id)
 						// 5. Create and store refresh token entity
@@ -213,15 +225,24 @@ class AuthService(
 							)
 						}
 						else {
-							return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to store refresh token.")
+							return@withTransaction AppResult.Failure(
+								HttpStatusCode.NotFound,
+								"Failed to store refresh token."
+							)
 						}
 					}
 					else {
-						return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to hash refresh token.")
+						return@withTransaction AppResult.Failure(
+							HttpStatusCode.NotFound,
+							"Failed to hash refresh token."
+						)
 					}
 				}
 				else {
-					return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to generate refresh token.")
+					return@withTransaction AppResult.Failure(
+						HttpStatusCode.NotFound,
+						"Failed to generate refresh token."
+					)
 				}
 			}
 			else {
@@ -319,7 +340,10 @@ class AuthService(
 											refreshVerifier().verify(newTokenPair.data.refresh)
 										}
 										catch (e: JWTVerificationException) {
-											return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to decode new refresh token")
+											return@withTransaction AppResult.Failure(
+												HttpStatusCode.NotFound,
+												"Failed to decode new refresh token"
+											)
 										}
 										val newTokenId = UUID.fromString(newDecodedToken.id)
 										// 9. Revoke old token (mark as replaced)
@@ -333,7 +357,10 @@ class AuthService(
 											return@withTransaction newTokenPair
 										}
 										else {
-											return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to revoke old refresh token.")
+											return@withTransaction AppResult.Failure(
+												HttpStatusCode.NotFound,
+												"Failed to revoke old refresh token."
+											)
 										}
 									}
 									else {
@@ -341,15 +368,24 @@ class AuthService(
 									}
 								}
 								else {
-									return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Token hash mismatch.")
+									return@withTransaction AppResult.Failure(
+										HttpStatusCode.NotFound,
+										"Token hash mismatch."
+									)
 								}
 							}
 							else {
-								return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to hash incoming token.")
+								return@withTransaction AppResult.Failure(
+									HttpStatusCode.NotFound,
+									"Failed to hash incoming token."
+								)
 							}
 						}
 						else {
-							return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Refresh token is no longer active.")
+							return@withTransaction AppResult.Failure(
+								HttpStatusCode.NotFound,
+								"Refresh token is no longer active."
+							)
 						}
 					}
 					else {
@@ -383,15 +419,24 @@ class AuthService(
 							}
 						}
 						else {
-							return AppResult.Failure(HttpStatusCode.NotFound, "Password must contain at least one digit.")
+							return AppResult.Failure(
+								HttpStatusCode.NotFound,
+								"Password must contain at least one digit."
+							)
 						}
 					}
 					else {
-						return AppResult.Failure(HttpStatusCode.NotFound, "Password must contain at least one lowercase letter.")
+						return AppResult.Failure(
+							HttpStatusCode.NotFound,
+							"Password must contain at least one lowercase letter."
+						)
 					}
 				}
 				else {
-					return AppResult.Failure(HttpStatusCode.NotFound, "Password must contain at least one uppercase letter.")
+					return AppResult.Failure(
+						HttpStatusCode.NotFound,
+						"Password must contain at least one uppercase letter."
+					)
 				}
 			}
 			else {
@@ -488,60 +533,80 @@ class AuthService(
 		return withTransaction {
 			try {
 				// Verify the token
+				val now = Instant.now()
 				val decodedToken = verifyEmailVerificationToken(token)
 				if (decodedToken != null) {
 					val userId = UUID.fromString(decodedToken.subject)
 					val email = decodedToken.getClaim("email").asString()
+					val expiresAt = decodedToken.getClaim("exp").asInstant()
+					if (expiresAt != null && expiresAt >= now) {
+						if (userId != null && email != null) {
+							// Get the user
+							val userResult = userService.getById(userId)
+							if (userResult is AppResult.Success) {
+								val user = userResult.data
+								// Check if email matches
+								if (user.email == email) {
+									// Check if already verified
+									if (!user.isEmailVerified) {
+										// Update user to mark email as verified
+										val updatedUser = User(
+											id = user.id,
+											email = user.email,
+											username = user.username,
+											isEmailVerified = true,
+											createdAt = user.createdAt,
+											updatedAt = Instant.now()
+										)
+										val updateResult = userService.update(updatedUser)
+										if (updateResult is AppResult.Success) {
+											return@withTransaction AppResult.Success(Unit)
+										}
+										else {
+											return@withTransaction AppResult.Failure(
+												HttpStatusCode.NotFound,
+												"Failed to update user verification status."
+											)
 
-					if (userId != null && email != null) {
-						// Get the user
-						val userResult = userService.getById(userId)
-						if (userResult is AppResult.Success) {
-							val user = userResult.data
-							// Check if email matches
-							if (user.email == email) {
-								// Check if already verified
-								if (!user.isEmailVerified) {
-									// Update user to mark email as verified
-									val updatedUser = User(
-										id = user.id,
-										email = user.email,
-										username = user.username,
-										isEmailVerified = true,
-										createdAt = user.createdAt,
-										updatedAt = Instant.now()
-									)
-									val updateResult = userService.update(updatedUser)
-									if (updateResult is AppResult.Success) {
-										return@withTransaction AppResult.Success(Unit)
+										}
 									}
 									else {
-										return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to update user verification status.")
-
+										return@withTransaction AppResult.Success(Unit)
 									}
+
 								}
 								else {
-									return@withTransaction AppResult.Success(Unit)
+									return@withTransaction AppResult.Failure(
+										HttpStatusCode.NotFound,
+										"Email does not match."
+									)
 								}
 
 							}
 							else {
-								return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Email does not match.")
+								return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
 							}
-
 						}
 						else {
-							return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
+							return@withTransaction AppResult.Failure(
+								HttpStatusCode.NotFound,
+								"Invalid verification token."
+							)
 						}
-
 					}
 					else {
-						return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid verification token.")
+						return@withTransaction AppResult.Failure(
+							HttpStatusCode.Unauthorized,
+							"Email verification expired."
+						)
 					}
 
 				}
 				else {
-					return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid or expired verification token.")
+					return@withTransaction AppResult.Failure(
+						HttpStatusCode.NotFound,
+						"Invalid or expired verification token."
+					)
 				}
 
 			}
