@@ -8,6 +8,7 @@ import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialType
 import com.calmed.calmedbackend.repository.specification.IAuthCredentialRepository
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IUserService
+import io.ktor.http.HttpStatusCode
 import java.util.UUID
 
 class AuthCredentialService(
@@ -25,7 +26,7 @@ class AuthCredentialService(
 				result.add(authCredential.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 
@@ -42,11 +43,11 @@ class AuthCredentialService(
 				return AppResult.Success(authCredential.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 		else {
-			return AppResult.Failure("Failed to retrieve credentials.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve credentials.")
 		}
 	}
 
@@ -64,11 +65,11 @@ class AuthCredentialService(
 				return AppResult.Success(authCredential.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 		else {
-			return AppResult.Failure("Failed to retrieve credentials.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve credentials.")
 		}
 	}
 
@@ -82,11 +83,11 @@ class AuthCredentialService(
 				return AppResult.Success(created.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 		else {
-			return AppResult.Failure("Failed to create auth credential.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to create auth credential.")
 		}
 	}
 
@@ -100,11 +101,11 @@ class AuthCredentialService(
 				return AppResult.Success(updated.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 		else {
-			return AppResult.Failure("Failed to update auth credential.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to update auth credential.")
 		}
 	}
 
@@ -115,7 +116,7 @@ class AuthCredentialService(
 			return AppResult.Success(Unit)
 		}
 		else {
-			return AppResult.Failure("Failed to delete credential.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to delete credential.")
 		}
 	}
 }

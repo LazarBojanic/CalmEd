@@ -24,11 +24,13 @@ fun Route.userRoutes() {
 				if (idParam != null) {
 					val id = UUID.fromString(idParam)
 					val res = userService.getById(id)
-					if (res is AppResult.Success) {
-						call.respond(res.data.toDto())
-					}
-					else {
-						throw BusinessException(HttpStatusCode.NotFound, "Not found")
+					when(res){
+						is AppResult.Success -> {
+							call.respond(HttpStatusCode.OK, res.data.toDto())
+						}
+						is AppResult.Failure -> {
+							call.respond(res.httpStatusCode, res.message)
+						}
 					}
 				}
 				else {

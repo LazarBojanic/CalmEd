@@ -6,6 +6,7 @@ import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.repository.specification.IUserRepository
 import com.calmed.calmedbackend.service.specification.IUserService
+import io.ktor.http.HttpStatusCode
 import java.util.UUID
 
 class UserService(
@@ -23,7 +24,7 @@ class UserService(
 			return AppResult.Success(user.join())
 		}
 		else {
-			return AppResult.Failure("User not found.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
 		}
 	}
 
@@ -33,7 +34,7 @@ class UserService(
 			return AppResult.Success(user.join())
 		}
 		else {
-			return AppResult.Failure("User not found.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
 		}
 	}
 
@@ -43,7 +44,7 @@ class UserService(
 			return AppResult.Success(created.join())
 		}
 		else {
-			return AppResult.Failure("Failed to create user.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to create user.")
 		}
 	}
 
@@ -53,7 +54,7 @@ class UserService(
 			return AppResult.Success(updated.join())
 		}
 		else {
-			return AppResult.Failure("Failed to update user.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to update user.")
 		}
 	}
 
@@ -62,7 +63,7 @@ class UserService(
 			return AppResult.Success(Unit)
 		}
 		else {
-			return AppResult.Failure("Failed to delete user.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to delete user.")
 		}
 	}
 }

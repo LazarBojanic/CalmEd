@@ -9,15 +9,24 @@ import io.ktor.server.plugins.defaultheaders.*
 fun Application.configureHTTP() {
 	install(Compression)
 	install(CORS) {
+		val dev = true;
 		allowMethod(HttpMethod.Options)
 		allowMethod(HttpMethod.Get)
 		allowMethod(HttpMethod.Post)
 		allowMethod(HttpMethod.Put)
 		allowMethod(HttpMethod.Delete)
 		allowMethod(HttpMethod.Patch)
+
 		allowHeader(HttpHeaders.ContentType)
 		allowHeader(HttpHeaders.Authorization)
-		anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+
+		allowCredentials = true
+
+		if(dev){
+			allowHost("localhost:3000", listOf("http"))
+			allowHost("127.0.0.1:3000", listOf("http"))
+			allowHost("hoppscotch.io", listOf("https"))
+		}
 	}
 	install(DefaultHeaders) {
 		header("X-Engine", "Ktor") // will send this header with each response

@@ -35,7 +35,7 @@ fun Route.authRoutes() {
 				}
 
 				is AppResult.Failure -> {
-					throw BusinessException(HttpStatusCode.BadRequest, tokenPairDto.message)
+					throw BusinessException(tokenPairDto.httpStatusCode, tokenPairDto.message)
 				}
 			}
 		}
@@ -52,7 +52,7 @@ fun Route.authRoutes() {
 				}
 
 				is AppResult.Failure -> {
-					throw BusinessException(HttpStatusCode.Unauthorized, tokenPairDto.message)
+					throw BusinessException(tokenPairDto.httpStatusCode, tokenPairDto.message)
 				}
 			}
 		}
@@ -69,7 +69,7 @@ fun Route.authRoutes() {
 				}
 
 				is AppResult.Failure -> {
-					throw BusinessException(HttpStatusCode.Unauthorized, tokenPairDto.message)
+					throw BusinessException(tokenPairDto.httpStatusCode, tokenPairDto.message)
 				}
 			}
 		}
@@ -93,12 +93,12 @@ fun Route.authRoutes() {
 						call.respondText(
 							text = verificationFailurePage(result.message),
 							contentType = ContentType.Text.Html,
-							status = HttpStatusCode.BadRequest
+							status = result.httpStatusCode
 						)
 					}
 				}
 			}
-			else{
+			else {
 				throw BusinessException(HttpStatusCode.BadRequest, "Missing token")
 			}
 		}
@@ -119,7 +119,7 @@ fun Route.authRoutes() {
 						}
 
 						is AppResult.Failure -> {
-							throw BusinessException(HttpStatusCode.InternalServerError, logoutResult.message)
+							throw BusinessException(logoutResult.httpStatusCode, logoutResult.message)
 						}
 					}
 				}

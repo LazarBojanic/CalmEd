@@ -14,7 +14,7 @@ fun Application.configureStatusPages() {
 			printError(cause)
 			call.respond(
 				cause.statusCode,
-				AppResult.Failure(cause.message)
+				AppResult.Failure(cause.statusCode, cause.message)
 			)
 		}
 
@@ -22,7 +22,7 @@ fun Application.configureStatusPages() {
 			printError(cause)
 			call.respond(
 				HttpStatusCode.InternalServerError,
-				AppResult.Failure("Unexpected error occurred")
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Unexpected error occurred")
 			)
 		}
 	}

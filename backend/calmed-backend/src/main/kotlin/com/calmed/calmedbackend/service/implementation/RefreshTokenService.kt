@@ -7,6 +7,7 @@ import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.repository.specification.IRefreshTokenRepository
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
 import com.calmed.calmedbackend.service.specification.IUserService
+import io.ktor.http.HttpStatusCode
 import java.time.Instant
 import java.util.UUID
 
@@ -24,7 +25,7 @@ class RefreshTokenService(
 				result.add(token.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 
@@ -41,11 +42,11 @@ class RefreshTokenService(
 				return AppResult.Success(token.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 		else {
-			return AppResult.Failure("Refresh token not found.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Refresh token not found.")
 		}
 	}
 
@@ -60,7 +61,7 @@ class RefreshTokenService(
 				result.add(token.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 
@@ -80,7 +81,7 @@ class RefreshTokenService(
 			return AppResult.Success(Unit)
 		}
 		else {
-			return AppResult.Failure("Refresh token not found.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Refresh token not found.")
 		}
 	}
 
@@ -110,11 +111,11 @@ class RefreshTokenService(
 				return AppResult.Success(created.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 		else {
-			return AppResult.Failure("Failed to create refresh token.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to create refresh token.")
 		}
 	}
 
@@ -128,11 +129,11 @@ class RefreshTokenService(
 				return AppResult.Success(updated.join(userResult.data))
 			}
 			else {
-				return AppResult.Failure("Failed to retrieve user.")
+				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
 			}
 		}
 		else {
-			return AppResult.Failure("Failed to update refresh token.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to update refresh token.")
 		}
 	}
 
@@ -143,7 +144,7 @@ class RefreshTokenService(
 			return AppResult.Success(Unit)
 		}
 		else {
-			return AppResult.Failure("Failed to delete refresh token.")
+			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to delete refresh token.")
 		}
 	}
 
