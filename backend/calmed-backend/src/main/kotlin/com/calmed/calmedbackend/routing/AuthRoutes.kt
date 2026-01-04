@@ -115,10 +115,12 @@ fun Route.authRoutes() {
 
 			when (result) {
 				is AppResult.Success -> {
+					println("Email sent to ${dto.email}")
 					call.respond(HttpStatusCode.OK, mapOf("message" to "Password reset email sent"))
 				}
 
 				is AppResult.Failure -> {
+					println("Failed to send password reset email to ${dto.email}")
 					call.respond(HttpStatusCode.OK, mapOf("message" to "Password reset email sent"))
 				}
 			}

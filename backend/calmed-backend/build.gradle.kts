@@ -9,7 +9,8 @@ val java_jwt_version: String by project
 val lib_bcrypt: String by project
 val HikariCP_version: String by project
 val flyway_database_postgresql_version: String by project
-
+val junit_version: String by project
+val mockk_version: String by project
 
 plugins {
 	kotlin("jvm") version "2.3.0"
@@ -59,4 +60,12 @@ dependencies {
 	implementation("at.favre.lib:bcrypt:$lib_bcrypt")
 	implementation("com.zaxxer:HikariCP:$HikariCP_version")
 	implementation("org.flywaydb:flyway-database-postgresql:$flyway_database_postgresql_version")
+	testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
+	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junit_version")
+	testImplementation(kotlin("test"))
+	testImplementation("io.mockk:mockk:$mockk_version")
+}
+tasks.test{
+	useJUnitPlatform()
 }

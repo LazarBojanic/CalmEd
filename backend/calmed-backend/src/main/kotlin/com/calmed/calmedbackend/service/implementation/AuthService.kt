@@ -420,6 +420,7 @@ class AuthService(private val userService: IUserService,
 
 							}
 							else {
+								logout(userUuid)
 								return@withTransaction AppResult.Failure(
 									HttpStatusCode.Unauthorized, "Refresh token is no longer active."
 								)
