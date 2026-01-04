@@ -44,7 +44,7 @@ class UserService(
 			return AppResult.Success(created.join())
 		}
 		else {
-			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to create user.")
+			return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to create user.")
 		}
 	}
 
@@ -54,7 +54,7 @@ class UserService(
 			return AppResult.Success(updated.join())
 		}
 		else {
-			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to update user.")
+			return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to update user.")
 		}
 	}
 
@@ -63,7 +63,7 @@ class UserService(
 			return AppResult.Success(Unit)
 		}
 		else {
-			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to delete user.")
+			return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to delete user.")
 		}
 	}
 }

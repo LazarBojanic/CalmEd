@@ -3,7 +3,6 @@ package com.calmed.calmedbackend.service.implementation
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTVerificationException
-import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
 import com.calmed.calmedbackend.auth.TokenType
 import com.calmed.calmedbackend.config.EmailConfig
@@ -29,145 +28,189 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.apache.commons.mail.DefaultAuthenticator
 import org.apache.commons.mail.HtmlEmail
-import org.apache.commons.mail.SimpleEmail
 import java.security.MessageDigest
-import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
-class AuthService(
-	private val userService: IUserService,
-	private val authCredentialService: IAuthCredentialService,
-	private val refreshTokenService: IRefreshTokenService,
-	private val jwtConfig: JwtConfig,
-	private val emailConfig: EmailConfig
+class AuthService(private val userService: IUserService,
+                  private val authCredentialService: IAuthCredentialService,
+                  private val refreshTokenService: IRefreshTokenService,
+                  private val jwtConfig: JwtConfig,
+                  private val emailConfig: EmailConfig
 ) : IAuthService {
 	override fun accessVerifier(): JWTVerifier {
-		return JWT.require(jwtConfig.algAccess)
-			.withIssuer(jwtConfig.iss)
-			.withAudience(jwtConfig.aud)
-			.build()
+		return JWT.require(jwtConfig.accessAlg).withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).build()
 	}
 
 	override fun refreshVerifier(): JWTVerifier {
-		return JWT.require(jwtConfig.algRefresh)
-			.withIssuer(jwtConfig.iss)
-			.withAudience(jwtConfig.aud)
-			.build()
+		return JWT.require(jwtConfig.refreshAlg).withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).build()
+	}
+
+	override fun emailVerificationVerifier(): JWTVerifier {
+		return JWT.require(jwtConfig.emailVerificationAlg).withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).build()
+	}
+
+	override fun passwordResetVerifier(): JWTVerifier {
+		return JWT.require(jwtConfig.passwordResetAlg).withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).build()
+	}
+
+	override suspend fun generatePasswordResetToken(userId: UUID, email: String
+	): AppResult<String> {
+		return try {
+			val now = Instant.now()
+			val token =
+				JWT.create().withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).withSubject(userId.toString())
+					.withIssuedAt(now).withExpiresAt(now.plus(jwtConfig.passwordResetTtl))
+					.withJWTId(UUID.randomUUID().toString()).withClaim("typ", TokenType.PASSWORD_RESET.name)
+					.withClaim("email", email).sign(jwtConfig.passwordResetAlg)
+
+			AppResult.Success(token)
+		}
+		catch (e: Exception) {
+			AppResult.Failure(HttpStatusCode.NotFound, "Failed to generate email verification token: ${e.message}.")
+		}
 	}
 
 	override suspend fun register(dto: RegisterDto): AppResult<TokenPairDto> {
 		return withTransaction {
-			// 1. Validate password
-			val passwordValidation = validatePassword(dto.password, dto.confirmPassword)
-			if (passwordValidation is AppResult.Success) {
-				// 2. Check if email already exists
-				val existingUser = userService.getByEmail(dto.email)
-				if (existingUser is AppResult.Failure) {
-					// 3. Create user
-					val newUser = User.createNew(
-						email = dto.email,
-						username = dto.username,
-						isEmailVerified = false
-					)
-					val createdUser = userService.create(newUser)
-					if (createdUser is AppResult.Success) {
-						// 4. Hash password
-						val passwordHash = hashTextBCrypt(dto.password)
-						if (passwordHash is AppResult.Success) {
-							// 5. Create auth credential
-							val authCredential = AuthCredential.createNew(
-								userId = createdUser.data.id,
-								type = AuthCredentialType.BASIC,
-								passwordHash = passwordHash.data
+			val passwordValidationResult = validatePassword(dto.password, dto.confirmPassword)
+			when (passwordValidationResult) {
+				is AppResult.Success -> {
+					val existingUserResult = userService.getByEmail(dto.email)
+					when (existingUserResult) {
+						is AppResult.Failure -> {
+							val newUser = User.createNew(
+								email = dto.email, username = dto.username, isEmailVerified = false
 							)
-							val createdAuthCredential = authCredentialService.create(authCredential)
-							if (createdAuthCredential is AppResult.Success) {
-								// 6. Send verification email (async - don't block registration)
-								CoroutineScope(Dispatchers.IO).launch {
-									val emailSentResult = sendVerificationEmail(
-										createdUser.data.id,
-										createdUser.data.email
-									)
-									if (emailSentResult is AppResult.Success
-									) {
-										println("Email sent to ${createdUser.data.email}")
-									}
-									else if (emailSentResult is AppResult.Failure) {
-										println(emailSentResult.message)
+							val createdUserResult = userService.create(newUser)
+							when (createdUserResult) {
+								is AppResult.Success -> {
+									val passwordHashResult = hashTextBCrypt(dto.password)
+									when (passwordHashResult) {
+										is AppResult.Success -> {
+											val authCredential = AuthCredential.createNew(
+												userId = createdUserResult.data.id,
+												type = AuthCredentialType.BASIC,
+												passwordHash = passwordHashResult.data
+											)
+											val createdAuthCredentialResult =
+												authCredentialService.create(authCredential)
+											when (createdAuthCredentialResult) {
+												is AppResult.Success -> {
+													CoroutineScope(Dispatchers.IO).launch {
+														val emailSentResult = sendVerificationEmail(
+															createdUserResult.data.id, createdUserResult.data.email
+														)
+														when (emailSentResult) {
+															is AppResult.Success -> {
+																println("Email sent to ${createdUserResult.data.email}")
+															}
+
+															is AppResult.Failure -> {
+																println(emailSentResult.message)
+															}
+														}
+													}
+													return@withTransaction createTokenPair(
+														createdUserResult.data.id, createdUserResult.data.email
+													)
+												}
+
+												is AppResult.Failure -> {
+													return@withTransaction AppResult.Failure(
+														createdAuthCredentialResult.httpStatusCode,
+														"Failed to create authentication credentials. ${createdAuthCredentialResult.message}"
+													)
+												}
+											}
+
+										}
+
+										is AppResult.Failure -> {
+											return@withTransaction AppResult.Failure(
+												passwordHashResult.httpStatusCode,
+												"Failed to hash password. ${passwordHashResult.message}"
+											)
+										}
 									}
 								}
-								// 7. Generate tokens
-								return@withTransaction createTokenPair(createdUser.data.id, createdUser.data.email)
-							}
-							else {
-								return@withTransaction AppResult.Failure(
-									HttpStatusCode.InternalServerError,
-									"Failed to create authentication credentials."
-								)
+
+								is AppResult.Failure -> {
+									return@withTransaction AppResult.Failure(
+										createdUserResult.httpStatusCode,
+										"Failed to create user. ${createdUserResult.message}"
+									)
+								}
 							}
 						}
-						else {
+
+						is AppResult.Success -> {
 							return@withTransaction AppResult.Failure(
-								HttpStatusCode.InternalServerError,
-								"Failed to hash password."
+								HttpStatusCode.Unauthorized, "Email already exists. "
 							)
 						}
 					}
-					else {
-						return@withTransaction AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to create user.")
-					}
 				}
-				else {
-					return@withTransaction AppResult.Failure(HttpStatusCode.BadRequest, "Email already exists.")
+
+				is AppResult.Failure -> {
+					return@withTransaction AppResult.Failure(
+						passwordValidationResult.httpStatusCode, "Invalid password. ${passwordValidationResult.message}"
+					)
 				}
-			}
-			else {
-				return@withTransaction AppResult.Failure(HttpStatusCode.BadRequest, "Invalid password.")
 			}
 		}
 	}
 
 	override suspend fun login(dto: LoginDto): AppResult<TokenPairDto> {
 		return withTransaction {
-			// 1. Find user by email
 			val userResult = userService.getByEmail(dto.email)
-			if (userResult is AppResult.Success) {
-				// 2. Get auth credentials for BASIC authentication
-				if (userResult.data.isEmailVerified) {
-					val authCredentialResult = authCredentialService.getByUserIdAndType(
-						userResult.data.id,
-						AuthCredentialType.BASIC
-					)
-
-					if (authCredentialResult is AppResult.Success) {
-						// 3. Verify password
-						val verifyResult = verifyTextBCrypt(
-							dto.password,
-							authCredentialResult.data.passwordHash
+			when (userResult) {
+				is AppResult.Success -> {
+					if (userResult.data.isEmailVerified) {
+						val authCredentialResult = authCredentialService.getByUserIdAndType(
+							userResult.data.id, AuthCredentialType.BASIC
 						)
+						when (authCredentialResult) {
+							is AppResult.Success -> {
+								val verifyResult = verifyTextBCrypt(
+									dto.password, authCredentialResult.data.passwordHash
+								)
+								when (verifyResult) {
+									is AppResult.Success -> {
+										return@withTransaction createTokenPair(
+											userResult.data.id, userResult.data.email
+										)
 
-						if (verifyResult is AppResult.Success) {
-							// 4. Generate tokens
-							return@withTransaction createTokenPair(userResult.data.id, userResult.data.email)
-						}
-						else {
-							return@withTransaction AppResult.Failure(HttpStatusCode.BadRequest, "Invalid password.")
+									}
+
+									is AppResult.Failure -> {
+										return@withTransaction AppResult.Failure(
+											verifyResult.httpStatusCode, "Invalid password. ${verifyResult.message}"
+										)
+
+									}
+								}
+							}
+
+							is AppResult.Failure -> {
+								return@withTransaction AppResult.Failure(
+									authCredentialResult.httpStatusCode,
+									"No authentication credentials found. ${authCredentialResult.message}"
+								)
+							}
 						}
 					}
 					else {
-						return@withTransaction AppResult.Failure(
-							HttpStatusCode.InternalServerError,
-							"No authentication credentials found."
-						)
+						return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Email not verified.")
 					}
 				}
-				else {
-					return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Email not verified.")
+
+				is AppResult.Failure -> {
+					return@withTransaction AppResult.Failure(
+						userResult.httpStatusCode, "Invalid email. ${userResult.message}"
+					)
+
 				}
-			}
-			else {
-				return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid email.")
 			}
 		}
 	}
@@ -178,142 +221,129 @@ class AuthService(
 		}
 	}
 
-	override suspend fun createTokenPair(
-		userId: UUID,
-		email: String
-	): AppResult<TokenPairDto> {
+	override suspend fun createTokenPair(userId: UUID, email: String): AppResult<TokenPairDto> {
 		return withTransaction {
 			val now = Instant.now()
-			// 1. Generate access token
 			val accessTokenResult = generateAccessToken(userId, email, now)
-			if (accessTokenResult is AppResult.Success) {
-				// 2. Generate refresh token (JWT only, not stored yet)
-				val refreshTokenResult = generateRefreshToken(userId, email, now)
-				if (refreshTokenResult is AppResult.Success) {
-					val refreshTokenJwt = refreshTokenResult.data
-					// 3. Hash the refresh token for storage
-					val tokenHash = hashTextSHA512(refreshTokenJwt)
-					if (tokenHash is AppResult.Success) {
-						// 4. Decode refresh token to get its ID (jti claim)
-						val decodedRefreshToken = try {
-							refreshVerifier().verify(refreshTokenJwt)
+			when (accessTokenResult) {
+				is AppResult.Success -> {
+					val refreshTokenResult = generateRefreshToken(userId, email, now)
+					when (refreshTokenResult) {
+						is AppResult.Success -> {
+							val refreshTokenJwt = refreshTokenResult.data
+							val tokenHashResult = hashTextSHA512(refreshTokenJwt)
+							when (tokenHashResult) {
+								is AppResult.Success -> {
+									val decodedRefreshToken = try {
+										refreshVerifier().verify(refreshTokenJwt)
+									}
+									catch (e: JWTVerificationException) {
+										return@withTransaction AppResult.Failure(
+											HttpStatusCode.Unauthorized, "Failed to verify refresh token."
+										)
+									}
+									val refreshTokenId = UUID.fromString(decodedRefreshToken.id)
+									val refreshToken = RefreshToken.createNew(
+										id = refreshTokenId,
+										replacedBy = null,
+										userId = userId,
+										tokenHash = tokenHashResult.data,
+										issuedAt = now,
+										expiresAt = now.plus(jwtConfig.refreshTtl),
+										revokedAt = null
+									)
+									val storedRefreshTokenResult = refreshTokenService.create(refreshToken)
+									when (storedRefreshTokenResult) {
+										is AppResult.Success -> {
+											return@withTransaction AppResult.Success(
+												TokenPairDto(
+													access = accessTokenResult.data, refresh = refreshTokenJwt
+												)
+											)
+										}
+
+										is AppResult.Failure -> {
+											return@withTransaction AppResult.Failure(
+												storedRefreshTokenResult.httpStatusCode,
+												"Failed to store refresh token. ${storedRefreshTokenResult.message}"
+											)
+										}
+									}
+
+								}
+
+								is AppResult.Failure -> {
+									return@withTransaction AppResult.Failure(
+										tokenHashResult.httpStatusCode,
+										"Failed to hash refresh token. ${tokenHashResult.message}"
+									)
+								}
+							}
+
 						}
-						catch (e: JWTVerificationException) {
+
+						is AppResult.Failure -> {
 							return@withTransaction AppResult.Failure(
-								HttpStatusCode.NotFound,
-								"Failed to decode refresh token."
-							)
-						}
-						val refreshTokenId = UUID.fromString(decodedRefreshToken.id)
-						// 5. Create and store refresh token entity
-						val refreshToken = RefreshToken.createNew(
-							id = refreshTokenId,
-							replacedBy = null,
-							userId = userId,
-							tokenHash = tokenHash.data,
-							issuedAt = now,
-							expiresAt = now.plus(jwtConfig.refreshTtl),
-							revokedAt = null
-						)
-						val storedRefreshToken = refreshTokenService.create(refreshToken)
-						if (storedRefreshToken is AppResult.Success) {
-							return@withTransaction AppResult.Success(
-								TokenPairDto(
-									access = accessTokenResult.data,
-									refresh = refreshTokenJwt
-								)
-							)
-						}
-						else {
-							return@withTransaction AppResult.Failure(
-								HttpStatusCode.NotFound,
-								"Failed to store refresh token."
+								refreshTokenResult.httpStatusCode,
+								"Failed to generate refresh token. ${refreshTokenResult.message}"
 							)
 						}
 					}
-					else {
-						return@withTransaction AppResult.Failure(
-							HttpStatusCode.NotFound,
-							"Failed to hash refresh token."
-						)
-					}
+
 				}
-				else {
+
+				is AppResult.Failure -> {
 					return@withTransaction AppResult.Failure(
-						HttpStatusCode.NotFound,
-						"Failed to generate refresh token."
+						accessTokenResult.httpStatusCode,
+						"Failed to generate access token. ${accessTokenResult.message}"
 					)
+
 				}
-			}
-			else {
-				return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Failed to generate access token.")
 			}
 		}
 	}
 
-	override suspend fun generateAccessToken(
-		id: UUID,
-		email: String,
-		now: Instant
+	override suspend fun generateAccessToken(id: UUID, email: String, now: Instant
 	): AppResult<String> {
 		return try {
-			val token = JWT.create()
-				.withIssuer(jwtConfig.iss)
-				.withAudience(jwtConfig.aud)
-				.withSubject(id.toString())
-				.withIssuedAt(now)
-				.withExpiresAt(now.plus(jwtConfig.accessTtl))
-				.withJWTId(UUID.randomUUID().toString())
-				.withClaim("typ", TokenType.ACCESS.name)
-				.withClaim("email", email)
-				.sign(jwtConfig.algAccess)
+			val token = JWT.create().withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).withSubject(id.toString())
+				.withIssuedAt(now).withExpiresAt(now.plus(jwtConfig.accessTtl)).withJWTId(UUID.randomUUID().toString())
+				.withClaim("typ", TokenType.ACCESS.name).withClaim("email", email).sign(jwtConfig.accessAlg)
 
 			AppResult.Success(token)
 		}
 		catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.NotFound, "Failed to generate access token: ${e.message}.")
+			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to generate access token: ${e.message}.")
 		}
 	}
 
-	override suspend fun generateRefreshToken(
-		userId: UUID,
-		email: String,
-		now: Instant
+	override suspend fun generateRefreshToken(userId: UUID, email: String, now: Instant
 	): AppResult<String> {
 		return try {
 			val refreshTokenId = UUID.randomUUID()
 			val expiresAt = now.plus(jwtConfig.refreshTtl)
-			val token = JWT.create()
-				.withIssuer(jwtConfig.iss)
-				.withAudience(jwtConfig.aud)
-				.withSubject(userId.toString())
-				.withIssuedAt(now)
-				.withExpiresAt(expiresAt)
-				.withJWTId(refreshTokenId.toString())
-				.withClaim("typ", TokenType.REFRESH.name)
-				.withClaim("email", email)
-				.sign(jwtConfig.algRefresh)
+			val token =
+				JWT.create().withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).withSubject(userId.toString())
+					.withIssuedAt(now).withExpiresAt(expiresAt).withJWTId(refreshTokenId.toString())
+					.withClaim("typ", TokenType.REFRESH.name).withClaim("email", email).sign(jwtConfig.refreshAlg)
 
 			AppResult.Success(token)
 		}
 		catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.NotFound, "Failed to generate refresh token: ${e.message}.")
+			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to generate refresh token: ${e.message}.")
 		}
 	}
 
 	override suspend fun refresh(dto: RefreshDto): AppResult<TokenPairDto> {
 		return withTransaction {
-			// 1. Verify and decode the refresh token
 			val decodedRefreshToken = try {
 				refreshVerifier().verify(dto.refresh)
 			}
 			catch (e: JWTVerificationException) {
-				return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid refresh token.")
+				return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid refresh token.")
 			}
-			// 2. Validate token type
 			val tokenType = decodedRefreshToken.getClaim("typ").asString()
 			if (tokenType == TokenType.REFRESH.name) {
-				// 3. Extract claims
 				val tokenId = decodedRefreshToken.id
 				val userId = decodedRefreshToken.subject
 				val email = decodedRefreshToken.getClaim("email").asString()
@@ -321,90 +351,102 @@ class AuthService(
 				if (tokenId != null && userId != null && email != null) {
 					val refreshTokenUuid = UUID.fromString(tokenId)
 					val userUuid = UUID.fromString(userId)
-					// 4. Find stored refresh token
 					val storedTokenResult = refreshTokenService.getById(refreshTokenUuid)
-					if (storedTokenResult is AppResult.Success) {
-						val storedToken = storedTokenResult.data.toRaw()
-						// 5. Verify token is active
-						if (storedToken.isActive()) {
-							// 6. Verify token hash matches
-							val incomingHash = hashTextSHA512(dto.refresh)
-							if (incomingHash is AppResult.Success) {
-								if (incomingHash.data == storedToken.tokenHash) {
-									// 7. Generate new token pair
-									val newTokenPair = createTokenPair(userUuid, email)
+					when (storedTokenResult) {
+						is AppResult.Success -> {
+							val storedToken = storedTokenResult.data.toRaw()
 
-									if (newTokenPair is AppResult.Success) {
-										// 8. Decode new refresh token to get its ID
-										val newDecodedToken = try {
-											refreshVerifier().verify(newTokenPair.data.refresh)
-										}
-										catch (e: JWTVerificationException) {
-											return@withTransaction AppResult.Failure(
-												HttpStatusCode.NotFound,
-												"Failed to decode new refresh token"
-											)
-										}
-										val newTokenId = UUID.fromString(newDecodedToken.id)
-										// 9. Revoke old token (mark as replaced)
-										val revokedToken = storedToken.copy(
-											replacedBy = newTokenId,
-											revokedAt = Instant.now(),
-											updatedAt = Instant.now()
-										)
-										val updateResult = refreshTokenService.update(revokedToken)
-										if (updateResult is AppResult.Success) {
-											return@withTransaction newTokenPair
+							if (storedToken.isActive()) {
+								val incomingHashResult = hashTextSHA512(dto.refresh)
+								when (incomingHashResult) {
+									is AppResult.Success -> {
+										if (incomingHashResult.data == storedToken.tokenHash) {
+											val newTokenPairResult = createTokenPair(userUuid, email)
+											when (newTokenPairResult) {
+												is AppResult.Success -> {
+													val newDecodedToken = try {
+														refreshVerifier().verify(newTokenPairResult.data.refresh)
+													}
+													catch (e: JWTVerificationException) {
+														return@withTransaction AppResult.Failure(
+															HttpStatusCode.Unauthorized,
+															"Failed to decode new refresh token"
+														)
+													}
+													val newTokenId = UUID.fromString(newDecodedToken.id)
+													val revokedToken = storedToken.copy(
+														replacedBy = newTokenId,
+														revokedAt = Instant.now(),
+														updatedAt = Instant.now()
+													)
+													val updateResult = refreshTokenService.update(revokedToken)
+													when (updateResult) {
+														is AppResult.Success -> {
+															return@withTransaction newTokenPairResult
+														}
+
+														is AppResult.Failure -> {
+															return@withTransaction AppResult.Failure(
+																HttpStatusCode.NotFound,
+																"Failed to revoke old refresh token."
+															)
+														}
+													}
+												}
+
+												is AppResult.Failure -> {
+													return@withTransaction AppResult.Failure(
+														newTokenPairResult.httpStatusCode,
+														"Failed to create new tokens. ${newTokenPairResult.message}"
+													)
+												}
+											}
+
 										}
 										else {
 											return@withTransaction AppResult.Failure(
-												HttpStatusCode.NotFound,
-												"Failed to revoke old refresh token."
+												HttpStatusCode.Unauthorized, "Token hash mismatch."
 											)
 										}
 									}
-									else {
-										return@withTransaction newTokenPair
+
+									is AppResult.Failure -> {
+										return@withTransaction AppResult.Failure(
+											incomingHashResult.httpStatusCode,
+											"Failed to hash incoming token. ${incomingHashResult.message}"
+										)
 									}
 								}
-								else {
-									return@withTransaction AppResult.Failure(
-										HttpStatusCode.NotFound,
-										"Token hash mismatch."
-									)
-								}
+
 							}
 							else {
 								return@withTransaction AppResult.Failure(
-									HttpStatusCode.NotFound,
-									"Failed to hash incoming token."
+									HttpStatusCode.Unauthorized, "Refresh token is no longer active."
 								)
 							}
 						}
-						else {
+
+						is AppResult.Failure -> {
 							return@withTransaction AppResult.Failure(
-								HttpStatusCode.NotFound,
-								"Refresh token is no longer active."
+								storedTokenResult.httpStatusCode,
+								"Refresh token not found. ${storedTokenResult.message}"
 							)
+
 						}
 					}
-					else {
-						return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Refresh token not found.")
-					}
+
 				}
 				else {
-					return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid token claims.")
+					return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token claims.")
 				}
 			}
 			else {
-				return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Invalid token type.")
+				return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token type.")
 			}
 		}
 	}
 
-	override suspend fun validatePassword(
-		p: String?,
-		c: String?
+	override suspend fun validatePassword(p: String?, c: String?
 	): AppResult<Unit> {
 		if (p != null && c != null) {
 			if (p.length >= 8) {
@@ -415,58 +457,52 @@ class AuthService(
 								return AppResult.Success(Unit)
 							}
 							else {
-								return AppResult.Failure(HttpStatusCode.NotFound, "Passwords do not match.")
+								return AppResult.Failure(HttpStatusCode.Unauthorized, "Passwords do not match.")
 							}
 						}
 						else {
 							return AppResult.Failure(
-								HttpStatusCode.NotFound,
-								"Password must contain at least one digit."
+								HttpStatusCode.Unauthorized, "Password must contain at least one digit."
 							)
 						}
 					}
 					else {
 						return AppResult.Failure(
-							HttpStatusCode.NotFound,
-							"Password must contain at least one lowercase letter."
+							HttpStatusCode.Unauthorized, "Password must contain at least one lowercase letter."
 						)
 					}
 				}
 				else {
 					return AppResult.Failure(
-						HttpStatusCode.NotFound,
-						"Password must contain at least one uppercase letter."
+						HttpStatusCode.Unauthorized, "Password must contain at least one uppercase letter."
 					)
 				}
 			}
 			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Password must be at least 8 characters long.")
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Password must be at least 8 characters long.")
 			}
 		}
 		else {
-			return AppResult.Failure(HttpStatusCode.NotFound, "Password must not be null.")
+			return AppResult.Failure(HttpStatusCode.Unauthorized, "Password must not be null.")
 		}
 	}
 
 	override suspend fun hashTextBCrypt(text: String?): AppResult<String> {
 		if (text != null) {
 			return try {
-				val hash = BCrypt.withDefaults()
-					.hashToString(12, text.toCharArray())
+				val hash = BCrypt.withDefaults().hashToString(12, text.toCharArray())
 				AppResult.Success(hash)
 			}
 			catch (e: Exception) {
-				AppResult.Failure(HttpStatusCode.NotFound, "Failed to hash text: ${e.message}.")
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to hash text: ${e.message}.")
 			}
 		}
 		else {
-			return AppResult.Failure(HttpStatusCode.NotFound, "Text must not be null.")
+			return AppResult.Failure(HttpStatusCode.InternalServerError, "Text must not be null.")
 		}
 	}
 
-	override suspend fun verifyTextBCrypt(
-		text: String?,
-		hash: String?
+	override suspend fun verifyTextBCrypt(text: String?, hash: String?
 	): AppResult<Unit> {
 		if (text != null && hash != null) {
 			return try {
@@ -475,15 +511,15 @@ class AuthService(
 					AppResult.Success(Unit)
 				}
 				else {
-					AppResult.Failure(HttpStatusCode.NotFound, "Password verification failed.")
+					AppResult.Failure(HttpStatusCode.Unauthorized, "Password verification failed.")
 				}
 			}
 			catch (e: Exception) {
-				AppResult.Failure(HttpStatusCode.NotFound, "Failed to verify text: ${e.message}.")
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to verify text. ${e.message}")
 			}
 		}
 		else {
-			return AppResult.Failure(HttpStatusCode.NotFound, "Text and hash must not be null.")
+			return AppResult.Failure(HttpStatusCode.InternalServerError, "Text and hash must not be null.")
 		}
 	}
 
@@ -496,143 +532,156 @@ class AuthService(
 				AppResult.Success(hashString)
 			}
 			catch (e: Exception) {
-				AppResult.Failure(HttpStatusCode.NotFound, "Failed to hash text: ${e.message}.")
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to hash text. ${e.message}")
 			}
 		}
 		else {
-			return AppResult.Failure(HttpStatusCode.NotFound, "Text must not be null.")
+			return AppResult.Failure(HttpStatusCode.InternalServerError, "Text must not be null.")
 		}
 	}
 
-	// ========== EMAIL VERIFICATION METHODS ==========
 	override suspend fun sendVerificationEmail(userId: UUID, email: String): AppResult<Unit> {
 		return try {
 			val tokenResult = generateEmailVerificationToken(userId, email)
-			if (tokenResult is AppResult.Success) {
-				val token = tokenResult.data
-				val verificationLink = buildVerificationLink(token)
+			when (tokenResult) {
+				is AppResult.Success -> {
+					val token = tokenResult.data
+					val verificationLink = buildVerificationLink(token)
 
-				sendEmail(
-					to = email,
-					subject = "Verify your email address",
-					body = buildVerificationEmailBody(verificationLink)
-				)
+					sendEmail(
+						to = email,
+						subject = "Verify your email address",
+						body = buildVerificationEmailBody(verificationLink)
+					)
 
-				AppResult.Success(Unit)
-			}
-			else {
-				AppResult.Failure(HttpStatusCode.NotFound, "Email verification failed.")
+					AppResult.Success(Unit)
+				}
+
+				is AppResult.Failure -> {
+					AppResult.Failure(tokenResult.httpStatusCode, "Email verification failed. ${tokenResult.message}")
+
+				}
 			}
 		}
 		catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.NotFound, "Failed to send verification email: ${e.message}.")
+			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to send verification email. ${e.message}")
 		}
 	}
 
 	override suspend fun verifyEmail(token: String): AppResult<Unit> {
 		return withTransaction {
 			try {
-				// Verify the token
 				val now = Instant.now()
-				val decodedToken = verifyEmailVerificationToken(token)
+				val decodedToken = try {
+					emailVerificationVerifier().verify(token)
+				}
+				catch (e: JWTVerificationException) {
+					return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Token verification failed.")
+				}
 				if (decodedToken != null) {
 					val userId = UUID.fromString(decodedToken.subject)
 					val email = decodedToken.getClaim("email").asString()
 					val expiresAt = decodedToken.getClaim("exp").asInstant()
 					if (expiresAt != null && expiresAt >= now) {
 						if (userId != null && email != null) {
-							// Get the user
 							val userResult = userService.getById(userId)
-							if (userResult is AppResult.Success) {
-								val user = userResult.data
-								// Check if email matches
-								if (user.email == email) {
-									// Check if already verified
-									if (!user.isEmailVerified) {
-										// Update user to mark email as verified
-										val updatedUser = User(
-											id = user.id,
-											email = user.email,
-											username = user.username,
-											isEmailVerified = true,
-											createdAt = user.createdAt,
-											updatedAt = Instant.now()
-										)
-										val updateResult = userService.update(updatedUser)
-										if (updateResult is AppResult.Success) {
-											return@withTransaction AppResult.Success(Unit)
+							when (userResult) {
+								is AppResult.Success -> {
+									val user = userResult.data
+
+									if (user.email == email) {
+										if (!user.isEmailVerified) {
+											val updatedUser = User(
+												id = user.id,
+												email = user.email,
+												username = user.username,
+												isEmailVerified = true,
+												createdAt = user.createdAt,
+												updatedAt = Instant.now()
+											)
+											val updateResult = userService.update(updatedUser)
+											when (updateResult) {
+												is AppResult.Success -> {
+													return@withTransaction AppResult.Success(Unit)
+												}
+
+												is AppResult.Failure -> {
+													return@withTransaction AppResult.Failure(
+														updateResult.httpStatusCode,
+														"Failed to update user verification status. ${updateResult.message}"
+													)
+												}
+											}
+
 										}
 										else {
-											return@withTransaction AppResult.Failure(
-												HttpStatusCode.NotFound,
-												"Failed to update user verification status."
-											)
-
+											return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Email already verified.")
 										}
+
 									}
 									else {
-										return@withTransaction AppResult.Success(Unit)
+										return@withTransaction AppResult.Failure(
+											HttpStatusCode.Unauthorized, "Email does not match."
+										)
 									}
-
-								}
-								else {
-									return@withTransaction AppResult.Failure(
-										HttpStatusCode.NotFound,
-										"Email does not match."
-									)
 								}
 
+								is AppResult.Failure -> {
+									return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
+
+								}
 							}
-							else {
-								return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
-							}
+
 						}
 						else {
 							return@withTransaction AppResult.Failure(
-								HttpStatusCode.NotFound,
-								"Invalid verification token."
+								HttpStatusCode.Unauthorized, "Invalid verification token."
 							)
 						}
 					}
 					else {
 						return@withTransaction AppResult.Failure(
-							HttpStatusCode.Unauthorized,
-							"Email verification expired."
+							HttpStatusCode.Unauthorized, "Email verification expired."
 						)
 					}
 
 				}
 				else {
 					return@withTransaction AppResult.Failure(
-						HttpStatusCode.NotFound,
-						"Invalid or expired verification token."
+						HttpStatusCode.NotFound, "Invalid or expired verification token."
 					)
 				}
 
 			}
 			catch (e: Exception) {
-				AppResult.Failure(HttpStatusCode.NotFound, "Email verification failed: ${e.message}.")
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Email verification failed: ${e.message}.")
 			}
 		}
 	}
 
 	override suspend fun resendVerificationEmail(email: String): AppResult<Unit> {
 		return withTransaction {
-			// Find user by email
 			val userResult = userService.getByEmail(email)
-			if (userResult is AppResult.Success) {
-				val user = userResult.data
-				// Check if already verified
-				if (!user.isEmailVerified) {
-					// Send verification email
-					return@withTransaction sendVerificationEmail(user.id, user.email)
+			when (userResult) {
+				is AppResult.Success -> {
+					val user = userResult.data
+
+					if (!user.isEmailVerified) {
+						return@withTransaction sendVerificationEmail(user.id, user.email)
+					}
+					else {
+						return@withTransaction AppResult.Failure(
+							HttpStatusCode.BadRequest, "Email is already verified."
+						)
+					}
 				}
-				else {
-					return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Email is already verified.")
+
+				is AppResult.Failure -> {
+					return@withTransaction AppResult.Failure(
+						userResult.httpStatusCode, "User not found. ${userResult.message}"
+					)
+
 				}
-			}
-			else {
-				return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
 			}
 		}
 	}
@@ -640,42 +689,22 @@ class AuthService(
 	override suspend fun generateEmailVerificationToken(userId: UUID, email: String): AppResult<String> {
 		return try {
 			val now = Instant.now()
-			val expiresAt = now.plus(Duration.ofHours(24)) // 24 hours for email verification
-			val token = JWT.create()
-				.withIssuer(jwtConfig.iss)
-				.withAudience(jwtConfig.aud)
-				.withSubject(userId.toString())
-				.withIssuedAt(now)
-				.withExpiresAt(expiresAt)
-				.withJWTId(UUID.randomUUID().toString())
-				.withClaim("typ", TokenType.EMAIL_VERIFICATION.name)
-				.withClaim("email", email)
-				.sign(jwtConfig.algAccess)
+			val token =
+				JWT.create().withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).withSubject(userId.toString())
+					.withIssuedAt(now).withExpiresAt(now.plus(jwtConfig.emailVerificationTtl))
+					.withJWTId(UUID.randomUUID().toString()).withClaim("typ", TokenType.EMAIL_VERIFICATION.name)
+					.withClaim("email", email).sign(jwtConfig.emailVerificationAlg)
 
 			AppResult.Success(token)
 		}
 		catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.NotFound, "Failed to generate email verification token: ${e.message}.")
-		}
-	}
-
-	// ========== PRIVATE HELPER METHODS ==========
-	private fun verifyEmailVerificationToken(token: String): DecodedJWT? {
-		return try {
-			JWT.require(jwtConfig.algAccess)
-				.withIssuer(jwtConfig.iss)
-				.withAudience(jwtConfig.aud)
-				.withClaim("typ", TokenType.EMAIL_VERIFICATION.name)
-				.build()
-				.verify(token)
-		}
-		catch (e: JWTVerificationException) {
-			null
+			AppResult.Failure(
+				HttpStatusCode.InternalServerError, "Failed to generate email verification token. ${e.message}"
+			)
 		}
 	}
 
 	private fun buildVerificationLink(token: String): String {
-		// Use the base URL from email config or default to localhost
 		return "${emailConfig.verificationBaseUrl}/auth/verify-email?token=$token"
 	}
 
@@ -735,11 +764,10 @@ class AuthService(
 
 		email.setAuthenticator(
 			DefaultAuthenticator(
-				emailConfig.username,
-				emailConfig.password
+				emailConfig.username, emailConfig.password
 			)
 		)
-		// ✅ Gmail 587 settings
+
 		email.isSSLOnConnect = false
 		email.isStartTLSEnabled = true
 		email.isStartTLSRequired = true
@@ -752,4 +780,106 @@ class AuthService(
 
 		email.send()
 	}
+
+	override suspend fun sendPasswordResetEmail(email: String): AppResult<Unit> {
+		val userResult = userService.getByEmail(email)
+		when (userResult) {
+			is AppResult.Success -> {
+				val user = userResult.data
+				val tokenResult = generatePasswordResetToken(user.id, user.email)
+
+				when (tokenResult) {
+					is AppResult.Success -> {
+						val resetLink = "${emailConfig.verificationBaseUrl}/auth/reset-password?token=${tokenResult.data}"
+						sendEmail(
+							to = user.email,
+							subject = "Reset your password",
+							body = "Click here to reset your password: $resetLink"
+						)
+						return AppResult.Success(Unit)
+					}
+
+					is AppResult.Failure -> {
+						return AppResult.Failure(
+							tokenResult.httpStatusCode, "Failed to send reset email. ${tokenResult.message}"
+						)
+
+					}
+				}
+
+			}
+
+			is AppResult.Failure -> {
+				return AppResult.Success(Unit)
+			}
+		}
+
+	}
+
+	override suspend fun resetPassword(token: String, newPassword: String
+	): AppResult<Unit> {
+		return withTransaction {
+			try {
+				val decodedToken = try {
+					passwordResetVerifier().verify(token)
+				}
+				catch (e: JWTVerificationException) {
+					return@withTransaction AppResult.Failure(
+						HttpStatusCode.Unauthorized, "Failed to verify token. ${e.message}"
+					)
+				}
+
+				if (decodedToken != null && decodedToken.getClaim("typ").asString() == TokenType.PASSWORD_RESET.name) {
+					val userId = UUID.fromString(decodedToken.subject)
+					val credentialResult = authCredentialService.getByUserIdAndType(userId, AuthCredentialType.BASIC)
+
+					when (credentialResult) {
+						is AppResult.Success -> {
+							val hashedPasswordResult = hashTextBCrypt(newPassword)
+							when (hashedPasswordResult) {
+								is AppResult.Success -> {
+									val credential = credentialResult.data
+									authCredentialService.update(
+										AuthCredential(
+											id = credential.id,
+											userId = userId,
+											type = credential.type,
+											passwordHash = hashedPasswordResult.data,
+											createdAt = credential.createdAt,
+											updatedAt = Instant.now()
+										)
+									)
+									AppResult.Success(Unit)
+								}
+
+								is AppResult.Failure -> {
+									AppResult.Failure(
+										hashedPasswordResult.httpStatusCode,
+										"Failed to hash password. ${hashedPasswordResult.message}"
+									)
+
+								}
+							}
+
+						}
+
+						is AppResult.Failure -> {
+							AppResult.Failure(
+								credentialResult.httpStatusCode, "Credentials not found. ${credentialResult.message}"
+							)
+
+						}
+					}
+				}
+				else {
+					return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token.")
+				}
+
+			}
+			catch (e: Exception) {
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Reset failed. ${e.message}")
+			}
+		}
+	}
+
 }

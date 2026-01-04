@@ -11,21 +11,25 @@ import io.ktor.http.HttpStatusCode
 import java.time.Instant
 import java.util.UUID
 
-class RefreshTokenService(
-	private val refreshTokenRepository: IRefreshTokenRepository,
-	private val userService: IUserService
+class RefreshTokenService(private val refreshTokenRepository: IRefreshTokenRepository,
+                          private val userService: IUserService
 ) : IRefreshTokenService {
 	override suspend fun getAll(): AppResult<List<RefreshTokenJoined>> {
 		val result = mutableListOf<RefreshTokenJoined>()
 
 		for (token in refreshTokenRepository.findAll()) {
 			val userResult = userService.getById(token.userId)
+			when (userResult) {
+				is AppResult.Success -> {
+					result.add(token.join(userResult.data))
+				}
 
-			if (userResult is AppResult.Success) {
-				result.add(token.join(userResult.data))
-			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
+				is AppResult.Failure -> {
+					return AppResult.Failure(
+						userResult.httpStatusCode,
+						"Failed to retrieve user. ${userResult.message}"
+					)
+				}
 			}
 		}
 
@@ -37,12 +41,17 @@ class RefreshTokenService(
 
 		if (token != null) {
 			val userResult = userService.getById(token.userId)
+			when (userResult) {
+				is AppResult.Success -> {
+					return AppResult.Success(token.join(userResult.data))
+				}
 
-			if (userResult is AppResult.Success) {
-				return AppResult.Success(token.join(userResult.data))
-			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
+				is AppResult.Failure -> {
+					return AppResult.Failure(
+						userResult.httpStatusCode,
+						"Failed to retrieve user. ${userResult.message}"
+					)
+				}
 			}
 		}
 		else {
@@ -56,12 +65,14 @@ class RefreshTokenService(
 
 		for (token in tokens) {
 			val userResult = userService.getById(token.userId)
+			when(userResult) {
+				is AppResult.Success -> {
+					result.add(token.join(userResult.data))
+				}
+				is AppResult.Failure -> {
+					return AppResult.Failure(userResult.httpStatusCode, "Failed to retrieve user. ${userResult.message}")
 
-			if (userResult is AppResult.Success) {
-				result.add(token.join(userResult.data))
-			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
+				}
 			}
 		}
 
@@ -74,8 +85,7 @@ class RefreshTokenService(
 		if (existing != null) {
 			refreshTokenRepository.update(
 				existing.copy(
-					revokedAt = Instant.now(),
-					replacedBy = replacedBy
+					revokedAt = Instant.now(), replacedBy = replacedBy
 				)
 			)
 			return AppResult.Success(Unit)
@@ -92,8 +102,7 @@ class RefreshTokenService(
 		for (token in tokens) {
 			refreshTokenRepository.update(
 				token.copy(
-					revokedAt = now,
-					replacedBy = replacedBy
+					revokedAt = now, replacedBy = replacedBy
 				)
 			)
 		}
@@ -106,12 +115,13 @@ class RefreshTokenService(
 
 		if (created != null) {
 			val userResult = userService.getById(created.userId)
-
-			if (userResult is AppResult.Success) {
-				return AppResult.Success(created.join(userResult.data))
-			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
+			when(userResult) {
+				is AppResult.Success -> {
+					return AppResult.Success(created.join(userResult.data))
+				}
+				is AppResult.Failure -> {
+					return AppResult.Failure(userResult.httpStatusCode, "Failed to retrieve user. ${userResult.message}")
+				}
 			}
 		}
 		else {
@@ -124,12 +134,13 @@ class RefreshTokenService(
 
 		if (updated != null) {
 			val userResult = userService.getById(updated.userId)
-
-			if (userResult is AppResult.Success) {
-				return AppResult.Success(updated.join(userResult.data))
-			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
+			when(userResult) {
+				is AppResult.Success -> {
+					return AppResult.Success(updated.join(userResult.data))
+				}
+				is AppResult.Failure -> {
+					return AppResult.Failure(userResult.httpStatusCode, "Failed to retrieve user. ${userResult.message}")
+				}
 			}
 		}
 		else {

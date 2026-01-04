@@ -11,22 +11,24 @@ import com.calmed.calmedbackend.service.specification.IUserService
 import io.ktor.http.HttpStatusCode
 import java.util.UUID
 
-class AuthCredentialService(
-	private val authCredentialRepository: IAuthCredentialRepository,
-	private val userService: IUserService
+class AuthCredentialService(private val authCredentialRepository: IAuthCredentialRepository,
+                            private val userService: IUserService
 ) : IAuthCredentialService {
-
 	override suspend fun getAll(): AppResult<List<AuthCredentialJoined>> {
 		val result = mutableListOf<AuthCredentialJoined>()
 
 		for (authCredential in authCredentialRepository.findAll()) {
 			val userResult = userService.getById(authCredential.userId)
+			when (userResult) {
+				is AppResult.Success -> {
+					result.add(authCredential.join(userResult.data))
+				}
 
-			if (userResult is AppResult.Success) {
-				result.add(authCredential.join(userResult.data))
-			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
+				is AppResult.Failure -> {
+					return AppResult.Failure(
+						userResult.httpStatusCode, "Failed to retrieve user. ${userResult.message}"
+					)
+				}
 			}
 		}
 
@@ -38,12 +40,17 @@ class AuthCredentialService(
 
 		if (authCredential != null) {
 			val userResult = userService.getById(authCredential.userId)
+			when (userResult) {
+				is AppResult.Success -> {
+					return AppResult.Success(authCredential.join(userResult.data))
 
-			if (userResult is AppResult.Success) {
-				return AppResult.Success(authCredential.join(userResult.data))
-			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
+				}
+
+				is AppResult.Failure -> {
+					return AppResult.Failure(
+						userResult.httpStatusCode, "Failed to retrieve user. ${userResult.message}"
+					)
+				}
 			}
 		}
 		else {
@@ -51,21 +58,22 @@ class AuthCredentialService(
 		}
 	}
 
-	override suspend fun getByUserIdAndType(
-		userId: UUID,
-		type: AuthCredentialType
+	override suspend fun getByUserIdAndType(userId: UUID, type: AuthCredentialType
 	): AppResult<AuthCredentialJoined> {
-
 		val authCredential = authCredentialRepository.findByUserIdAndType(userId, type)
 
 		if (authCredential != null) {
 			val userResult = userService.getById(authCredential.userId)
+			when (userResult) {
+				is AppResult.Success -> {
+					return AppResult.Success(authCredential.join(userResult.data))
+				}
 
-			if (userResult is AppResult.Success) {
-				return AppResult.Success(authCredential.join(userResult.data))
-			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
+				is AppResult.Failure -> {
+					return AppResult.Failure(
+						userResult.httpStatusCode, "Failed to retrieve user. ${userResult.message}"
+					)
+				}
 			}
 		}
 		else {
@@ -78,13 +86,16 @@ class AuthCredentialService(
 
 		if (created != null) {
 			val userResult = userService.getById(created.userId)
+			when (userResult) {
+				is AppResult.Success -> {
+					return AppResult.Success(created.join(userResult.data))
+				}
 
-			if (userResult is AppResult.Success) {
-				return AppResult.Success(created.join(userResult.data))
+				is AppResult.Failure -> {
+					return AppResult.Failure(userResult.httpStatusCode, "Failed to create user. ${userResult.message}")
+				}
 			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
-			}
+
 		}
 		else {
 			return AppResult.Failure(HttpStatusCode.NotFound, "Failed to create auth credential.")
@@ -96,12 +107,17 @@ class AuthCredentialService(
 
 		if (updated != null) {
 			val userResult = userService.getById(updated.userId)
+			when (userResult) {
+				is AppResult.Success -> {
+					return AppResult.Success(updated.join(userResult.data))
+				}
 
-			if (userResult is AppResult.Success) {
-				return AppResult.Success(updated.join(userResult.data))
-			}
-			else {
-				return AppResult.Failure(HttpStatusCode.NotFound, "Failed to retrieve user.")
+				is AppResult.Failure -> {
+					return AppResult.Failure(
+						userResult.httpStatusCode,
+						"Failed to retrieve user. ${userResult.message}"
+					)
+				}
 			}
 		}
 		else {
