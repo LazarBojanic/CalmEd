@@ -15,23 +15,33 @@ import org.koin.ktor.ext.inject
 
 fun Application.configureDatabase() {
 	val databaseConfig by inject<DatabaseConfig>()
-	val dataSource = dataSource(databaseConfig)
+	val dataSource = hikariDataSource(databaseConfig)
 	Database.connect(
 		dataSource
 	)
 }
 
-private fun dataSource(databaseConfig: DatabaseConfig): HikariDataSource {
-	val config = HikariConfig()
-	config.driverClassName = databaseConfig.databaseDriver
-	config.jdbcUrl = databaseConfig.databaseUrl
-	config.username = databaseConfig.databaseUsername
-	config.password = databaseConfig.databasePassword
-	config.maximumPoolSize = 3
-	config.isAutoCommit = false
-	config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-	config.validate()
-	return HikariDataSource(config)
+private fun hikariDataSource(databaseConfig: DatabaseConfig): HikariDataSource {
+    val config = HikariConfig().apply {
+        driverClassName = databaseConfig.databaseDriver
+        jdbcUrl = databaseConfig.databaseUrl
+
+        // Credentials handled by Hikari
+        username = databaseConfig.databaseUsername
+        password = databaseConfig.databasePassword
+
+        // Neon-safe defaults
+        maximumPoolSize = 5
+        minimumIdle = 1
+
+        isAutoCommit = false
+        transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+
+        connectionTimeout = 10_000
+        initializationFailTimeout = 10_000
+    }
+
+    return HikariDataSource(config)
 }
 
 suspend fun <T> withTransaction(block: suspend () -> T): T {
