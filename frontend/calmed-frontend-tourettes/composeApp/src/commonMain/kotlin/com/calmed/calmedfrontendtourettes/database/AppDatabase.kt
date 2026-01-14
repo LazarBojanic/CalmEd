@@ -7,12 +7,10 @@ import com.calmed.calmedfrontendtourettes.repository.IMessageDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 
-@Database(entities =
-	[MessageEntity::class],
-	version = 1)
+@Database()
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
-	abstract fun getMessageDao(): IMessageDao
+	
 }
 
 @Suppress("KotlinNoActualForExpect") expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {

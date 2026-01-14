@@ -1,19 +1,16 @@
 package com.calmed.calmedfrontendtourettes.http
 
 import com.calmed.calmedfrontendtourettes.model.dto.TokenDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
-import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
-import com.calmed.calmedfrontendtourettes.model.raw.Message
+import com.calmed.calmedfrontendtourettes.model.dto.request.RefreshDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.RegisterUserDto
+import kotlinx.serialization.Serializable
 
-interface IAppApi{
-	suspend fun getAllMessages(): List<MessageDto>
-	suspend fun getMessageById(id: String): MessageDto?
-	suspend fun createMessage(message: Message): MessageDto?
-	suspend fun updateMessage(message: Message): MessageDto?
-	suspend fun deleteMessage(id: String): Boolean
-
-	suspend fun login(loginUserDto: LoginUserDto): TokenDto?
-	suspend fun forgotPassword(email: String): String?
-	suspend fun logout(): Boolean
-	suspend fun refreshToken(): TokenDto?
+interface IAppApi {
+    suspend fun register(dto: RegisterUserDto): TokenDto?
+    suspend fun login(dto: LoginUserDto): TokenDto?
+    suspend fun refresh(dto: RefreshDto): TokenDto?
+    suspend fun forgotPassword(dto: ForgotPasswordDto): MessageResponseDto?
+    suspend fun logout(): MessageResponseDto?
 }
