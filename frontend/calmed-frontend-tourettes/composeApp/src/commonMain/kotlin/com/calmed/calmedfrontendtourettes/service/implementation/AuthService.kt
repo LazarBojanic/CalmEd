@@ -11,12 +11,14 @@ import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 
 class AuthService(
     private val api: IAppApi,
-    private val tokenStore: ITokenDataStore,
+    private val tokenStore: ITokenDataStore
 ) : IAuthService {
 
     override suspend fun login(email: String, password: String): Boolean {
-        val token = api.login(LoginUserDto(email = email.trim(), password = password))
-        return storeIfValid(token)
+        val trimmedEmail = email.trim()
+        val loginDto = LoginUserDto(email = trimmedEmail, password = password)
+        val token = api.login(loginDto)
+        return storeTokenIfValid(token)
     }
 
     override suspend fun register(
@@ -25,40 +27,77 @@ class AuthService(
         password: String,
         confirmPassword: String
     ): Boolean {
-        val token = api.register(
-            RegisterUserDto(
-                email = email.trim(),
-                username = username.trim(),
-                password = password,
-                confirmPassword = confirmPassword
-            )
+        val trimmedEmail = email.trim()
+        val trimmedUsername = username.trim()
+        val registerDto = RegisterUserDto(
+            email = trimmedEmail,
+            username = trimmedUsername,
+            password = password,
+            confirmPassword = confirmPassword
         )
-        return storeIfValid(token)
+        val token = api.register(registerDto)
+        if (token != null) {
+            val access = token.access
+            val refresh = token.refresh
+            if (access != null && access.isNotBlank() && refresh != null && refresh.isNotBlank()) {
+                return true
+            } else {
+                return false
+            }
+        } else {
+            return false
+        }
     }
 
     override suspend fun forgotPassword(email: String): String? {
-        return api.forgotPassword(ForgotPasswordDto(email = email.trim()))?.message
+        val trimmedEmail = email.trim()
+        val forgotPasswordDto = ForgotPasswordDto(email = trimmedEmail)
+        val response = api.forgotPassword(forgotPasswordDto)
+        if (response != null) {
+            return response.message
+        } else {
+            return null
+        }
     }
 
     override suspend fun logout() {
-        runCatching { api.logout() }
-        tokenStore.clear()
+        try {
+            api.logout()
+        } catch (e: Throwable) {
+        } finally {
+            tokenStore.clear()
+        }
     }
 
     override suspend fun tryRefresh(): Boolean {
-        val refresh = tokenStore.tokenDto.value?.refresh?.takeIf { it.isNotBlank() } ?: return false
-        val token = api.refresh(RefreshDto(refresh = refresh))
-        return storeIfValid(token)
+        val currentToken = tokenStore.tokenDto.value
+        if (currentToken != null) {
+            val refresh = currentToken.refresh
+            if (refresh != null && refresh.isNotBlank()) {
+                val refreshDto = RefreshDto(refresh = refresh)
+                val newToken = api.refresh(refreshDto)
+                return storeTokenIfValid(newToken)
+            } else {
+                return false
+            }
+        } else {
+            return false
+        }
     }
 
-    private suspend fun storeIfValid(token: TokenDto?): Boolean {
-        val access = token?.access?.takeIf { !it.isNullOrBlank() }
-        val refresh = token?.refresh?.takeIf { !it.isNullOrBlank() }
-        return if (access != null && refresh != null) {
-            tokenStore.setToken(TokenDto(access = access, refresh = refresh))
-            true
+    private suspend fun storeTokenIfValid(token: TokenDto?): Boolean {
+        if (token != null) {
+            val access = token.access
+            val refresh = token.refresh
+            if (access != null && access.isNotBlank() && refresh != null && refresh.isNotBlank()) {
+                val tokenDto = TokenDto(access = access, refresh = refresh)
+                tokenStore.setToken(tokenDto)
+                return true
+            } else {
+                return false
+            }
         } else {
-            false
+            return false
         }
     }
 }

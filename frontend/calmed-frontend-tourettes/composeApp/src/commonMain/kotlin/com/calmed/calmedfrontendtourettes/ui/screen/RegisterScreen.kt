@@ -12,9 +12,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -27,12 +27,13 @@ import org.koin.compose.koinInject
 fun RegisterScreen(
     onNavigateLogin: () -> Unit,
     onRegisterSuccess: () -> Unit,
-    viewModel: AuthViewModel = koinInject(),
+    viewModel: AuthViewModel = koinInject()
 ) {
     val scope = rememberCoroutineScope()
 
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val info by viewModel.info.collectAsState()
 
     var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -47,6 +48,10 @@ fun RegisterScreen(
 
         if (error != null) {
             Text(error!!, color = MaterialTheme.colorScheme.error)
+        }
+
+        if (info != null) {
+            Text(info!!, color = MaterialTheme.colorScheme.primary)
         }
 
         OutlinedTextField(
@@ -86,17 +91,26 @@ fun RegisterScreen(
         Button(
             onClick = {
                 scope.launch {
-                    val ok = viewModel.register(email, username, password, confirmPassword)
-                    if (ok) onRegisterSuccess()
+                    val success = viewModel.register(email, username, password, confirmPassword)
+                    if (success) {
+                        onRegisterSuccess()
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = !loading
         ) {
-            Text(if (loading) "Creating..." else "Register")
+            if (loading) {
+                Text("Creating...")
+            } else {
+                Text("Register")
+            }
         }
 
-        TextButton(onClick = onNavigateLogin, enabled = !loading) {
+        TextButton(
+            onClick = onNavigateLogin,
+            enabled = !loading
+        ) {
             Text("Back to login")
         }
     }

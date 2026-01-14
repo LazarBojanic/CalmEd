@@ -1,4 +1,8 @@
 package com.calmed.calmedbackend.model.dto.response
 
-class MessageDto {
-}
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class MessageDto(
+	val message: String
+)

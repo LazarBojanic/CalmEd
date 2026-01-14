@@ -21,11 +21,20 @@ class AuthViewModel(
         _info.value = null
         _loading.value = true
         return try {
-            val ok = authService.login(email, password)
-            if (!ok) _error.value = "Login failed. Check your credentials."
-            ok
+            val success = authService.login(email, password)
+            if (success) {
+                true
+            } else {
+                _error.value = "Login failed. Check your credentials."
+                false
+            }
         } catch (t: Throwable) {
-            _error.value = t.message ?: "Login failed."
+            val errorMessage = t.message
+            if (errorMessage != null) {
+                _error.value = errorMessage
+            } else {
+                _error.value = "Login failed."
+            }
             false
         } finally {
             _loading.value = false
@@ -37,11 +46,21 @@ class AuthViewModel(
         _info.value = null
         _loading.value = true
         return try {
-            val ok = authService.register(email, username, password, confirmPassword)
-            if (!ok) _error.value = "Registration failed. Please review your input."
-            ok
+            val success = authService.register(email, username, password, confirmPassword)
+            if (success) {
+                _info.value = "Registration successful! Please check your email to verify your account before logging in."
+                true
+            } else {
+                _error.value = "Registration failed. Please review your input."
+                false
+            }
         } catch (t: Throwable) {
-            _error.value = t.message ?: "Registration failed."
+            val errorMessage = t.message
+            if (errorMessage != null) {
+                _error.value = errorMessage
+            } else {
+                _error.value = "Registration failed."
+            }
             false
         } finally {
             _loading.value = false
@@ -53,12 +72,20 @@ class AuthViewModel(
         _info.value = null
         _loading.value = true
         return try {
-            val msg = authService.forgotPassword(email)
-            // backend intentionally returns OK even if email is unknown
-            _info.value = msg ?: "Password reset email sent (if the address exists)."
+            val message = authService.forgotPassword(email)
+            if (message != null) {
+                _info.value = message
+            } else {
+                _info.value = "Password reset email sent (if the address exists)."
+            }
             true
         } catch (t: Throwable) {
-            _error.value = t.message ?: "Request failed."
+            val errorMessage = t.message
+            if (errorMessage != null) {
+                _error.value = errorMessage
+            } else {
+                _error.value = "Request failed."
+            }
             false
         } finally {
             _loading.value = false

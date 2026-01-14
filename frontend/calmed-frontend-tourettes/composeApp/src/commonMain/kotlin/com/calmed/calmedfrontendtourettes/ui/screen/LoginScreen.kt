@@ -12,9 +12,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -28,7 +28,7 @@ fun LoginScreen(
     onNavigateRegister: () -> Unit,
     onNavigateForgotPassword: () -> Unit,
     onLoginSuccess: () -> Unit,
-    viewModel: AuthViewModel = koinInject(),
+    viewModel: AuthViewModel = koinInject()
 ) {
     val scope = rememberCoroutineScope()
 
@@ -68,21 +68,33 @@ fun LoginScreen(
         Button(
             onClick = {
                 scope.launch {
-                    val ok = viewModel.login(email, password)
-                    if (ok) onLoginSuccess()
+                    val success = viewModel.login(email, password)
+                    if (success) {
+                        onLoginSuccess()
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = !loading
         ) {
-            Text(if (loading) "Logging in..." else "Login")
+            if (loading) {
+                Text("Logging in...")
+            } else {
+                Text("Login")
+            }
         }
 
-        TextButton(onClick = onNavigateForgotPassword, enabled = !loading) {
+        TextButton(
+            onClick = onNavigateForgotPassword,
+            enabled = !loading
+        ) {
             Text("Forgot password?")
         }
 
-        TextButton(onClick = onNavigateRegister, enabled = !loading) {
+        TextButton(
+            onClick = onNavigateRegister,
+            enabled = !loading
+        ) {
             Text("Create account")
         }
     }

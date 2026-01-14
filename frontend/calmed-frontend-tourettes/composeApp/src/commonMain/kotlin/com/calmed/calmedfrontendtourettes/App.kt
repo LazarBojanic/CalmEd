@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -39,32 +38,59 @@ fun App() {
             composable(Routes.Splash) {
                 SplashScreen()
                 LaunchedEffect(token) {
-                    // On app start: if we have tokens, try a refresh once (covers expired access)
-                    if (token?.refresh?.isNotBlank() == true) {
-                        authService.tryRefresh()
-                    }
-
-                    val nowToken = tokenStore.tokenDto.value
-                    val target = if (nowToken?.access?.isNotBlank() == true && nowToken?.refresh?.isNotBlank() == true) {
-                        Routes.Home
+                    val currentToken = tokenStore.tokenDto.value
+                    if (currentToken != null) {
+                        val access = currentToken.access
+                        val refresh = currentToken.refresh
+                        if (access != null && access.isNotBlank() && refresh != null && refresh.isNotBlank()) {
+                            val refreshSuccess = authService.tryRefresh()
+                            if (refreshSuccess) {
+                                navController.navigate(Routes.Home) {
+                                    popUpTo(Routes.Splash) {
+                                        inclusive = true
+                                    }
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                navController.navigate(Routes.Login) {
+                                    popUpTo(Routes.Splash) {
+                                        inclusive = true
+                                    }
+                                    launchSingleTop = true
+                                }
+                            }
+                        } else {
+                            navController.navigate(Routes.Login) {
+                                popUpTo(Routes.Splash) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+                        }
                     } else {
-                        Routes.Login
-                    }
-
-                    navController.navigate(target) {
-                        popUpTo(Routes.Splash) { inclusive = true }
-                        launchSingleTop = true
+                        navController.navigate(Routes.Login) {
+                            popUpTo(Routes.Splash) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
                     }
                 }
             }
 
             composable(Routes.Login) {
                 LoginScreen(
-                    onNavigateRegister = { navController.navigate(Routes.Register) },
-                    onNavigateForgotPassword = { navController.navigate(Routes.ForgotPassword) },
+                    onNavigateRegister = {
+                        navController.navigate(Routes.Register)
+                    },
+                    onNavigateForgotPassword = {
+                        navController.navigate(Routes.ForgotPassword)
+                    },
                     onLoginSuccess = {
                         navController.navigate(Routes.Home) {
-                            popUpTo(Routes.Login) { inclusive = true }
+                            popUpTo(Routes.Login) {
+                                inclusive = true
+                            }
                             launchSingleTop = true
                         }
                     }
@@ -75,13 +101,17 @@ fun App() {
                 RegisterScreen(
                     onNavigateLogin = {
                         navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Register) { inclusive = true }
+                            popUpTo(Routes.Register) {
+                                inclusive = true
+                            }
                             launchSingleTop = true
                         }
                     },
                     onRegisterSuccess = {
-                        navController.navigate(Routes.Home) {
-                            popUpTo(Routes.Register) { inclusive = true }
+                        navController.navigate(Routes.Login) {
+                            popUpTo(Routes.Register) {
+                                inclusive = true
+                            }
                             launchSingleTop = true
                         }
                     }
@@ -90,7 +120,9 @@ fun App() {
 
             composable(Routes.ForgotPassword) {
                 ForgotPasswordScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
 
@@ -98,7 +130,9 @@ fun App() {
                 HomeScreen(
                     onLogout = {
                         navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Home) { inclusive = true }
+                            popUpTo(Routes.Home) {
+                                inclusive = true
+                            }
                             launchSingleTop = true
                         }
                     }

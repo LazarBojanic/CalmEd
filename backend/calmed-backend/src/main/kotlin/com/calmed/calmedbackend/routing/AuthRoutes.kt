@@ -8,6 +8,7 @@ import com.calmed.calmedbackend.model.dto.request.PasswordResetDto
 import com.calmed.calmedbackend.model.dto.request.PasswordResetEmailDto
 import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
+import com.calmed.calmedbackend.model.dto.response.MessageDto
 import com.calmed.calmedbackend.service.specification.IAuthService
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -116,12 +117,14 @@ fun Route.authRoutes() {
 			when (result) {
 				is AppResult.Success -> {
 					println("Email sent to ${dto.email}")
-					call.respond(HttpStatusCode.OK, mapOf("message" to "Password reset email sent"))
+					val messageDto = MessageDto("Password reset email sent.")
+					call.respond(HttpStatusCode.OK, messageDto)
 				}
 
 				is AppResult.Failure -> {
 					println("Failed to send password reset email to ${dto.email}")
-					call.respond(HttpStatusCode.OK, mapOf("message" to "Password reset email sent"))
+					val messageDto = MessageDto("Password reset email not sent.")
+					call.respond(HttpStatusCode.OK, messageDto)
 				}
 			}
 		}

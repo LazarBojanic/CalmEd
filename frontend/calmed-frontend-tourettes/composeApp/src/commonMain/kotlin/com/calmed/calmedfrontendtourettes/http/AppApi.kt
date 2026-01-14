@@ -5,6 +5,7 @@ import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RefreshDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RegisterUserDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
 import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
@@ -15,53 +16,80 @@ import io.ktor.http.HttpStatusCode
 
 class AppApi(
     private val appHttpClient: AppHttpClient,
-    private val tokenDataStore: ITokenDataStore,
+    private val tokenDataStore: ITokenDataStore
 ) : IAppApi {
     private val client get() = appHttpClient.client
 
     override suspend fun register(dto: RegisterUserDto): TokenDto? {
-        val resp: HttpResponse = client.post("/auth/register") { setBody(dto) }
+        val resp: HttpResponse = client.post("/auth/register") {
+            setBody(dto)
+        }
         return when (resp.status) {
-            HttpStatusCode.Created, HttpStatusCode.OK -> resp.body<TokenDto>()
-            else -> null
+            HttpStatusCode.Created, HttpStatusCode.OK -> {
+                resp.body<TokenDto>()
+            }
+            else -> {
+                null
+            }
         }
     }
 
     override suspend fun login(dto: LoginUserDto): TokenDto? {
-        val resp: HttpResponse = client.post("/auth/login") { setBody(dto) }
+        val resp: HttpResponse = client.post("/auth/login") {
+            setBody(dto)
+        }
         return when (resp.status) {
-            HttpStatusCode.OK, HttpStatusCode.Created -> resp.body<TokenDto>()
-            else -> null
+            HttpStatusCode.OK, HttpStatusCode.Created -> {
+                resp.body<TokenDto>()
+            }
+            else -> {
+                null
+            }
         }
     }
 
     override suspend fun refresh(dto: RefreshDto): TokenDto? {
-        val resp: HttpResponse = client.post("/auth/refresh") { setBody(dto) }
+        val resp: HttpResponse = client.post("/auth/refresh") {
+            setBody(dto)
+        }
         return when (resp.status) {
-            HttpStatusCode.OK -> resp.body<TokenDto>()
-            else -> null
+            HttpStatusCode.OK -> {
+                resp.body<TokenDto>()
+            }
+            else -> {
+                null
+            }
         }
     }
 
-    override suspend fun forgotPassword(dto: ForgotPasswordDto): MessageResponseDto? {
-        val resp: HttpResponse = client.post("/auth/forgot-password") { setBody(dto) }
+    override suspend fun forgotPassword(dto: ForgotPasswordDto): MessageDto? {
+        val resp: HttpResponse = client.post("/auth/forgot-password") {
+            setBody(dto)
+        }
         return when (resp.status) {
-            HttpStatusCode.OK -> resp.body<MessageResponseDto>()
-            else -> null
+            HttpStatusCode.OK -> {
+                resp.body<MessageDto>()
+            }
+            else -> {
+                null
+            }
         }
     }
 
-    override suspend fun logout(): MessageResponseDto? {
+    override suspend fun logout(): MessageDto? {
         return try {
             val resp: HttpResponse = client.post("/auth/logout")
             when (resp.status) {
-                HttpStatusCode.OK -> resp.body<MessageResponseDto>()
-                else -> null
+                HttpStatusCode.OK -> {
+                    resp.body<MessageDto>()
+                }
+                else -> {
+                    null
+                }
             }
-        } catch (_: ClientRequestException) {
-            // If access is expired/invalid, backend will 401; treat as "logged out" anyway.
+        } catch (e: ClientRequestException) {
             null
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
             null
         }
     }

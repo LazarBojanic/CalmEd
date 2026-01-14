@@ -18,7 +18,7 @@ import org.koin.compose.koinInject
 @Composable
 fun HomeScreen(
     onLogout: () -> Unit,
-    viewModel: AuthViewModel = koinInject(),
+    viewModel: AuthViewModel = koinInject()
 ) {
     val scope = rememberCoroutineScope()
 
