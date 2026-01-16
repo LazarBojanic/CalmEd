@@ -53,19 +53,22 @@ dependencies {
 	implementation("io.ktor:ktor-server-netty")
 	implementation("ch.qos.logback:logback-classic:$logback_version")
 	implementation("io.ktor:ktor-server-config-yaml")
-	testImplementation("io.ktor:ktor-server-test-host")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("io.ktor:ktor-server-test-host")
 	implementation("org.apache.commons:commons-email:$commons_email_version")
 	implementation("com.auth0:java-jwt:$java_jwt_version")
 	implementation("at.favre.lib:bcrypt:$lib_bcrypt")
 	implementation("com.zaxxer:HikariCP:$HikariCP_version")
 	implementation("org.flywaydb:flyway-database-postgresql:$flyway_database_postgresql_version")
+	implementation("io.ktor:ktor-client-core")
+	implementation("io.ktor:ktor-client-cio")
+	implementation("io.ktor:ktor-client-content-negotiation")
+	implementation("io.ktor:ktor-serialization-kotlinx-json")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junit_version")
-	testImplementation(kotlin("test"))
 	testImplementation("io.mockk:mockk:$mockk_version")
 }
 tasks.test{
 	useJUnitPlatform()
+	failOnNoDiscoveredTests = false
 }

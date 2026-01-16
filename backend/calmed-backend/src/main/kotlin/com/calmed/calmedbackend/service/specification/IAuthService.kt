@@ -35,6 +35,8 @@ interface IAuthService {
 	suspend fun login(dto: LoginDto): AppResult<TokenPairDto>
 	suspend fun refresh(dto: RefreshDto): AppResult<TokenPairDto>
 	suspend fun logout(userId: UUID): AppResult<Unit>
+	suspend fun loginWithGoogle(idToken: String): AppResult<TokenPairDto>
+
 
 
 

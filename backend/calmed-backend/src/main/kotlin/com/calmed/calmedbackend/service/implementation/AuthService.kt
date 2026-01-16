@@ -22,10 +22,16 @@ import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
 import com.calmed.calmedbackend.service.specification.IUserService
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import org.apache.commons.mail.DefaultAuthenticator
 import org.apache.commons.mail.HtmlEmail
 import java.security.MessageDigest
@@ -38,6 +44,41 @@ class AuthService(private val userService: IUserService,
                   private val jwtConfig: JwtConfig,
                   private val emailConfig: EmailConfig
 ) : IAuthService {
+
+	private val googleHttp = HttpClient {
+		install(ContentNegotiation) {
+			json(Json { ignoreUnknownKeys = true })
+		}
+	}
+
+	@kotlinx.serialization.Serializable
+	data class GoogleTokenInfo(
+		val sub: String? = null,
+		val email: String? = null,
+		val email_verified: String? = null,
+		val aud: String? = null
+	)
+
+	private suspend fun verifyGoogleIdToken(idToken: String): AppResult<GoogleTokenInfo> {
+		return try {
+			val info: GoogleTokenInfo =
+				googleHttp.get("https://oauth2.googleapis.com/tokeninfo") {
+					url { parameters.append("id_token", idToken) }
+				}.body()
+
+			if (info.email.isNullOrBlank()) {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing email")
+			}
+
+			if (info.email_verified != "true") {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google email not verified")
+			}
+
+			AppResult.Success(info)
+		} catch (e: Exception) {
+			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token: ${e.message}")
+		}
+	}
 	override fun accessVerifier(): JWTVerifier {
 		return JWT.require(jwtConfig.accessAlg).withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).build()
 	}
@@ -215,6 +256,44 @@ class AuthService(private val userService: IUserService,
 		}
 	}
 
+	override suspend fun loginWithGoogle(idToken: String): AppResult<TokenPairDto> {
+		return withTransaction {
+			val tokenInfoResult = verifyGoogleIdToken(idToken)
+			val tokenInfo = when (tokenInfoResult) {
+				is AppResult.Success -> tokenInfoResult.data
+				is AppResult.Failure -> return@withTransaction AppResult.Failure(
+					tokenInfoResult.httpStatusCode,
+					tokenInfoResult.message
+				)
+			}
+
+			val email = tokenInfo.email!!
+			val username = email.substringBefore("@")
+
+			val userResult = userService.getByEmail(email)
+
+			val user = when (userResult) {
+				is AppResult.Success -> userResult.data
+				is AppResult.Failure -> {
+					val newUser = User.createNew(
+						email = email,
+						username = username,
+						isEmailVerified = true
+					)
+					val createdUserResult = userService.create(newUser)
+					when (createdUserResult) {
+						is AppResult.Success -> createdUserResult.data
+						is AppResult.Failure -> return@withTransaction AppResult.Failure(
+							createdUserResult.httpStatusCode,
+							"Failed to create google user. ${createdUserResult.message}"
+						)
+					}
+				}
+			}
+
+			return@withTransaction createTokenPair(user.id, user.email)
+		}
+	}
 	override suspend fun logout(userId: UUID): AppResult<Unit> {
 		return withTransaction {
 			refreshTokenService.revokeAllByUserId(userId, null)

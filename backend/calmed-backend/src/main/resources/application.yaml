@@ -3,38 +3,41 @@ ktor:
         modules:
             - com.calmed.calmedbackend.ApplicationKt.module
     deployment:
-        host: $KTOR_DEPLOYMENT_HOST:127.0.0.1
-        port: $KTOR_DEPLOYMENT_PORT:8080
-    development: $KTOR_DEVELOPMENT:true
+        host: 0.0.0.0
+        port: ${KTOR_DEPLOYMENT_PORT:8080}
+    development: ${KTOR_DEVELOPMENT:true}
+
 jwt:
-    access_alg: $JWT_ACCESS_ALG:placeholder
-    refresh_alg: $JWT_REFRESH_ALG:placeholder
-    email_verification_alg: $JWT_EMAIL_VERIFICATION_ALG:placeholder
-    password_reset_alg: $JWT_PASSWORD_RESET_ALG:placeholder
-    iss: $JWT_ISS:placeholder
-    aud: $JWT_AUD:placeholder
-    access_ttl: $JWT_ACCESS_TTL:placeholder
-    refresh_ttl: $JWT_REFRESH_TTL:placeholder
-    email_verification_ttl: $JWT_EMAIL_VERIFICATION_TTL:placeholder
-    password_reset_ttl: $JWT_PASSWORD_RESET_TTL:placeholder
-    access_secret: $JWT_ACCESS_SECRET:placeholder
-    refresh_secret: $JWT_REFRESH_SECRET:placeholder
-    email_verification_secret: $JWT_EMAIL_VERIFICATION_SECRET:placeholder
-    password_reset_secret: $JWT_PASSWORD_RESET_SECRET:placeholder
+    access_alg: ${JWT_ACCESS_ALG:HS512}
+    refresh_alg: ${JWT_REFRESH_ALG:HS512}
+    email_verification_alg: ${JWT_EMAIL_VERIFICATION_ALG:HS512}
+    password_reset_alg: ${JWT_PASSWORD_RESET_ALG:HS512}
+    iss: ${JWT_ISS:placeholder}
+    aud: ${JWT_AUD:placeholder}
+    access_ttl: ${JWT_ACCESS_TTL:PT15M}
+    refresh_ttl: ${JWT_REFRESH_TTL:PT720H}
+    email_verification_ttl: ${JWT_EMAIL_VERIFICATION_TTL:PT24H}
+    password_reset_ttl: ${JWT_PASSWORD_RESET_TTL:PT15M}
+    access_secret: ${JWT_ACCESS_SECRET:placeholder}
+    refresh_secret: ${JWT_REFRESH_SECRET:placeholder}
+    email_verification_secret: ${JWT_EMAIL_VERIFICATION_SECRET:placeholder}
+    password_reset_secret: ${JWT_PASSWORD_RESET_SECRET:placeholder}
+
 database:
-    username: $DATABASE_USERNAME:postgres
-    password: $DATABASE_PASSWORD:postgres
-    ip: $DATABASE_IP:127.0.0.1
-    port: $DATABASE_PORT:5432
-    name: $DATABASE_NAME:calmed
-    dialect: $DATABASE_DIALECT:postgresql
-    driver: $DATABASE_DRIVER:org.postgresql.Driver
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    ip: ${DATABASE_IP:127.0.0.1}
+    port: ${DATABASE_PORT:5432}
+    name: ${DATABASE_NAME:calmed}
+    dialect: ${DATABASE_DIALECT:postgresql}
+    driver: ${DATABASE_DRIVER:org.postgresql.Driver}
+
 email:
-    host: $EMAIL_HOST:smtp.gmail.com
-    port: $EMAIL_PORT:587
-    username: $EMAIL_USERNAME:placeholder
-    password: $EMAIL_PASSWORD:placeholder
-    ssl: $EMAIL_SSL:true
-    from_email: $EMAIL_FROM_EMAIL:placeholder
-    from_name: $EMAIL_FROM_NAME:placeholder
-    verification_base_url: $EMAIL_VERIFICATION_BASE_URL:placeholder
+    host: ${EMAIL_HOST:smtp.gmail.com}
+    port: ${EMAIL_PORT:587}
+    username: ${EMAIL_USERNAME:placeholder}
+    password: ${EMAIL_PASSWORD:placeholder}
+    ssl: ${EMAIL_SSL:true}
+    from_email: ${EMAIL_FROM_EMAIL:placeholder}
+    from_name: ${EMAIL_FROM_NAME:placeholder}
+    verification_base_url: ${EMAIL_VERIFICATION_BASE_URL:placeholder}

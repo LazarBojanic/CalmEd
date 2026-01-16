@@ -25,6 +25,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 import java.util.UUID
+import com.calmed.calmedbackend.model.dto.request.GoogleLoginDto
 
 fun Route.authRoutes() {
 	val authService by inject<IAuthService>()
@@ -59,6 +60,23 @@ fun Route.authRoutes() {
 				is AppResult.Failure -> {
 					throw BusinessException(tokenPairDto.httpStatusCode, tokenPairDto.message)
 				}
+			}
+		}
+	}
+
+	route("/auth/google") {
+		post {
+			val dto = call.receive<GoogleLoginDto>()
+
+			if (dto.idToken.isBlank()) {
+				throw BusinessException(HttpStatusCode.BadRequest, "Missing idToken")
+			}
+
+			val result = authService.loginWithGoogle(dto.idToken)
+
+			when (result) {
+				is AppResult.Success -> call.respond(HttpStatusCode.OK, result.data)
+				is AppResult.Failure -> throw BusinessException(result.httpStatusCode, result.message)
 			}
 		}
 	}
