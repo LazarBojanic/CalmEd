@@ -3,6 +3,7 @@ package com.calmed.calmedfrontendtourettes.service.implementation
 import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.model.dto.TokenDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.GoogleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RefreshDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RegisterUserDto
@@ -100,4 +101,13 @@ class AuthService(
             return false
         }
     }
+    override suspend fun loginWithGoogle(idToken: String): Boolean {
+        println("AUTH: loginWithGoogle() called")
+        val token = api.loginWithGoogle(GoogleLoginDto(idToken = idToken))
+        println("AUTH: token from api = $token")
+        val ok = storeTokenIfValid(token)
+        println("AUTH: storeTokenIfValid = $ok")
+        return ok
+    }
+
 }

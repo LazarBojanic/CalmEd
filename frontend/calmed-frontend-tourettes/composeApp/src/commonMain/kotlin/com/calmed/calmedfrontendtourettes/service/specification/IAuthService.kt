@@ -6,4 +6,5 @@ interface IAuthService {
     suspend fun forgotPassword(email: String): String?
     suspend fun logout()
     suspend fun tryRefresh(): Boolean
+    suspend fun loginWithGoogle(idToken: String): Boolean
 }

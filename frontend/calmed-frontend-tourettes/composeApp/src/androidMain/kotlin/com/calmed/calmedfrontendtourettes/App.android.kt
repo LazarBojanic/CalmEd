@@ -8,7 +8,7 @@ class AndroidApp : Application() {
 		val dev = true
 		var url = ""
 		if(dev){
-			url = "http://10.0.2.2:8080"
+			url = "http://127.0.0.1:8080"
 		}
 		else{
 			url = "https://srv1092316.hstgr.cloud"

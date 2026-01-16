@@ -2,6 +2,7 @@ package com.calmed.calmedfrontendtourettes.http
 
 import com.calmed.calmedfrontendtourettes.model.dto.TokenDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.GoogleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RefreshDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RegisterUserDto
@@ -14,4 +15,6 @@ interface IAppApi {
     suspend fun refresh(dto: RefreshDto): TokenDto?
     suspend fun forgotPassword(dto: ForgotPasswordDto): MessageDto?
     suspend fun logout(): MessageDto?
+    suspend fun loginWithGoogle(dto: GoogleLoginDto): TokenDto?
+    suspend fun ping(): String
 }

@@ -24,10 +24,13 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
+
+
 fun LoginScreen(
     onNavigateRegister: () -> Unit,
     onNavigateForgotPassword: () -> Unit,
     onLoginSuccess: () -> Unit,
+    onGoogleSignIn: () -> Unit,
     viewModel: AuthViewModel = koinInject()
 ) {
     val scope = rememberCoroutineScope()
@@ -82,6 +85,13 @@ fun LoginScreen(
             } else {
                 Text("Login")
             }
+        }
+        Button(
+            onClick = onGoogleSignIn,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !loading
+        ) {
+            Text("Continue with Google")
         }
 
         TextButton(

@@ -2,6 +2,7 @@ package com.calmed.calmedfrontendtourettes.http
 
 import com.calmed.calmedfrontendtourettes.model.dto.TokenDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.GoogleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RefreshDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RegisterUserDto
@@ -9,9 +10,11 @@ import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
 import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 
 class AppApi(
@@ -48,6 +51,28 @@ class AppApi(
         }
     }
 
+    override suspend fun loginWithGoogle(dto: GoogleLoginDto): TokenDto? {
+        println("API: POST /auth/google")
+        try {
+
+            val resp = client.post("/auth/google") {
+                setBody(dto)
+            }
+            println("API: status = ${resp.status}")
+
+            return when (resp.status) {
+                HttpStatusCode.OK, HttpStatusCode.Created -> resp.body<TokenDto>()
+                else -> {
+                    println("API: non-OK body = ${resp.bodyAsText()}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            println("API: loginWithGoogle EX: ${e::class.simpleName} - ${e.message}")
+            e.printStackTrace()
+            return null
+        }
+    }
     override suspend fun refresh(dto: RefreshDto): TokenDto? {
         val resp: HttpResponse = client.post("/auth/refresh") {
             setBody(dto)
@@ -92,5 +117,10 @@ class AppApi(
         } catch (e: Throwable) {
             null
         }
+    }
+
+    override suspend fun ping(): String {
+        val resp = client.get("/ping")
+        return resp.bodyAsText()
     }
 }

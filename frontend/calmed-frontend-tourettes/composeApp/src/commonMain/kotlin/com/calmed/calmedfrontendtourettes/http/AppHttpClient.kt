@@ -24,7 +24,11 @@ class AppHttpClient(
     val platformEngine: HttpClientEngineFactory<*>,
     private val tokenStore: ITokenDataStore
 ) {
+    init {
+        println("HTTP baseUrl = $baseUrl")
+    }
     val client: HttpClient = HttpClient(platformEngine) {
+
         install(ContentNegotiation) {
             json(
                 Json {
@@ -37,7 +41,7 @@ class AppHttpClient(
         }
         install(Logging) {
             logger = Logger.DEFAULT
-            level = LogLevel.INFO
+            level = LogLevel.ALL
         }
         install(HttpTimeout) {
             requestTimeoutMillis = 30_000
@@ -45,9 +49,11 @@ class AppHttpClient(
             socketTimeoutMillis = 30_000
         }
         install(DefaultRequest) {
+            println("HTTP baseUrl = $baseUrl")
             url {
                 takeFrom(baseUrl)
             }
+            println("HTTP full url = ${url.buildString()}")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             val token = tokenStore.tokenDto.value

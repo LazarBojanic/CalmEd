@@ -91,7 +91,21 @@ class AuthViewModel(
             _loading.value = false
         }
     }
-
+    suspend fun loginWithGoogle(idToken: String): Boolean {
+        _error.value = null
+        _info.value = null
+        _loading.value = true
+        return try {
+            val success = authService.loginWithGoogle(idToken)
+            if (!success) _error.value = "Google login failed."
+            success
+        } catch (t: Throwable) {
+            _error.value = t.message ?: "Google login failed."
+            false
+        } finally {
+            _loading.value = false
+        }
+    }
     suspend fun logout() {
         _error.value = null
         _info.value = null
