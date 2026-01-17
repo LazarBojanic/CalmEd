@@ -84,6 +84,16 @@ class AuthCredentialRepository : IAuthCredentialRepository {
 		}
 	}
 
+	override suspend fun findByProviderUserIdAndType(
+		providerUserId: String,
+		type: AuthCredentialType
+	): AuthCredential? = withTransaction {
+		AuthCredentialEntity.find {
+			(AuthCredentialTable.providerUserId eq providerUserId) and
+					(AuthCredentialTable.type eq type)
+		}.firstOrNull()?.toRaw()
+	}
+
 	override suspend fun delete(id: UUID): Boolean {
 		return withTransaction {
 			val e = AuthCredentialEntity.findById(id)

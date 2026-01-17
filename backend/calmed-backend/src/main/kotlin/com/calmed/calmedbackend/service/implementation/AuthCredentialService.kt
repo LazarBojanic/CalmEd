@@ -81,6 +81,13 @@ class AuthCredentialService(private val authCredentialRepository: IAuthCredentia
 		}
 	}
 
+	override suspend fun findRawByProviderUserIdAndType(
+		providerUserId: String,
+		type: AuthCredentialType
+	): AuthCredential? {
+		return authCredentialRepository.findByProviderUserIdAndType(providerUserId, type)
+	}
+
 	override suspend fun create(authCredential: AuthCredential): AppResult<AuthCredentialJoined> {
 		val created = authCredentialRepository.create(authCredential)
 

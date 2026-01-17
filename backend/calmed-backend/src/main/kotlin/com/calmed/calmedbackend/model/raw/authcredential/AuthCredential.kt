@@ -13,17 +13,20 @@ data class AuthCredential(
 	@Serializable(with = UUIDSerializer::class)
 	val userId: UUID,
 	val type: AuthCredentialType,
-	val passwordHash: String,
+	val passwordHash: String? = null,
+	val providerUserId: String? = null,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
 	val updatedAt: Instant,
+
 ) {
 	companion object {
 		fun createNew(
 			userId: UUID,
 			type: AuthCredentialType,
-			passwordHash: String,
+			passwordHash: String? = null,
+			providerUserId: String? = null,
 			createdAt: Instant? = null,
 			updatedAt: Instant? = null,
 		): AuthCredential {
@@ -35,6 +38,7 @@ data class AuthCredential(
 				userId = userId,
 				type = type,
 				passwordHash = passwordHash,
+				providerUserId = providerUserId,
 				createdAt = cat,
 				updatedAt = uat
 			)

@@ -8,8 +8,9 @@ import java.time.Instant
 object AuthCredentialTable : UUIDTable("auth_credential") {
 	val userId = uuid("user_id").references(UserTable.id)
 	val type = enumeration("type", AuthCredentialType::class)
-	val passwordHash = text("password_hash")
+	val passwordHash = text(name = "password_hash").nullable()
 	val createdAt = timestamp("created_at").default(Instant.now())
 	val updatedAt = timestamp("updated_at").default(Instant.now())
+	val providerUserId = text(name = "provider_user_id").nullable()
 }
 

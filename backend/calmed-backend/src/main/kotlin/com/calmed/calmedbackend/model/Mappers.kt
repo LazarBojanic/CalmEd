@@ -67,7 +67,7 @@ fun AuthCredential.join(userJoined: UserJoined): AuthCredentialJoined {
 		id = this.id,
 		userJoined = userJoined,
 		type = this.type,
-		passwordHash = this.passwordHash,
+		passwordHash = this.passwordHash ?: "",
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -121,6 +121,7 @@ fun AuthCredentialEntity.setFrom(d: AuthCredential, mapMode: MapMode) {
 	userId = d.userId
 	type = d.type
 	passwordHash = d.passwordHash
+	providerUserId = d.providerUserId
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt

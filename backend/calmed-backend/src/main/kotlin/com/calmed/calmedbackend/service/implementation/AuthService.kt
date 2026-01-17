@@ -14,6 +14,8 @@ import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
 import com.calmed.calmedbackend.model.dto.response.TokenPairDto
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
+import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialEntity
+import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialTable
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialType
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.user.User
@@ -34,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.apache.commons.mail.DefaultAuthenticator
 import org.apache.commons.mail.HtmlEmail
+import org.jetbrains.exposed.v1.core.eq
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
@@ -259,7 +262,8 @@ class AuthService(private val userService: IUserService,
 	override suspend fun loginWithGoogle(idToken: String): AppResult<TokenPairDto> {
 		return withTransaction {
 			val tokenInfoResult = verifyGoogleIdToken(idToken)
-			val tokenInfo = when (tokenInfoResult) {
+			val tokenInfo = when (tokenInfoResult)
+			{
 				is AppResult.Success -> tokenInfoResult.data
 				is AppResult.Failure -> return@withTransaction AppResult.Failure(
 					tokenInfoResult.httpStatusCode,
@@ -268,6 +272,15 @@ class AuthService(private val userService: IUserService,
 			}
 
 			val email = tokenInfo.email!!
+			val googleSub = tokenInfo.sub ?: throw IllegalArgumentException("Google token missing sub")
+			val existingGoogle = authCredentialService.findRawByProviderUserIdAndType(
+				providerUserId = googleSub,
+				type = AuthCredentialType.GOOGLE
+			)
+
+			if (existingGoogle != null) {
+				return@withTransaction createTokenPair(existingGoogle.userId, email)
+			}
 			val username = email.substringBefore("@")
 
 			val userResult = userService.getByEmail(email)
@@ -291,7 +304,15 @@ class AuthService(private val userService: IUserService,
 				}
 			}
 
-			return@withTransaction createTokenPair(user.id, user.email)
+			val googleCred = AuthCredential.createNew(
+				userId = user.id,
+				type = AuthCredentialType.GOOGLE,
+				passwordHash = null,
+				providerUserId = googleSub
+			)
+			authCredentialService.create(googleCred)
+
+			return@withTransaction createTokenPair(user.id, email)
 		}
 	}
 	override suspend fun logout(userId: UUID): AppResult<Unit> {

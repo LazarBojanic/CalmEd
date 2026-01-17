@@ -12,4 +12,5 @@ class AuthCredentialEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var passwordHash by AuthCredentialTable.passwordHash
 	var createdAt by AuthCredentialTable.createdAt
 	var updatedAt by AuthCredentialTable.updatedAt
+	var providerUserId by AuthCredentialTable.providerUserId
 }

@@ -13,4 +13,8 @@ interface IAuthCredentialService {
 	suspend fun create(authCredential: AuthCredential): AppResult<AuthCredentialJoined>
 	suspend fun update(authCredential: AuthCredential): AppResult<AuthCredentialJoined>
 	suspend fun delete(id: UUID): AppResult<Unit>
+	suspend fun findRawByProviderUserIdAndType(
+		providerUserId: String,
+		type: AuthCredentialType
+	): AuthCredential?
 }
