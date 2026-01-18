@@ -2,13 +2,9 @@ package com.calmed.calmedfrontendtourettes.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,8 +13,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedfrontendtourettes.ui.component.PasswordTextField
+import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.SecondaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -54,41 +53,36 @@ fun RegisterScreen(
             Text(info!!, color = MaterialTheme.colorScheme.primary)
         }
 
-        OutlinedTextField(
+        TextField(
             value = email,
             onValueChange = { email = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email") },
-            singleLine = true
+            label = "Email",
+            singleLine = true,
         )
 
-        OutlinedTextField(
+        TextField(
             value = username,
             onValueChange = { username = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Username") },
+            label = "Username",
+            singleLine = true,
+        )
+
+        PasswordTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = "Password",
             singleLine = true
         )
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Password") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        OutlinedTextField(
+        PasswordTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Confirm password") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
+            label = "Confirm password",
+            singleLine = true
         )
 
-        Button(
+        PrimaryButton(
+            text = if (loading) "Creating..." else "Register",
             onClick = {
                 scope.launch {
                     val success = viewModel.register(email, username, password, confirmPassword)
@@ -97,21 +91,13 @@ fun RegisterScreen(
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
             enabled = !loading
-        ) {
-            if (loading) {
-                Text("Creating...")
-            } else {
-                Text("Register")
-            }
-        }
+        )
 
-        TextButton(
+        SecondaryButton(
+            text = "Back to login",
             onClick = onNavigateLogin,
             enabled = !loading
-        ) {
-            Text("Back to login")
-        }
+        )
     }
 }

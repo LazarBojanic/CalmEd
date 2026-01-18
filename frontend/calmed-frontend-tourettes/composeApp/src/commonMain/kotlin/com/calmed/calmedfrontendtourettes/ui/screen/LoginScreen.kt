@@ -2,11 +2,8 @@ package com.calmed.calmedfrontendtourettes.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,15 +14,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedfrontendtourettes.ui.component.GoogleSignInButton
+import com.calmed.calmedfrontendtourettes.ui.component.PasswordTextField
+import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.SecondaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
-
-
 fun LoginScreen(
     onNavigateRegister: () -> Unit,
     onNavigateForgotPassword: () -> Unit,
@@ -51,24 +50,25 @@ fun LoginScreen(
             Text(error!!, color = MaterialTheme.colorScheme.error)
         }
 
-        OutlinedTextField(
+        TextField(
             value = email,
             onValueChange = { email = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email") },
+            label = "Email",
             singleLine = true
         )
 
-        OutlinedTextField(
+        PasswordTextField(
             value = password,
             onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Password") },
+            label = "Password",
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
+            isError = false,
+            supportingText = null,
+            modifier = Modifier,
         )
 
-        Button(
+        PrimaryButton(
+            text = if (loading) "Logging in..." else "Login",
             onClick = {
                 scope.launch {
                     val success = viewModel.login(email, password)
@@ -77,35 +77,25 @@ fun LoginScreen(
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
             enabled = !loading
-        ) {
-            if (loading) {
-                Text("Logging in...")
-            } else {
-                Text("Login")
-            }
-        }
-        Button(
+        )
+
+        GoogleSignInButton(
             onClick = onGoogleSignIn,
-            modifier = Modifier.fillMaxWidth(),
             enabled = !loading
-        ) {
-            Text("Continue with Google")
-        }
+        )
+
+        SecondaryButton(
+            text = "Create account",
+            onClick = onNavigateRegister,
+            enabled = !loading
+        )
 
         TextButton(
             onClick = onNavigateForgotPassword,
             enabled = !loading
         ) {
             Text("Forgot password?")
-        }
-
-        TextButton(
-            onClick = onNavigateRegister,
-            enabled = !loading
-        ) {
-            Text("Create account")
         }
     }
 }
