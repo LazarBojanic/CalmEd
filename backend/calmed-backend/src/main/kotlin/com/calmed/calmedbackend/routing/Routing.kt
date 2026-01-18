@@ -10,12 +10,8 @@ fun Application.configureRouting() {
 	install(Resources)
 
 	routing {
-		get("/ping") {
-			call.respondText("OK")
-		}
 		authRoutes()
-		authenticate("auth-jwt") {
+		userRoutes()
 
-		}
 	}
 }

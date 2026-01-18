@@ -10,5 +10,6 @@ data class UserDto(
 	val id: UUID,
 	val email: String,
 	val username: String,
-	val isEmailVerified: Boolean
+	val isEmailVerified: Boolean,
+	val isOnboarded: Boolean
 )

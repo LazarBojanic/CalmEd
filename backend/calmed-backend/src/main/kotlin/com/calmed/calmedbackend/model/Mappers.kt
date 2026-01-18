@@ -1,8 +1,10 @@
 package com.calmed.calmedbackend.model
 
 import com.calmed.calmedbackend.model.dto.response.UserDto
+import com.calmed.calmedbackend.model.dto.response.UserInfoTourettesDto
 import com.calmed.calmedbackend.model.joined.AuthCredentialJoined
 import com.calmed.calmedbackend.model.joined.RefreshTokenJoined
+import com.calmed.calmedbackend.model.joined.UserInfoTourettesJoined
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialEntity
@@ -10,6 +12,8 @@ import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenEntity
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
+import com.calmed.calmedbackend.model.raw.userinfo.UserInfoTourettes
+import com.calmed.calmedbackend.model.raw.userinfo.UserInfoTourettesEntity
 
 enum class MapMode {
 	CREATE, UPDATE
@@ -21,6 +25,7 @@ fun UserEntity.toRaw(): User {
 		email = this.email,
 		username = this.username,
 		isEmailVerified = this.isEmailVerified,
+		isOnboarded = this.isOnboarded,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -57,6 +62,7 @@ fun User.join(): UserJoined {
 		email = this.email,
 		username = this.username,
 		isEmailVerified = this.isEmailVerified,
+		isOnboarded = this.isOnboarded,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -158,6 +164,76 @@ fun UserJoined.toDto(): UserDto{
 		id = this.id,
 		email = this.email,
 		username = this.username,
-		isEmailVerified = this.isEmailVerified
+		isEmailVerified = this.isEmailVerified,
+		isOnboarded = this.isOnboarded
+	)
+}
+
+fun UserInfoTourettes.join(user: UserJoined): UserInfoTourettesJoined {
+	return UserInfoTourettesJoined(
+		id = this.id,
+		user = user,
+		preferredName = this.preferredName,
+		age = this.age,
+		stressLevel = this.stressLevel,
+		tickType = this.tickType,
+		tickFrequency = this.tickFrequency,
+		goal = this.goal,
+		followProgress = this.followProgress,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun UserInfoTourettesEntity.toRaw(): UserInfoTourettes {
+	return UserInfoTourettes(
+		id = this.id.value,
+		userId = this.userId,
+		preferredName = this.preferredName,
+		age = this.age,
+		stressLevel = this.stressLevel,
+		tickType = this.tickType,
+		tickFrequency = this.tickFrequency,
+		goal = this.goal,
+		followProgress = this.followProgress,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun UserInfoTourettesEntity.setFrom(d: UserInfoTourettes, mapMode: MapMode) {
+	userId = d.userId
+	preferredName = d.preferredName
+	age = d.age
+	stressLevel = d.stressLevel
+	tickType = d.tickType
+	tickFrequency = d.tickFrequency
+	goal = d.goal
+	followProgress = d.followProgress
+	when (mapMode) {
+		MapMode.CREATE -> {
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
+		}
+
+		MapMode.UPDATE -> {
+			updatedAt = d.updatedAt
+		}
+	}
+}
+
+fun UserInfoTourettesJoined.toDto(): UserInfoTourettesDto {
+	return UserInfoTourettesDto(
+		id = this.id,
+		userDto = this.user.toDto(),
+		preferredName = this.preferredName,
+		age = this.age,
+		stressLevel = this.stressLevel,
+		tickType = this.tickType,
+		tickFrequency = this.tickFrequency,
+		goal = this.goal,
+		followProgress = this.followProgress,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
 	)
 }
