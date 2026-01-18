@@ -31,8 +31,6 @@ kotlin {
 
 	sourceSets {
 		commonMain.dependencies {
-			implementation(libs.androidxCoreKtx)
-			implementation(libs.androidxAppcompat)
 			implementation(compose.runtime)
 			implementation(compose.foundation)
 			implementation(compose.material3)
@@ -48,8 +46,6 @@ kotlin {
 			implementation(libs.androidxLifecycleViewmodelCompose)
 			implementation(libs.androidxLifecycleRuntimeCompose)
 			implementation(libs.androidxNavigationCompose)
-			implementation(libs.androidxDatastore)
-			implementation(libs.androidxDatastorePreferences)
 
 			api(libs.koinCore)
 			api(libs.koinAnnotations)
@@ -66,17 +62,23 @@ kotlin {
 			implementation(libs.squareupOkio)
 
 			implementation(libs.oAuthJavaJwt)
-
-			implementation("androidx.credentials:credentials:1.3.0")
-			implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-			implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-			implementation("com.google.android.gms:play-services-auth:21.2.0")
-
 		}
+
 		androidMain.dependencies {
 			implementation(compose.preview)
 
 			implementation(libs.androidxActivityCompose)
+
+			implementation(libs.androidxCoreKtx)
+			implementation(libs.androidxAppcompat)
+
+			implementation(libs.androidxDatastore)
+			implementation(libs.androidxDatastorePreferences)
+
+			implementation(libs.androidxCredentials)
+			implementation(libs.androidxCredentialsPlayServicesAuth)
+			implementation(libs.googleAndroidLibrariesIdentityGoogleId)
+			implementation(libs.googleAndroidGmsPlayServicesAuth)
 
 			implementation(libs.kotlinxCoroutinesAndroid)
 
@@ -87,8 +89,8 @@ kotlin {
 			implementation(libs.sqliteWrapper)
 
 			implementation(libs.ktorClientOkHttp)
-
 		}
+
 		iosMain.dependencies {
 			implementation(libs.ktorClientDarwin)
 		}
@@ -146,4 +148,3 @@ dependencies {
 	add("kspIosSimulatorArm64", libs.koinKspCompiler)
 	debugImplementation(compose.uiTooling)
 }
-
