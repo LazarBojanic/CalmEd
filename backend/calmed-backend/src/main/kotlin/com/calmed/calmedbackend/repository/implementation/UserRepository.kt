@@ -9,6 +9,7 @@ import com.calmed.calmedbackend.model.setFrom
 import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.repository.specification.IUserRepository
 import org.jetbrains.exposed.v1.core.eq
+import java.time.Instant
 import java.util.UUID
 
 class UserRepository : IUserRepository {
@@ -82,6 +83,21 @@ class UserRepository : IUserRepository {
 			}
 			else {
 				return@withTransaction false
+			}
+		}
+	}
+
+	override suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean
+	): User? {
+		return withTransaction {
+			val e = UserEntity.findById(id)
+			if(e != null) {
+				e.isOnboarded = isOnboarded
+				e.updatedAt = Instant.now()
+				return@withTransaction e.toRaw()
+			}
+			else{
+				return@withTransaction null
 			}
 		}
 	}

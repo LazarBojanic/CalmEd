@@ -1,4 +1,4 @@
-package com.calmed.calmedbackend.model.raw.userinfo
+package com.calmed.calmedbackend.model.raw.userinfo.tourettes
 
 import com.calmed.calmedbackend.util.InstantSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer
@@ -16,13 +16,13 @@ data class UserInfoTourettes(
 	val age: Int?,
 	val stressLevel: Int?,
 	val tickType: TickType?,
-	val tickFrequency:TickFrequency?,
+	val tickFrequency: TickFrequency?,
 	val goal: String?,
 	val followProgress: Boolean?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
-	val updatedAt: Instant,
+	val updatedAt: Instant
 ) {
 	companion object {
 		fun createNew(

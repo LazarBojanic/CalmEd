@@ -1,4 +1,4 @@
-package com.calmed.calmedbackend.model.raw.userinfo
+package com.calmed.calmedbackend.model.raw.userinfo.tourettes
 
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.dao.UUIDEntity

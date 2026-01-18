@@ -3,6 +3,9 @@ package com.calmed.calmedfrontendtourettes
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.calmed.calmedfrontendtourettes.database.AppDatabase
+import com.calmed.calmedfrontendtourettes.database.getAppDatabase
+import com.calmed.calmedfrontendtourettes.database.getDatabaseBuilder
 import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import com.calmed.calmedfrontendtourettes.store.TokenDataStore
 import com.calmed.calmedfrontendtourettes.store.provideTokenDataStore
@@ -15,4 +18,8 @@ actual fun platformEngine(): HttpClientEngineFactory<*> = OkHttp
 fun androidModule(appContext: Context) = module {
     single<DataStore<Preferences>> { provideTokenDataStore(appContext) }
     single<ITokenDataStore> { TokenDataStore(get()) }
+
+    single<AppDatabase> { getAppDatabase(getDatabaseBuilder(appContext)) }
+    single { get<AppDatabase>().getUserDao() }
+    single { get<AppDatabase>().getUserInfoTourettesDao() }
 }

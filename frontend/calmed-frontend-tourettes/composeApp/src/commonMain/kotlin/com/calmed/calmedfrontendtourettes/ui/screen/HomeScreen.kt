@@ -11,34 +11,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
+import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
+import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
 fun HomeScreen(
-    onLogout: () -> Unit,
-    viewModel: AuthViewModel = koinInject()
+
 ) {
     val scope = rememberCoroutineScope()
-
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Home", style = MaterialTheme.typography.headlineMedium)
-        Text("You are authenticated (access token present).")
-
-        Button(
-            onClick = {
-                scope.launch {
-                    viewModel.logout()
-                    onLogout()
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+    ScreenScaffold(title = "Home"){
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Logout")
+            Text("Welcome to CalmEd Tourettes.")
+
         }
     }
+
 }

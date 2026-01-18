@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "db8bca05ecbe906c06a96267452b3bec",
+    "identityHash": "c625d08845fdd3ca1be9c3f0b0ab818f",
     "entities": [
       {
-        "tableName": "dummy",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "tableName": "user",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `email` TEXT NOT NULL, `username` TEXT NOT NULL, `is_email_verified` INTEGER NOT NULL, `is_onboarded` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -15,10 +15,87 @@
             "notNull": true
           },
           {
-            "fieldPath": "text",
-            "columnName": "title",
+            "fieldPath": "email",
+            "columnName": "email",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "username",
+            "columnName": "username",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isEmailVerified",
+            "columnName": "is_email_verified",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isOnboarded",
+            "columnName": "is_onboarded",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "user_info_tourettes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `preferred_name` TEXT, `age` INTEGER, `stress_level` INTEGER, `tick_type` TEXT, `tick_frequency` TEXT, `goal` TEXT, `follow_progress` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "preferredName",
+            "columnName": "preferred_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "age",
+            "columnName": "age",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "stressLevel",
+            "columnName": "stress_level",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "tickType",
+            "columnName": "tick_type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "tickFrequency",
+            "columnName": "tick_frequency",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "goal",
+            "columnName": "goal",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "followProgress",
+            "columnName": "follow_progress",
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -31,7 +108,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'db8bca05ecbe906c06a96267452b3bec')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c625d08845fdd3ca1be9c3f0b0ab818f')"
     ]
   }
 }

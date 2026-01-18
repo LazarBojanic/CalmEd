@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
 import com.calmed.calmedfrontendtourettes.ui.component.SecondaryButton
 import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
@@ -34,41 +35,44 @@ fun ForgotPasswordScreen(
 
     var email by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Forgot password", style = MaterialTheme.typography.headlineMedium)
+    ScreenScaffold(title = "Forgot Password?") {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
 
-        if (error != null) {
-            Text(error!!, color = MaterialTheme.colorScheme.error)
+            if (error != null) {
+                Text(error!!, color = MaterialTheme.colorScheme.error)
+            }
+
+            if (info != null) {
+                Text(info!!, color = MaterialTheme.colorScheme.primary)
+            }
+
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                label = "Email",
+                singleLine = true,
+            )
+
+            PrimaryButton(
+                text = if (loading) "Sending..." else "Send reset email",
+                onClick = {
+                    scope.launch {
+                        viewModel.forgotPassword(email)
+                    }
+                },
+                enabled = !loading
+            )
+
+            SecondaryButton(
+                text = "Back",
+                onClick = onNavigateBack,
+                enabled = !loading
+            )
         }
-
-        if (info != null) {
-            Text(info!!, color = MaterialTheme.colorScheme.primary)
-        }
-
-        TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = "Email",
-            singleLine = true,
-        )
-
-        PrimaryButton(
-            text = if (loading) "Sending..." else "Send reset email",
-            onClick = {
-                scope.launch {
-                    viewModel.forgotPassword(email)
-                }
-            },
-            enabled = !loading
-        )
-
-        SecondaryButton(
-            text = "Back",
-            onClick = onNavigateBack,
-            enabled = !loading
-        )
     }
+
+
 }

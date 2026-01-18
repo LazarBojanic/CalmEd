@@ -9,7 +9,7 @@ import com.calmed.calmedbackend.http.configureHTTP
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialTable
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenTable
 import com.calmed.calmedbackend.model.raw.user.UserTable
-import com.calmed.calmedbackend.model.raw.userinfo.UserInfoTourettesTable
+import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettesTable
 import com.calmed.calmedbackend.routing.configureRouting
 import com.calmed.calmedbackend.routing.configureStaticRouting
 import com.calmed.calmedbackend.util.configureMonitoring

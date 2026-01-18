@@ -12,6 +12,6 @@ fun Application.configureRouting() {
 	routing {
 		authRoutes()
 		userRoutes()
-
+		userInfoTourettesRoutes()
 	}
 }

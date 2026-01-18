@@ -12,8 +12,8 @@ import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenEntity
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
-import com.calmed.calmedbackend.model.raw.userinfo.UserInfoTourettes
-import com.calmed.calmedbackend.model.raw.userinfo.UserInfoTourettesEntity
+import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
+import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettesEntity
 
 enum class MapMode {
 	CREATE, UPDATE
@@ -111,6 +111,7 @@ fun UserEntity.setFrom(d: User, mapMode: MapMode) {
 	email = d.email
 	username = d.username
 	isEmailVerified = d.isEmailVerified
+	isOnboarded = d.isOnboarded
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
@@ -159,7 +160,7 @@ fun RefreshTokenEntity.setFrom(d: RefreshToken, mapMode: MapMode) {
 
 }
 
-fun UserJoined.toDto(): UserDto{
+fun UserJoined.toDto(): UserDto {
 	return UserDto(
 		id = this.id,
 		email = this.email,
@@ -225,15 +226,13 @@ fun UserInfoTourettesEntity.setFrom(d: UserInfoTourettes, mapMode: MapMode) {
 fun UserInfoTourettesJoined.toDto(): UserInfoTourettesDto {
 	return UserInfoTourettesDto(
 		id = this.id,
-		userDto = this.user.toDto(),
+		user = this.user.toDto(),
 		preferredName = this.preferredName,
 		age = this.age,
 		stressLevel = this.stressLevel,
 		tickType = this.tickType,
 		tickFrequency = this.tickFrequency,
 		goal = this.goal,
-		followProgress = this.followProgress,
-		createdAt = this.createdAt,
-		updatedAt = this.updatedAt
+		followProgress = this.followProgress
 	)
 }

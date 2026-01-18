@@ -7,6 +7,7 @@ import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.repository.specification.IUserRepository
 import com.calmed.calmedbackend.service.specification.IUserService
 import io.ktor.http.HttpStatusCode
+import java.time.Instant
 import java.util.UUID
 
 class UserService(
@@ -64,6 +65,15 @@ class UserService(
 		}
 		else {
 			return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to delete user.")
+		}
+	}
+
+	override suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): AppResult<UserJoined> {
+		val updated = userRepository.setIsOnboarded(id, isOnboarded)
+		return if (updated != null) {
+			AppResult.Success(updated.join())
+		} else {
+			AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
 		}
 	}
 }

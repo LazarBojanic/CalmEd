@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.calmed.calmedfrontendtourettes.ui.component.GoogleSignInButton
 import com.calmed.calmedfrontendtourettes.ui.component.PasswordTextField
 import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
 import com.calmed.calmedfrontendtourettes.ui.component.SecondaryButton
 import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
@@ -40,62 +41,65 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Login", style = MaterialTheme.typography.headlineMedium)
-
-        if (error != null) {
-            Text(error!!, color = MaterialTheme.colorScheme.error)
-        }
-
-        TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = "Email",
-            singleLine = true
-        )
-
-        PasswordTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = "Password",
-            singleLine = true,
-            isError = false,
-            supportingText = null,
-            modifier = Modifier,
-        )
-
-        PrimaryButton(
-            text = if (loading) "Logging in..." else "Login",
-            onClick = {
-                scope.launch {
-                    val success = viewModel.login(email, password)
-                    if (success) {
-                        onLoginSuccess()
-                    }
-                }
-            },
-            enabled = !loading
-        )
-
-        GoogleSignInButton(
-            onClick = onGoogleSignIn,
-            enabled = !loading
-        )
-
-        SecondaryButton(
-            text = "Create account",
-            onClick = onNavigateRegister,
-            enabled = !loading
-        )
-
-        TextButton(
-            onClick = onNavigateForgotPassword,
-            enabled = !loading
+    ScreenScaffold(title = "Login") {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Forgot password?")
+
+
+            if (error != null) {
+                Text(error!!, color = MaterialTheme.colorScheme.error)
+            }
+
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                label = "Email",
+                singleLine = true
+            )
+
+            PasswordTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = "Password",
+                singleLine = true,
+                isError = false,
+                supportingText = null,
+                modifier = Modifier,
+            )
+
+            PrimaryButton(
+                text = if (loading) "Logging in..." else "Login",
+                onClick = {
+                    scope.launch {
+                        val success = viewModel.login(email, password)
+                        if (success) {
+                            onLoginSuccess()
+                        }
+                    }
+                },
+                enabled = !loading
+            )
+
+            SecondaryButton(
+                text = "Create account",
+                onClick = onNavigateRegister,
+                enabled = !loading
+            )
+
+            GoogleSignInButton(
+                onClick = onGoogleSignIn,
+                enabled = !loading
+            )
+
+            TextButton(
+                onClick = onNavigateForgotPassword,
+                enabled = !loading
+            ) {
+                Text("Forgot password?")
+            }
         }
     }
+
 }

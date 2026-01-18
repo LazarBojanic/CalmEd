@@ -1,8 +1,7 @@
 package com.calmed.calmedbackend.repository.specification
 
-import com.calmed.calmedbackend.model.AppResult
-import com.calmed.calmedbackend.model.raw.user.User
-import com.calmed.calmedbackend.model.raw.userinfo.UserInfoTourettes
+import com.calmed.calmedbackend.model.dto.request.UserInfoTourettesUpdateDto
+import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
 import java.util.UUID
 
 interface IUserInfoTourettesRepository {
@@ -12,4 +11,6 @@ interface IUserInfoTourettesRepository {
 	suspend fun create(userInfoTourettes: UserInfoTourettes): UserInfoTourettes?
 	suspend fun update(userInfoTourettes: UserInfoTourettes): UserInfoTourettes?
 	suspend fun delete(id: UUID): Boolean
+	suspend fun updateById(id: UUID, dto: UserInfoTourettesUpdateDto): UserInfoTourettes?
+
 }

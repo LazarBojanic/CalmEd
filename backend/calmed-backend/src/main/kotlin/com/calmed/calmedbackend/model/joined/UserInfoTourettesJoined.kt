@@ -1,8 +1,7 @@
 package com.calmed.calmedbackend.model.joined
 
-import com.calmed.calmedbackend.model.raw.userinfo.TickFrequency
-import com.calmed.calmedbackend.model.raw.userinfo.TickType
-import com.calmed.calmedbackend.model.raw.userinfo.UserInfoTourettes
+import com.calmed.calmedbackend.model.raw.userinfo.tourettes.TickFrequency
+import com.calmed.calmedbackend.model.raw.userinfo.tourettes.TickType
 import com.calmed.calmedbackend.util.InstantSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer
 import kotlinx.serialization.Serializable

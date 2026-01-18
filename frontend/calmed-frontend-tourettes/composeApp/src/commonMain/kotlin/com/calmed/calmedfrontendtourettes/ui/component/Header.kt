@@ -19,7 +19,9 @@ fun Header(
 	onBack: (() -> Unit)? = null
 ) {
 	Surface(
-		modifier = Modifier.fillMaxWidth(),
+		modifier = Modifier
+			.fillMaxWidth()
+			.statusBarsPadding(),
 		color = MaterialTheme.colorScheme.secondaryContainer,
 		tonalElevation = 0.dp,
 		shadowElevation = 0.dp

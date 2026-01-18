@@ -14,12 +14,10 @@ import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
 import com.calmed.calmedbackend.model.dto.response.TokenPairDto
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
-import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialEntity
-import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialTable
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialType
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.user.User
-import com.calmed.calmedbackend.model.raw.userinfo.UserInfoTourettes
+import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
 import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
@@ -39,7 +37,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.apache.commons.mail.DefaultAuthenticator
 import org.apache.commons.mail.HtmlEmail
-import org.jetbrains.exposed.v1.core.eq
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID

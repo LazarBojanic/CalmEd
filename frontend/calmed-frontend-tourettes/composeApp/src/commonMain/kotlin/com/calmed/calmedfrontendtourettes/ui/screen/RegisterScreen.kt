@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedfrontendtourettes.ui.component.PasswordTextField
 import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
 import com.calmed.calmedfrontendtourettes.ui.component.SecondaryButton
 import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
@@ -39,65 +40,68 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Register", style = MaterialTheme.typography.headlineMedium)
+    ScreenScaffold(title = "Register"){
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
 
-        if (error != null) {
-            Text(error!!, color = MaterialTheme.colorScheme.error)
-        }
+            if (error != null) {
+                Text(error!!, color = MaterialTheme.colorScheme.error)
+            }
 
-        if (info != null) {
-            Text(info!!, color = MaterialTheme.colorScheme.primary)
-        }
+            if (info != null) {
+                Text(info!!, color = MaterialTheme.colorScheme.primary)
+            }
 
-        TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = "Email",
-            singleLine = true,
-        )
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                label = "Email",
+                singleLine = true,
+            )
 
-        TextField(
-            value = username,
-            onValueChange = { username = it },
-            label = "Username",
-            singleLine = true,
-        )
+            TextField(
+                value = username,
+                onValueChange = { username = it },
+                label = "Username",
+                singleLine = true,
+            )
 
-        PasswordTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = "Password",
-            singleLine = true
-        )
+            PasswordTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = "Password",
+                singleLine = true
+            )
 
-        PasswordTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = "Confirm password",
-            singleLine = true
-        )
+            PasswordTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = "Confirm password",
+                singleLine = true
+            )
 
-        PrimaryButton(
-            text = if (loading) "Creating..." else "Register",
-            onClick = {
-                scope.launch {
-                    val success = viewModel.register(email, username, password, confirmPassword)
-                    if (success) {
-                        onRegisterSuccess()
+            PrimaryButton(
+                text = if (loading) "Creating..." else "Register",
+                onClick = {
+                    scope.launch {
+                        val success = viewModel.register(email, username, password, confirmPassword)
+                        if (success) {
+                            onRegisterSuccess()
+                        }
                     }
-                }
-            },
-            enabled = !loading
-        )
+                },
+                enabled = !loading
+            )
 
-        SecondaryButton(
-            text = "Back to login",
-            onClick = onNavigateLogin,
-            enabled = !loading
-        )
+            SecondaryButton(
+                text = "Back to login",
+                onClick = onNavigateLogin,
+                enabled = !loading
+            )
+        }
     }
+
+
 }
