@@ -5,28 +5,27 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.calmed.calmedfrontendtourettes.auth.getGoogleIdToken
+import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.service.specification.IAuthService
+import com.calmed.calmedfrontendtourettes.settings.AppSettings
 import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import com.calmed.calmedfrontendtourettes.theme.AppTheme
 import com.calmed.calmedfrontendtourettes.ui.screen.ForgotPasswordScreen
+import com.calmed.calmedfrontendtourettes.ui.screen.FullscreenVideoScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.HomeScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.LoginScreen
+import com.calmed.calmedfrontendtourettes.ui.screen.MainScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.RegisterScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.SplashScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.WelcomeVideoScreen
-import org.koin.compose.koinInject
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import com.calmed.calmedfrontendtourettes.auth.getGoogleIdToken
-import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
-import com.calmed.calmedfrontendtourettes.settings.AppSettings
-import com.calmed.calmedfrontendtourettes.ui.screen.FullscreenVideoScreen
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
-
 
 object Routes {
     const val Splash = "splash"
@@ -36,83 +35,74 @@ object Routes {
     const val Home = "home"
     const val WelcomeVideo = "welcome-video"
     const val FullscreenVideo = "video/fullscreen"
+    const val Main = "main"
 }
 
 @Composable
 fun App() {
-
-
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
+
     val tokenStore: ITokenDataStore = koinInject()
     val authService: IAuthService = koinInject()
     val appApi: IAppApi = koinInject()
 
     val token by tokenStore.tokenDto.collectAsState()
     val authViewModel = remember { AuthViewModel(authService) }
+
     val appSettings: AppSettings = koinInject()
     val showWelcomeVideo = remember { appSettings.getShowWelcomeVideo() }
 
-
     AppTheme {
         NavHost(navController, startDestination = Routes.Splash) {
+
             composable(Routes.Splash) {
                 SplashScreen()
+
                 LaunchedEffect(token) {
                     val currentToken = tokenStore.tokenDto.value
-                    if (currentToken != null) {
-                        val access = currentToken.access
-                        val refresh = currentToken.refresh
-                        if (access != null && access.isNotBlank() && refresh != null && refresh.isNotBlank()) {
-                            val refreshSuccess = authService.tryRefresh()
-                            if (refreshSuccess) {
-                                val nextRoute = if (showWelcomeVideo) {
-                                    Routes.WelcomeVideo
-                                } else {
-                                    Routes.Home
-                                }
-
-                                navController.navigate(nextRoute) {
-                                    popUpTo(Routes.Splash) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }else {
-                                navController.navigate(Routes.Login) {
-                                    popUpTo(Routes.Splash) {
-                                        inclusive = true
-                                    }
-                                    launchSingleTop = true
-                                }
-                            }
-                        } else {
-                            navController.navigate(Routes.Login) {
-                                popUpTo(Routes.Splash) {
-                                    inclusive = true
-                                }
-                                launchSingleTop = true
-                            }
-                        }
-                    } else {
+                    if (currentToken == null) {
                         navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Splash) {
-                                inclusive = true
-                            }
+                            popUpTo(Routes.Splash) { inclusive = true }
                             launchSingleTop = true
                         }
+                        return@LaunchedEffect
+                    }
+
+                    val access = currentToken.access
+                    val refresh = currentToken.refresh
+
+                    if (access.isNullOrBlank() || refresh.isNullOrBlank()) {
+                        navController.navigate(Routes.Login) {
+                            popUpTo(Routes.Splash) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                        return@LaunchedEffect
+                    }
+
+                    val refreshSuccess = authService.tryRefresh()
+                    if (!refreshSuccess) {
+                        navController.navigate(Routes.Login) {
+                            popUpTo(Routes.Splash) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                        return@LaunchedEffect
+                    }
+
+                    val nextRoute = if (showWelcomeVideo) Routes.WelcomeVideo else Routes.Main
+                    navController.navigate(nextRoute) {
+                        popUpTo(Routes.Splash) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             }
 
             composable(Routes.Login) {
                 LoginScreen(
-                    onNavigateRegister = {
-                        navController.navigate(Routes.Register)
-                    },
-                    onNavigateForgotPassword = {
-                        navController.navigate(Routes.ForgotPassword)
-                    },
+                    onNavigateRegister = { navController.navigate(Routes.Register) },
+                    onNavigateForgotPassword = { navController.navigate(Routes.ForgotPassword) },
                     onLoginSuccess = {
-                        val nextRoute = if (showWelcomeVideo) Routes.WelcomeVideo else Routes.Home
+                        val nextRoute = if (showWelcomeVideo) Routes.WelcomeVideo else Routes.Main
                         navController.navigate(nextRoute) {
                             popUpTo(Routes.Login) { inclusive = true }
                             launchSingleTop = true
@@ -121,27 +111,17 @@ fun App() {
                     onGoogleSignIn = {
                         scope.launch {
                             try {
-                                val token = getGoogleIdToken()
-                                println("GOOGLE TOKEN LEN = ${token.length}")
-
-                                println("GOOGLE BACKEND: calling loginWithGoogle...")
-                                val ok = authViewModel.loginWithGoogle(token)
-                                println("GOOGLE BACKEND OK = $ok")
-                                println("UI: currentRoute=${navController.currentDestination?.route}")
-
+                                val googleToken = getGoogleIdToken()
+                                val ok = authViewModel.loginWithGoogle(googleToken)
                                 if (ok) {
-                                    val nextRoute = if (showWelcomeVideo) Routes.WelcomeVideo else Routes.Home
-                                    println("UI: navigating now...")
-                                    println("NAVIGATE -> HOME")
+                                    val nextRoute = if (showWelcomeVideo) Routes.WelcomeVideo else Routes.Main
                                     navController.navigate(nextRoute) {
                                         popUpTo(Routes.Login) { inclusive = true }
                                         launchSingleTop = true
                                     }
-                                } else {
-                                    println("Google backend login returned false")
                                 }
                             } catch (t: Throwable) {
-                                println("Google sign-in failed: ${t::class.simpleName} - ${t.message}")
+                                println("GoogleSignIn failed: ${t.message}")
                                 t.printStackTrace()
                             }
                         }
@@ -153,17 +133,13 @@ fun App() {
                 RegisterScreen(
                     onNavigateLogin = {
                         navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Register) {
-                                inclusive = true
-                            }
+                            popUpTo(Routes.Register) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
                     onRegisterSuccess = {
                         navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Register) {
-                                inclusive = true
-                            }
+                            popUpTo(Routes.Register) { inclusive = true }
                             launchSingleTop = true
                         }
                     }
@@ -171,38 +147,29 @@ fun App() {
             }
 
             composable(Routes.ForgotPassword) {
-                ForgotPasswordScreen(
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    }
-                )
+                ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
             }
 
             composable(Routes.WelcomeVideo) {
-                val appSettings: AppSettings = koinInject()
+                val settings: AppSettings = koinInject()
 
                 WelcomeVideoScreen(
                     onSkip = {
-                        navController.navigate(Routes.Home) {
+                        navController.navigate(Routes.Main) {
                             popUpTo(Routes.WelcomeVideo) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
                     onContinue = { dontShowAgain ->
-                        if (dontShowAgain) {
-                            appSettings.setShowWelcomeVideo(false)
-                        }
-                        navController.navigate(Routes.Home) {
+                        if (dontShowAgain) settings.setShowWelcomeVideo(false)
+                        navController.navigate(Routes.Main) {
                             popUpTo(Routes.WelcomeVideo) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
-                    onFullscreen = {
-                        navController.navigate(Routes.FullscreenVideo)
-                    }
+                    onFullscreen = { navController.navigate(Routes.FullscreenVideo) }
                 )
             }
-
 
             composable(Routes.FullscreenVideo) {
                 FullscreenVideoScreen(
@@ -211,16 +178,22 @@ fun App() {
                 )
             }
 
-            composable(Routes.Home) {
-                HomeScreen(
-                    onLogout = {
+
+            composable(Routes.Main) {
+                MainScreen(
+                    onLogoutToLogin = {
                         navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Home) {
-                                inclusive = true
-                            }
+                            popUpTo(Routes.Main) { inclusive = true }
                             launchSingleTop = true
                         }
                     }
+                )
+            }
+
+
+            composable(Routes.Home) {
+                HomeScreen(
+
                 )
             }
         }

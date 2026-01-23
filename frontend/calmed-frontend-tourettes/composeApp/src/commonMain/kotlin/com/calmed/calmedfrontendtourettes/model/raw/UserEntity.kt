@@ -1,0 +1,19 @@
+package com.calmed.calmedfrontendtourettes.model.raw
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "user")
+data class UserEntity(
+	@PrimaryKey(autoGenerate = false)
+	val id: String,
+	@ColumnInfo(name = "email")
+	val email: String,
+	@ColumnInfo(name = "username")
+	val username: String,
+	@ColumnInfo(name = "is_email_verified")
+	val isEmailVerified: Boolean,
+	@ColumnInfo(name = "is_onboarded")
+	val isOnboarded: Boolean,
+)

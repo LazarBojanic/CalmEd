@@ -9,6 +9,7 @@ import com.calmed.calmedbackend.http.configureHTTP
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialTable
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenTable
 import com.calmed.calmedbackend.model.raw.user.UserTable
+import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettesTable
 import com.calmed.calmedbackend.routing.configureRouting
 import com.calmed.calmedbackend.routing.configureStaticRouting
 import com.calmed.calmedbackend.util.configureMonitoring
@@ -38,12 +39,13 @@ suspend fun Application.module() {
 	val allTables = arrayOf(
 		UserTable,
 		AuthCredentialTable,
-		RefreshTokenTable
+		RefreshTokenTable,
+		UserInfoTourettesTable
 	)
 	transaction {
 		if(ktorConfig.development){
-			//exec("DROP SCHEMA IF EXISTS public CASCADE;")
-			//exec("CREATE SCHEMA public;")
+			exec("DROP SCHEMA IF EXISTS public CASCADE;")
+			exec("CREATE SCHEMA public;")
 		}
 	}
 	transaction{

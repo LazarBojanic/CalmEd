@@ -1,4 +1,6 @@
 package com.calmed.calmedfrontendtourettes.ui.component
+
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -40,6 +42,8 @@ fun PasswordTextField(
 				Icon(imageVector = image, contentDescription = description)
 			}
 		},
-		modifier = modifier
+		modifier = Modifier
+			.fillMaxWidth()
+			.then(modifier)
 	)
 }

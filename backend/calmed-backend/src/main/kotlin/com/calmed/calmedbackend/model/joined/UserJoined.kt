@@ -13,6 +13,7 @@ data class UserJoined(
 	val email: String,
 	val username: String,
 	val isEmailVerified: Boolean,
+	val isOnboarded: Boolean,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)

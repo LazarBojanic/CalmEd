@@ -7,6 +7,7 @@ import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.service.implementation.AuthService
 import com.calmed.calmedfrontendtourettes.service.specification.IAuthService
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
+import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
 import io.ktor.client.engine.HttpClientEngineFactory
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -20,6 +21,7 @@ fun commonModule(baseUrl: String) = module {
 
     single<IAuthService> { AuthService(get(), get()) }
     factory { AuthViewModel(get()) }
+    factory { SessionViewModel(get(), get(), get(), get(), get()) }
 }
 
 fun initKoin(baseUrl: String, vararg platformModules: Module) {

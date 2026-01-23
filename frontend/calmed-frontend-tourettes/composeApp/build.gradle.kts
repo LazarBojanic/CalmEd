@@ -78,6 +78,17 @@ kotlin {
 
 			implementation(libs.androidxActivityCompose)
 
+			implementation(libs.androidxCoreKtx)
+			implementation(libs.androidxAppcompat)
+
+			implementation(libs.androidxDatastore)
+			implementation(libs.androidxDatastorePreferences)
+
+			implementation(libs.androidxCredentials)
+			implementation(libs.androidxCredentialsPlayServicesAuth)
+			implementation(libs.googleAndroidLibrariesIdentityGoogleId)
+			implementation(libs.googleAndroidGmsPlayServicesAuth)
+
 			implementation(libs.kotlinxCoroutinesAndroid)
 
 			implementation(libs.koinAndroid)
@@ -87,9 +98,11 @@ kotlin {
 			implementation(libs.sqliteWrapper)
 
 			implementation(libs.ktorClientOkHttp)
-			implementation("androidx.media3:media3-exoplayer:1.4.1")
-			implementation("androidx.media3:media3-ui:1.4.1")
-			implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
+			implementation("androidx.media3:media3-exoplayer:1.2.1")
+			implementation("androidx.media3:media3-ui:1.2.1")
+			implementation("androidx.media3:media3-common:1.2.1")
+			implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
+			implementation("androidx.media3:media3-exoplayer-dash:1.2.1")
 
 		}
 		iosMain.dependencies {

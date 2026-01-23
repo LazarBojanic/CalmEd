@@ -2,13 +2,9 @@ package com.calmed.calmedfrontendtourettes.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,6 +14,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
+import com.calmed.calmedfrontendtourettes.ui.component.SecondaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -35,49 +35,44 @@ fun ForgotPasswordScreen(
 
     var email by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Forgot password", style = MaterialTheme.typography.headlineMedium)
-
-        if (error != null) {
-            Text(error!!, color = MaterialTheme.colorScheme.error)
-        }
-
-        if (info != null) {
-            Text(info!!, color = MaterialTheme.colorScheme.primary)
-        }
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email") },
-            singleLine = true
-        )
-
-        Button(
-            onClick = {
-                scope.launch {
-                    viewModel.forgotPassword(email)
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loading
+    ScreenScaffold(title = "Forgot Password?") {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (loading) {
-                Text("Sending...")
-            } else {
-                Text("Send reset email")
+
+            if (error != null) {
+                Text(error!!, color = MaterialTheme.colorScheme.error)
             }
-        }
 
-        TextButton(
-            onClick = onNavigateBack,
-            enabled = !loading
-        ) {
-            Text("Back")
+            if (info != null) {
+                Text(info!!, color = MaterialTheme.colorScheme.primary)
+            }
+
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                label = "Email",
+                singleLine = true,
+            )
+
+            PrimaryButton(
+                text = if (loading) "Sending..." else "Send reset email",
+                onClick = {
+                    scope.launch {
+                        viewModel.forgotPassword(email)
+                    }
+                },
+                enabled = !loading
+            )
+
+            SecondaryButton(
+                text = "Back",
+                onClick = onNavigateBack,
+                enabled = !loading
+            )
         }
     }
+
+
 }

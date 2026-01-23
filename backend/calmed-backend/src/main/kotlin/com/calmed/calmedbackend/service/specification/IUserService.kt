@@ -12,4 +12,5 @@ interface IUserService {
 	suspend fun create(user: User): AppResult<UserJoined>
 	suspend fun update(user: User): AppResult<UserJoined>
 	suspend fun delete(id: UUID): AppResult<Unit>
+	suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): AppResult<UserJoined>
 }

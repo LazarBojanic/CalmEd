@@ -18,9 +18,10 @@ fun Header(
 	title: String,
 	onBack: (() -> Unit)? = null
 ) {
-	// Edge-to-edge background via Surface color; content is padded from status bar.
 	Surface(
-		modifier = Modifier.fillMaxWidth(),
+		modifier = Modifier
+			.fillMaxWidth()
+			.statusBarsPadding(),
 		color = MaterialTheme.colorScheme.secondaryContainer,
 		tonalElevation = 0.dp,
 		shadowElevation = 0.dp
@@ -28,7 +29,7 @@ fun Header(
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(horizontal = 12.dp, vertical = 8.dp)
+				.padding(horizontal = 12.dp, vertical = 24.dp)
 		) {
 			Row(
 				modifier = Modifier

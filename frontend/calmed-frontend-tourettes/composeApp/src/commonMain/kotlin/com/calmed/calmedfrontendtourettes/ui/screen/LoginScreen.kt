@@ -2,11 +2,8 @@ package com.calmed.calmedfrontendtourettes.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,15 +14,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedfrontendtourettes.ui.component.GoogleSignInButton
+import com.calmed.calmedfrontendtourettes.ui.component.PasswordTextField
+import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
+import com.calmed.calmedfrontendtourettes.ui.component.SecondaryButton
+import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
-
-
 fun LoginScreen(
     onNavigateRegister: () -> Unit,
     onNavigateForgotPassword: () -> Unit,
@@ -41,71 +41,65 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Login", style = MaterialTheme.typography.headlineMedium)
-
-        if (error != null) {
-            Text(error!!, color = MaterialTheme.colorScheme.error)
-        }
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email") },
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Password") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        Button(
-            onClick = {
-                scope.launch {
-                    val success = viewModel.login(email, password)
-                    if (success) {
-                        onLoginSuccess()
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loading
+    ScreenScaffold(title = "Login") {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (loading) {
-                Text("Logging in...")
-            } else {
-                Text("Login")
+
+
+            if (error != null) {
+                Text(error!!, color = MaterialTheme.colorScheme.error)
+            }
+
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                label = "Email",
+                singleLine = true
+            )
+
+            PasswordTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = "Password",
+                singleLine = true,
+                isError = false,
+                supportingText = null,
+                modifier = Modifier,
+            )
+
+            PrimaryButton(
+                text = if (loading) "Logging in..." else "Login",
+                onClick = {
+                    scope.launch {
+                        val success = viewModel.login(email, password)
+                        if (success) {
+                            onLoginSuccess()
+                        }
+                    }
+                },
+                enabled = !loading
+            )
+
+            SecondaryButton(
+                text = "Create account",
+                onClick = onNavigateRegister,
+                enabled = !loading
+            )
+
+            GoogleSignInButton(
+                onClick = onGoogleSignIn,
+                enabled = !loading
+            )
+
+            TextButton(
+                onClick = onNavigateForgotPassword,
+                enabled = !loading
+            ) {
+                Text("Forgot password?")
             }
         }
-        Button(
-            onClick = onGoogleSignIn,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loading
-        ) {
-            Text("Continue with Google")
-        }
-
-        TextButton(
-            onClick = onNavigateForgotPassword,
-            enabled = !loading
-        ) {
-            Text("Forgot password?")
-        }
-
-        TextButton(
-            onClick = onNavigateRegister,
-            enabled = !loading
-        ) {
-            Text("Create account")
-        }
     }
+
 }

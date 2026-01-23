@@ -14,15 +14,15 @@ import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
 import com.calmed.calmedbackend.model.dto.response.TokenPairDto
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
-import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialEntity
-import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialTable
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialType
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.user.User
+import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
 import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
+import com.calmed.calmedbackend.service.specification.IUserInfoTourettesService
 import com.calmed.calmedbackend.service.specification.IUserService
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -33,10 +33,10 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.apache.commons.mail.DefaultAuthenticator
 import org.apache.commons.mail.HtmlEmail
-import org.jetbrains.exposed.v1.core.eq
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
@@ -44,30 +44,27 @@ import java.util.UUID
 class AuthService(private val userService: IUserService,
                   private val authCredentialService: IAuthCredentialService,
                   private val refreshTokenService: IRefreshTokenService,
+                  private val userInfoTourettesService: IUserInfoTourettesService,
                   private val jwtConfig: JwtConfig,
                   private val emailConfig: EmailConfig
 ) : IAuthService {
-
 	private val googleHttp = HttpClient {
 		install(ContentNegotiation) {
 			json(Json { ignoreUnknownKeys = true })
 		}
 	}
-
-	@kotlinx.serialization.Serializable
-	data class GoogleTokenInfo(
-		val sub: String? = null,
-		val email: String? = null,
-		val email_verified: String? = null,
-		val aud: String? = null
+	@Serializable
+	data class GoogleTokenInfo(val sub: String? = null,
+	                           val email: String? = null,
+	                           val email_verified: String? = null,
+	                           val aud: String? = null
 	)
 
 	private suspend fun verifyGoogleIdToken(idToken: String): AppResult<GoogleTokenInfo> {
 		return try {
-			val info: GoogleTokenInfo =
-				googleHttp.get("https://oauth2.googleapis.com/tokeninfo") {
-					url { parameters.append("id_token", idToken) }
-				}.body()
+			val info: GoogleTokenInfo = googleHttp.get("https://oauth2.googleapis.com/tokeninfo") {
+				url { parameters.append("id_token", idToken) }
+			}.body()
 
 			if (info.email.isNullOrBlank()) {
 				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing email")
@@ -78,10 +75,12 @@ class AuthService(private val userService: IUserService,
 			}
 
 			AppResult.Success(info)
-		} catch (e: Exception) {
+		}
+		catch (e: Exception) {
 			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token: ${e.message}")
 		}
 	}
+
 	override fun accessVerifier(): JWTVerifier {
 		return JWT.require(jwtConfig.accessAlg).withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).build()
 	}
@@ -124,7 +123,7 @@ class AuthService(private val userService: IUserService,
 					when (existingUserResult) {
 						is AppResult.Failure -> {
 							val newUser = User.createNew(
-								email = dto.email, username = dto.username, isEmailVerified = false
+								email = dto.email, username = dto.username, isEmailVerified = false, isOnboarded = false
 							)
 							val createdUserResult = userService.create(newUser)
 							when (createdUserResult) {
@@ -155,9 +154,32 @@ class AuthService(private val userService: IUserService,
 															}
 														}
 													}
-													return@withTransaction createTokenPair(
-														createdUserResult.data.id, createdUserResult.data.email
+													val newUserInfoTourettes = UserInfoTourettes.createNew(
+														userId = newUser.id,
+														preferredName = null,
+														age = null,
+														stressLevel = null,
+														tickType = null,
+														tickFrequency = null,
+														goal = null,
+														followProgress = null
 													)
+													val userInfoTourettesResult =
+														userInfoTourettesService.create(newUserInfoTourettes)
+													when (userInfoTourettesResult) {
+														is AppResult.Success -> {
+															return@withTransaction createTokenPair(
+																createdUserResult.data.id, createdUserResult.data.email
+															)
+														}
+
+														is AppResult.Failure -> {
+															return@withTransaction AppResult.Failure(
+																userInfoTourettesResult.httpStatusCode,
+																"Failed to create user info tourettes. ${userInfoTourettesResult.message}"
+															)
+														}
+													}
 												}
 
 												is AppResult.Failure -> {
@@ -262,59 +284,121 @@ class AuthService(private val userService: IUserService,
 	override suspend fun loginWithGoogle(idToken: String): AppResult<TokenPairDto> {
 		return withTransaction {
 			val tokenInfoResult = verifyGoogleIdToken(idToken)
-			val tokenInfo = when (tokenInfoResult)
-			{
-				is AppResult.Success -> tokenInfoResult.data
-				is AppResult.Failure -> return@withTransaction AppResult.Failure(
-					tokenInfoResult.httpStatusCode,
-					tokenInfoResult.message
+			val result: AppResult<TokenPairDto> = when (tokenInfoResult) {
+				is AppResult.Success -> {
+					val tokenInfo = tokenInfoResult.data
+					val email = tokenInfo.email
+					val googleSub = tokenInfo.sub
+
+					if (email.isNullOrBlank()) {
+						AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing email")
+					}
+					else if (googleSub.isNullOrBlank()) {
+						AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing sub")
+					}
+					else {
+						val existingGoogle = authCredentialService.findRawByProviderUserIdAndType(
+							providerUserId = googleSub, type = AuthCredentialType.GOOGLE
+						)
+
+						if (existingGoogle != null) {
+							createTokenPair(existingGoogle.userId, email)
+						}
+						else {
+							val username = email.substringBefore("@")
+							val userResult = userService.getByEmail(email)
+							var createdNewUser = false
+							val resolvedUserResult = when (userResult) {
+								is AppResult.Success -> userResult
+								is AppResult.Failure -> {
+									val newUser = User.createNew(
+										email = email, username = username, isEmailVerified = true, isOnboarded = false
+									)
+									val createdUserResult = userService.create(newUser)
+									when (createdUserResult) {
+										is AppResult.Success -> {
+											createdNewUser = true
+											createdUserResult
+										}
+
+										is AppResult.Failure -> AppResult.Failure(
+											createdUserResult.httpStatusCode,
+											"Failed to create google user. ${createdUserResult.message}"
+										)
+									}
+								}
+							}
+
+							when (resolvedUserResult) {
+								is AppResult.Success -> {
+									val user = resolvedUserResult.data
+
+									if (!user.isEmailVerified) {
+										AppResult.Failure(HttpStatusCode.Unauthorized, "Email not verified.")
+									}
+									else {
+										val googleCred = AuthCredential.createNew(
+											userId = user.id,
+											type = AuthCredentialType.GOOGLE,
+											passwordHash = null,
+											providerUserId = googleSub
+										)
+										val createdGoogleCredResult = authCredentialService.create(googleCred)
+
+										when (createdGoogleCredResult) {
+											is AppResult.Success -> {
+												if (createdNewUser) {
+													val newUserInfoTourettes = UserInfoTourettes.createNew(
+														userId = user.id,
+														preferredName = null,
+														age = null,
+														stressLevel = null,
+														tickType = null,
+														tickFrequency = null,
+														goal = null,
+														followProgress = null
+													)
+													val userInfoTourettesResult =
+														userInfoTourettesService.create(newUserInfoTourettes)
+
+													when (userInfoTourettesResult) {
+														is AppResult.Success -> createTokenPair(user.id, email)
+														is AppResult.Failure -> AppResult.Failure(
+															userInfoTourettesResult.httpStatusCode,
+															"Failed to create user info tourettes. ${userInfoTourettesResult.message}"
+														)
+													}
+												}
+												else {
+													createTokenPair(user.id, email)
+												}
+											}
+
+											is AppResult.Failure -> AppResult.Failure(
+												createdGoogleCredResult.httpStatusCode,
+												"Failed to create authentication credentials. ${createdGoogleCredResult.message}"
+											)
+										}
+									}
+								}
+
+								is AppResult.Failure -> AppResult.Failure(
+									resolvedUserResult.httpStatusCode, resolvedUserResult.message
+								)
+							}
+						}
+					}
+				}
+
+				is AppResult.Failure -> AppResult.Failure(
+					tokenInfoResult.httpStatusCode, tokenInfoResult.message
 				)
 			}
 
-			val email = tokenInfo.email!!
-			val googleSub = tokenInfo.sub ?: throw IllegalArgumentException("Google token missing sub")
-			val existingGoogle = authCredentialService.findRawByProviderUserIdAndType(
-				providerUserId = googleSub,
-				type = AuthCredentialType.GOOGLE
-			)
-
-			if (existingGoogle != null) {
-				return@withTransaction createTokenPair(existingGoogle.userId, email)
-			}
-			val username = email.substringBefore("@")
-
-			val userResult = userService.getByEmail(email)
-
-			val user = when (userResult) {
-				is AppResult.Success -> userResult.data
-				is AppResult.Failure -> {
-					val newUser = User.createNew(
-						email = email,
-						username = username,
-						isEmailVerified = true
-					)
-					val createdUserResult = userService.create(newUser)
-					when (createdUserResult) {
-						is AppResult.Success -> createdUserResult.data
-						is AppResult.Failure -> return@withTransaction AppResult.Failure(
-							createdUserResult.httpStatusCode,
-							"Failed to create google user. ${createdUserResult.message}"
-						)
-					}
-				}
-			}
-
-			val googleCred = AuthCredential.createNew(
-				userId = user.id,
-				type = AuthCredentialType.GOOGLE,
-				passwordHash = null,
-				providerUserId = googleSub
-			)
-			authCredentialService.create(googleCred)
-
-			return@withTransaction createTokenPair(user.id, email)
+			result
 		}
 	}
+
 	override suspend fun logout(userId: UUID): AppResult<Unit> {
 		return withTransaction {
 			refreshTokenService.revokeAllByUserId(userId, null)
@@ -697,6 +781,7 @@ class AuthService(private val userService: IUserService,
 												email = user.email,
 												username = user.username,
 												isEmailVerified = true,
+												isOnboarded = user.isOnboarded,
 												createdAt = user.createdAt,
 												updatedAt = Instant.now()
 											)
@@ -716,7 +801,10 @@ class AuthService(private val userService: IUserService,
 
 										}
 										else {
-											return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Email already verified.")
+											return@withTransaction AppResult.Failure(
+												HttpStatusCode.Unauthorized,
+												"Email already verified."
+											)
 										}
 
 									}
@@ -891,7 +979,8 @@ class AuthService(private val userService: IUserService,
 
 				when (tokenResult) {
 					is AppResult.Success -> {
-						val resetLink = "${emailConfig.verificationBaseUrl}/auth/reset-password?token=${tokenResult.data}"
+						val resetLink =
+							"${emailConfig.verificationBaseUrl}/auth/reset-password?token=${tokenResult.data}"
 						sendEmail(
 							to = user.email,
 							subject = "Reset your password",

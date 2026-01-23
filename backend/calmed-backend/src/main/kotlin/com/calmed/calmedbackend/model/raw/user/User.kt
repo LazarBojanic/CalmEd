@@ -13,6 +13,7 @@ data class User(
 	val email: String,
 	val username: String,
 	val isEmailVerified: Boolean,
+	val isOnboarded: Boolean,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
@@ -23,6 +24,7 @@ data class User(
 			email: String,
 			username: String,
 			isEmailVerified: Boolean,
+			isOnboarded: Boolean,
 			createdAt: Instant? = null,
 			updatedAt: Instant? = null,
 		): User {
@@ -34,6 +36,7 @@ data class User(
 				email = email,
 				username = username,
 				isEmailVerified = isEmailVerified,
+				isOnboarded = isOnboarded,
 				createdAt = cat,
 				updatedAt = uat
 			)

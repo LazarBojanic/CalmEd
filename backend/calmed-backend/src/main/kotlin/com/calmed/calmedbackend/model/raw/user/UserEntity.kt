@@ -10,6 +10,7 @@ class UserEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var email by UserTable.email
 	var username by UserTable.username
 	var isEmailVerified by UserTable.isEmailVerified
+	var isOnboarded by UserTable.isOnboarded
 	var createdAt by UserTable.createdAt
 	var updatedAt by UserTable.updatedAt
 }

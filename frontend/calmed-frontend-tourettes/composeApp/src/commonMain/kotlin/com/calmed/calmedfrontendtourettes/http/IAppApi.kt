@@ -6,8 +6,11 @@ import com.calmed.calmedfrontendtourettes.model.dto.request.GoogleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RefreshDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.RegisterUserDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.SetIsOnboardedDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpdateDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
-import kotlinx.serialization.Serializable
+import com.calmed.calmedfrontendtourettes.model.dto.response.UserDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.UserInfoTourettesDto
 
 interface IAppApi {
     suspend fun register(dto: RegisterUserDto): TokenDto?
@@ -17,4 +20,10 @@ interface IAppApi {
     suspend fun logout(): MessageDto?
     suspend fun loginWithGoogle(dto: GoogleLoginDto): TokenDto?
     suspend fun ping(): String
+
+    suspend fun getUser(id: String): UserDto?
+    suspend fun setOnboarded(id: String, dto: SetIsOnboardedDto): UserDto?
+
+    suspend fun getUserInfoTourettesByUserId(userId: String): UserInfoTourettesDto?
+    suspend fun updateUserInfoTourettes(id: String, dto: UserInfoTourettesUpdateDto): UserInfoTourettesDto?
 }

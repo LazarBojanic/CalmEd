@@ -1,6 +1,6 @@
 [versions]
 #libraries
-agp = "8.13.2"
+agp = "8.12.0"
 androidCompileSdk = "36"
 androidMinSdk = "24"
 androidTargetSdk = "36"
@@ -17,11 +17,15 @@ squareupOkio = "3.16.4"
 kotlinxSerializationJson = "1.9.0"
 kotlinxCoroutines = "1.10.2"
 ktor = "3.3.3"
-koin = "4.2.0-beta2"
+koin = "4.2.0-beta3"
+
+androidxCredentials = "1.5.0"
+googleAndroidLibrariesIdentityGoogleId = "1.1.1"
+googleAndroidGmsPlayServicesAuth = "21.5.0"
 
 #plugins
 kotlin = "2.3.0"
-composeMultiplatform = "1.9.3"
+composeMultiplatform = "1.10.0"
 composeHotReload = "1.0.0"
 ksp = "2.3.2"
 
@@ -76,6 +80,12 @@ roomRuntimeIosArm64 = { module = "androidx.room:room-runtime-iosarm64", version.
 roomRuntimeIosSimulatorArm64 = { module = "androidx.room:room-runtime-iossimulatorarm64", version.ref = "room" }
 sqliteBundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 sqliteWrapper = { module = "androidx.room:room-sqlite-wrapper", version.ref = "room" }
+
+androidxCredentials = { module = "androidx.credentials:credentials", version.ref = "androidxCredentials" }
+androidxCredentialsPlayServicesAuth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "androidxCredentials" }
+googleAndroidLibrariesIdentityGoogleId = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleAndroidLibrariesIdentityGoogleId" }
+googleAndroidGmsPlayServicesAuth = { module = "com.google.android.gms:play-services-auth", version.ref = "googleAndroidGmsPlayServicesAuth" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
