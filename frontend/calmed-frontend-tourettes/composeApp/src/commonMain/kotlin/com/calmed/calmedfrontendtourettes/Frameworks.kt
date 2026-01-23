@@ -1,5 +1,6 @@
 package com.calmed.calmedfrontendtourettes
 
+import com.calmed.calmedfrontendtourettes.di.settingsModule
 import com.calmed.calmedfrontendtourettes.http.AppApi
 import com.calmed.calmedfrontendtourettes.http.AppHttpClient
 import com.calmed.calmedfrontendtourettes.http.IAppApi
@@ -23,6 +24,6 @@ fun commonModule(baseUrl: String) = module {
 
 fun initKoin(baseUrl: String, vararg platformModules: Module) {
     startKoin {
-        modules(listOf(commonModule(baseUrl)) + platformModules)
+        modules(listOf(commonModule(baseUrl),settingsModule) + platformModules)
     }
 }

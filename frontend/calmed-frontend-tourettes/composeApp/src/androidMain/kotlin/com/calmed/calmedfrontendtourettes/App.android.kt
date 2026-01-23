@@ -1,10 +1,12 @@
 package com.calmed.calmedfrontendtourettes
 
 import android.app.Application
+import com.calmed.calmedfrontendtourettes.di.appContext
 
 class AndroidApp : Application() {
 	override fun onCreate() {
 		super.onCreate()
+		appContext = this
 		val dev = true
 		var url = ""
 		if(dev){

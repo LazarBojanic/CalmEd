@@ -71,7 +71,7 @@ kotlin {
 			implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
 			implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 			implementation("com.google.android.gms:play-services-auth:21.2.0")
-
+			implementation("com.russhwolf:multiplatform-settings:1.3.0")
 		}
 		androidMain.dependencies {
 			implementation(compose.preview)
@@ -87,6 +87,9 @@ kotlin {
 			implementation(libs.sqliteWrapper)
 
 			implementation(libs.ktorClientOkHttp)
+			implementation("androidx.media3:media3-exoplayer:1.4.1")
+			implementation("androidx.media3:media3-ui:1.4.1")
+			implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
 
 		}
 		iosMain.dependencies {
