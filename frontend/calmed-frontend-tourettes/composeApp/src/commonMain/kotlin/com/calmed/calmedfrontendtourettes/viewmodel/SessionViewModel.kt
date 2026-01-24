@@ -73,17 +73,21 @@ class SessionViewModel(
 	}
 
 	suspend fun loadSession() {
+		println("LOAD SESSION CALLED");
 		_error.value = null
 		_loading.value = true
 		try {
 			val userId = currentUserId()
+			println("USER ID = $userId")
 			if (userId == null) {
 				clearLocal()
 				_error.value = "Missing user id."
 				return
 			}
 
+
 			val remoteUser = api.getUser(userId)
+			println("REMOTE USER = $remoteUser")
 			if (remoteUser == null) {
 				clearLocal()
 				_error.value = "Failed to load user."
@@ -102,7 +106,9 @@ class SessionViewModel(
 			_error.value = t.message ?: "Failed to load session."
 		} finally {
 			_loading.value = false
+			println("LOAD SESSION DONE, error=${_error.value}")
 		}
+
 	}
 
 	suspend fun skipOnboarding(): Boolean {

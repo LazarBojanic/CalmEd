@@ -23,7 +23,10 @@ import com.calmed.calmedfrontendtourettes.ui.screen.MainScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.RegisterScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.SplashScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.WelcomeVideoScreen
+import com.calmed.calmedfrontendtourettes.ui.screen.OnboardingScreen
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
+import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
+import androidx.compose.material3.Text
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -36,6 +39,7 @@ object Routes {
     const val WelcomeVideo = "welcome-video"
     const val FullscreenVideo = "video/fullscreen"
     const val Main = "main"
+    const val Onboarding = "onboarding"
 }
 
 @Composable
@@ -52,6 +56,9 @@ fun App() {
 
     val appSettings: AppSettings = koinInject()
     val showWelcomeVideo = remember { appSettings.getShowWelcomeVideo() }
+    val sessionViewModel: SessionViewModel = koinInject()
+    val user by sessionViewModel.user.collectAsState()
+    val userInfo by sessionViewModel.userInfo.collectAsState()
 
     AppTheme {
         NavHost(navController, startDestination = Routes.Splash) {
@@ -89,7 +96,14 @@ fun App() {
                         return@LaunchedEffect
                     }
 
-                    val nextRoute = if (showWelcomeVideo) Routes.WelcomeVideo else Routes.Main
+                    sessionViewModel.loadSession()
+
+                    val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
+                    val nextRoute = when {
+                        showWelcomeVideo -> Routes.WelcomeVideo
+                        !isOnboarded -> Routes.Onboarding
+                        else -> Routes.Main
+                    }
                     navController.navigate(nextRoute) {
                         popUpTo(Routes.Splash) { inclusive = true }
                         launchSingleTop = true
@@ -98,23 +112,39 @@ fun App() {
             }
 
             composable(Routes.Login) {
+                val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
+
                 LoginScreen(
                     onNavigateRegister = { navController.navigate(Routes.Register) },
                     onNavigateForgotPassword = { navController.navigate(Routes.ForgotPassword) },
+
                     onLoginSuccess = {
-                        val nextRoute = if (showWelcomeVideo) Routes.WelcomeVideo else Routes.Main
-                        navController.navigate(nextRoute) {
-                            popUpTo(Routes.Login) { inclusive = true }
-                            launchSingleTop = true
+                        scope.launch {
+                            sessionViewModel.loadSession()
+                            val nextRoute = when {
+                                showWelcomeVideo -> Routes.WelcomeVideo
+                                !isOnboarded -> Routes.Onboarding
+                                else -> Routes.Main
+                            }
+                            navController.navigate(nextRoute) {
+                                popUpTo(Routes.Login) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         }
                     },
                     onGoogleSignIn = {
                         scope.launch {
                             try {
+                                sessionViewModel.loadSession()
                                 val googleToken = getGoogleIdToken()
                                 val ok = authViewModel.loginWithGoogle(googleToken)
                                 if (ok) {
-                                    val nextRoute = if (showWelcomeVideo) Routes.WelcomeVideo else Routes.Main
+                                    sessionViewModel.loadSession()
+                                    val nextRoute = when {
+                                        showWelcomeVideo -> Routes.WelcomeVideo
+                                        !isOnboarded -> Routes.Onboarding
+                                        else -> Routes.Main
+                                    }
                                     navController.navigate(nextRoute) {
                                         popUpTo(Routes.Login) { inclusive = true }
                                         launchSingleTop = true
@@ -128,6 +158,8 @@ fun App() {
                     }
                 )
             }
+
+
 
             composable(Routes.Register) {
                 RegisterScreen(
@@ -155,14 +187,14 @@ fun App() {
 
                 WelcomeVideoScreen(
                     onSkip = {
-                        navController.navigate(Routes.Main) {
+                        navController.navigate(Routes.Onboarding) {
                             popUpTo(Routes.WelcomeVideo) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
                     onContinue = { dontShowAgain ->
                         if (dontShowAgain) settings.setShowWelcomeVideo(false)
-                        navController.navigate(Routes.Main) {
+                        navController.navigate(Routes.Onboarding) {
                             popUpTo(Routes.WelcomeVideo) { inclusive = true }
                             launchSingleTop = true
                         }
@@ -170,6 +202,49 @@ fun App() {
                     onFullscreen = { navController.navigate(Routes.FullscreenVideo) }
                 )
             }
+
+            composable(Routes.Onboarding) {
+                val u = user
+                val info = userInfo
+
+                if (u == null) {
+                    Text("Loading...")
+                    return@composable
+                }
+
+                if (info == null) {
+                    Text("UserInfo is missing (backend doesn't return it).")
+                    return@composable
+                }
+
+                OnboardingScreen(
+                    user = u,
+                    userInfo = info,
+                    onSkip = {
+                        scope.launch {
+                            val ok = sessionViewModel.skipOnboarding()
+                            if (ok) {
+                                navController.navigate(Routes.Main) {
+                                    popUpTo(Routes.Onboarding) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                    },
+                    onFinished = { dto ->
+                        scope.launch {
+                            val ok = sessionViewModel.completeOnboarding(dto)
+                            if (ok) {
+                                navController.navigate(Routes.Main) {
+                                    popUpTo(Routes.Onboarding) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+
 
             composable(Routes.FullscreenVideo) {
                 FullscreenVideoScreen(
