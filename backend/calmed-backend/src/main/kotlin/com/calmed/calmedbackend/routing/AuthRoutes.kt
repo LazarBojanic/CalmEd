@@ -1,8 +1,11 @@
 package com.calmed.calmedbackend.routing
 
 import com.auth0.jwt.exceptions.JWTVerificationException
+import com.calmed.calmedbackend.auth.apple.AppleConfig
+import com.calmed.calmedbackend.auth.apple.AppleTokenApi
 import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
+import com.calmed.calmedbackend.model.dto.request.AppleLoginDto
 import com.calmed.calmedbackend.model.dto.request.LoginDto
 import com.calmed.calmedbackend.model.dto.request.PasswordResetDto
 import com.calmed.calmedbackend.model.dto.request.PasswordResetEmailDto
@@ -10,6 +13,7 @@ import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
 import com.calmed.calmedbackend.model.dto.response.MessageDto
 import com.calmed.calmedbackend.service.specification.IAuthService
+import com.calmed.calmedbackend.model.dto.response.TokenPairDto
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
@@ -26,9 +30,15 @@ import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 import java.util.UUID
 import com.calmed.calmedbackend.model.dto.request.GoogleLoginDto
+import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.respondRedirect
+import io.ktor.client.HttpClient
+import java.net.URLEncoder
+
 
 fun Route.authRoutes() {
 	val authService by inject<IAuthService>()
+	val httpClient by inject<HttpClient>()
 
 	route("/auth/register") {
 		post {
@@ -80,6 +90,78 @@ fun Route.authRoutes() {
 			}
 		}
 	}
+
+	route(path = "/auth/apple") {
+		post {
+			val dto = call.receive<AppleLoginDto>()
+
+			if (dto.identityToken.isBlank()) {
+				throw BusinessException(HttpStatusCode.BadRequest, "Missing identityToken")
+			}
+
+			val result: AppResult<TokenPairDto> = authService.loginWithApple(dto.identityToken)
+
+			when (result) {
+				is AppResult.Success -> {
+					call.respond(HttpStatusCode.OK, result.data)
+				}
+				is AppResult.Failure -> {
+					throw BusinessException(result.httpStatusCode, result.message)
+				}
+			}
+
+		}
+	}
+	route(path = "/auth/apple/callback") {
+		get {
+			val code = call.request.queryParameters["code"]
+			val idTokenFromQuery = call.request.queryParameters["id_token"]
+
+			val idToken: String = if (!code.isNullOrBlank()) {
+				// exchange code -> get id_token from Apple
+				val appleConfig = AppleConfig.fromEnv()
+				val appleTokenApi =
+					AppleTokenApi(httpClient, appleConfig)
+
+				val redirectUri = "https://TVOJ-NGROK.ngrok-free.dev/auth/apple/callback"
+				val tokenResp = appleTokenApi.exchangeCode(code, redirectUri)
+
+				if (tokenResp.error != null) {
+					call.respondText(
+						"Apple token error: ${tokenResp.error} ${tokenResp.error_description}",
+						status = HttpStatusCode.BadRequest
+					)
+					return@get
+				}
+
+				tokenResp.id_token ?: run {
+					call.respondText("Missing id_token from Apple token response", status = HttpStatusCode.BadRequest)
+					return@get
+				}
+			} else {
+				// fallback: if Apple sent id_token directly
+				idTokenFromQuery ?: run {
+					call.respondText("Missing code and id_token", status = HttpStatusCode.BadRequest)
+					return@get
+				}
+			}
+
+
+			val result: AppResult<TokenPairDto> = authService.loginWithApple(idToken)
+
+			when (result) {
+				is AppResult.Success -> {
+					val tokens = result.data
+					val redirect =
+						"calmed://apple?access=" + URLEncoder.encode(tokens.access, "UTF-8") +
+								"&refresh=" + URLEncoder.encode(tokens.refresh, "UTF-8")
+					call.respondRedirect(redirect, permanent = false)
+				}
+				is AppResult.Failure -> throw BusinessException(result.httpStatusCode, result.message)
+			}
+		}
+	}
+
 
 	route("/auth/refresh") {
 		post {

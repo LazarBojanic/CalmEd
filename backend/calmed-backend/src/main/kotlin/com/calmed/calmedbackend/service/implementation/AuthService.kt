@@ -53,12 +53,80 @@ class AuthService(private val userService: IUserService,
 			json(Json { ignoreUnknownKeys = true })
 		}
 	}
+	private val appleHttp = HttpClient {
+		install(ContentNegotiation) {
+			json(Json { ignoreUnknownKeys = true })
+		}
+	}
 	@Serializable
 	data class GoogleTokenInfo(val sub: String? = null,
 	                           val email: String? = null,
 	                           val email_verified: String? = null,
 	                           val aud: String? = null
 	)
+	@Serializable
+	data class AppleJwks(val keys: List<AppleJwk>)
+
+	@Serializable
+	data class AppleJwk(
+		val kty: String,
+		val kid: String,
+		val use: String? = null,
+		val alg: String? = null,
+		val n: String,
+		val e: String
+	)
+	@Serializable
+	data class AppleTokenClaims(
+		val iss: String? = null,
+		val aud: String? = null,
+		val sub: String? = null,
+		val email: String? = null,
+		val email_verified: String? = null
+	)
+	private fun jwtKid(token: String): String? {
+		val parts = token.split(".")
+		if (parts.size < 2) return null
+		val headerJson = String(base64UrlDecode(parts[0]), Charsets.UTF_8)
+		val regex = """"kid"\s*:\s*"([^"]+)"""".toRegex()
+		return regex.find(headerJson)?.groupValues?.getOrNull(1)
+	}
+	private suspend fun verifyAppleIdentityToken(identityToken: String): AppResult<AppleTokenClaims> {
+		return try {
+			val kid = jwtKid(identityToken)
+				?: return AppResult.Failure(HttpStatusCode.Unauthorized, "Apple token missing kid")
+
+			val jwks: AppleJwks = appleHttp.get("https://appleid.apple.com/auth/keys").body()
+			val jwk = jwks.keys.firstOrNull { it.kid == kid }
+				?: return AppResult.Failure(HttpStatusCode.Unauthorized, "Apple key not found for kid")
+
+			val publicKey = rsaPublicKeyFromJwk(jwk.n, jwk.e)
+
+			val algorithm = com.auth0.jwt.algorithms.Algorithm.RSA256(publicKey, null)
+			val verifier = com.auth0.jwt.JWT.require(algorithm)
+				.withIssuer("https://appleid.apple.com")
+				.build()
+
+			val decoded = verifier.verify(identityToken)
+
+			val claims = AppleTokenClaims(
+				iss = decoded.issuer,
+				aud = decoded.audience?.firstOrNull(),
+				sub = decoded.subject,
+				email = decoded.getClaim("email")?.asString(),
+				email_verified = decoded.getClaim("email_verified")?.asString()
+			)
+
+			if (claims.sub.isNullOrBlank()) {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Apple token missing sub")
+			}
+
+
+			AppResult.Success(claims)
+		} catch (e: Exception) {
+			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Apple token: ${e.message}")
+		}
+	}
 
 	private suspend fun verifyGoogleIdToken(idToken: String): AppResult<GoogleTokenInfo> {
 		return try {
@@ -79,6 +147,22 @@ class AuthService(private val userService: IUserService,
 		catch (e: Exception) {
 			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token: ${e.message}")
 		}
+	}
+	private fun base64UrlDecode(s: String): ByteArray {
+		val padded = when (s.length % 4) {
+			2 -> "$s=="
+			3 -> "$s="
+			else -> s
+		}
+		return java.util.Base64.getUrlDecoder().decode(padded)
+	}
+
+	private fun rsaPublicKeyFromJwk(n: String, e: String): java.security.interfaces.RSAPublicKey {
+		val modulus = java.math.BigInteger(1, base64UrlDecode(n))
+		val exponent = java.math.BigInteger(1, base64UrlDecode(e))
+		val spec = java.security.spec.RSAPublicKeySpec(modulus, exponent)
+		val kf = java.security.KeyFactory.getInstance("RSA")
+		return kf.generatePublic(spec) as java.security.interfaces.RSAPublicKey
 	}
 
 	override fun accessVerifier(): JWTVerifier {
@@ -398,6 +482,134 @@ class AuthService(private val userService: IUserService,
 			result
 		}
 	}
+
+	override suspend fun loginWithApple(identityToken: String): AppResult<TokenPairDto> {
+		return withTransaction {
+			val tokenInfoResult = verifyAppleIdentityToken(identityToken)
+
+			when (tokenInfoResult) {
+				is AppResult.Success -> {
+					val tokenInfo = tokenInfoResult.data
+					val appleSub = tokenInfo.sub ?: return@withTransaction AppResult.Failure(
+						HttpStatusCode.Unauthorized,
+						"Apple token missing sub"
+					)
+					val email = tokenInfo.email
+					val safeEmail = email ?: "apple_${appleSub}@apple.local"
+
+					val existingApple = authCredentialService.findRawByProviderUserIdAndType(
+						providerUserId = appleSub,
+						type = AuthCredentialType.APPLE
+					)
+
+					if (existingApple != null) {
+						// email može biti null -> koristi postojeći user email iz baze
+						val userRes = userService.getById(existingApple.userId)
+						return@withTransaction when (userRes) {
+							is AppResult.Success -> {
+								val emailToUse = userRes.data.email.ifBlank { safeEmail }
+								createTokenPair(existingApple.userId, emailToUse)
+							}
+							is AppResult.Failure -> AppResult.Failure(userRes.httpStatusCode, userRes.message)
+						}
+					}
+
+
+
+					val username = safeEmail.substringBefore("@")
+					val userResult = userService.getByEmail(safeEmail)
+					var createdNewUser = false
+
+					val resolvedUserResult = when (userResult) {
+						is AppResult.Success -> userResult
+						is AppResult.Failure -> {
+							val newUser = User.createNew(
+								email = safeEmail,
+								username = username,
+								isEmailVerified = true,
+								isOnboarded = false
+							)
+							val createdUserResult = userService.create(newUser)
+							when (createdUserResult) {
+								is AppResult.Success -> {
+									createdNewUser = true
+									createdUserResult
+								}
+								is AppResult.Failure -> AppResult.Failure(
+									createdUserResult.httpStatusCode,
+									"Failed to create apple user. ${createdUserResult.message}"
+								)
+							}
+						}
+					}
+
+					when (resolvedUserResult) {
+						is AppResult.Success -> {
+							val user = resolvedUserResult.data
+
+							if (!user.isEmailVerified) {
+								AppResult.Failure(HttpStatusCode.Unauthorized, "Email not verified.")
+							} else {
+								val appleCred = AuthCredential.createNew(
+									userId = user.id,
+									type = AuthCredentialType.APPLE,
+									passwordHash = null,
+									providerUserId = appleSub
+								)
+
+								val createdAppleCredResult = authCredentialService.create(appleCred)
+
+								when (createdAppleCredResult) {
+									is AppResult.Success -> {
+										if (createdNewUser) {
+											val newUserInfoTourettes = UserInfoTourettes.createNew(
+												userId = user.id,
+												preferredName = null,
+												age = null,
+												stressLevel = null,
+												tickType = null,
+												tickFrequency = null,
+												goal = null,
+												followProgress = null
+											)
+											val userInfoTourettesResult =
+												userInfoTourettesService.create(newUserInfoTourettes)
+
+											when (userInfoTourettesResult) {
+												is AppResult.Success -> createTokenPair(user.id, safeEmail)
+												is AppResult.Failure -> AppResult.Failure(
+													userInfoTourettesResult.httpStatusCode,
+													"Failed to create user info tourettes. ${userInfoTourettesResult.message}"
+												)
+											}
+										} else {
+											createTokenPair(user.id, safeEmail)
+										}
+									}
+
+									is AppResult.Failure -> AppResult.Failure(
+										createdAppleCredResult.httpStatusCode,
+										"Failed to create authentication credentials. ${createdAppleCredResult.message}"
+									)
+								}
+							}
+						}
+
+						is AppResult.Failure -> AppResult.Failure(
+							resolvedUserResult.httpStatusCode,
+							resolvedUserResult.message
+						)
+					}
+				}
+
+				is AppResult.Failure -> AppResult.Failure(
+					tokenInfoResult.httpStatusCode,
+					tokenInfoResult.message
+				)
+			}
+		}
+	}
+
 
 	override suspend fun logout(userId: UUID): AppResult<Unit> {
 		return withTransaction {
