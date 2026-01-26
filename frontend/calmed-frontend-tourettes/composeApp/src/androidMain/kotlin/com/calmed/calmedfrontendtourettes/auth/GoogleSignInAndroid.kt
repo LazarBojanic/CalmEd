@@ -13,6 +13,7 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import calmedfrontendtourettes.composeApp.BuildConfig
 
 private var activityProvider: (() -> Activity)? = null
 
@@ -47,7 +48,7 @@ private suspend fun getCredential(
 
 private suspend fun tryReturningUserFlow(activity: Activity): String {
 	val googleIdOption = GetGoogleIdOption.Builder()
-		.setServerClientId("886518734557-c8rsoik6kbsf1dcd9emv5nh7k7642oqt.apps.googleusercontent.com")
+		.setServerClientId(BuildConfig.googleAndroidClientId)
 		.setFilterByAuthorizedAccounts(true)
 		.setAutoSelectEnabled(false)
 		.build()
@@ -62,7 +63,7 @@ private suspend fun tryReturningUserFlow(activity: Activity): String {
 
 private suspend fun buttonInteractiveFlow(activity: Activity): String {
 	val option = GetSignInWithGoogleOption.Builder(
-		serverClientId = activity.getString(R.string.google_server_client_id)
+		serverClientId = BuildConfig.googleAndroidClientId
 	)
 		.setNonce("calmed-${System.currentTimeMillis()}")
 		.build()

@@ -14,14 +14,19 @@ androidxDatastore = "1.2.0"
 oAuthJavaJwt = "4.5.0"
 squareupOkio = "3.16.4"
 
-kotlinxSerializationJson = "1.9.0"
+kotlinxSerializationJson = "1.10.0"
 kotlinxCoroutines = "1.10.2"
-ktor = "3.3.3"
-koin = "4.2.0-beta3"
+ktor = "3.4.0"
+koin = "4.2.0-beta4"
 
 androidxCredentials = "1.5.0"
-googleAndroidLibrariesIdentityGoogleId = "1.1.1"
+googleAndroidLibrariesIdentityGoogleId = "1.2.0"
 googleAndroidGmsPlayServicesAuth = "21.5.0"
+multiplatformSettings = "1.3.0"
+
+
+media3= "1.9.1"
+androidxBrowser = "1.9.0"
 
 #plugins
 kotlin = "2.3.0"
@@ -32,6 +37,8 @@ ksp = "2.3.2"
 koinKspCompiler = "2.3.1"
 room = "2.8.4"
 sqlite = "2.6.2"
+buildConfig = "6.0.7"
+
 
 [libraries]
 androidxCoreKtx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -85,7 +92,14 @@ androidxCredentials = { module = "androidx.credentials:credentials", version.ref
 androidxCredentialsPlayServicesAuth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "androidxCredentials" }
 googleAndroidLibrariesIdentityGoogleId = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleAndroidLibrariesIdentityGoogleId" }
 googleAndroidGmsPlayServicesAuth = { module = "com.google.android.gms:play-services-auth", version.ref = "googleAndroidGmsPlayServicesAuth" }
+multiplatformSettings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
 
+media3Exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
+media3UI = { module = "androidx.media3:media3-ui", version.ref = "media3" }
+media3Common = { module = "androidx.media3:media3-common", version.ref = "media3" }
+media3ExoplayerHLS = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "media3" }
+media3ExoplayerDash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "media3" }
+androidxBrowser = { module = "androidx.browser:browser", version.ref = "androidxBrowser" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -98,3 +112,4 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
+buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }

@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
 	alias(libs.plugins.androidApplication)
@@ -9,6 +10,37 @@ plugins {
 	alias(libs.plugins.kotlinSerialization)
 	alias(libs.plugins.ksp)
 	alias(libs.plugins.room)
+	alias(libs.plugins.buildConfig)
+}
+
+
+fun Project.localProps(): Properties {
+	val props = Properties()
+	val propFile = rootProject.file("local.properties")
+	if (propFile.exists()) {
+		propFile.inputStream().use { props.load(it) }
+	}
+	return props
+}
+
+val local = localProps()
+
+buildConfig{
+	local.getProperty("DEVELOPMENT")?.let { value ->
+		buildConfigField("development", value.toBoolean())
+	}
+	local.getProperty("ADB_REVERSE")?.let { value ->
+		buildConfigField("adbReverse", value.toBoolean())
+	}
+	local.getProperty("GOOGLE_ANDROID_CLIENT_ID")?.let { value ->
+		buildConfigField("googleAndroidClientId", value)
+	}
+	local.getProperty("APPLE_ANDROID_CLIENT_ID")?.let { value ->
+		buildConfigField("appleAndroidClientId", value)
+	}
+	local.getProperty("APPLE_CALLBACK_URI")?.let { value ->
+		buildConfigField("appleCallbackURI", value)
+	}
 }
 
 kotlin {
@@ -67,11 +99,12 @@ kotlin {
 
 			implementation(libs.oAuthJavaJwt)
 
-			implementation("androidx.credentials:credentials:1.3.0")
-			implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-			implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-			implementation("com.google.android.gms:play-services-auth:21.2.0")
-			implementation("com.russhwolf:multiplatform-settings:1.3.0")
+			implementation(libs.androidxCredentials)
+			implementation(libs.androidxCredentialsPlayServicesAuth)
+			implementation(libs.googleAndroidLibrariesIdentityGoogleId)
+			implementation(libs.googleAndroidGmsPlayServicesAuth)
+			implementation(libs.multiplatformSettings)
+
 		}
 		androidMain.dependencies {
 			implementation(compose.preview)
@@ -98,12 +131,12 @@ kotlin {
 			implementation(libs.sqliteWrapper)
 
 			implementation(libs.ktorClientOkHttp)
-			implementation("androidx.media3:media3-exoplayer:1.2.1")
-			implementation("androidx.media3:media3-ui:1.2.1")
-			implementation("androidx.media3:media3-common:1.2.1")
-			implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
-			implementation("androidx.media3:media3-exoplayer-dash:1.2.1")
-			implementation("androidx.browser:browser:1.8.0")
+			implementation(libs.media3Exoplayer)
+			implementation(libs.media3UI)
+			implementation(libs.media3Common)
+			implementation(libs.media3ExoplayerHLS)
+			implementation(libs.media3ExoplayerDash)
+			implementation(libs.androidxBrowser)
 
 		}
 		iosMain.dependencies {
