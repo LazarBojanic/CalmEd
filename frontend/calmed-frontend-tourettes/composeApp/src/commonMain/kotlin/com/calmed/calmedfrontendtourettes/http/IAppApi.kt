@@ -1,6 +1,7 @@
 package com.calmed.calmedfrontendtourettes.http
 
 import com.calmed.calmedfrontendtourettes.model.dto.TokenDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.AppleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.GoogleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
@@ -26,4 +27,5 @@ interface IAppApi {
 
     suspend fun getUserInfoTourettesByUserId(userId: String): UserInfoTourettesDto?
     suspend fun updateUserInfoTourettes(id: String, dto: UserInfoTourettesUpdateDto): UserInfoTourettesDto?
+    suspend fun loginWithApple(dto: AppleLoginDto): TokenDto?
 }

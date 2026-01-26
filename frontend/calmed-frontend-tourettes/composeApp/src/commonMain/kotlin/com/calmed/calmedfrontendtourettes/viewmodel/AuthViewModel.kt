@@ -106,6 +106,30 @@ class AuthViewModel(
             _loading.value = false
         }
     }
+
+    suspend fun loginWithApple___TEST(code: String): Boolean {
+        _error.value = "APPLE_AUTH HIT VM"
+        //_error.value = null
+        _info.value = null
+        _loading.value = true
+        println("APPLE_AUTH VM start loginWithApple len=${code.length}")
+        return try {
+            println("APPLE_AUTH VM before authService.loginWithApple")
+            val success = authService.loginWithApple(code)
+            println("APPLE_AUTH VM after authService.loginWithApple success=$success")
+            if (!success) {
+                _error.value = "Apple login failed"
+            }
+            success
+        } catch (e: Exception) {
+            _error.value = e.message ?: "Apple login error"
+            false
+        } finally {
+            _loading.value = false
+        }
+    }
+
+
     suspend fun logout() {
         _error.value = null
         _info.value = null

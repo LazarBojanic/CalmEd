@@ -2,11 +2,14 @@ package com.calmed.calmedfrontendtourettes.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +27,17 @@ import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import androidx.compose.ui.platform.LocalUriHandler
+import com.calmed.calmedfrontendtourettes.auth.AppleAuthBridge
+import io.ktor.http.encodeURLParameter
+import kotlin.random.Random
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
+
+@OptIn(ExperimentalEncodingApi::class)
+private fun randomToken(): String {
+    return Base64.UrlSafe.encode(Random.nextBytes(16))
+}
 
 @Composable
 fun LoginScreen(
@@ -31,9 +45,30 @@ fun LoginScreen(
     onNavigateForgotPassword: () -> Unit,
     onLoginSuccess: () -> Unit,
     onGoogleSignIn: () -> Unit,
+    onAppleSignIn: () -> Unit,
     viewModel: AuthViewModel = koinInject()
 ) {
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        AppleAuthBridge.onIdToken = { idToken ->
+            println("APPLE_AUTH LoginScreen received id_token len=${idToken.length}")
+
+            scope.launch {
+                println("APPLE_AUTH LoginScreen CALLING VM...")
+                val ok = viewModel.loginWithApple___TEST(code = idToken)
+                println("APPLE_AUTH LoginScreen VM result=$ok")
+                if (ok) onLoginSuccess()
+            }
+
+            AppleAuthBridge.onIdToken = null
+        }
+    }
+
+
+
+
+    val uriHandler = LocalUriHandler.current
 
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -92,6 +127,30 @@ fun LoginScreen(
                 onClick = onGoogleSignIn,
                 enabled = !loading
             )
+            Button(
+                onClick = {
+                    val clientId = "com.calmed.auth"
+                    val redirectUri = "https://bombona.rs/apple-callback.php"
+
+                    val state = randomToken()
+                    val nonce = randomToken()
+
+                    val url =
+                        "https://appleid.apple.com/auth/authorize" +
+                                "?response_type=code%20id_token" +
+                                "&response_mode=form_post" +
+                                "&client_id=" + clientId.encodeURLParameter() +
+                                "&redirect_uri=" + redirectUri.encodeURLParameter() +
+                                "&scope=" + "name email".encodeURLParameter() +
+                                "&state=" + state.encodeURLParameter() +
+                                "&nonce=" + nonce.encodeURLParameter()
+
+                    uriHandler.openUri(url)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Continue with Apple")
+            }
 
             TextButton(
                 onClick = onNavigateForgotPassword,

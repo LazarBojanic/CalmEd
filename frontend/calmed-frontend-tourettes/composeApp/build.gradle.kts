@@ -103,6 +103,7 @@ kotlin {
 			implementation("androidx.media3:media3-common:1.2.1")
 			implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
 			implementation("androidx.media3:media3-exoplayer-dash:1.2.1")
+			implementation("androidx.browser:browser:1.8.0")
 
 		}
 		iosMain.dependencies {

@@ -1,6 +1,7 @@
 package com.calmed.calmedfrontendtourettes.http
 
 import com.calmed.calmedfrontendtourettes.model.dto.TokenDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.AppleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.GoogleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
@@ -54,7 +55,11 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 			return null
 		}
 	}
-
+	override suspend fun loginWithApple(dto: AppleLoginDto): TokenDto? {
+		return client.post("/auth/apple") {
+			setBody(dto)
+		}.body()
+	}
 	override suspend fun refresh(dto: RefreshDto): TokenDto? {
 		val resp: HttpResponse = client.post("/auth/refresh") { setBody(dto) }
 		return when (resp.status) {

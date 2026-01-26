@@ -2,6 +2,7 @@ package com.calmed.calmedfrontendtourettes.service.implementation
 
 import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.model.dto.TokenDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.AppleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.GoogleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
@@ -108,6 +109,23 @@ class AuthService(
         val ok = storeTokenIfValid(token)
         println("AUTH: storeTokenIfValid = $ok")
         return ok
+    }
+    override suspend fun loginWithApple(identityToken: String): Boolean {
+        return try {
+            val token = api.loginWithApple(
+                dto = AppleLoginDto(identityToken = identityToken)
+            )
+
+            println("APPLE_AUTH SERVICE token from backend = $token")
+
+            val ok = storeTokenIfValid(token)
+            println("APPLE_AUTH SERVICE storeTokenIfValid = $ok")
+
+            ok
+        } catch (e: Exception) {
+            println("APPLE_AUTH SERVICE EXCEPTION = ${e.message}")
+            false
+        }
     }
 
 }

@@ -26,6 +26,7 @@ import com.calmed.calmedfrontendtourettes.ui.screen.WelcomeVideoScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.OnboardingScreen
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
+import com.calmed.calmedfrontendtourettes.auth.launchAppleSignIn
 import androidx.compose.material3.Text
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -131,6 +132,10 @@ fun App() {
                                 launchSingleTop = true
                             }
                         }
+                    },
+                    onAppleSignIn = {
+                        launchAppleSignIn()
+
                     },
                     onGoogleSignIn = {
                         scope.launch {
