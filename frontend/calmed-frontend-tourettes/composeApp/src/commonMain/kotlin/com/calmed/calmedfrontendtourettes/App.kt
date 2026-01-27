@@ -60,6 +60,8 @@ fun App() {
     val sessionViewModel: SessionViewModel = koinInject()
     val user by sessionViewModel.user.collectAsState()
     val userInfo by sessionViewModel.userInfo.collectAsState()
+    val sessionLoading by sessionViewModel.loading.collectAsState()
+    val sessionError by sessionViewModel.error.collectAsState()
 
     AppTheme {
         NavHost(navController, startDestination = Routes.Splash) {
@@ -113,8 +115,6 @@ fun App() {
             }
 
             composable(Routes.Login) {
-                val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
-
                 LoginScreen(
                     onNavigateRegister = { navController.navigate(Routes.Register) },
                     onNavigateForgotPassword = { navController.navigate(Routes.ForgotPassword) },
@@ -122,6 +122,7 @@ fun App() {
                     onLoginSuccess = {
                         scope.launch {
                             sessionViewModel.loadSession()
+                            val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
                             val nextRoute = when {
                                 showWelcomeVideo -> Routes.WelcomeVideo
                                 !isOnboarded -> Routes.Onboarding
@@ -140,11 +141,11 @@ fun App() {
                     onGoogleSignIn = {
                         scope.launch {
                             try {
-                                sessionViewModel.loadSession()
                                 val googleToken = getGoogleIdToken()
                                 val ok = authViewModel.loginWithGoogle(googleToken)
                                 if (ok) {
                                     sessionViewModel.loadSession()
+                                    val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
                                     val nextRoute = when {
                                         showWelcomeVideo -> Routes.WelcomeVideo
                                         !isOnboarded -> Routes.Onboarding
@@ -163,8 +164,6 @@ fun App() {
                     }
                 )
             }
-
-
 
             composable(Routes.Register) {
                 RegisterScreen(
@@ -213,7 +212,12 @@ fun App() {
                 val info = userInfo
 
                 if (u == null) {
-                    Text("Loading...")
+                    LaunchedEffect(Unit) {
+                        if (!sessionLoading && sessionError == null) {
+                            sessionViewModel.loadSession()
+                        }
+                    }
+                    Text(sessionError ?: "Loading...")
                     return@composable
                 }
 

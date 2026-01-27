@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.auth.apple
 
+import com.calmed.calmedbackend.config.AppleConfig
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -17,10 +18,10 @@ data class AppleTokenResponse(
 
 class AppleTokenApi(
     private val http: HttpClient,
-    private val config: AppleConfig
+    private val appleConfig: AppleConfig
 ) {
     suspend fun exchangeCode(code: String, redirectUri: String): AppleTokenResponse {
-        val clientSecret = AppleClientSecret.generate(config)
+        val clientSecret = AppleClientSecret.generate(appleConfig)
 
         return http.post("https://appleid.apple.com/auth/token") {
             contentType(ContentType.Application.FormUrlEncoded)
@@ -28,7 +29,7 @@ class AppleTokenApi(
                 Parameters.build {
                     append("grant_type", "authorization_code")
                     append("code", code)
-                    append("client_id", config.clientId)
+                    append("client_id", appleConfig.clientId)
                     append("client_secret", clientSecret)
                     append("redirect_uri", redirectUri)
                 }.formUrlEncode()

@@ -17,5 +17,5 @@ val serviceModule = module {
 	single<IAuthCredentialService> { AuthCredentialService(get(), get()) }
 	single<IRefreshTokenService> { RefreshTokenService(get(), get()) }
 	single<IUserInfoTourettesService> { UserInfoTourettesService(get(), get()) }
-	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get()) }
+	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get()) }
 }

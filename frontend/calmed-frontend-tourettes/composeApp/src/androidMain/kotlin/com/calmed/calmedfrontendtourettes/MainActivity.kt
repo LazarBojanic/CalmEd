@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 	}
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		Log.d("APPLE_AUTH", "onNewIntent: $intent")
+		Log.d("APPLE_AUTH", "onCreate intent=$intent")
 		handleAppleDeepLink(intent)
 		setGoogleAuthActivityProvider { this }
 		appleSignInStarter = { startAppleSignIn() }
@@ -31,6 +31,13 @@ class MainActivity : ComponentActivity() {
 			App()
 		}
 	}
+
+	override fun onNewIntent(intent: Intent) {
+		super.onNewIntent(intent)
+		Log.d("APPLE_AUTH", "onNewIntent intent=$intent")
+		handleAppleDeepLink(intent)
+	}
+
 	private fun handleAppleDeepLink(intent: Intent?) {
 		Log.d("APPLE_AUTH", "handleAppleDeepLink CALLED. intent=$intent")
 
@@ -54,14 +61,7 @@ class MainActivity : ComponentActivity() {
 
 		if (!idToken.isNullOrBlank()) {
 			Log.d("APPLE_AUTH", "id_token received len=${idToken.length}")
-
-			lifecycleScope.launch {
-				Log.d("APPLE_AUTH", "MainActivity CALLING VM loginWithApple")
-
-				val ok = authViewModel.loginWithApple___TEST(code = idToken)
-
-				Log.d("APPLE_AUTH", "MainActivity VM result=$ok")
-			}
+			AppleAuthBridge.onIdToken?.invoke(idToken)
 
 			return
 		}
@@ -69,6 +69,7 @@ class MainActivity : ComponentActivity() {
 
 		if (!code.isNullOrBlank()) {
 			Log.d("APPLE_AUTH", "code=$code")
+			AppleAuthBridge.onAuthCode?.invoke(code)
 		}
 
 		Log.d("APPLE_AUTH", "state=$state")

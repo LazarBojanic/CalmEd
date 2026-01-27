@@ -5,6 +5,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.JWTVerifier
 import com.calmed.calmedbackend.auth.TokenType
+import com.calmed.calmedbackend.auth.apple.AppleIdTokenVerifier
+import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.config.EmailConfig
 import com.calmed.calmedbackend.config.JwtConfig
 import com.calmed.calmedbackend.database.withTransaction
@@ -46,7 +48,8 @@ class AuthService(private val userService: IUserService,
                   private val refreshTokenService: IRefreshTokenService,
                   private val userInfoTourettesService: IUserInfoTourettesService,
                   private val jwtConfig: JwtConfig,
-                  private val emailConfig: EmailConfig
+                  private val emailConfig: EmailConfig,
+                  private val appleConfig: AppleConfig
 ) : IAuthService {
 	private val googleHttp = HttpClient {
 		install(ContentNegotiation) {
@@ -65,18 +68,6 @@ class AuthService(private val userService: IUserService,
 	                           val aud: String? = null
 	)
 	@Serializable
-	data class AppleJwks(val keys: List<AppleJwk>)
-
-	@Serializable
-	data class AppleJwk(
-		val kty: String,
-		val kid: String,
-		val use: String? = null,
-		val alg: String? = null,
-		val n: String,
-		val e: String
-	)
-	@Serializable
 	data class AppleTokenClaims(
 		val iss: String? = null,
 		val aud: String? = null,
@@ -93,36 +84,22 @@ class AuthService(private val userService: IUserService,
 	}
 	private suspend fun verifyAppleIdentityToken(identityToken: String): AppResult<AppleTokenClaims> {
 		return try {
-			val kid = jwtKid(identityToken)
-				?: return AppResult.Failure(HttpStatusCode.Unauthorized, "Apple token missing kid")
-
-			val jwks: AppleJwks = appleHttp.get("https://appleid.apple.com/auth/keys").body()
-			val jwk = jwks.keys.firstOrNull { it.kid == kid }
-				?: return AppResult.Failure(HttpStatusCode.Unauthorized, "Apple key not found for kid")
-
-			val publicKey = rsaPublicKeyFromJwk(jwk.n, jwk.e)
-
-			val algorithm = com.auth0.jwt.algorithms.Algorithm.RSA256(publicKey, null)
-			val verifier = com.auth0.jwt.JWT.require(algorithm)
-				.withIssuer("https://appleid.apple.com")
-				.build()
-
-			val decoded = verifier.verify(identityToken)
+			val verifier = AppleIdTokenVerifier(appleHttp, appleConfig)
+			val verified = verifier.verify(identityToken)
 
 			val claims = AppleTokenClaims(
-				iss = decoded.issuer,
-				aud = decoded.audience?.firstOrNull(),
-				sub = decoded.subject,
-				email = decoded.getClaim("email")?.asString(),
-				email_verified = decoded.getClaim("email_verified")?.asString()
+				iss = "https://appleid.apple.com",
+				aud = appleConfig.clientId,
+				sub = verified.subject,
+				email = verified.email,
+				email_verified = verified.emailVerified?.toString()
 			)
 
 			if (claims.sub.isNullOrBlank()) {
-				return AppResult.Failure(HttpStatusCode.Unauthorized, "Apple token missing sub")
+				AppResult.Failure(HttpStatusCode.Unauthorized, "Apple token missing sub")
+			} else {
+				AppResult.Success(claims)
 			}
-
-
-			AppResult.Success(claims)
 		} catch (e: Exception) {
 			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Apple token: ${e.message}")
 		}
@@ -142,6 +119,12 @@ class AuthService(private val userService: IUserService,
 				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google email not verified")
 			}
 
+			// IMPORTANT: validate audience matches your Google client id
+			val expectedAud = "222661265161-rd5cpngvtde2r6ltj6vn487huoorl4mi.apps.googleusercontent.com"
+			if (info.aud != expectedAud) {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token audience mismatch")
+			}
+
 			AppResult.Success(info)
 		}
 		catch (e: Exception) {
@@ -155,14 +138,6 @@ class AuthService(private val userService: IUserService,
 			else -> s
 		}
 		return java.util.Base64.getUrlDecoder().decode(padded)
-	}
-
-	private fun rsaPublicKeyFromJwk(n: String, e: String): java.security.interfaces.RSAPublicKey {
-		val modulus = java.math.BigInteger(1, base64UrlDecode(n))
-		val exponent = java.math.BigInteger(1, base64UrlDecode(e))
-		val spec = java.security.spec.RSAPublicKeySpec(modulus, exponent)
-		val kf = java.security.KeyFactory.getInstance("RSA")
-		return kf.generatePublic(spec) as java.security.interfaces.RSAPublicKey
 	}
 
 	override fun accessVerifier(): JWTVerifier {

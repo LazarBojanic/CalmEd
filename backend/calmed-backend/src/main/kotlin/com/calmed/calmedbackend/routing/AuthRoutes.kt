@@ -1,8 +1,6 @@
 package com.calmed.calmedbackend.routing
 
 import com.auth0.jwt.exceptions.JWTVerificationException
-import com.calmed.calmedbackend.auth.apple.AppleConfig
-import com.calmed.calmedbackend.auth.apple.AppleTokenApi
 import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.AppleLoginDto
@@ -12,7 +10,6 @@ import com.calmed.calmedbackend.model.dto.request.PasswordResetEmailDto
 import com.calmed.calmedbackend.model.dto.request.RefreshDto
 import com.calmed.calmedbackend.model.dto.request.RegisterDto
 import com.calmed.calmedbackend.model.dto.response.MessageDto
-import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.model.dto.response.TokenPairDto
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -30,15 +27,15 @@ import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 import java.util.UUID
 import com.calmed.calmedbackend.model.dto.request.GoogleLoginDto
+import com.calmed.calmedbackend.service.specification.IAuthService
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respondRedirect
-import io.ktor.client.HttpClient
 import java.net.URLEncoder
 
 
 fun Route.authRoutes() {
 	val authService by inject<IAuthService>()
-	val httpClient by inject<HttpClient>()
+
 
 	route("/auth/register") {
 		post {
@@ -113,52 +110,67 @@ fun Route.authRoutes() {
 		}
 	}
 	route(path = "/auth/apple/callback") {
+		post {
+			// Apple typically returns with response_mode=form_post
+			val params = call.receiveParameters()
+			val idToken = params["id_token"]
+			val state = params["state"]
+			val error = params["error"]
+			val errorDesc = params["error_description"]
+
+			if (!error.isNullOrBlank()) {
+				val redirect =
+					"calmed://apple?error=" + URLEncoder.encode(error, "UTF-8") +
+							"&error_description=" + URLEncoder.encode(errorDesc ?: "", "UTF-8")
+				call.respondRedirect(redirect, permanent = false)
+				return@post
+			}
+
+			val safeIdToken = idToken ?: run {
+				call.respondText("Missing id_token", status = HttpStatusCode.BadRequest)
+				return@post
+			}
+
+			val redirect = buildString {
+				append("calmed://apple?id_token=")
+				append(URLEncoder.encode(safeIdToken, "UTF-8"))
+				if (!state.isNullOrBlank()) {
+					append("&state=")
+					append(URLEncoder.encode(state, "UTF-8"))
+				}
+			}
+
+			call.respondRedirect(redirect, permanent = false)
+		}
 		get {
-			val code = call.request.queryParameters["code"]
-			val idTokenFromQuery = call.request.queryParameters["id_token"]
+			// Optional debugging fallback if you ever use response_mode=query
+			val idToken = call.request.queryParameters["id_token"]
+			val state = call.request.queryParameters["state"]
+			val error = call.request.queryParameters["error"]
+			val errorDesc = call.request.queryParameters["error_description"]
 
-			val idToken: String = if (!code.isNullOrBlank()) {
-				// exchange code -> get id_token from Apple
-				val appleConfig = AppleConfig.fromEnv()
-				val appleTokenApi =
-					AppleTokenApi(httpClient, appleConfig)
-
-				val redirectUri = "https://TVOJ-NGROK.ngrok-free.dev/auth/apple/callback"
-				val tokenResp = appleTokenApi.exchangeCode(code, redirectUri)
-
-				if (tokenResp.error != null) {
-					call.respondText(
-						"Apple token error: ${tokenResp.error} ${tokenResp.error_description}",
-						status = HttpStatusCode.BadRequest
-					)
-					return@get
-				}
-
-				tokenResp.id_token ?: run {
-					call.respondText("Missing id_token from Apple token response", status = HttpStatusCode.BadRequest)
-					return@get
-				}
-			} else {
-				// fallback: if Apple sent id_token directly
-				idTokenFromQuery ?: run {
-					call.respondText("Missing code and id_token", status = HttpStatusCode.BadRequest)
-					return@get
-				}
+			if (!error.isNullOrBlank()) {
+				val redirect =
+					"calmed://apple?error=" + URLEncoder.encode(error, "UTF-8") +
+							"&error_description=" + URLEncoder.encode(errorDesc ?: "", "UTF-8")
+				call.respondRedirect(redirect, permanent = false)
+				return@get
 			}
 
-
-			val result: AppResult<TokenPairDto> = authService.loginWithApple(idToken)
-
-			when (result) {
-				is AppResult.Success -> {
-					val tokens = result.data
-					val redirect =
-						"calmed://apple?access=" + URLEncoder.encode(tokens.access, "UTF-8") +
-								"&refresh=" + URLEncoder.encode(tokens.refresh, "UTF-8")
-					call.respondRedirect(redirect, permanent = false)
-				}
-				is AppResult.Failure -> throw BusinessException(result.httpStatusCode, result.message)
+			val safeIdToken = idToken ?: run {
+				call.respondText("Missing id_token", status = HttpStatusCode.BadRequest)
+				return@get
 			}
+
+			val redirect = buildString {
+				append("calmed://apple?id_token=")
+				append(URLEncoder.encode(safeIdToken, "UTF-8"))
+				if (!state.isNullOrBlank()) {
+					append("&state=")
+					append(URLEncoder.encode(state, "UTF-8"))
+				}
+			}
+			call.respondRedirect(redirect, permanent = false)
 		}
 	}
 

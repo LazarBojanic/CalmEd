@@ -27,17 +27,7 @@ import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
-import androidx.compose.ui.platform.LocalUriHandler
 import com.calmed.calmedfrontendtourettes.auth.AppleAuthBridge
-import io.ktor.http.encodeURLParameter
-import kotlin.random.Random
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
-
-@OptIn(ExperimentalEncodingApi::class)
-private fun randomToken(): String {
-    return Base64.UrlSafe.encode(Random.nextBytes(16))
-}
 
 @Composable
 fun LoginScreen(
@@ -56,7 +46,7 @@ fun LoginScreen(
 
             scope.launch {
                 println("APPLE_AUTH LoginScreen CALLING VM...")
-                val ok = viewModel.loginWithApple___TEST(code = idToken)
+                val ok = viewModel.loginWithApple(identityToken = idToken)
                 println("APPLE_AUTH LoginScreen VM result=$ok")
                 if (ok) onLoginSuccess()
             }
@@ -128,25 +118,7 @@ fun LoginScreen(
                 enabled = !loading
             )
             Button(
-                onClick = {
-                    val clientId = "com.calmed.auth"
-                    val redirectUri = "https://bombona.rs/apple-callback.php"
-
-                    val state = randomToken()
-                    val nonce = randomToken()
-
-                    val url =
-                        "https://appleid.apple.com/auth/authorize" +
-                                "?response_type=code%20id_token" +
-                                "&response_mode=form_post" +
-                                "&client_id=" + clientId.encodeURLParameter() +
-                                "&redirect_uri=" + redirectUri.encodeURLParameter() +
-                                "&scope=" + "name email".encodeURLParameter() +
-                                "&state=" + state.encodeURLParameter() +
-                                "&nonce=" + nonce.encodeURLParameter()
-
-                    uriHandler.openUri(url)
-                },
+                onClick = onAppleSignIn,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Continue with Apple")

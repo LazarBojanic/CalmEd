@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.auth.apple
 
+import com.calmed.calmedbackend.config.AppleConfig
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.jwk.ECKey

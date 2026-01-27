@@ -1,0 +1,51 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Apple Callback</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+<script>
+    // Apple vraća POST na ovu stranicu, ali parametri mogu biti u query ili u form poljima
+    function toQS(data) {
+        const p = new URLSearchParams();
+        for (const [k, v] of data.entries()) {
+            if (v != null && v !== "") p.append(k, v);
+        }
+        return p.toString();
+    }
+
+    async function run() {
+        const url = new URL(window.location.href);
+
+        // 1) Pokupi query parametre
+        const qp = new URLSearchParams(url.search);
+
+        // 2) Ako je POST, pokupi i form-data
+        let fp = new URLSearchParams();
+        if (document.forms && document.forms.length > 0) {
+            const form = document.forms[0];
+            fp = new URLSearchParams(new FormData(form));
+        }
+
+        // Spoji sve u jedan QS
+        const merged = new URLSearchParams();
+        for (const [k, v] of qp.entries()) merged.append(k, v);
+        for (const [k, v] of fp.entries()) if (!merged.has(k)) merged.append(k, v);
+
+        // Vrati u app (deep link)
+        const deepLink = "calmed://apple?" + merged.toString();
+        window.location.replace(deepLink);
+
+        // Fallback tekst (ako browser blokira)
+        document.body.innerHTML = "Returning to app… If nothing happens, open: <br><br>" + deepLink;
+    }
+
+    run();
+</script>
+
+<!-- Apple ponekad renderuje auto-post formu, ovo pomaže da je uhvatimo -->
+</body>
+</html>

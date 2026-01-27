@@ -1,10 +1,12 @@
 package com.calmed.calmedbackend.auth.apple
 
+import com.calmed.calmedbackend.config.AppleConfig
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import org.koin.java.KoinJavaComponent.inject
 import java.security.KeyFactory
 import java.security.interfaces.ECPrivateKey
 import java.security.spec.PKCS8EncodedKeySpec
@@ -13,24 +15,24 @@ import java.util.*
 
 object AppleClientSecret {
 
-    fun generate(config: AppleConfig): String {
+    fun generate(appleConfig: AppleConfig): String {
         val now = Instant.now()
         val exp = now.plusSeconds(5 * 60)
 
         val claims = JWTClaimsSet.Builder()
-            .issuer(config.teamId) // iss = Team ID
-            .subject(config.clientId) // sub = client_id (Service ID)
+            .issuer(appleConfig.teamId) // iss = Team ID
+            .subject(appleConfig.clientId) // sub = client_id (Service ID)
             .audience("https://appleid.apple.com") // aud
             .issueTime(Date.from(now))
             .expirationTime(Date.from(exp))
             .build()
 
         val header = JWSHeader.Builder(JWSAlgorithm.ES256)
-            .keyID(config.keyId) // kid = Key ID
+            .keyID(appleConfig.keyId) // kid = Key ID
             .build()
 
         val jwt = SignedJWT(header, claims)
-        val signer = ECDSASigner(loadEcPrivateKey(config.privateKeyPem))
+        val signer = ECDSASigner(loadEcPrivateKey(appleConfig.privateKeyPem))
         jwt.sign(signer)
         return jwt.serialize()
     }

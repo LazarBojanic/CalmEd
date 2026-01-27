@@ -11,7 +11,16 @@ actual fun launchAppleSignIn() {
     val context = appContext
 
     val clientId = BuildConfig.appleAndroidClientId
-    val redirectUri = BuildConfig.appleCallbackURI
+    var redirectUri = ""
+    if (BuildConfig.development) {
+        if (BuildConfig.adbReverse) {
+            redirectUri = "http://127.0.0.1:8080/auth/apple/callback"
+        } else {
+            redirectUri = "http://10.0.2.2:8080/auth/apple/callback"
+        }
+    } else {
+        redirectUri = BuildConfig.appleCallbackURI
+    }
 
     val state = UUID.randomUUID().toString()
     val nonce = UUID.randomUUID().toString()
