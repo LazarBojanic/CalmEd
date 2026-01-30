@@ -10,7 +10,7 @@ import calmedfrontendtourettes.composeApp.BuildConfig
 actual fun launchAppleSignIn() {
     val context = appContext
 
-    val clientId = BuildConfig.appleAndroidClientId
+    val clientId = BuildConfig.appleWebClientId
     var redirectUri = ""
     if (BuildConfig.development) {
         if (BuildConfig.adbReverse) {

@@ -32,11 +32,11 @@ buildConfig{
 	local.getProperty("ADB_REVERSE")?.let { value ->
 		buildConfigField("adbReverse", value.toBoolean())
 	}
-	local.getProperty("GOOGLE_ANDROID_CLIENT_ID")?.let { value ->
-		buildConfigField("googleAndroidClientId", value)
+	local.getProperty("GOOGLE_WEB_CLIENT_ID")?.let { value ->
+		buildConfigField("googleWebClientId", value)
 	}
-	local.getProperty("APPLE_ANDROID_CLIENT_ID")?.let { value ->
-		buildConfigField("appleAndroidClientId", value)
+	local.getProperty("APPLE_WEB_CLIENT_ID")?.let { value ->
+		buildConfigField("appleWebClientId", value)
 	}
 	local.getProperty("APPLE_CALLBACK_URI")?.let { value ->
 		buildConfigField("appleCallbackURI", value)

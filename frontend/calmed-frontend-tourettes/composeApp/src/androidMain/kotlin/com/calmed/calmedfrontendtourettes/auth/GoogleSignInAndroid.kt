@@ -48,7 +48,7 @@ private suspend fun getCredential(
 
 private suspend fun tryReturningUserFlow(activity: Activity): String {
 	val googleIdOption = GetGoogleIdOption.Builder()
-		.setServerClientId(BuildConfig.googleAndroidClientId)
+		.setServerClientId(BuildConfig.googleWebClientId)
 		.setFilterByAuthorizedAccounts(true)
 		.setAutoSelectEnabled(false)
 		.build()
@@ -63,7 +63,7 @@ private suspend fun tryReturningUserFlow(activity: Activity): String {
 
 private suspend fun buttonInteractiveFlow(activity: Activity): String {
 	val option = GetSignInWithGoogleOption.Builder(
-		serverClientId = BuildConfig.googleAndroidClientId
+		serverClientId = BuildConfig.googleWebClientId
 	)
 		.setNonce("calmed-${System.currentTimeMillis()}")
 		.build()
