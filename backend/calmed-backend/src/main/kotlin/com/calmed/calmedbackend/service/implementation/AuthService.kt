@@ -44,12 +44,12 @@ import java.time.Instant
 import java.util.UUID
 
 class AuthService(private val userService: IUserService,
-                  private val authCredentialService: IAuthCredentialService,
-                  private val refreshTokenService: IRefreshTokenService,
-                  private val userInfoTourettesService: IUserInfoTourettesService,
-                  private val jwtConfig: JwtConfig,
-                  private val emailConfig: EmailConfig,
-                  private val appleConfig: AppleConfig
+				  private val authCredentialService: IAuthCredentialService,
+				  private val refreshTokenService: IRefreshTokenService,
+				  private val userInfoTourettesService: IUserInfoTourettesService,
+				  private val jwtConfig: JwtConfig,
+				  private val emailConfig: EmailConfig,
+				  private val appleConfig: AppleConfig
 ) : IAuthService {
 	private val googleHttp = HttpClient {
 		install(ContentNegotiation) {
@@ -63,9 +63,9 @@ class AuthService(private val userService: IUserService,
 	}
 	@Serializable
 	data class GoogleTokenInfo(val sub: String? = null,
-	                           val email: String? = null,
-	                           val email_verified: String? = null,
-	                           val aud: String? = null
+							   val email: String? = null,
+							   val email_verified: String? = null,
+							   val aud: String? = null
 	)
 	@Serializable
 	data class AppleTokenClaims(

@@ -1,6 +1,5 @@
 package com.calmed.calmedbackend.di
 
-import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.config.DatabaseConfig
 import com.calmed.calmedbackend.config.EmailConfig
 import com.calmed.calmedbackend.config.JwtConfig
@@ -18,7 +17,6 @@ fun Application.configureFrameworks() {
 			module { single { JwtConfig.from(environment.config) } },
 			module { single { DatabaseConfig.from(environment.config) } },
 			module { single { EmailConfig.from(environment.config) } },
-			module { single { AppleConfig.from(environment.config)} },
 			repositoryModule,
 			serviceModule,
 		)

@@ -56,6 +56,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host")
 	implementation("org.apache.commons:commons-email:$commons_email_version")
 	implementation("com.auth0:java-jwt:$java_jwt_version")
+	implementation("com.auth0:jwks-rsa:0.22.1")
 	implementation("at.favre.lib:bcrypt:$lib_bcrypt")
 	implementation("com.zaxxer:HikariCP:$HikariCP_version")
 	implementation("org.flywaydb:flyway-database-postgresql:$flyway_database_postgresql_version")

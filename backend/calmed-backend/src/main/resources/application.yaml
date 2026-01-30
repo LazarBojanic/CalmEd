@@ -41,7 +41,10 @@ email:
     from_email: ${EMAIL_FROM_EMAIL:placeholder}
     from_name: ${EMAIL_FROM_NAME:placeholder}
     verification_base_url: ${EMAIL_VERIFICATION_BASE_URL:placeholder}
+
 oauth:
+    google:
+        web_client_id: ${OAUTH_GOOGLE_WEB_CLIENT_ID:placeholder}
     apple:
         team_id: ${OAUTH_APPLE_TEAM_ID:placeholder}
         key_id: ${OAUTH_APPLE_KEY_ID:placeholder}
