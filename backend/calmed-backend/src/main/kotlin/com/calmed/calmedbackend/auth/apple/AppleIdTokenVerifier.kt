@@ -3,6 +3,7 @@ package com.calmed.calmedbackend.auth.apple
 import com.calmed.calmedbackend.config.AppleConfig
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.crypto.ECDSAVerifier
+import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jwt.SignedJWT
@@ -45,10 +46,10 @@ class AppleIdTokenVerifier(
         val jwk = jwkSet.keys.firstOrNull { it.keyID == kid }
             ?: error("Apple JWK not found for kid=$kid")
 
-        require(jwt.header.algorithm == JWSAlgorithm.ES256) { "Unexpected alg" }
+        require(jwt.header.algorithm == JWSAlgorithm.RS256) { "Unexpected alg: ${jwt.header.algorithm}" }
 
-        val ecKey = jwk.toECKey() as ECKey
-        val verifier = ECDSAVerifier(ecKey.toECPublicKey())
+        val rsaKey = jwk.toRSAKey()
+        val verifier = RSASSAVerifier(rsaKey.toRSAPublicKey())
         require(jwt.verify(verifier)) { "Invalid Apple token signature" }
 
         val sub = claims.subject ?: error("Missing sub")
