@@ -17,8 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedfrontendtourettes.ui.component.GoogleSignInButton
+import com.calmed.calmedfrontendtourettes.ui.component.AppleSignInButton
 import com.calmed.calmedfrontendtourettes.ui.component.PasswordTextField
 import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
 import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
@@ -117,12 +119,10 @@ fun LoginScreen(
                 onClick = onGoogleSignIn,
                 enabled = !loading
             )
-            Button(
+            AppleSignInButton(
                 onClick = onAppleSignIn,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Continue with Apple")
-            }
+                enabled = !loading
+            )
 
             TextButton(
                 onClick = onNavigateForgotPassword,
