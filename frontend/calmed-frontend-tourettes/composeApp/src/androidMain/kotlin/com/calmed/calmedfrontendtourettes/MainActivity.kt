@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import com.calmed.calmedfrontendtourettes.auth.AppleAuthBridge
 import com.calmed.calmedfrontendtourettes.auth.setGoogleAuthActivityProvider
 import androidx.lifecycle.lifecycleScope
+import calmedfrontendtourettes.composeApp.BuildConfig
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -77,8 +78,8 @@ class MainActivity : ComponentActivity() {
 
 
 	private fun startAppleSignIn() {
-		val clientId = "YOUR_APPLE_SERVICES_ID"
-		val redirectUri = "https://YOUR_HTTPS_DOMAIN/auth/apple/callback"
+		val clientId = BuildConfig.appleWebClientId
+		val redirectUri = BuildConfig.appleCallbackURI
 
 		val state = java.util.UUID.randomUUID().toString()
 		val nonce = java.util.UUID.randomUUID().toString()
