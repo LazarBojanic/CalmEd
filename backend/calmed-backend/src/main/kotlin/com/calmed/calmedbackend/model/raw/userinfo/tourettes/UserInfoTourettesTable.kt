@@ -2,6 +2,7 @@ package com.calmed.calmedbackend.model.raw.userinfo.tourettes
 
 import com.calmed.calmedbackend.model.raw.user.UserTable
 import org.jetbrains.exposed.v1.core.dao.id.UUIDTable
+import org.jetbrains.exposed.v1.javatime.CurrentTimestamp
 import org.jetbrains.exposed.v1.javatime.timestamp
 import java.time.Instant
 
@@ -14,6 +15,6 @@ object UserInfoTourettesTable : UUIDTable(name = "user_info_tourettes") {
 	val tickFrequency = enumeration("tick_frequency", TickFrequency::class).nullable()
 	val goal = text("goal").nullable()
 	val followProgress = bool("follow_progress").nullable()
-	val createdAt = timestamp("created_at").default(Instant.now())
-	val updatedAt = timestamp("updated_at").default(Instant.now())
+	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
+	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
 }

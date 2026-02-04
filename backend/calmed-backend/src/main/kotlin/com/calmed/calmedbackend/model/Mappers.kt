@@ -2,10 +2,16 @@ package com.calmed.calmedbackend.model
 
 import com.calmed.calmedbackend.model.dto.response.UserDto
 import com.calmed.calmedbackend.model.dto.response.UserInfoTourettesDto
+import com.calmed.calmedbackend.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedbackend.model.dto.response.UserProgramDto
+import com.calmed.calmedbackend.model.dto.response.UserExerciseProgressDto
 import com.calmed.calmedbackend.model.joined.AuthCredentialJoined
 import com.calmed.calmedbackend.model.joined.RefreshTokenJoined
 import com.calmed.calmedbackend.model.joined.UserInfoTourettesJoined
 import com.calmed.calmedbackend.model.joined.UserJoined
+import com.calmed.calmedbackend.model.joined.ProgramExerciseJoined
+import com.calmed.calmedbackend.model.joined.UserProgramJoined
+import com.calmed.calmedbackend.model.joined.UserExerciseProgressJoined
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialEntity
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
@@ -14,6 +20,13 @@ import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
 import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
 import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettesEntity
+import com.calmed.calmedbackend.model.raw.programexercise.ProgramExercise
+import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseEntity
+import com.calmed.calmedbackend.model.raw.userprogram.UserProgram
+import com.calmed.calmedbackend.model.raw.userprogram.UserProgramEntity
+import com.calmed.calmedbackend.model.raw.userexerciseprogress.UserExerciseProgress
+import com.calmed.calmedbackend.model.raw.userexerciseprogress.UserExerciseProgressEntity
+import java.time.ZoneId
 
 enum class MapMode {
 	CREATE, UPDATE
@@ -234,5 +247,172 @@ fun UserInfoTourettesJoined.toDto(): UserInfoTourettesDto {
 		tickFrequency = this.tickFrequency,
 		goal = this.goal,
 		followProgress = this.followProgress
+	)
+}
+
+// ProgramExercise mappings
+
+fun ProgramExerciseEntity.toRaw(): ProgramExercise {
+	return ProgramExercise(
+		id = this.id.value,
+		weekNumber = this.weekNumber,
+		title = this.title,
+		description = this.description,
+		videoURL = this.videoURL,
+		thumbnailURL = this.thumbnailURL,
+		orderInWeek = this.orderInWeek,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun ProgramExerciseEntity.setFrom(d: ProgramExercise, mapMode: MapMode) {
+	weekNumber = d.weekNumber
+	title = d.title
+	description = d.description
+	videoURL = d.videoURL
+	thumbnailURL = d.thumbnailURL
+	orderInWeek = d.orderInWeek
+	when (mapMode) {
+		MapMode.CREATE -> {
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
+		}
+		MapMode.UPDATE -> {
+			updatedAt = d.updatedAt
+		}
+	}
+}
+
+fun ProgramExercise.join(): ProgramExerciseJoined {
+	return ProgramExerciseJoined(
+		id = this.id,
+		weekNumber = this.weekNumber,
+		title = this.title,
+		description = this.description,
+		videoURL = this.videoURL,
+		thumbnailURL = this.thumbnailURL,
+		orderInWeek = this.orderInWeek,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun ProgramExerciseJoined.toDto(): ProgramExerciseDto {
+	return ProgramExerciseDto(
+		id = this.id,
+		weekNumber = this.weekNumber,
+		title = this.title,
+		description = this.description,
+		videoURL = this.videoURL,
+		thumbnailURL = this.thumbnailURL,
+		orderInWeek = this.orderInWeek
+	)
+}
+
+// UserProgram mappings
+
+fun UserProgramEntity.toRaw(): UserProgram {
+ return UserProgram(
+		id = this.id.value,
+		userId = this.userId,
+		startDate = this.startDate,
+		endDate = this.endDate,
+		timezone = this.timezone?.let { ZoneId.of(it) },
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun UserProgramEntity.setFrom(d: UserProgram, mapMode: MapMode) {
+	userId = d.userId
+	startDate = d.startDate
+	endDate = d.endDate
+	timezone = d.timezone?.id
+	when (mapMode) {
+		MapMode.CREATE -> {
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
+		}
+		MapMode.UPDATE -> {
+			updatedAt = d.updatedAt
+		}
+	}
+}
+
+fun UserProgram.join(user: UserJoined): UserProgramJoined {
+	return UserProgramJoined(
+		id = this.id,
+		user = user,
+		startDate = this.startDate,
+		endDate = this.endDate,
+		timezone = this.timezone,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun UserProgramJoined.toDto(): UserProgramDto {
+	return UserProgramDto(
+		id = this.id,
+		user = this.user.toDto(),
+		startDate = this.startDate,
+		endDate = this.endDate,
+		timezone = this.timezone
+	)
+}
+
+// UserExerciseProgress mappings
+
+fun UserExerciseProgressEntity.toRaw(): UserExerciseProgress {
+	return UserExerciseProgress(
+		id = this.id.value,
+		userId = this.userId,
+		programExerciseId = this.programExerciseId,
+		session = this.session,
+		completedAt = this.completedAt,
+		day = this.day,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun UserExerciseProgressEntity.setFrom(d: UserExerciseProgress, mapMode: MapMode) {
+	userId = d.userId
+	programExerciseId = d.programExerciseId
+	session = d.session
+	completedAt = d.completedAt
+	day = d.day
+	when (mapMode) {
+		MapMode.CREATE -> {
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
+		}
+		MapMode.UPDATE -> {
+			updatedAt = d.updatedAt
+		}
+	}
+}
+
+fun UserExerciseProgress.join(user: UserJoined, programExercise: ProgramExerciseJoined): UserExerciseProgressJoined {
+	return UserExerciseProgressJoined(
+		id = this.id,
+		user = user,
+		programExercise = programExercise,
+		session = this.session,
+		completedAt = this.completedAt,
+		day = this.day,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun UserExerciseProgressJoined.toDto(): UserExerciseProgressDto {
+	return UserExerciseProgressDto(
+		id = this.id,
+		user = this.user.toDto(),
+		programExercise = this.programExercise.toDto(),
+		session = this.session,
+		day = this.day
 	)
 }

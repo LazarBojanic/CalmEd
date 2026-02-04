@@ -5,11 +5,17 @@ import com.calmed.calmedbackend.service.implementation.AuthService
 import com.calmed.calmedbackend.service.implementation.RefreshTokenService
 import com.calmed.calmedbackend.service.implementation.UserInfoTourettesService
 import com.calmed.calmedbackend.service.implementation.UserService
+import com.calmed.calmedbackend.service.implementation.ProgramExerciseService
+import com.calmed.calmedbackend.service.implementation.UserProgramService
+import com.calmed.calmedbackend.service.implementation.UserExerciseProgressService
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
 import com.calmed.calmedbackend.service.specification.IUserInfoTourettesService
 import com.calmed.calmedbackend.service.specification.IUserService
+import com.calmed.calmedbackend.service.specification.IProgramExerciseService
+import com.calmed.calmedbackend.service.specification.IUserProgramService
+import com.calmed.calmedbackend.service.specification.IUserExerciseProgressService
 import org.koin.dsl.module
 
 val serviceModule = module {
@@ -17,5 +23,8 @@ val serviceModule = module {
 	single<IAuthCredentialService> { AuthCredentialService(get(), get()) }
 	single<IRefreshTokenService> { RefreshTokenService(get(), get()) }
 	single<IUserInfoTourettesService> { UserInfoTourettesService(get(), get()) }
+	single<IProgramExerciseService> { ProgramExerciseService(get()) }
+	single<IUserProgramService> { UserProgramService(get(), get()) }
+	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get(), get()) }
 	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get()) }
 }

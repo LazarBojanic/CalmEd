@@ -18,7 +18,7 @@ class AndroidApp : Application() {
 			}
 		}
 		else{
-			url = "https://srv1092316.hstgr.cloud"
+			url = "https://api.calm-ed.com"
 		}
 		initKoin(
 			baseUrl = url,

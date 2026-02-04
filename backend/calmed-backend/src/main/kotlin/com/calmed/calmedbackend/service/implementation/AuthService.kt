@@ -119,12 +119,6 @@ class AuthService(private val userService: IUserService,
 				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google email not verified")
 			}
 
-			// IMPORTANT: validate audience matches your Google client id
-			val expectedAud = "222661265161-rd5cpngvtde2r6ltj6vn487huoorl4mi.apps.googleusercontent.com"
-			if (info.aud != expectedAud) {
-				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token audience mismatch")
-			}
-
 			AppResult.Success(info)
 		}
 		catch (e: Exception) {
