@@ -28,12 +28,12 @@ object AppleClientSecret {
             .expirationTime(Date.from(exp))
             .build()
 
-        val header = JWSHeader.Builder(JWSAlgorithm.RS512)
+        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
             .keyID(appleConfig.keyId) // kid = Key ID
             .build()
 
         val jwt = SignedJWT(header, claims)
-        val signer = RSASSASigner(loadEcPrivateKey(appleConfig.privateKeyPem))
+        val signer = ECDSASigner(loadEcPrivateKey(appleConfig.privateKeyPem))
         jwt.sign(signer)
         return jwt.serialize()
     }
