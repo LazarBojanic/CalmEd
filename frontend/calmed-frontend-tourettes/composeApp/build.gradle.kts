@@ -26,21 +26,12 @@ fun Project.localProps(): Properties {
 val local = localProps()
 
 buildConfig{
-	local.getProperty("DEVELOPMENT")?.let { value ->
-		buildConfigField("development", value.toBoolean())
-	}
-	local.getProperty("ADB_REVERSE")?.let { value ->
-		buildConfigField("adbReverse", value.toBoolean())
-	}
-	local.getProperty("GOOGLE_WEB_CLIENT_ID")?.let { value ->
-		buildConfigField("googleWebClientId", value)
-	}
-	local.getProperty("APPLE_WEB_CLIENT_ID")?.let { value ->
-		buildConfigField("appleWebClientId", value)
-	}
-	local.getProperty("APPLE_CALLBACK_URI")?.let { value ->
-		buildConfigField("appleCallbackURI", value)
-	}
+	// Ensure fields always exist with sensible defaults, then override from local.properties when available
+	buildConfigField("development", (local.getProperty("DEVELOPMENT") ?: "false").toBoolean())
+	buildConfigField("adbReverse", (local.getProperty("ADB_REVERSE") ?: "false").toBoolean())
+	buildConfigField("googleWebClientId", local.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "")
+	buildConfigField("appleWebClientId", local.getProperty("APPLE_WEB_CLIENT_ID") ?: "")
+	buildConfigField("appleCallbackURI", local.getProperty("APPLE_CALLBACK_URI") ?: "")
 }
 
 kotlin {

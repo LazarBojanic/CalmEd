@@ -11,16 +11,8 @@ actual fun launchAppleSignIn() {
     val context = appContext
 
     val clientId = BuildConfig.appleWebClientId
-    var redirectUri = ""
-    if (BuildConfig.development) {
-        if (BuildConfig.adbReverse) {
-            redirectUri = "http://127.0.0.1:8080/auth/apple/callback"
-        } else {
-            redirectUri = "http://10.0.2.2:8080/auth/apple/callback"
-        }
-    } else {
-        redirectUri = BuildConfig.appleCallbackURI
-    }
+    // Use the exact redirect URI registered with Apple. Using localhost/10.0.2.2 causes redirect_uri mismatch or 403 in mobile flows.
+    val redirectUri = BuildConfig.appleCallbackURI
 
     val state = UUID.randomUUID().toString()
     val nonce = UUID.randomUUID().toString()
