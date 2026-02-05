@@ -1,8 +1,8 @@
 package com.calmed.calmedfrontendtourettes.auth
 
 import kotlinx.coroutines.suspendCancellableCoroutine
-import platform.GoogleSignIn.GIDConfiguration
-import platform.GoogleSignIn.GIDSignIn
+//import platform.GoogleSignIn.GIDConfiguration
+//import platform.GoogleSignIn.GIDSignIn
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import calmedfrontendtourettes.composeApp.BuildConfig
@@ -11,7 +11,7 @@ import kotlin.coroutines.Continuation
 private var googleSignInDelegate: GoogleSignInDelegate? = null
 
 actual suspend fun getGoogleIdToken(): String {
-    return suspendCancellableCoroutine { continuation ->
+    /*return suspendCancellableCoroutine { continuation ->
         val delegate = GoogleSignInDelegate(continuation)
         googleSignInDelegate = delegate
         
@@ -49,11 +49,12 @@ actual suspend fun getGoogleIdToken(): String {
         continuation.invokeOnCancellation {
             googleSignInDelegate = null
         }
-    }
+    }*/
+    return ""
 }
 
 private fun attemptFreshSignIn(delegate: GoogleSignInDelegate) {
-    GIDSignIn.sharedInstance.signInWithPresenting(null) { result, error in
+    /*GIDSignIn.sharedInstance.signInWithPresenting(null) { result, error in
         if (error != null) {
             delegate.continuation.resumeWithException(
                 IllegalStateException("Google Sign-In failed: ${error.localizedDescription}")
@@ -67,7 +68,7 @@ private fun attemptFreshSignIn(delegate: GoogleSignInDelegate) {
                 )
             }
         }
-    }
+    }*/
 }
 
 private class GoogleSignInDelegate(

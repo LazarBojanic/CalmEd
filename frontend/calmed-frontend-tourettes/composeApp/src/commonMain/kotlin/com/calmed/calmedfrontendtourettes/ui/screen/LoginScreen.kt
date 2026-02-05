@@ -44,20 +44,19 @@ fun LoginScreen(
 
     LaunchedEffect(Unit) {
         AppleAuthBridge.onIdToken = { idToken ->
-            println("APPLE_AUTH LoginScreen received id_token len=${idToken.length}")
-
-            scope.launch {
-                println("APPLE_AUTH LoginScreen CALLING VM...")
-                val ok = viewModel.loginWithApple(identityToken = idToken)
-                println("APPLE_AUTH LoginScreen VM result=$ok")
-                if (ok) onLoginSuccess()
+            if(idToken.isSuccess){
+                println("APPLE_AUTH LoginScreen received id_token len=${idToken.getOrNull()}")
+                scope.launch {
+                    println("APPLE_AUTH LoginScreen CALLING VM...")
+                    val ok = viewModel.loginWithApple(identityToken = idToken.getOrNull() ?: "")
+                    println("APPLE_AUTH LoginScreen VM result=$ok")
+                    if (ok) onLoginSuccess()
+                }
             }
 
             AppleAuthBridge.onIdToken = null
         }
     }
-
-
 
 
     val uriHandler = LocalUriHandler.current
