@@ -32,7 +32,6 @@ import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respondRedirect
 import java.net.URLEncoder
 
-
 fun Route.authRoutes() {
 	val authService by inject<IAuthService>()
 
@@ -78,7 +77,6 @@ fun Route.authRoutes() {
 			if (dto.idToken.isBlank()) {
 				throw BusinessException(HttpStatusCode.BadRequest, "Missing idToken")
 			}
-
 			val result = authService.loginWithGoogle(dto.idToken)
 
 			when (result) {
@@ -95,84 +93,62 @@ fun Route.authRoutes() {
 			if (dto.identityToken.isBlank()) {
 				throw BusinessException(HttpStatusCode.BadRequest, "Missing identityToken")
 			}
-
 			val result: AppResult<TokenPairDto> = authService.loginWithApple(dto.identityToken)
 
 			when (result) {
 				is AppResult.Success -> {
 					call.respond(HttpStatusCode.OK, result.data)
 				}
+
 				is AppResult.Failure -> {
 					throw BusinessException(result.httpStatusCode, result.message)
 				}
 			}
-
 		}
 	}
 	route(path = "/auth/apple/callback") {
 		post {
-			// Apple typically returns with response_mode=form_post
 			val params = call.receiveParameters()
+			val code = params["code"]
 			val idToken = params["id_token"]
 			val state = params["state"]
 			val error = params["error"]
 			val errorDesc = params["error_description"]
-
-			if (!error.isNullOrBlank()) {
-				val redirect =
-					"calmed://apple?error=" + URLEncoder.encode(error, "UTF-8") +
-							"&error_description=" + URLEncoder.encode(errorDesc ?: "", "UTF-8")
-				call.respondRedirect(redirect, permanent = false)
-				return@post
-			}
-
-			val safeIdToken = idToken ?: run {
-				call.respondText("Missing id_token", status = HttpStatusCode.BadRequest)
-				return@post
-			}
-
-			val redirect = buildString {
-				append("calmed://apple?id_token=")
-				append(URLEncoder.encode(safeIdToken, "UTF-8"))
-				if (!state.isNullOrBlank()) {
-					append("&state=")
-					append(URLEncoder.encode(state, "UTF-8"))
+			val redirectUrl =
+				if (!error.isNullOrBlank()) {
+					"calmed://apple?status=error" +
+						"&error=" + URLEncoder.encode(error, "UTF-8") +
+						"&error_description=" + URLEncoder.encode(errorDesc ?: "", "UTF-8")
+				} else if (!code.isNullOrBlank() && !idToken.isNullOrBlank()) {
+					"calmed://apple?status=success" +
+						"&code=" + URLEncoder.encode(code, "UTF-8") +
+						"&id_token=" + URLEncoder.encode(idToken, "UTF-8") +
+						"&state=" + URLEncoder.encode(state ?: "", "UTF-8")
+				} else {
+					"calmed://apple?status=error"
 				}
-			}
 
-			call.respondRedirect(redirect, permanent = false)
-		}
-		get {
-			// Optional debugging fallback if you ever use response_mode=query
-			val idToken = call.request.queryParameters["id_token"]
-			val state = call.request.queryParameters["state"]
-			val error = call.request.queryParameters["error"]
-			val errorDesc = call.request.queryParameters["error_description"]
+			call.respondText(
+				"""
+					<!DOCTYPE html>
+					<html>
+					<head>
+					<meta charset="utf-8"/>
+					<title>Apple Sign In</title>
+					</head>
+					<body>
+					<script>
+						window.location.href = "$redirectUrl";
+					</script>
+					</body>
+					</html>
 
-			if (!error.isNullOrBlank()) {
-				val redirect =
-					"calmed://apple?error=" + URLEncoder.encode(error, "UTF-8") +
-							"&error_description=" + URLEncoder.encode(errorDesc ?: "", "UTF-8")
-				call.respondRedirect(redirect, permanent = false)
-				return@get
-			}
-
-			val safeIdToken = idToken ?: run {
-				call.respondText("Missing id_token", status = HttpStatusCode.BadRequest)
-				return@get
-			}
-
-			val redirect = buildString {
-				append("calmed://apple?id_token=")
-				append(URLEncoder.encode(safeIdToken, "UTF-8"))
-				if (!state.isNullOrBlank()) {
-					append("&state=")
-					append(URLEncoder.encode(state, "UTF-8"))
-				}
-			}
-			call.respondRedirect(redirect, permanent = false)
+            """.trimIndent(),
+				ContentType.Text.Html
+			)
 		}
 	}
+
 
 
 	route("/auth/refresh") {
@@ -214,8 +190,7 @@ fun Route.authRoutes() {
 						)
 					}
 				}
-			}
-			else {
+			} else {
 				throw BusinessException(HttpStatusCode.BadRequest, "Missing token")
 			}
 		}
@@ -248,8 +223,7 @@ fun Route.authRoutes() {
 			if (token != null) {
 				try {
 					authService.passwordResetVerifier().verify(token)
-				}
-				catch (e: JWTVerificationException) {
+				} catch (e: JWTVerificationException) {
 					call.respondText(
 						text = verificationFailurePage("Invalid or expired reset token."),
 						contentType = ContentType.Text.Html,
@@ -257,15 +231,12 @@ fun Route.authRoutes() {
 					)
 				}
 				val resource = call.resolveResource("static/auth/reset-password.html")
-				if(resource != null) {
+				if (resource != null) {
 					call.respond(resource)
-				}
-				else{
+				} else {
 					throw BusinessException(HttpStatusCode.InternalServerError, "Resource not found")
 				}
-
-			}
-			else {
+			} else {
 				throw BusinessException(HttpStatusCode.BadRequest, "Missing reset token")
 			}
 		}
@@ -302,8 +273,7 @@ fun Route.authRoutes() {
 							throw BusinessException(logoutResult.httpStatusCode, logoutResult.message)
 						}
 					}
-				}
-				else {
+				} else {
 					throw BusinessException(HttpStatusCode.Unauthorized, "Invalid authentication")
 				}
 			}
