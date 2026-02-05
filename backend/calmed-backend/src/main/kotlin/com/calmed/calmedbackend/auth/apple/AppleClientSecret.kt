@@ -4,6 +4,7 @@ import com.calmed.calmedbackend.config.AppleConfig
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.crypto.ECDSASigner
+import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import org.koin.java.KoinJavaComponent.inject
@@ -27,12 +28,12 @@ object AppleClientSecret {
             .expirationTime(Date.from(exp))
             .build()
 
-        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
+        val header = JWSHeader.Builder(JWSAlgorithm.RS512)
             .keyID(appleConfig.keyId) // kid = Key ID
             .build()
 
         val jwt = SignedJWT(header, claims)
-        val signer = ECDSASigner(loadEcPrivateKey(appleConfig.privateKeyPem))
+        val signer = RSASSASigner(loadEcPrivateKey(appleConfig.privateKeyPem))
         jwt.sign(signer)
         return jwt.serialize()
     }
