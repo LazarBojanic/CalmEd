@@ -25,7 +25,13 @@ fun iosModule() = module {
 
 fun initKoinIos() {
     val dev = true
-    val url = if (dev) "http://127.0.0.1:8080" else "https://srv1092316.hstgr.cloud"
+    var url = ""
+    if (dev) {
+        url = "http://127.0.0.1:8080"
+    }
+    else{
+        url = "https://api.calm-ed.com"
+    }
     initKoin(
         baseUrl = url,
         iosModule(),

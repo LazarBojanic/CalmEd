@@ -56,13 +56,15 @@ class MainActivity : ComponentActivity() {
 
 		if (!error.isNullOrBlank()) {
 			Log.e("APPLE_AUTH", "error=$error desc=$errorDesc")
+			val errorMessage = errorDesc ?: error
+			AppleAuthBridge.onIdToken?.invoke(Result.failure(IllegalStateException("Apple Sign-In failed: $errorMessage")))
 			return
 		}
 
 
 		if (!idToken.isNullOrBlank()) {
 			Log.d("APPLE_AUTH", "id_token received len=${idToken.length}")
-			AppleAuthBridge.onIdToken?.invoke(idToken)
+			AppleAuthBridge.onIdToken?.invoke(Result.success(idToken))
 
 			return
 		}
@@ -70,7 +72,7 @@ class MainActivity : ComponentActivity() {
 
 		if (!code.isNullOrBlank()) {
 			Log.d("APPLE_AUTH", "code=$code")
-			AppleAuthBridge.onAuthCode?.invoke(code)
+			AppleAuthBridge.onAuthCode?.invoke(Result.success(code))
 		}
 
 		Log.d("APPLE_AUTH", "state=$state")
