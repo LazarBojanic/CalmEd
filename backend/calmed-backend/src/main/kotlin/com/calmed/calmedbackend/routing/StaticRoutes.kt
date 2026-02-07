@@ -8,6 +8,5 @@ fun Application.configureStaticRouting() {
 	routing {
 		staticResources("/", "static", index = "index.html")
 		staticResources("/privacy-policy", "static/privacy-policy", index = "index.html")
-		staticResources("/auth/apple/callback", "static/auth/apple/callback", index = "index.html")
 	}
 }

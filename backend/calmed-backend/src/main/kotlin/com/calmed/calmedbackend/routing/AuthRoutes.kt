@@ -1,6 +1,8 @@
 package com.calmed.calmedbackend.routing
 
 import com.auth0.jwt.exceptions.JWTVerificationException
+import com.calmed.calmedbackend.auth.apple.AppleTokenApi
+import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.AppleLoginDto
@@ -18,19 +20,20 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.http.content.resolveResource
 import io.ktor.server.request.receive
+import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import io.ktor.server.application.ApplicationCall
+import io.ktor.http.Parameters
 import org.koin.ktor.ext.inject
+import java.net.URLEncoder
 import java.util.UUID
 import com.calmed.calmedbackend.model.dto.request.GoogleLoginDto
 import com.calmed.calmedbackend.service.specification.IAuthService
-import io.ktor.server.request.receiveParameters
-import io.ktor.server.response.respondRedirect
-import java.net.URLEncoder
 
 fun Route.authRoutes() {
 	val authService by inject<IAuthService>()
@@ -106,46 +109,18 @@ fun Route.authRoutes() {
 			}
 		}
 	}
+
 	route(path = "/auth/apple/callback") {
+		val appleTokenApi by inject<AppleTokenApi>()
+		val appleConfig by inject<AppleConfig>()
+
+		get {
+			val params = call.request.queryParameters
+			handleAppleCallback(call, params, appleTokenApi, appleConfig)
+		}
 		post {
 			val params = call.receiveParameters()
-			val code = params["code"]
-			val idToken = params["id_token"]
-			val state = params["state"]
-			val error = params["error"]
-			val errorDesc = params["error_description"]
-			val redirectUrl =
-				if (!error.isNullOrBlank()) {
-					"calmed://apple?status=error" +
-						"&error=" + URLEncoder.encode(error, "UTF-8") +
-						"&error_description=" + URLEncoder.encode(errorDesc ?: "", "UTF-8")
-				} else if (!code.isNullOrBlank() && !idToken.isNullOrBlank()) {
-					"calmed://apple?status=success" +
-						"&code=" + URLEncoder.encode(code, "UTF-8") +
-						"&id_token=" + URLEncoder.encode(idToken, "UTF-8") +
-						"&state=" + URLEncoder.encode(state ?: "", "UTF-8")
-				} else {
-					"calmed://apple?status=error"
-				}
-
-			call.respondText(
-				"""
-					<!DOCTYPE html>
-					<html>
-					<head>
-					<meta charset="utf-8"/>
-					<title>Apple Sign In</title>
-					</head>
-					<body>
-					<script>
-						window.location.href = "$redirectUrl";
-					</script>
-					</body>
-					</html>
-
-            """.trimIndent(),
-				ContentType.Text.Html
-			)
+			handleAppleCallback(call, params, appleTokenApi, appleConfig)
 		}
 	}
 
@@ -279,6 +254,67 @@ fun Route.authRoutes() {
 			}
 		}
 	}
+}
+
+private suspend fun handleAppleCallback(
+	call: ApplicationCall,
+	params: Parameters,
+	appleTokenApi: AppleTokenApi,
+	appleConfig: AppleConfig
+) {
+	val error = params["error"]
+	val errorDesc = params["error_description"]
+	val code = params["code"]
+	var idToken = params["id_token"]
+	val state = params["state"]
+
+	val redirectUrl = when {
+		!error.isNullOrBlank() -> {
+			"calmed://apple?status=error" +
+				"&error=" + URLEncoder.encode(error, "UTF-8") +
+				"&error_description=" + URLEncoder.encode(errorDesc ?: "", "UTF-8")
+		}
+		!idToken.isNullOrBlank() -> {
+			"calmed://apple?status=success" +
+				"&id_token=" + URLEncoder.encode(idToken, "UTF-8") +
+				"&state=" + URLEncoder.encode(state ?: "", "UTF-8")
+		}
+		!code.isNullOrBlank() -> {
+			val tokenResponse = appleTokenApi.exchangeCode(code, appleConfig.redirectURI)
+			val resolvedIdToken = tokenResponse.id_token
+			if (!resolvedIdToken.isNullOrBlank()) {
+				"calmed://apple?status=success" +
+					"&id_token=" + URLEncoder.encode(resolvedIdToken, "UTF-8") +
+					"&state=" + URLEncoder.encode(state ?: "", "UTF-8")
+			} else {
+				"calmed://apple?status=error" +
+					"&error=" + URLEncoder.encode(tokenResponse.error ?: "token_exchange_failed", "UTF-8") +
+					"&error_description=" + URLEncoder.encode(tokenResponse.error_description ?: "", "UTF-8")
+			}
+		}
+		else -> {
+			"calmed://apple?status=error&error=missing_params"
+		}
+	}
+
+	call.respondText(
+		"""
+			<!DOCTYPE html>
+			<html>
+			<head>
+			<meta charset="utf-8"/>
+			<title>Apple Sign In</title>
+			</head>
+			<body>
+			<script>
+				window.location.href = "$redirectUrl";
+			</script>
+			<p>Redirecting to app…</p>
+			</body>
+			</html>
+		""".trimIndent(),
+		ContentType.Text.Html
+	)
 }
 
 private fun verificationSuccessPage(): String {
