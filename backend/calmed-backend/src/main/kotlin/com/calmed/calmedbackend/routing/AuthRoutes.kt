@@ -26,9 +26,9 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.server.routing.route
-import io.ktor.server.application.ApplicationCall
 import io.ktor.http.Parameters
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 import java.net.URLEncoder
 import java.util.UUID
@@ -110,11 +110,13 @@ fun Route.authRoutes() {
 		}
 	}
 
-	route(path = "/auth/apple/callback") {
+	// Apple OAuth callback: receives POST from Apple (form_post) or GET (query). Must return HTML that redirects to calmed://apple
+	route("/auth/apple/callback") {
 		val appleTokenApi by inject<AppleTokenApi>()
 		val appleConfig by inject<AppleConfig>()
 
 		get {
+			// Diagnostic: GET /auth/apple/callback returns 200. If you get 403 here, the issue is routing/static/CORS, not our handler.
 			val params = call.request.queryParameters
 			handleAppleCallback(call, params, appleTokenApi, appleConfig)
 		}
@@ -123,8 +125,6 @@ fun Route.authRoutes() {
 			handleAppleCallback(call, params, appleTokenApi, appleConfig)
 		}
 	}
-
-
 
 	route("/auth/refresh") {
 		post {
@@ -265,7 +265,7 @@ private suspend fun handleAppleCallback(
 	val error = params["error"]
 	val errorDesc = params["error_description"]
 	val code = params["code"]
-	var idToken = params["id_token"]
+	val idToken = params["id_token"]
 	val state = params["state"]
 
 	val redirectUrl = when {

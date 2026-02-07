@@ -22,9 +22,14 @@ fun Application.configureHTTP() {
 
 		allowCredentials = true
 
+		// Apple OAuth form_post: browser POSTs from Origin https://appleid.apple.com. CORS rejects unknown origins with 403.
+		allowHost("appleid.apple.com", listOf("https"))
+
 		if(dev){
 			allowHost("localhost:3000", listOf("http"))
+			allowHost("localhost:8080", listOf("http"))
 			allowHost("127.0.0.1:3000", listOf("http"))
+			allowHost("127.0.0.1:8080", listOf("http"))
 			allowHost("hoppscotch.io", listOf("https"))
 		}
 	}
