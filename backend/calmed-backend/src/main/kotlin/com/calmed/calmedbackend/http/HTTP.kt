@@ -31,6 +31,7 @@ fun Application.configureHTTP() {
 			allowHost("127.0.0.1:3000", listOf("http"))
 			allowHost("127.0.0.1:8080", listOf("http"))
 			allowHost("hoppscotch.io", listOf("https"))
+			allowHost("appleid.apple.com", listOf("https"))
 		}
 	}
 	install(DefaultHeaders) {

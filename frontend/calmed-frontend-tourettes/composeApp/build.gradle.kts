@@ -150,6 +150,10 @@ android {
 	namespace = "com.calmed.calmedfrontendtourettes"
 	compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
+	buildFeatures {
+		buildConfig = true
+	}
+
 	defaultConfig {
 		applicationId = "com.calmed.calmedfrontendtourettes"
 		minSdk = libs.versions.androidMinSdk.get().toInt()

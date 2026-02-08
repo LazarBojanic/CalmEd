@@ -34,6 +34,12 @@ import java.net.URLEncoder
 import java.util.UUID
 import com.calmed.calmedbackend.model.dto.request.GoogleLoginDto
 import com.calmed.calmedbackend.service.specification.IAuthService
+import io.ktor.server.request.httpMethod
+import io.ktor.server.request.queryString
+import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.respondRedirect
+
+
 
 fun Route.authRoutes() {
 	val authService by inject<IAuthService>()
@@ -107,6 +113,7 @@ fun Route.authRoutes() {
 					throw BusinessException(result.httpStatusCode, result.message)
 				}
 			}
+
 		}
 	}
 

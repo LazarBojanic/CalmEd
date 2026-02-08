@@ -33,6 +33,10 @@ fun main(args: Array<String>) {
 }
 
 suspend fun Application.module() {
+	val config = environment.config
+//	println("APPLE clientId = " + config.property("oauth.apple.client_id").getString())
+//	println("APPLE redirectUri = " + config.property("oauth.apple.redirect_uri").getString())
+
 	val ktorConfig by inject<KtorConfig>()
 	configureFrameworks()
 	configureHTTP()

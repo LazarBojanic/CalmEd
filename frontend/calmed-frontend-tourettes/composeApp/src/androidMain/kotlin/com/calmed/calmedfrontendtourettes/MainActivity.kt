@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import com.calmed.calmedfrontendtourettes.auth.AppleAuthBridge
 import com.calmed.calmedfrontendtourettes.auth.setGoogleAuthActivityProvider
 import androidx.lifecycle.lifecycleScope
-import calmedfrontendtourettes.composeApp.BuildConfig
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -80,8 +79,9 @@ class MainActivity : ComponentActivity() {
 
 
 	private fun startAppleSignIn() {
-		val clientId = BuildConfig.appleWebClientId
-		val redirectUri = BuildConfig.appleCallbackURI
+		Log.e("APPLE_AUTH", "START APPLE SIGN IN CALLED")
+		val clientId = "com.calmed.auth"
+		val redirectUri = "https://api.calm-ed.com/auth/apple/callback"
 
 		val state = java.util.UUID.randomUUID().toString()
 		val nonce = java.util.UUID.randomUUID().toString()
@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
 			.appendQueryParameter("state", state)
 			.appendQueryParameter("nonce", nonce)
 			.build()
-
+		Log.d("APPLE_AUTH", "AUTHORIZE_URL = $url")
 		val customTabsIntent = androidx.browser.customtabs.CustomTabsIntent.Builder().build()
 		customTabsIntent.launchUrl(this, url)
 	}

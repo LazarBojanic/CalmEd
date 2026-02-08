@@ -2,6 +2,7 @@ package com.calmed.calmedbackend.di
 
 import com.calmed.calmedbackend.auth.apple.AppleTokenApi
 import com.calmed.calmedbackend.config.AppleConfig
+import com.calmed.calmedbackend.model.raw.program_exercise.ProgramExerciseRepository
 import com.calmed.calmedbackend.service.implementation.AuthCredentialService
 import com.calmed.calmedbackend.service.implementation.AuthService
 import com.calmed.calmedbackend.service.implementation.RefreshTokenService
@@ -15,6 +16,9 @@ import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
 import com.calmed.calmedbackend.service.specification.IUserInfoTourettesService
 import com.calmed.calmedbackend.service.specification.IUserService
+import com.calmed.calmedbackend.service.specification.HomeService
+import com.calmed.calmedbackend.service.implementation.HomeService as HomeServiceImpl
+
 import com.calmed.calmedbackend.service.specification.IProgramExerciseService
 import com.calmed.calmedbackend.service.specification.IUserProgramService
 import com.calmed.calmedbackend.service.specification.IUserExerciseProgressService
@@ -43,4 +47,10 @@ val serviceModule = module {
 	single<IUserProgramService> { UserProgramService(get(), get()) }
 	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get(), get()) }
 	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get()) }
+	single { ProgramExerciseRepository() }
+	single<HomeService> { HomeServiceImpl(programExerciseRepository = get(), userService = get())
+	}
+
+
+
 }

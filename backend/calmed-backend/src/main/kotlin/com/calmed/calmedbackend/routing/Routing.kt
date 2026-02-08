@@ -13,6 +13,7 @@ fun Application.configureRouting() {
 		authRoutes()
 		userRoutes()
 		userInfoTourettesRoutes()
+		homeRoutes()
 		programExerciseRoutes()
 		userProgramRoutes()
 		userExerciseProgressRoutes()
