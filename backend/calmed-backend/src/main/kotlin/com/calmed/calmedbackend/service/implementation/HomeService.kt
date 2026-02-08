@@ -4,10 +4,11 @@ import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.response.CalendarDayDto
 import com.calmed.calmedbackend.model.dto.response.CalendarMonthDto
 import com.calmed.calmedbackend.model.dto.response.HomeDto
-import com.calmed.calmedbackend.model.dto.response.UpNextExerciseDto
-import com.calmed.calmedbackend.model.raw.program_exercise.ProgramExerciseRepository
+import com.calmed.calmedbackend.model.toDto
 import com.calmed.calmedbackend.service.specification.HomeService
+import com.calmed.calmedbackend.service.specification.IProgramExerciseService
 import com.calmed.calmedbackend.service.specification.IUserService
+import io.ktor.http.HttpStatusCode
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import java.time.LocalDate
@@ -16,7 +17,7 @@ import java.time.ZoneId
 
 
 class HomeService(
-    private val programExerciseRepository: ProgramExerciseRepository,
+    private val programExerciseService: IProgramExerciseService,
     private val userService: IUserService
 ) : HomeService {
 
@@ -56,14 +57,11 @@ class HomeService(
         }
 
 
-        val upNext = programExerciseRepository.getUpNextList(limit = 2).map { row ->
-            UpNextExerciseDto(
-                id = row.id.toString(),
-                title = row.title,
-                durationSeconds = null,
-                thumbnailUrl = row.thumbnailUrl,
-                videoUrl = row.videoUrl
-            )
+        val upNextResult = programExerciseService.getUpNextList(limit = 2)
+        val upNext = if (upNextResult is AppResult.Success) {
+            upNextResult.data.map { row -> row.toDto() }
+        } else {
+            emptyList()
         }
 
         return HomeDto(
