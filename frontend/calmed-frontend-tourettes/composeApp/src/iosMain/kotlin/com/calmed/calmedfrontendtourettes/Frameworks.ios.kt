@@ -2,6 +2,7 @@ package com.calmed.calmedfrontendtourettes
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import calmedfrontendtourettes.composeApp.BuildConfig
 import com.calmed.calmedfrontendtourettes.database.AppDatabase
 import com.calmed.calmedfrontendtourettes.database.getAppDatabase
 import com.calmed.calmedfrontendtourettes.database.getDatabaseBuilder
@@ -24,9 +25,8 @@ fun iosModule() = module {
 }
 
 fun initKoinIos() {
-    val dev = true
     var url = ""
-    if (dev) {
+    if (BuildConfig.development) {
         url = "http://127.0.0.1:8080"
     }
     else{

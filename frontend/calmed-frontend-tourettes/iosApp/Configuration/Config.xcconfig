@@ -1,6 +1,6 @@
 TEAM_ID=45DL384985
 
-GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.222661265161-rd5cpngvtde2r6ltj6vn487huoorl4mi
+GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.222661265161-fvleu9r0trdoo6kk5671gmpm806tdn24
 
 PRODUCT_NAME=calmedfrontendtourettes
 PRODUCT_BUNDLE_IDENTIFIER=com.calmed.calmedfrontendtourettes$(TEAM_ID)

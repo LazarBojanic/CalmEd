@@ -21,7 +21,8 @@ actual suspend fun getGoogleIdToken(): String {
         googleSignInDelegate = delegate
         
         try {
-            val config = GIDConfiguration(BuildConfig.googleWebClientId, null)
+            val clientId = BuildConfig.googleIosClientId.ifBlank { BuildConfig.googleWebClientId }
+            val config = GIDConfiguration(clientId, null)
             
             GIDSignIn.sharedInstance.setConfiguration(config)
             
