@@ -8,6 +8,7 @@ import com.calmed.calmedbackend.auth.TokenType
 import com.calmed.calmedbackend.auth.apple.AppleIdTokenVerifier
 import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.config.EmailConfig
+import com.calmed.calmedbackend.config.GoogleOAuthConfig
 import com.calmed.calmedbackend.config.JwtConfig
 import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.AppResult
@@ -49,7 +50,8 @@ class AuthService(private val userService: IUserService,
 				  private val userInfoTourettesService: IUserInfoTourettesService,
 				  private val jwtConfig: JwtConfig,
 				  private val emailConfig: EmailConfig,
-				  private val appleConfig: AppleConfig
+				  private val appleConfig: AppleConfig,
+				  private val googleOAuthConfig: GoogleOAuthConfig
 ) : IAuthService {
 	private val googleHttp = HttpClient {
 		install(ContentNegotiation) {
@@ -89,7 +91,7 @@ class AuthService(private val userService: IUserService,
 
 			val claims = AppleTokenClaims(
 				iss = "https://appleid.apple.com",
-				aud = appleConfig.clientId,
+				aud = identityTokenAudience(identityToken), // Get the actual audience from the token
 				sub = verified.subject,
 				email = verified.email,
 				email_verified = verified.emailVerified?.toString()
@@ -105,11 +107,28 @@ class AuthService(private val userService: IUserService,
 		}
 	}
 
+	private fun identityTokenAudience(token: String): String? {
+		val parts = token.split(".")
+		if (parts.size < 2) return null
+		val payloadJson = String(base64UrlDecode(parts[1]), Charsets.UTF_8)
+		val regex = """"aud"\s*:\s*\[?\s*"([^"]+)"\s*\]?""".toRegex()
+		return regex.find(payloadJson)?.groupValues?.getOrNull(1)
+	}
 	private suspend fun verifyGoogleIdToken(idToken: String): AppResult<GoogleTokenInfo> {
 		return try {
 			val info: GoogleTokenInfo = googleHttp.get("https://oauth2.googleapis.com/tokeninfo") {
 				url { parameters.append("id_token", idToken) }
 			}.body()
+
+			val allowedAudiences = listOfNotNull(
+				googleOAuthConfig.webClientId,
+				googleOAuthConfig.iosClientId,
+				googleOAuthConfig.androidClientId
+			)
+
+			if (info.aud == null || info.aud !in allowedAudiences) {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token audience mismatch")
+			}
 
 			if (info.email.isNullOrBlank()) {
 				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing email")

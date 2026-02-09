@@ -2,6 +2,7 @@ package com.calmed.calmedbackend.di
 
 import com.calmed.calmedbackend.auth.apple.AppleTokenApi
 import com.calmed.calmedbackend.config.AppleConfig
+import com.calmed.calmedbackend.config.GoogleOAuthConfig
 import com.calmed.calmedbackend.service.implementation.AuthCredentialService
 import com.calmed.calmedbackend.service.implementation.AuthService
 import com.calmed.calmedbackend.service.implementation.RefreshTokenService
@@ -45,7 +46,7 @@ val serviceModule = module {
 	single<IProgramExerciseService> { ProgramExerciseService(get()) }
 	single<IUserProgramService> { UserProgramService(get(), get()) }
 	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get(), get()) }
-	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get()) }
+	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get()) }
 	single<HomeService> { HomeServiceImpl(programExerciseService = get(), userService = get())
 	}
 }
