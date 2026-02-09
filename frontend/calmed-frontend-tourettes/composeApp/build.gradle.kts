@@ -66,7 +66,7 @@ kotlin {
 			isStatic = true
 		}
 		pod("GoogleSignIn") {
-			version = "~> 7.0"
+			version = "~> 7.0.0"
 		}
 	}
 
@@ -78,8 +78,6 @@ kotlin {
 
 	sourceSets {
 		commonMain.dependencies {
-			// implementation(libs.androidxCoreKtx) // Moved to androidMain
-			// implementation(libs.androidxAppcompat) // Moved to androidMain
 			implementation(compose.runtime)
 			implementation(compose.foundation)
 			implementation(compose.material3)
@@ -113,11 +111,6 @@ kotlin {
 			implementation(libs.squareupOkio)
 
 			implementation(libs.oAuthJavaJwt)
-
-			// implementation(libs.androidxCredentials) // Moved to androidMain
-			// implementation(libs.androidxCredentialsPlayServicesAuth) // Moved to androidMain
-			// implementation(libs.googleAndroidLibrariesIdentityGoogleId) // Moved to androidMain
-			// implementation(libs.googleAndroidGmsPlayServicesAuth) // Moved to androidMain
 			implementation(libs.multiplatformSettings)
 
 		}
@@ -155,6 +148,8 @@ kotlin {
 
 		}
 		iosMain.dependencies {
+			implementation(libs.roomRuntime)
+			implementation(libs.sqliteBundled)
 			implementation(libs.ktorClientDarwin)
 		}
 		iosArm64Main.dependencies {
@@ -166,6 +161,11 @@ kotlin {
 			implementation(libs.kotlinxCoroutinesCoreIosSimulatorArm64)
 			implementation(libs.koinCoreIosSimulatorArm64)
 			implementation(libs.roomRuntimeIosSimulatorArm64)
+		}
+		iosX64Main.dependencies {
+			implementation(libs.kotlinxCoroutinesCoreIosX64)
+			implementation(libs.koinCoreIosX64)
+			implementation(libs.roomRuntimeIosX64)
 		}
 	}
 }
@@ -209,9 +209,11 @@ dependencies {
 	add("kspAndroid", libs.roomCompiler)
 	add("kspIosArm64", libs.roomCompiler)
 	add("kspIosSimulatorArm64", libs.roomCompiler)
+	add("kspIosX64", libs.roomCompiler)
 
 	add("kspAndroid", libs.koinKspCompiler)
 	add("kspIosArm64", libs.koinKspCompiler)
 	add("kspIosSimulatorArm64", libs.koinKspCompiler)
+	add("kspIosX64", libs.koinKspCompiler)
 }
 
