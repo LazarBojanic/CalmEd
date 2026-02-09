@@ -23,7 +23,7 @@ object AppleClientSecret {
         val claims = JWTClaimsSet.Builder()
             .issuer(appleConfig.teamId) // iss = Team ID
             .subject(appleConfig.clientId) // sub = client_id (Service ID)
-            .audience(appleConfig.iosBundleId) // aud = ios_bundle_id
+            .audience("https://appleid.apple.com") // aud = Apple
             .issueTime(Date.from(now))
             .expirationTime(Date.from(exp))
             .build()

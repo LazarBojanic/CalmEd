@@ -12,26 +12,23 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import java.util.Date
 
-data class AppleIdTokenClaims(
-    val subject: String, // sub (Apple user id)
-    val email: String? = null,
-    val emailVerified: Boolean? = null
-)
+
 
 class AppleIdTokenVerifier(
     private val http: HttpClient,
     private val config: AppleConfig
 ) {
-    suspend fun verify(idToken: String): AppleIdTokenClaims {
+    suspend fun verify(idToken: String): AppleClaims {
         val jwt = SignedJWT.parse(idToken)
 
         // 1) issuer + audience + exp
         val claims = jwt.jwtClaimsSet
 
-        val iss = claims.issuer
-        require(iss == "https://appleid.apple.com") { "Invalid issuer: $iss" }
+        require(claims.issuer == "https://appleid.apple.com") { "Invalid issuer: $claims.issuer" }
         val exp = claims.expirationTime
         require(exp != null && exp.after(Date())) { "Token expired" }
+
+        require(config.clientId in claims.audience) { "Invalid clientId" }
 
         // 2) signature verify using Apple's JWKs
         val kid = jwt.header.keyID ?: error("Missing kid in token header")
@@ -54,13 +51,17 @@ class AppleIdTokenVerifier(
 
         require(jwt.verify(verifier)) { "Invalid Apple token signature" }
 
-        val aud = claims.audience
+        val iss = claims.issuer
+        val aud = config.clientId
+
         val sub = claims.subject ?: error("Missing sub")
         val email = claims.getStringClaim("email")
         val emailVerified = claims.getBooleanClaim("email_verified")
 
-        return AppleIdTokenClaims(
-            subject = sub,
+        return AppleClaims(
+            iss = iss,
+            aud = aud,
+            sub = sub,
             email = email,
             emailVerified = emailVerified
         )
