@@ -42,12 +42,19 @@ class AppleIdTokenVerifier(
         val jwk = jwkSet.keys.firstOrNull { it.keyID == kid }
             ?: error("Apple JWK not found for kid=$kid")
 
-        require(jwt.header.algorithm == JWSAlgorithm.ES256) { "Unexpected alg: ${jwt.header.algorithm}" }
+        val verifier = if (jwt.header.algorithm == JWSAlgorithm.ES256) {
+            val ecKey = jwk.toECKey()
+            ECDSAVerifier(ecKey.toECPublicKey())
+        } else if (jwt.header.algorithm == JWSAlgorithm.RS256) {
+            val rsaKey = jwk.toRSAKey()
+            RSASSAVerifier(rsaKey.toRSAPublicKey())
+        } else {
+            error("Unexpected alg: ${jwt.header.algorithm}")
+        }
 
-        val ecKey = jwk.toECKey()
-        val verifier = ECDSAVerifier(ecKey.toECPublicKey())
         require(jwt.verify(verifier)) { "Invalid Apple token signature" }
 
+        val aud = claims.audience
         val sub = claims.subject ?: error("Missing sub")
         val email = claims.getStringClaim("email")
         val emailVerified = claims.getBooleanClaim("email_verified")
