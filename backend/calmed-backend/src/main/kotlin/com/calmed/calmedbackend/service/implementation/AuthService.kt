@@ -120,16 +120,6 @@ class AuthService(private val userService: IUserService,
 				url { parameters.append("id_token", idToken) }
 			}.body()
 
-			val allowedAudiences = listOfNotNull(
-				googleOAuthConfig.webClientId,
-				googleOAuthConfig.iosClientId,
-				googleOAuthConfig.androidClientId
-			)
-
-			if (info.aud == null || info.aud !in allowedAudiences) {
-				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token audience mismatch")
-			}
-
 			if (info.email.isNullOrBlank()) {
 				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing email")
 			}
