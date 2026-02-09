@@ -1,5 +1,7 @@
 TEAM_ID=
 
+GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.REPLACE_ME
+
 PRODUCT_NAME=calmedfrontendtourettes
 PRODUCT_BUNDLE_IDENTIFIER=com.calmed.calmedfrontendtourettes.calmedfrontendtourettes$(TEAM_ID)
 

@@ -11,6 +11,16 @@ plugins {
 	alias(libs.plugins.ksp)
 	alias(libs.plugins.room)
 	alias(libs.plugins.buildConfig)
+	kotlin("native.cocoapods")
+}
+dependencies {
+	debugImplementation(compose.uiTooling)
+}
+compose {
+	resources {
+		packageOfResClass = "com.calmed.calmedfrontendtourettes"
+		generateResClass = auto
+	}
 }
 
 
@@ -41,21 +51,35 @@ kotlin {
 		}
 	}
 
-	listOf(
-		iosArm64(),
-		iosSimulatorArm64()
-	).forEach { iosTarget ->
-		iosTarget.binaries.framework {
+	iosArm64()
+	iosSimulatorArm64()
+	iosX64()
+
+	cocoapods {
+		summary = "Some description for the Shared Module"
+		homepage = "Link to the Shared Module homepage"
+		version = "1.0"
+		ios.deploymentTarget = "15.0"
+		podfile = project.file("../iosApp/Podfile")
+		framework {
 			baseName = "ComposeApp"
 			isStatic = true
-			linkerOpts.add("-lsqlite3")
+		}
+		pod("GoogleSignIn") {
+			version = "~> 7.0"
+		}
+	}
+
+	targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
+		binaries.all {
+			linkerOpts("-lsqlite3")
 		}
 	}
 
 	sourceSets {
 		commonMain.dependencies {
-			implementation(libs.androidxCoreKtx)
-			implementation(libs.androidxAppcompat)
+			// implementation(libs.androidxCoreKtx) // Moved to androidMain
+			// implementation(libs.androidxAppcompat) // Moved to androidMain
 			implementation(compose.runtime)
 			implementation(compose.foundation)
 			implementation(compose.material3)
@@ -90,10 +114,10 @@ kotlin {
 
 			implementation(libs.oAuthJavaJwt)
 
-			implementation(libs.androidxCredentials)
-			implementation(libs.androidxCredentialsPlayServicesAuth)
-			implementation(libs.googleAndroidLibrariesIdentityGoogleId)
-			implementation(libs.googleAndroidGmsPlayServicesAuth)
+			// implementation(libs.androidxCredentials) // Moved to androidMain
+			// implementation(libs.androidxCredentialsPlayServicesAuth) // Moved to androidMain
+			// implementation(libs.googleAndroidLibrariesIdentityGoogleId) // Moved to androidMain
+			// implementation(libs.googleAndroidGmsPlayServicesAuth) // Moved to androidMain
 			implementation(libs.multiplatformSettings)
 
 		}
@@ -189,6 +213,5 @@ dependencies {
 	add("kspAndroid", libs.koinKspCompiler)
 	add("kspIosArm64", libs.koinKspCompiler)
 	add("kspIosSimulatorArm64", libs.koinKspCompiler)
-	debugImplementation(compose.uiTooling)
 }
 

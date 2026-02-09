@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import calmedfrontendtourettes.composeapp.generated.resources.Res
-import calmedfrontendtourettes.composeapp.generated.resources.ic_google_logo
+import com.calmed.calmedfrontendtourettes.Res
+import com.calmed.calmedfrontendtourettes.ic_google_logo
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
