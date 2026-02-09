@@ -41,6 +41,7 @@ buildConfig{
 	buildConfigField("adbReverse", (local.getProperty("ADB_REVERSE") ?: "false").toBoolean())
 	buildConfigField("googleWebClientId", local.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "")
 	buildConfigField("googleIosClientId", local.getProperty("GOOGLE_IOS_CLIENT_ID") ?: "")
+	buildConfigField("googleAndroidClientId", local.getProperty("GOOGLE_ANDROID_CLIENT_ID") ?: "")
 	buildConfigField("appleWebClientId", local.getProperty("APPLE_WEB_CLIENT_ID") ?: "")
 	buildConfigField("appleCallbackURI", local.getProperty("APPLE_CALLBACK_URI") ?: "")
 }

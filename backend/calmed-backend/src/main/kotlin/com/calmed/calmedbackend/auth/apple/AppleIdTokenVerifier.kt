@@ -30,11 +30,6 @@ class AppleIdTokenVerifier(
 
         val iss = claims.issuer
         require(iss == "https://appleid.apple.com") { "Invalid issuer: $iss" }
-
-        val allowedAudiences = listOfNotNull(config.clientId, config.iosBundleId.takeIf { it.isNotBlank() })
-        val audOk = claims.audience?.any { it in allowedAudiences } == true
-        require(audOk) { "Invalid audience: ${claims.audience}. Expected one of: $allowedAudiences" }
-
         val exp = claims.expirationTime
         require(exp != null && exp.after(Date())) { "Token expired" }
 
