@@ -28,7 +28,15 @@ class AppleIdTokenVerifier(
         val exp = claims.expirationTime
         require(exp != null && exp.after(Date())) { "Token expired" }
 
-        require(config.clientId in claims.audience) { "Invalid clientId" }
+        val allowedAudiences = buildList {
+            if (config.clientId.isNotBlank()) add(config.clientId)
+            if (config.iosBundleId.isNotBlank()) add(config.iosBundleId)
+        }.toSet()
+
+        val tokenAudiences = claims.audience?.toSet().orEmpty()
+        require(tokenAudiences.any { it in allowedAudiences }) {
+            "Invalid audience. tokenAud=$tokenAudiences, allowedAud=$allowedAudiences"
+        }
 
         // 2) signature verify using Apple's JWKs
         val kid = jwt.header.keyID ?: error("Missing kid in token header")
@@ -52,7 +60,7 @@ class AppleIdTokenVerifier(
         require(jwt.verify(verifier)) { "Invalid Apple token signature" }
 
         val iss = claims.issuer
-        val aud = config.clientId
+        val aud = claims.audience?.firstOrNull() ?: ""
 
         val sub = claims.subject ?: error("Missing sub")
         val email = claims.getStringClaim("email")
