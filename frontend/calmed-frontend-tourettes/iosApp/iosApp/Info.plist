@@ -50,6 +50,20 @@
 				<key>NSIncludesSubdomains</key>
 				<true/>
 			</dict>
+			<key>192.168.0.25</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+			<key>192.168.0.35</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
 		</dict>
 	</dict>
 	<key>UILaunchScreen</key>
