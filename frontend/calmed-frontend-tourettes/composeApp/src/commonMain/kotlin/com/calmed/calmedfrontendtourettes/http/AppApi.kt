@@ -12,7 +12,7 @@ import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpd
 import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserInfoTourettesDto
-import com.calmed.calmedfrontendtourettes.model.home.HomeDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
 import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
@@ -24,7 +24,6 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.request
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.first
 
