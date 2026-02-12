@@ -63,6 +63,7 @@ kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-cor
 kotlinxCoroutinesAndroid = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinxCoroutinesCoreIosArm64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-iosarm64", version.ref = "kotlinxCoroutines" }
 kotlinxCoroutinesCoreIosSimulatorArm64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-iossimulatorarm64", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesCoreIosX64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-iosx64", version.ref = "kotlinxCoroutines" }
 
 ktorClientCore = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktorClientOkHttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
@@ -76,6 +77,7 @@ koinKspCompiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "
 koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koinCoreIosArm64 = { module = "io.insert-koin:koin-core-iosarm64", version.ref = "koin" }
 koinCoreIosSimulatorArm64 = { module = "io.insert-koin:koin-core-iossimulatorarm64", version.ref = "koin" }
+koinCoreIosX64 = { module = "io.insert-koin:koin-core-iosx64", version.ref = "koin" }
 koinCompose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 koinComposeViewModel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
 koinAnnotations = {module = "io.insert-koin:koin-annotations", version.ref = "koinKspCompiler"}
@@ -85,6 +87,7 @@ roomRuntime = { module = "androidx.room:room-runtime", version.ref = "room" }
 roomRuntimeAndroid = { module = "androidx.room:room-runtime-android", version.ref = "room" }
 roomRuntimeIosArm64 = { module = "androidx.room:room-runtime-iosarm64", version.ref = "room" }
 roomRuntimeIosSimulatorArm64 = { module = "androidx.room:room-runtime-iossimulatorarm64", version.ref = "room" }
+roomRuntimeIosX64 = { module = "androidx.room:room-runtime-iosx64", version.ref = "room" }
 sqliteBundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 sqliteWrapper = { module = "androidx.room:room-sqlite-wrapper", version.ref = "room" }
 

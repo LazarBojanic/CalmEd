@@ -11,6 +11,16 @@ plugins {
 	alias(libs.plugins.ksp)
 	alias(libs.plugins.room)
 	alias(libs.plugins.buildConfig)
+	kotlin("native.cocoapods")
+}
+dependencies {
+	debugImplementation(compose.uiTooling)
+}
+compose {
+	resources {
+		packageOfResClass = "com.calmed.calmedfrontendtourettes"
+		generateResClass = auto
+	}
 }
 
 
@@ -30,6 +40,9 @@ buildConfig{
 	buildConfigField("development", (local.getProperty("DEVELOPMENT") ?: "false").toBoolean())
 	buildConfigField("adbReverse", (local.getProperty("ADB_REVERSE") ?: "false").toBoolean())
 	buildConfigField("googleWebClientId", local.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "")
+	buildConfigField("googleIosClientId", local.getProperty("GOOGLE_IOS_CLIENT_ID") ?: "")
+	buildConfigField("googleAndroidClientId", local.getProperty("GOOGLE_ANDROID_CLIENT_ID") ?: "")
+	buildConfigField("appleIosBundleId", local.getProperty("APPLE_IOS_BUNDLE_ID") ?: "")
 	buildConfigField("appleWebClientId", local.getProperty("APPLE_WEB_CLIENT_ID") ?: "")
 	buildConfigField("appleCallbackURI", local.getProperty("APPLE_CALLBACK_URI") ?: "")
 }
@@ -41,21 +54,33 @@ kotlin {
 		}
 	}
 
-	listOf(
-		iosArm64(),
-		iosSimulatorArm64()
-	).forEach { iosTarget ->
-		iosTarget.binaries.framework {
+	iosArm64()
+	iosSimulatorArm64()
+	iosX64()
+
+	cocoapods {
+		summary = "Some description for the Shared Module"
+		homepage = "Link to the Shared Module homepage"
+		version = "1.0"
+		ios.deploymentTarget = "15.0"
+		podfile = project.file("../iosApp/Podfile")
+		framework {
 			baseName = "ComposeApp"
 			isStatic = true
-			linkerOpts.add("-lsqlite3")
+		}
+		pod("GoogleSignIn") {
+			version = "~> 7.0.0"
+		}
+	}
+
+	targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
+		binaries.all {
+			linkerOpts("-lsqlite3")
 		}
 	}
 
 	sourceSets {
 		commonMain.dependencies {
-			implementation(libs.androidxCoreKtx)
-			implementation(libs.androidxAppcompat)
 			implementation(compose.runtime)
 			implementation(compose.foundation)
 			implementation(compose.material3)
@@ -89,11 +114,6 @@ kotlin {
 			implementation(libs.squareupOkio)
 
 			implementation(libs.oAuthJavaJwt)
-
-			implementation(libs.androidxCredentials)
-			implementation(libs.androidxCredentialsPlayServicesAuth)
-			implementation(libs.googleAndroidLibrariesIdentityGoogleId)
-			implementation(libs.googleAndroidGmsPlayServicesAuth)
 			implementation(libs.multiplatformSettings)
 			implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
@@ -132,6 +152,8 @@ kotlin {
 
 		}
 		iosMain.dependencies {
+			implementation(libs.roomRuntime)
+			implementation(libs.sqliteBundled)
 			implementation(libs.ktorClientDarwin)
 		}
 		iosArm64Main.dependencies {
@@ -143,6 +165,11 @@ kotlin {
 			implementation(libs.kotlinxCoroutinesCoreIosSimulatorArm64)
 			implementation(libs.koinCoreIosSimulatorArm64)
 			implementation(libs.roomRuntimeIosSimulatorArm64)
+		}
+		iosX64Main.dependencies {
+			implementation(libs.kotlinxCoroutinesCoreIosX64)
+			implementation(libs.koinCoreIosX64)
+			implementation(libs.roomRuntimeIosX64)
 		}
 	}
 }
@@ -186,10 +213,11 @@ dependencies {
 	add("kspAndroid", libs.roomCompiler)
 	add("kspIosArm64", libs.roomCompiler)
 	add("kspIosSimulatorArm64", libs.roomCompiler)
+	add("kspIosX64", libs.roomCompiler)
 
 	add("kspAndroid", libs.koinKspCompiler)
 	add("kspIosArm64", libs.koinKspCompiler)
 	add("kspIosSimulatorArm64", libs.koinKspCompiler)
-	debugImplementation(compose.uiTooling)
+	add("kspIosX64", libs.koinKspCompiler)
 }
 

@@ -20,6 +20,25 @@ class ProgramExerciseService(private val repository: IProgramExerciseRepository)
 		return AppResult.Success(found.join())
 	}
 
+	override suspend fun getUpNext(): AppResult<ProgramExerciseJoined> {
+		val found = repository.findUpNext()
+		return if (found != null) {
+			AppResult.Success(found.join())
+		} else {
+			AppResult.Failure(HttpStatusCode.NotFound, "No up next program exercise found.")
+		}
+	}
+
+	override suspend fun getUpNextList(limit: Int): AppResult<List<ProgramExerciseJoined>> {
+		val list = repository.findUpNextList(limit).map { it.join() }
+		return AppResult.Success(list)
+	}
+
+	override suspend fun getByWeek(week: Int): AppResult<List<ProgramExerciseJoined>> {
+		val list = repository.findByWeek(week).map { it.join() }
+		return AppResult.Success(list)
+	}
+
 	override suspend fun create(programExercise: ProgramExercise): AppResult<ProgramExerciseJoined> {
 		val created = repository.create(programExercise) ?: return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to create program exercise.")
 		return AppResult.Success(created.join())

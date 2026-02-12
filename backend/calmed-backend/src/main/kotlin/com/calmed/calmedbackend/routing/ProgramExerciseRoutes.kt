@@ -35,6 +35,28 @@ fun Route.programExerciseRoutes() {
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
+			get("/up-next") {
+				when (val res = service.getUpNext()) {
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
+					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+				}
+			}
+			get("/week/{week}") {
+				val weekParam = call.parameters["week"]
+				if (weekParam == null) {
+					call.respond(HttpStatusCode.BadRequest, "Missing week parameter")
+					return@get
+				}
+				val week = weekParam.toIntOrNull()
+				if (week == null) {
+					call.respond(HttpStatusCode.BadRequest, "Invalid week parameter")
+					return@get
+				}
+				when (val res = service.getByWeek(week)) {
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto() })
+					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+				}
+			}
 		}
 	}
 }

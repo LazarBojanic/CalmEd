@@ -8,6 +8,8 @@ import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseTable
 import com.calmed.calmedbackend.model.setFrom
 import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.repository.specification.IProgramExerciseRepository
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.eq
 import java.util.UUID
 
 class ProgramExerciseRepository : IProgramExerciseRepository {
@@ -17,6 +19,33 @@ class ProgramExerciseRepository : IProgramExerciseRepository {
 
 	override suspend fun findById(id: UUID): ProgramExercise? = withTransaction {
 		ProgramExerciseEntity.findById(id)?.toRaw()
+	}
+
+	override suspend fun findUpNext(): ProgramExercise? = withTransaction {
+		ProgramExerciseEntity.all()
+			.orderBy(
+				ProgramExerciseTable.weekNumber to SortOrder.ASC,
+				ProgramExerciseTable.orderInWeek to SortOrder.ASC
+			)
+			.limit(1)
+			.firstOrNull()
+			?.toRaw()
+	}
+
+	override suspend fun findUpNextList(limit: Int): List<ProgramExercise> = withTransaction {
+		ProgramExerciseEntity.all()
+			.orderBy(
+				ProgramExerciseTable.weekNumber to SortOrder.ASC,
+				ProgramExerciseTable.orderInWeek to SortOrder.ASC
+			)
+			.limit(limit)
+			.map { it.toRaw() }
+	}
+
+	override suspend fun findByWeek(week: Int): List<ProgramExercise> = withTransaction {
+		ProgramExerciseEntity.find { ProgramExerciseTable.weekNumber eq week }
+			.orderBy(ProgramExerciseTable.orderInWeek to SortOrder.ASC)
+			.map { it.toRaw() }
 	}
 
 	override suspend fun create(programExercise: ProgramExercise): ProgramExercise? = withTransaction {

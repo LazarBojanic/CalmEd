@@ -45,7 +45,10 @@ email:
 oauth:
     google:
         web_client_id: ${OAUTH_GOOGLE_WEB_CLIENT_ID:placeholder}
+        ios_client_id: ${OAUTH_GOOGLE_IOS_CLIENT_ID:placeholder}
+        android_client_id: ${OAUTH_GOOGLE_ANDROID_CLIENT_ID:placeholder}
     apple:
+        ios_bundle_id: ${OAUTH_APPLE_IOS_BUNDLE_ID:placeholder}
         team_id: ${OAUTH_APPLE_TEAM_ID:placeholder}
         key_id: ${OAUTH_APPLE_KEY_ID:placeholder}
         client_id: ${OAUTH_APPLE_CLIENT_ID:placeholder}

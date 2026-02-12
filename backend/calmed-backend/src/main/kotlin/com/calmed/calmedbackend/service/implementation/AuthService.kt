@@ -5,9 +5,11 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.JWTVerifier
 import com.calmed.calmedbackend.auth.TokenType
+import com.calmed.calmedbackend.auth.apple.AppleClaims
 import com.calmed.calmedbackend.auth.apple.AppleIdTokenVerifier
 import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.config.EmailConfig
+import com.calmed.calmedbackend.config.GoogleOAuthConfig
 import com.calmed.calmedbackend.config.JwtConfig
 import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.AppResult
@@ -49,7 +51,8 @@ class AuthService(private val userService: IUserService,
 				  private val userInfoTourettesService: IUserInfoTourettesService,
 				  private val jwtConfig: JwtConfig,
 				  private val emailConfig: EmailConfig,
-				  private val appleConfig: AppleConfig
+				  private val appleConfig: AppleConfig,
+				  private val googleOAuthConfig: GoogleOAuthConfig
 ) : IAuthService {
 	private val googleHttp = HttpClient {
 		install(ContentNegotiation) {
@@ -67,35 +70,13 @@ class AuthService(private val userService: IUserService,
 							   val email_verified: String? = null,
 							   val aud: String? = null
 	)
-	@Serializable
-	data class AppleTokenClaims(
-		val iss: String? = null,
-		val aud: String? = null,
-		val sub: String? = null,
-		val email: String? = null,
-		val email_verified: String? = null
-	)
-	private fun jwtKid(token: String): String? {
-		val parts = token.split(".")
-		if (parts.size < 2) return null
-		val headerJson = String(base64UrlDecode(parts[0]), Charsets.UTF_8)
-		val regex = """"kid"\s*:\s*"([^"]+)"""".toRegex()
-		return regex.find(headerJson)?.groupValues?.getOrNull(1)
-	}
-	private suspend fun verifyAppleIdentityToken(identityToken: String): AppResult<AppleTokenClaims> {
+
+	private suspend fun verifyAppleIdentityToken(identityToken: String): AppResult<AppleClaims> {
 		return try {
 			val verifier = AppleIdTokenVerifier(appleHttp, appleConfig)
-			val verified = verifier.verify(identityToken)
+			val claims = verifier.verify(identityToken)
 
-			val claims = AppleTokenClaims(
-				iss = "https://appleid.apple.com",
-				aud = appleConfig.clientId,
-				sub = verified.subject,
-				email = verified.email,
-				email_verified = verified.emailVerified?.toString()
-			)
-
-			if (claims.sub.isNullOrBlank()) {
+			if (claims.sub.isEmpty()) {
 				AppResult.Failure(HttpStatusCode.Unauthorized, "Apple token missing sub")
 			} else {
 				AppResult.Success(claims)
@@ -459,10 +440,7 @@ class AuthService(private val userService: IUserService,
 			when (tokenInfoResult) {
 				is AppResult.Success -> {
 					val tokenInfo = tokenInfoResult.data
-					val appleSub = tokenInfo.sub ?: return@withTransaction AppResult.Failure(
-						HttpStatusCode.Unauthorized,
-						"Apple token missing sub"
-					)
+					val appleSub = tokenInfo.sub
 					val email = tokenInfo.email
 					val safeEmail = email ?: "apple_${appleSub}@apple.local"
 

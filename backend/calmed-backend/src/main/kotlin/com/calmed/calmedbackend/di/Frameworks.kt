@@ -3,6 +3,7 @@ package com.calmed.calmedbackend.di
 import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.config.DatabaseConfig
 import com.calmed.calmedbackend.config.EmailConfig
+import com.calmed.calmedbackend.config.GoogleOAuthConfig
 import com.calmed.calmedbackend.config.JwtConfig
 import com.calmed.calmedbackend.config.KtorConfig
 import io.ktor.server.application.*
@@ -19,6 +20,7 @@ fun Application.configureFrameworks() {
 			module { single { DatabaseConfig.from(environment.config) } },
 			module { single { EmailConfig.from(environment.config) } },
 			module { single { AppleConfig.from(environment.config) } },
+			module { single { GoogleOAuthConfig.from(environment.config) } },
 			repositoryModule,
 			serviceModule,
 		)
