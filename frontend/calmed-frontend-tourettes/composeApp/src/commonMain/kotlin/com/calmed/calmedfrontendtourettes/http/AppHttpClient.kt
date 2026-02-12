@@ -11,12 +11,17 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.accept
+import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 class AppHttpClient(
@@ -24,9 +29,8 @@ class AppHttpClient(
     val platformEngine: HttpClientEngineFactory<*>,
     private val tokenStore: ITokenDataStore
 ) {
-    init {
-        println("HTTP baseUrl = $baseUrl")
-    }
+
+
     val client: HttpClient = HttpClient(platformEngine) {
 
         install(ContentNegotiation) {
@@ -39,32 +43,48 @@ class AppHttpClient(
                 }
             )
         }
+
         install(Logging) {
             logger = Logger.DEFAULT
             level = LogLevel.ALL
         }
+
         install(HttpTimeout) {
             requestTimeoutMillis = 30_000
             connectTimeoutMillis = 30_000
             socketTimeoutMillis = 30_000
         }
+
         install(DefaultRequest) {
-            println("HTTP baseUrl = $baseUrl")
-            url {
-                takeFrom(baseUrl)
-            }
-            println("HTTP full url = ${url.buildString()}")
+            url { takeFrom(baseUrl) }
+
+
+            headers.append("User-Agent", "Mozilla/5.0 (Android) CalmEd")
+            headers.append("Accept", "image/*,*/*;q=0.8")
+
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
+
             val token = tokenStore.tokenDto.value
-            if (token != null) {
-                val access = token.access
-                if (access != null) {
-                    if (access.isNotBlank()) {
-                        header(HttpHeaders.Authorization, "Bearer $access")
-                    }
-                }
+            val access = token?.access
+            if (!access.isNullOrBlank()) {
+                header(HttpHeaders.Authorization, "Bearer $access")
             }
         }
     }
+
+    init {
+        println("HTTP baseUrl = $baseUrl")
+    }
+
+
+    suspend fun testThumb(url: String): Int {
+        val response: HttpResponse = client.get(url) {
+            header(HttpHeaders.UserAgent, "Mozilla/5.0 (Android) CalmEd")
+            header(HttpHeaders.Accept, "image/*,*/*;q=0.8")
+        }
+        return response.status.value
+    }
+
+
 }

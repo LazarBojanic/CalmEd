@@ -1,5 +1,6 @@
 package com.calmed.calmedfrontendtourettes.model.home
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -37,7 +38,9 @@ data class ProgramExerciseDto(
     val weekNumber: Int,
     val title: String,
     val description: String?,
+    @SerialName("videoURL")
     val videoURL: String?,
+    @SerialName("thumbnailURL")
     val thumbnailURL: String?,
     val orderInWeek: Int?
 )

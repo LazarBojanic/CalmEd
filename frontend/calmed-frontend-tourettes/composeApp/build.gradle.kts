@@ -116,6 +116,10 @@ kotlin {
 			implementation(libs.oAuthJavaJwt)
 			implementation(libs.multiplatformSettings)
 			implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+			implementation("media.kamel:kamel-image:0.9.3")
+
+
+
 
 		}
 		androidMain.dependencies {
@@ -149,6 +153,7 @@ kotlin {
 			implementation(libs.media3ExoplayerHLS)
 			implementation(libs.media3ExoplayerDash)
 			implementation(libs.androidxBrowser)
+
 
 		}
 		iosMain.dependencies {
