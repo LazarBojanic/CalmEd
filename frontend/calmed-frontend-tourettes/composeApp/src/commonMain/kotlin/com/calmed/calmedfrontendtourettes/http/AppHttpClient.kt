@@ -78,13 +78,5 @@ class AppHttpClient(
     }
 
 
-    suspend fun testThumb(url: String): Int {
-        val response: HttpResponse = client.get(url) {
-            header(HttpHeaders.UserAgent, "Mozilla/5.0 (Android) CalmEd")
-            header(HttpHeaders.Accept, "image/*,*/*;q=0.8")
-        }
-        return response.status.value
-    }
-
 
 }

@@ -3,7 +3,7 @@ package com.calmed.calmedfrontendtourettes.viewmodel
 import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpdateDto
-import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
+import com.calmed.calmedfrontendtourettes.model.home.HomeDto
 import com.calmed.calmedfrontendtourettes.model.joined.UserInfoTourettesJoined
 import com.calmed.calmedfrontendtourettes.model.joined.UserJoined
 import com.calmed.calmedfrontendtourettes.model.toEntity
@@ -198,7 +198,6 @@ class SessionViewModel(
 	suspend fun loadHome(year: Int, month: Int) {
 		try {
 			val result = homeRepository.getHome(year, month)
-			println("HOME OK currentWeek=${result?.currentWeek ?: "NULL"}")
 			_home.value = result
 		} catch (t: Throwable) {
 			println("HOME ERROR ${t.message}")

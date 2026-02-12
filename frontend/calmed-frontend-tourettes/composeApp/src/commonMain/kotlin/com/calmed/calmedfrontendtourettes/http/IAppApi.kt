@@ -12,7 +12,7 @@ import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpd
 import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserInfoTourettesDto
-import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
+import com.calmed.calmedfrontendtourettes.model.home.HomeDto
 
 interface IAppApi {
     suspend fun register(dto: RegisterUserDto): TokenDto?

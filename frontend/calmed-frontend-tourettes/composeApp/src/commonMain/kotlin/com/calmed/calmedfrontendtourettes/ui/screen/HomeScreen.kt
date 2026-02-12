@@ -40,7 +40,7 @@ import org.koin.compose.koinInject
 fun HomeScreen(
     sessionViewModel: SessionViewModel = koinInject()
 ) {
-    val home = sessionViewModel.home.collectAsState().value
+    val home by sessionViewModel.home.collectAsState(initial = null)
     val ymd = currentYmd()
     val days = home?.calendar?.days ?: emptyList()
     val appHttpClient: AppHttpClient = koinInject()
