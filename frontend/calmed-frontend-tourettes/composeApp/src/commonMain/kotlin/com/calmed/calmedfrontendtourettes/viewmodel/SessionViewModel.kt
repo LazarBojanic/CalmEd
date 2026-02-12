@@ -3,7 +3,7 @@ package com.calmed.calmedfrontendtourettes.viewmodel
 import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpdateDto
-import com.calmed.calmedfrontendtourettes.model.home.HomeDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
 import com.calmed.calmedfrontendtourettes.model.joined.UserInfoTourettesJoined
 import com.calmed.calmedfrontendtourettes.model.joined.UserJoined
 import com.calmed.calmedfrontendtourettes.model.toEntity
