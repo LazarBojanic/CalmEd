@@ -38,6 +38,10 @@ class ProgramExerciseService(private val repository: IProgramExerciseRepository)
 		val list = repository.findByWeek(week).map { it.join() }
 		return AppResult.Success(list)
 	}
+	override suspend fun getUpNextByWeek(week: Int, limit: Int): AppResult<List<ProgramExerciseJoined>> {
+		val list = repository.findUpNextByWeek(week, limit).map { it.join() }
+		return AppResult.Success(list)
+	}
 
 	override suspend fun create(programExercise: ProgramExercise): AppResult<ProgramExerciseJoined> {
 		val created = repository.create(programExercise) ?: return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to create program exercise.")

@@ -2,9 +2,9 @@ package com.calmed.calmedbackend.di
 
 import com.calmed.calmedbackend.auth.apple.AppleTokenApi
 import com.calmed.calmedbackend.config.AppleConfig
-import com.calmed.calmedbackend.config.GoogleOAuthConfig
 import com.calmed.calmedbackend.service.implementation.AuthCredentialService
 import com.calmed.calmedbackend.service.implementation.AuthService
+import com.calmed.calmedbackend.service.implementation.HomeService
 import com.calmed.calmedbackend.service.implementation.RefreshTokenService
 import com.calmed.calmedbackend.service.implementation.UserInfoTourettesService
 import com.calmed.calmedbackend.service.implementation.UserService
@@ -16,8 +16,7 @@ import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
 import com.calmed.calmedbackend.service.specification.IUserInfoTourettesService
 import com.calmed.calmedbackend.service.specification.IUserService
-import com.calmed.calmedbackend.service.specification.HomeService
-import com.calmed.calmedbackend.service.implementation.HomeService as HomeServiceImpl
+import com.calmed.calmedbackend.service.specification.IHomeService
 
 import com.calmed.calmedbackend.service.specification.IProgramExerciseService
 import com.calmed.calmedbackend.service.specification.IUserProgramService
@@ -47,6 +46,5 @@ val serviceModule = module {
 	single<IUserProgramService> { UserProgramService(get(), get()) }
 	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get(), get()) }
 	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get()) }
-	single<HomeService> { HomeServiceImpl(programExerciseService = get(), userService = get())
-	}
+	single<IHomeService> { HomeService(get(), get()) }
 }

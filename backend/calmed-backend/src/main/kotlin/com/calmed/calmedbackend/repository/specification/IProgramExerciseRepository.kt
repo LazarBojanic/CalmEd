@@ -9,6 +9,7 @@ interface IProgramExerciseRepository {
 	suspend fun findUpNext(): ProgramExercise?
 	suspend fun findUpNextList(limit: Int): List<ProgramExercise>
 	suspend fun findByWeek(week: Int): List<ProgramExercise>
+	suspend fun findUpNextByWeek(weekNumber: Int, limit: Int): List<ProgramExercise>
 	suspend fun create(programExercise: ProgramExercise): ProgramExercise?
 	suspend fun update(programExercise: ProgramExercise): ProgramExercise?
 	suspend fun delete(id: UUID): Boolean

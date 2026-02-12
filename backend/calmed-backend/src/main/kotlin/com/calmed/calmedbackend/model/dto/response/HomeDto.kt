@@ -7,7 +7,7 @@ data class HomeDto(
     val greetingName: String?,
     val avatarUrl: String?,
     val calendar: CalendarMonthDto,
-    val upNext: List<UpNextExerciseDto> = emptyList(),
+    val upNext: List<ProgramExerciseDto> = emptyList(),
     val currentWeek: Int
 )
 
@@ -22,13 +22,4 @@ data class CalendarMonthDto(
     val year: Int,
     val month: Int,
     val days: List<CalendarDayDto>
-)
-
-@Serializable
-data class UpNextExerciseDto(
-    val id: String,
-    val title: String,
-    val durationSeconds: Int?,
-    val thumbnailUrl: String?,
-    val videoUrl: String
 )

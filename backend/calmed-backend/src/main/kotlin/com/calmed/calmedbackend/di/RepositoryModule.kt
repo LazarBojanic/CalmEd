@@ -24,7 +24,6 @@ val repositoryModule = module {
 	single<IProgramExerciseRepository> { ProgramExerciseRepository() }
 	single<IUserProgramRepository> { UserProgramRepository() }
 	single<IUserExerciseProgressRepository> { UserExerciseProgressRepository() }
-	single { com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseRepository() }
 
 
 }

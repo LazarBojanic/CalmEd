@@ -1,6 +1,6 @@
 package com.calmed.calmedbackend.routing
 
-import com.calmed.calmedbackend.service.specification.HomeService
+import com.calmed.calmedbackend.service.specification.IHomeService
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.auth.jwt.JWTPrincipal
@@ -12,7 +12,7 @@ private const val BUILD_MARKER = "HOME_ROUTE_BUILD_2026_02_10"
 
 
 fun Route.homeRoutes() {
-    val homeService by inject<HomeService>()
+    val homeService by inject<IHomeService>()
 
     authenticate("auth-jwt") {
         get(path = "/home") {

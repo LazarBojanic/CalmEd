@@ -1,25 +1,27 @@
 package com.calmed.calmedbackend.service.implementation
 
+import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.response.CalendarDayDto
 import com.calmed.calmedbackend.model.dto.response.CalendarMonthDto
 import com.calmed.calmedbackend.model.dto.response.HomeDto
-import com.calmed.calmedbackend.model.dto.response.UpNextExerciseDto
-import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseRepository
-import com.calmed.calmedbackend.service.specification.HomeService as HomeServiceSpec
+import com.calmed.calmedbackend.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedbackend.model.toDto
+import com.calmed.calmedbackend.service.specification.IHomeService
+import com.calmed.calmedbackend.service.specification.IProgramExerciseService
 import com.calmed.calmedbackend.service.specification.IUserService
+import io.ktor.http.HttpStatusCode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
-import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class HomeService(
-    private val programExerciseRepository: ProgramExerciseRepository,
+    private val programExerciseService: IProgramExerciseService,
     private val userService: IUserService
-) : HomeServiceSpec {
+) : IHomeService {
 
     override suspend fun getHome(userId: String, year: Int, month: Int): HomeDto {
         val today: LocalDate = LocalDate.now(ZoneOffset.UTC)
@@ -68,29 +70,30 @@ class HomeService(
 
         println("HOME DEBUG userId=$userId createdAt=${user.createdAt} startDate=$startDate today=$today currentWeek=$currentWeek")
 
-        val upNext = programExerciseRepository
-            .getUpNextForWeek(currentWeek, limit = 2)
-            .map { e ->
-                UpNextExerciseDto(
-                    id = e.id.toString(),
-                    title = e.title,
-                    durationSeconds = null,
-                    thumbnailUrl = e.thumbnailURL ?: "",
-                    videoUrl = e.videoURL ?: ""
+        val upNextResult = programExerciseService.getUpNextByWeek(currentWeek, 2)
+        when(upNextResult){
+            is AppResult.Success -> {
+                var upNextDto = mutableListOf<ProgramExerciseDto>()
+                for(upNextJoined in upNextResult.data) {
+                    upNextDto.add(upNextJoined.toDto())
+                }
+                return HomeDto(
+                    greetingName = null,
+                    avatarUrl = null,
+                    calendar = CalendarMonthDto(
+                        year = ym.year,
+                        month = ym.monthValue,
+                        days = calendarDays
+                    ),
+                    currentWeek = currentWeek,
+                    upNext = upNextDto
                 )
             }
+            is AppResult.Failure -> {
+                throw BusinessException(HttpStatusCode.InternalServerError, "Failed to get HomeDto.")
+            }
+        }
 
-        return HomeDto(
-            greetingName = null,
-            avatarUrl = null,
-            calendar = CalendarMonthDto(
-                year = ym.year,
-                month = ym.monthValue,
-                days = calendarDays
-            ),
-            currentWeek = currentWeek,
-            upNext = upNext
-        )
     }
 
     fun calculateUnlockedWeeks(programStart: LocalDateTime, now: LocalDateTime): Int {
