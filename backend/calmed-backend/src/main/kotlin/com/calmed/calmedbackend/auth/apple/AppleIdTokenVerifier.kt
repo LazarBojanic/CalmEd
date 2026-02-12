@@ -47,22 +47,14 @@ class AppleIdTokenVerifier(
         val exp = claims.expirationTime
         require(exp != null && exp.after(Date())) { "Token expired" }
 
-        val tokenAudiences = extractAudiences(claims.getClaim("aud"))
-        val expectedAudiences = listOf(config.iosBundleId, config.clientId).filter { it.isNotBlank() }
-        require(expectedAudiences.isNotEmpty()) {
-            "Apple audience is not configured (oauth.apple.ios_bundle_id / oauth.apple.client_id)"
-        }
-        require(expectedAudiences.any { it in tokenAudiences }) {
-            "Invalid audience (tokenAud=$tokenAudiences, expectedAny=$expectedAudiences)"
-        }
+        val aud = claims.audience[0]
+        require(aud.equals(config.clientId) || aud.equals(config.iosBundleId)) { "Invalid audience." }
 
         val iss = claims.issuer
-        val aud = tokenAudiences.firstOrNull() ?: ""
 
         val sub = claims.subject ?: error("Missing sub")
         val email = claims.getStringClaim("email")
         val emailVerified = claims.getBooleanClaim("email_verified")
-
         return AppleClaims(
             iss = iss,
             aud = aud,
@@ -72,11 +64,5 @@ class AppleIdTokenVerifier(
         )
     }
 
-    private fun extractAudiences(audClaim: Any?): List<String> {
-        return when (audClaim) {
-            is String -> listOf(audClaim)
-            is List<*> -> audClaim.filterIsInstance<String>()
-            else -> emptyList()
-        }
-    }
+
 }
