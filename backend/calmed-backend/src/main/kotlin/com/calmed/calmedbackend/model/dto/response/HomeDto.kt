@@ -7,9 +7,9 @@ data class HomeDto(
     val greetingName: String?,
     val avatarUrl: String?,
     val calendar: CalendarMonthDto,
-    val upNext: List<UpNextExerciseDto> = emptyList()
-)
-@Serializable
+    val upNext: List<UpNextExerciseDto> = emptyList(),
+    val currentWeek: Int
+)@Serializable
 data class CalendarDayDto(
     val day: Int,
     val status: String // "UNLOCKED" | "LOCKED" | "INACTIVE"

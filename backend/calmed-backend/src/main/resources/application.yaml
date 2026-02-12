@@ -12,8 +12,8 @@ jwt:
     refresh_alg: ${JWT_REFRESH_ALG:HS512}
     email_verification_alg: ${JWT_EMAIL_VERIFICATION_ALG:HS512}
     password_reset_alg: ${JWT_PASSWORD_RESET_ALG:HS512}
-    iss: ${JWT_ISS:placeholder}
-    aud: ${JWT_AUD:placeholder}
+    iss: https://api.calm-ed.com
+    aud: https://api.calm-ed.com
     access_ttl: ${JWT_ACCESS_TTL:PT15M}
     refresh_ttl: ${JWT_REFRESH_TTL:PT720H}
     email_verification_ttl: ${JWT_EMAIL_VERIFICATION_TTL:PT24H}

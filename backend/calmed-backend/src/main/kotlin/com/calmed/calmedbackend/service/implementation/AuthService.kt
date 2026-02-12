@@ -671,6 +671,7 @@ class AuthService(private val userService: IUserService,
 	override suspend fun generateAccessToken(id: UUID, email: String, now: Instant
 	): AppResult<String> {
 		return try {
+			println("JWT GENERATE → iss='${jwtConfig.iss}', aud='${jwtConfig.aud}'")
 			val token = JWT.create().withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).withSubject(id.toString())
 				.withIssuedAt(now).withExpiresAt(now.plus(jwtConfig.accessTtl)).withJWTId(UUID.randomUUID().toString())
 				.withClaim("typ", TokenType.ACCESS.name).withClaim("email", email).sign(jwtConfig.accessAlg)
@@ -687,6 +688,7 @@ class AuthService(private val userService: IUserService,
 		return try {
 			val refreshTokenId = UUID.randomUUID()
 			val expiresAt = now.plus(jwtConfig.refreshTtl)
+			println("JWT REFRESH → iss='${jwtConfig.iss}', aud='${jwtConfig.aud}'")
 			val token =
 				JWT.create().withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).withSubject(userId.toString())
 					.withIssuedAt(now).withExpiresAt(expiresAt).withJWTId(refreshTokenId.toString())

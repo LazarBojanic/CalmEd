@@ -8,18 +8,26 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import org.koin.ktor.ext.inject
 import io.ktor.server.response.respond
+private const val BUILD_MARKER = "HOME_ROUTE_BUILD_2026_02_10"
 
 
 fun Route.homeRoutes() {
     val homeService by inject<HomeService>()
 
     authenticate("auth-jwt") {
-        get("/home") {
+        get(path = "/home") {
             val principal = call.principal<JWTPrincipal>()!!
             val userId = principal.payload.subject
-            call.respond(homeService.getHome(userId))
 
+            val today = java.time.LocalDate.now()
+            val year = call.request.queryParameters["year"]?.toIntOrNull() ?: today.year
+            val month = call.request.queryParameters["month"]?.toIntOrNull() ?: today.monthValue
 
+            call.respond(homeService.getHome(userId, year, month))
+        }
+
+        get("/home-test") {
+            call.respond(mapOf("marker" to BUILD_MARKER))
         }
     }
 }

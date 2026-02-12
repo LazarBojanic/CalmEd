@@ -4,6 +4,7 @@ import com.calmed.calmedfrontendtourettes.di.settingsModule
 import com.calmed.calmedfrontendtourettes.http.AppApi
 import com.calmed.calmedfrontendtourettes.http.AppHttpClient
 import com.calmed.calmedfrontendtourettes.http.IAppApi
+import com.calmed.calmedfrontendtourettes.repository.HomeRepository
 import com.calmed.calmedfrontendtourettes.service.implementation.AuthService
 import com.calmed.calmedfrontendtourettes.service.specification.IAuthService
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
@@ -18,10 +19,11 @@ expect fun platformEngine(): HttpClientEngineFactory<*>
 fun commonModule(baseUrl: String) = module {
     single { AppHttpClient(baseUrl, platformEngine(), get()) }
     single<IAppApi> { AppApi(get(), get()) }
+    single { HomeRepository(api = get()) }
 
     single<IAuthService> { AuthService(get(), get()) }
     factory { AuthViewModel(get()) }
-    factory { SessionViewModel(get(), get(), get(), get(), get()) }
+    factory { SessionViewModel(get(), get(), get(), get(), get(), homeRepository = get()) }
 }
 
 fun initKoin(baseUrl: String, vararg platformModules: Module) {

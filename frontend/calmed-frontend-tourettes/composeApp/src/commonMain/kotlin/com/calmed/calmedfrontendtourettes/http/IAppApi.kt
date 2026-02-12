@@ -12,6 +12,7 @@ import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpd
 import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserInfoTourettesDto
+import com.calmed.calmedfrontendtourettes.model.home.HomeDto
 
 interface IAppApi {
     suspend fun register(dto: RegisterUserDto): TokenDto?
@@ -28,4 +29,6 @@ interface IAppApi {
     suspend fun getUserInfoTourettesByUserId(userId: String): UserInfoTourettesDto?
     suspend fun updateUserInfoTourettes(id: String, dto: UserInfoTourettesUpdateDto): UserInfoTourettesDto?
     suspend fun loginWithApple(dto: AppleLoginDto): TokenDto?
+    suspend fun getHome(year: Int, month: Int): HomeDto?
+
 }

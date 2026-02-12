@@ -7,6 +7,7 @@ import com.calmed.calmedfrontendtourettes.model.joined.UserInfoTourettesJoined
 import com.calmed.calmedfrontendtourettes.model.joined.UserJoined
 import com.calmed.calmedfrontendtourettes.model.toEntity
 import com.calmed.calmedfrontendtourettes.model.toJoined
+import com.calmed.calmedfrontendtourettes.repository.HomeRepository
 import com.calmed.calmedfrontendtourettes.repository.IUserDao
 import com.calmed.calmedfrontendtourettes.repository.IUserInfoTourettesDao
 import com.calmed.calmedfrontendtourettes.service.specification.IAuthService
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.jsonPrimitive
 
 class SessionViewModel(
@@ -29,7 +31,8 @@ class SessionViewModel(
 	private val tokenStore: ITokenDataStore,
 	private val authService: IAuthService,
 	private val userDao: IUserDao,
-	private val userInfoDao: IUserInfoTourettesDao
+	private val userInfoDao: IUserInfoTourettesDao,
+	private val homeRepository: HomeRepository,
 ) {
 	private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -41,6 +44,9 @@ class SessionViewModel(
 
 	val user: StateFlow<UserJoined?> =
 		userDao.findFirst().map { it?.toJoined() }.stateIn(scope, SharingStarted.Eagerly, null)
+
+	private val _home = MutableStateFlow<com.calmed.calmedfrontendtourettes.model.home.HomeDto?>(null)
+	val home: StateFlow<com.calmed.calmedfrontendtourettes.model.home.HomeDto?> = _home
 
 	val userInfo: StateFlow<UserInfoTourettesJoined?> = combine(
 		userDao.findFirst(),
@@ -189,4 +195,16 @@ class SessionViewModel(
 			_loading.value = false
 		}
 	}
+	suspend fun loadHome(year: Int, month: Int) {
+		try {
+			val result = homeRepository.getHome(year, month)
+			println("HOME OK currentWeek=${result?.currentWeek ?: "NULL"}")
+			_home.value = result
+		} catch (t: Throwable) {
+			println("HOME ERROR ${t.message}")
+			_error.value = t.message ?: "Home failed."
+		}
+	}
+
+
 }

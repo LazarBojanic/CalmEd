@@ -52,6 +52,10 @@ fun MainScreen(
 		val access = token?.access
 		if (!access.isNullOrBlank()) {
 			sessionViewModel.loadSession()
+			sessionViewModel.loadHome(
+				year = 2026,
+				month = 2
+			)
 		}
 	}
 
@@ -126,7 +130,7 @@ fun MainScreen(
 		}
 	) { _ ->
 		when (selectedTab.value) {
-			MainTab.Home -> HomeScreen()
+			MainTab.Home -> HomeScreen(sessionViewModel = sessionViewModel)
 			MainTab.Profile -> ProfileScreen(
 				user = u,
 				userInfo = ui,

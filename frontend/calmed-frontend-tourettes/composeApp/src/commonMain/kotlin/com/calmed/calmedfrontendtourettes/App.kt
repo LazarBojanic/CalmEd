@@ -276,9 +276,7 @@ fun App() {
 
 
             composable(Routes.Home) {
-                HomeScreen(
-
-                )
+                HomeScreen(sessionViewModel = koinInject())
             }
         }
     }

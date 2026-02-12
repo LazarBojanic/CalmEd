@@ -41,7 +41,16 @@ data class DatabaseConfig(
 				databaseDriver = config.property("database.driver").getString(),
 				sslMode = sslMode,
 				channelBinding = channelBinding,
-				databaseUrl = String.format("jdbc:%s://%s/%s?user=%s&password=%s%s", databaseDialect, databaseIP, databaseName, databaseUsername, databasePassword, sslModeAndChannelBinding)
+				databaseUrl = String.format(
+					"jdbc:%s://%s:%d/%s?user=%s&password=%s%s",
+					databaseDialect,
+					databaseIP,
+					config.property("database.port").getString().toInt(),
+					databaseName,
+					databaseUsername,
+					databasePassword,
+					sslModeAndChannelBinding
+				)
 			)
 		}
 		private fun sslModeAndChannelBinding(sslMode: String, channelBinding: String): String {

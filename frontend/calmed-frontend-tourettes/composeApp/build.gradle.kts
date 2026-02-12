@@ -95,6 +95,7 @@ kotlin {
 			implementation(libs.googleAndroidLibrariesIdentityGoogleId)
 			implementation(libs.googleAndroidGmsPlayServicesAuth)
 			implementation(libs.multiplatformSettings)
+			implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
 		}
 		androidMain.dependencies {

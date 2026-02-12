@@ -12,16 +12,21 @@ import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpd
 import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserInfoTourettesDto
+import com.calmed.calmedfrontendtourettes.model.home.HomeDto
 import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.flow.first
 
 class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStore: ITokenDataStore
 ) : IAppApi {
@@ -129,4 +134,25 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 			else -> null
 		}
 	}
+
+
+
+	override suspend fun getHome(year: Int, month: Int): HomeDto? {
+
+		val token = tokenDataStore.tokenDto.first()?.access
+
+
+		val resp: HttpResponse = client.get("/home") {
+			parameter("year", year)
+			parameter("month", month)
+			token?.let { header("Authorization", "Bearer $it") }
+
+		}
+
+		val raw = resp.bodyAsText()
+		return if (resp.status == HttpStatusCode.OK) resp.body() else null
+
+	}
+
+
 }

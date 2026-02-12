@@ -8,6 +8,7 @@ class Util {
 			return Json {
 				prettyPrint = true
 				isLenient = true
+				encodeDefaults = true
 			}
 		}
 		fun printError(cause: Throwable) {
