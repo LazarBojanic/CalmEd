@@ -1,4 +1,4 @@
-package com.calmed.calmedfrontendtourettes.model.home
+package com.calmed.calmedfrontendtourettes.model.dto.response
 
 import kotlinx.serialization.Serializable
 
@@ -31,13 +31,3 @@ data class CalendarDayDto(
     val status: CalendarDayStatus
 )
 
-@Serializable
-data class ProgramExerciseDto(
-    val id: String,
-    val weekNumber: Int,
-    val title: String,
-    val description: String?,
-    val videoURL: String?,
-    val thumbnailURL: String?,
-    val orderInWeek: Int?
-)

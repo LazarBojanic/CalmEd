@@ -3,6 +3,7 @@ package com.calmed.calmedfrontendtourettes.viewmodel
 import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpdateDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
 import com.calmed.calmedfrontendtourettes.model.joined.UserInfoTourettesJoined
 import com.calmed.calmedfrontendtourettes.model.joined.UserJoined
 import com.calmed.calmedfrontendtourettes.model.toEntity
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.jsonPrimitive
 
 class SessionViewModel(
@@ -45,8 +45,8 @@ class SessionViewModel(
 	val user: StateFlow<UserJoined?> =
 		userDao.findFirst().map { it?.toJoined() }.stateIn(scope, SharingStarted.Eagerly, null)
 
-	private val _home = MutableStateFlow<com.calmed.calmedfrontendtourettes.model.home.HomeDto?>(null)
-	val home: StateFlow<com.calmed.calmedfrontendtourettes.model.home.HomeDto?> = _home
+	private val _home = MutableStateFlow<HomeDto?>(null)
+	val home: StateFlow<HomeDto?> = _home
 
 	val userInfo: StateFlow<UserInfoTourettesJoined?> = combine(
 		userDao.findFirst(),
