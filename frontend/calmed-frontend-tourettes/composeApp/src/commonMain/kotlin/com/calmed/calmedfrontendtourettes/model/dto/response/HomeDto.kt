@@ -1,4 +1,4 @@
-package com.calmed.calmedfrontendtourettes.model.home
+package com.calmed.calmedfrontendtourettes.model.dto.response
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -30,17 +30,4 @@ enum class CalendarDayStatus {
 data class CalendarDayDto(
     val day: Int,
     val status: CalendarDayStatus
-)
-
-@Serializable
-data class ProgramExerciseDto(
-    val id: String,
-    val weekNumber: Int,
-    val title: String,
-    val description: String?,
-    @SerialName("videoURL")
-    val videoURL: String?,
-    @SerialName("thumbnailURL")
-    val thumbnailURL: String?,
-    val orderInWeek: Int?
 )
