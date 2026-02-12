@@ -9,21 +9,20 @@ data class HomeDto(
     val calendar: CalendarMonthDto,
     val upNext: List<UpNextExerciseDto> = emptyList(),
     val currentWeek: Int
-)@Serializable
-    val upNext: List<ProgramExerciseDto> = emptyList()
 )
+
 @Serializable
 data class CalendarDayDto(
     val day: Int,
     val status: String // "UNLOCKED" | "LOCKED" | "INACTIVE"
 )
+
 @Serializable
 data class CalendarMonthDto(
     val year: Int,
     val month: Int,
     val days: List<CalendarDayDto>
 )
-
 
 @Serializable
 data class UpNextExerciseDto(
