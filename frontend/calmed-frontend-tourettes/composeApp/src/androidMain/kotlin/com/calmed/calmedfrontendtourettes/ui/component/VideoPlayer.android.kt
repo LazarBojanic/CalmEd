@@ -1,8 +1,7 @@
 package com.calmed.calmedfrontendtourettes.ui.component
 
 import android.net.Uri
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -17,23 +16,22 @@ actual fun VideoPlayer(
 ) {
     val context = LocalContext.current
 
-    val player = ExoPlayer.Builder(context).build().apply {
-        setMediaItem(MediaItem.fromUri(Uri.parse(hlsUrl)))
-        prepare()
-        playWhenReady = false
-    }
+    val player = remember { ExoPlayer.Builder(context).build() }
 
     DisposableEffect(Unit) {
         onDispose { player.release() }
     }
 
+    LaunchedEffect(hlsUrl) {
+        val mediaItem = MediaItem.fromUri(Uri.parse(hlsUrl))
+        player.setMediaItem(mediaItem)
+        player.prepare()
+        player.playWhenReady = true
+    }
+
     AndroidView(
         modifier = modifier,
-        factory = { ctx ->
-            PlayerView(ctx).apply {
-                this.player = player
-                useController = true // controls DA
-            }
-        }
+        factory = { ctx -> PlayerView(ctx).apply { this.player = player } },
+        update = { view -> view.player = player }
     )
 }

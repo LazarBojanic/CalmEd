@@ -5,9 +5,10 @@ import androidx.compose.ui.Modifier
 import io.ktor.client.HttpClient
 
 @Composable
-expect fun ThumbnailImage(
+actual fun ThumbnailImage(
     client: HttpClient,
     url: String,
     contentDescription: String?,
     modifier: Modifier
-)
+) {
+}
