@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -128,14 +129,16 @@ fun MainScreen(
 				)
 			}
 		}
-	) { _ ->
-		when (selectedTab.value) {
-			MainTab.Home -> HomeScreen(sessionViewModel = sessionViewModel)
-			MainTab.Profile -> ProfileScreen(
-				user = u,
-				userInfo = ui,
-				onLogout = { onLogoutToLogin() }
-			)
+	) { innerPadding ->
+		Box(modifier = Modifier.padding(innerPadding)) {
+			when (selectedTab.value) {
+				MainTab.Home -> HomeScreen(sessionViewModel = sessionViewModel)
+				MainTab.Profile -> ProfileScreen(
+					user = u,
+					userInfo = ui,
+					onLogout = { onLogoutToLogin() }
+				)
+			}
 		}
 	}
 }

@@ -35,7 +35,7 @@ fun ProfileScreen(
 
 	ScreenScaffold(title = "Profile") {
 		LazyColumn(
-			modifier = Modifier.fillMaxSize(),
+			modifier = Modifier.fillMaxWidth(),
 			verticalArrangement = Arrangement.spacedBy(16.dp),
 			contentPadding = PaddingValues(bottom = 24.dp)
 		) {
