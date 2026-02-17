@@ -78,7 +78,7 @@ class SessionViewModel(
 		userInfoDao.upsert(ui.toEntity())
 	}
 
-	suspend fun loadSession() {
+	suspend fun loadSession(): com.calmed.calmedfrontendtourettes.model.dto.response.UserDto? {
 		println("LOAD SESSION CALLED");
 		_error.value = null
 		_loading.value = true
@@ -88,7 +88,7 @@ class SessionViewModel(
 			if (userId == null) {
 				clearLocal()
 				_error.value = "Missing user id."
-				return
+				return null
 			}
 
 
@@ -97,7 +97,7 @@ class SessionViewModel(
 			if (remoteUser == null) {
 				clearLocal()
 				_error.value = "Failed to load user."
-				return
+				return null
 			}
 			cacheUserDto(remoteUser)
 
@@ -108,8 +108,10 @@ class SessionViewModel(
 			} else {
 				userInfoDao.clearAll()
 			}
+			return remoteUser
 		} catch (t: Throwable) {
 			_error.value = t.message ?: "Failed to load session."
+			return null
 		} finally {
 			_loading.value = false
 			println("LOAD SESSION DONE, error=${_error.value}")

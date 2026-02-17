@@ -17,6 +17,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,16 +49,21 @@ fun OnboardingScreen(
 	val tickFrequency = remember { mutableStateOf(userInfo.tickFrequency ?: TickFrequency.MODERATE) }
 	val goal = remember { mutableStateOf(userInfo.goal ?: "") }
 	val followProgress = remember { mutableStateOf(userInfo.followProgress ?: true) }
+	val ageText = remember { mutableStateOf(age.intValue.toString()) }
+
+	LaunchedEffect(age.intValue) {
+		ageText.value = age.intValue.toString()
+	}
 
 	fun buildUpdate(): UserInfoTourettesUpdateDto {
 		return UserInfoTourettesUpdateDto(
 			userId = user.id,
-			preferredName = preferredName.value.trim().ifBlank { null },
+			preferredName = preferredName.value.trim(),
 			age = age.intValue,
 			stressLevel = stress.intValue,
 			tickType = tickType.value,
 			tickFrequency = tickFrequency.value,
-			goal = goal.value.trim().ifBlank { null },
+			goal = goal.value.trim(),
 			followProgress = followProgress.value
 		)
 	}
@@ -127,10 +133,22 @@ fun OnboardingScreen(
 
 				2 -> {
 					Text("Age", style = MaterialTheme.typography.titleLarge)
-					Text("Age: ${age.intValue}")
+					TextField(
+						value = ageText.value,
+						onValueChange = { raw ->
+							val digitsOnly = raw.filter { it.isDigit() }
+							ageText.value = digitsOnly
+							val parsed = digitsOnly.toIntOrNull()
+							if (parsed != null) {
+								age.intValue = parsed.coerceIn(5, 80)
+							}
+						},
+						label = "Age",
+						singleLine = true
+					)
 					Slider(
 						value = age.intValue.toFloat(),
-						onValueChange = { age.intValue = it.toInt() },
+						onValueChange = { age.intValue = it.toInt().coerceIn(5, 80) },
 						valueRange = 5f..80f,
 						steps = 74
 					)

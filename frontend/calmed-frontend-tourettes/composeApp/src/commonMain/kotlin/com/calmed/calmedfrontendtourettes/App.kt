@@ -56,7 +56,7 @@ fun App() {
     val authViewModel = remember { AuthViewModel(authService) }
 
     val appSettings: AppSettings = koinInject()
-    val showWelcomeVideo = remember { appSettings.getShowWelcomeVideo() }
+    val showWelcomeVideo = appSettings.getShowWelcomeVideo()
     val sessionViewModel: SessionViewModel = koinInject()
     val user by sessionViewModel.user.collectAsState()
     val userInfo by sessionViewModel.userInfo.collectAsState()
@@ -99,9 +99,8 @@ fun App() {
                         return@LaunchedEffect
                     }
 
-                    sessionViewModel.loadSession()
-
-                    val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
+                    val remoteUser = sessionViewModel.loadSession()
+                    val isOnboarded = remoteUser?.isOnboarded == true
                     val nextRoute = when {
                         showWelcomeVideo -> Routes.WelcomeVideo
                         !isOnboarded -> Routes.Onboarding
@@ -121,8 +120,8 @@ fun App() {
 
                     onLoginSuccess = {
                         scope.launch {
-                            sessionViewModel.loadSession()
-                            val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
+                            val remoteUser = sessionViewModel.loadSession()
+                            val isOnboarded = remoteUser?.isOnboarded == true
                             val nextRoute = when {
                                 showWelcomeVideo -> Routes.WelcomeVideo
                                 !isOnboarded -> Routes.Onboarding
@@ -144,8 +143,8 @@ fun App() {
                                 val googleToken = getGoogleIdToken()
                                 val ok = authViewModel.loginWithGoogle(googleToken)
                                 if (ok) {
-                                    sessionViewModel.loadSession()
-                                    val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
+                                    val remoteUser = sessionViewModel.loadSession()
+                                    val isOnboarded = remoteUser?.isOnboarded == true
                                     val nextRoute = when {
                                         showWelcomeVideo -> Routes.WelcomeVideo
                                         !isOnboarded -> Routes.Onboarding
@@ -191,14 +190,16 @@ fun App() {
 
                 WelcomeVideoScreen(
                     onSkip = {
-                        navController.navigate(Routes.Onboarding) {
+                        val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
+                        navController.navigate(if (isOnboarded) Routes.Main else Routes.Onboarding) {
                             popUpTo(Routes.WelcomeVideo) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
                     onContinue = { dontShowAgain ->
                         if (dontShowAgain) settings.setShowWelcomeVideo(false)
-                        navController.navigate(Routes.Onboarding) {
+                        val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
+                        navController.navigate(if (isOnboarded) Routes.Main else Routes.Onboarding) {
                             popUpTo(Routes.WelcomeVideo) { inclusive = true }
                             launchSingleTop = true
                         }
