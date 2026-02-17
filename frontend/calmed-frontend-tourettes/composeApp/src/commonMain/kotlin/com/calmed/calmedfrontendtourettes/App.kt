@@ -56,7 +56,6 @@ fun App() {
     val authViewModel = remember { AuthViewModel(authService) }
 
     val appSettings: AppSettings = koinInject()
-    val showWelcomeVideo = appSettings.getShowWelcomeVideo()
     val sessionViewModel: SessionViewModel = koinInject()
     val user by sessionViewModel.user.collectAsState()
     val userInfo by sessionViewModel.userInfo.collectAsState()
@@ -101,6 +100,7 @@ fun App() {
 
                     val remoteUser = sessionViewModel.loadSession()
                     val isOnboarded = remoteUser?.isOnboarded == true
+                    val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser?.id)
                     val nextRoute = when {
                         showWelcomeVideo -> Routes.WelcomeVideo
                         !isOnboarded -> Routes.Onboarding
@@ -122,6 +122,7 @@ fun App() {
                         scope.launch {
                             val remoteUser = sessionViewModel.loadSession()
                             val isOnboarded = remoteUser?.isOnboarded == true
+                            val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser?.id)
                             val nextRoute = when {
                                 showWelcomeVideo -> Routes.WelcomeVideo
                                 !isOnboarded -> Routes.Onboarding
@@ -145,6 +146,7 @@ fun App() {
                                 if (ok) {
                                     val remoteUser = sessionViewModel.loadSession()
                                     val isOnboarded = remoteUser?.isOnboarded == true
+                                    val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser?.id)
                                     val nextRoute = when {
                                         showWelcomeVideo -> Routes.WelcomeVideo
                                         !isOnboarded -> Routes.Onboarding
@@ -197,7 +199,7 @@ fun App() {
                         }
                     },
                     onContinue = { dontShowAgain ->
-                        if (dontShowAgain) settings.setShowWelcomeVideo(false)
+                        if (dontShowAgain) settings.setShowWelcomeVideo(sessionViewModel.user.value?.id, false)
                         val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
                         navController.navigate(if (isOnboarded) Routes.Main else Routes.Onboarding) {
                             popUpTo(Routes.WelcomeVideo) { inclusive = true }

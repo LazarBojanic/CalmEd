@@ -9,10 +9,17 @@ class AppSettings(
         private const val KEY_SHOW_WELCOME_VIDEO = "showWelcomeVideo"
     }
 
-    fun getShowWelcomeVideo(): Boolean =
-        settings.getBoolean(KEY_SHOW_WELCOME_VIDEO, defaultValue = true)
-
-    fun setShowWelcomeVideo(value: Boolean) {
-        settings.putBoolean(KEY_SHOW_WELCOME_VIDEO, value)
+    private fun welcomeVideoKey(userId: String?): String {
+        val suffix = userId?.takeIf { it.isNotBlank() }
+        return if (suffix == null) KEY_SHOW_WELCOME_VIDEO else "$KEY_SHOW_WELCOME_VIDEO:$suffix"
     }
+
+    fun getShowWelcomeVideo(userId: String?): Boolean =
+        settings.getBoolean(welcomeVideoKey(userId), defaultValue = true)
+
+
+    fun setShowWelcomeVideo(userId: String?, value: Boolean) {
+        settings.putBoolean(welcomeVideoKey(userId), value)
+    }
+
 }
