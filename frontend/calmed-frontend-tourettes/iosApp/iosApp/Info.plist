@@ -12,6 +12,10 @@
 			<string>AppIcon</string>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+    </array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
