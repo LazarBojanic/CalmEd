@@ -148,6 +148,48 @@ class SessionViewModel(
 		}
 	}
 
+	suspend fun updateProfileUserInfoTourettes(update: UserInfoTourettesUpdateDto): Boolean {
+		_error.value = null
+		_loading.value = true
+		return try {
+			val currentUser = user.value
+			if (currentUser == null) {
+				_error.value = "Missing user."
+				false
+			} else {
+				var currentUserInfo = userInfo.value
+				if (currentUserInfo == null) {
+					val fetched = api.getUserInfoTourettesByUserId(currentUser.id)
+					if (fetched != null) {
+						cacheUserDto(fetched.user)
+						cacheUserInfoDto(fetched)
+						currentUserInfo = fetched.toEntity().toJoined(fetched.user.toEntity().toJoined())
+					}
+				}
+				val resolved = currentUserInfo
+				if (resolved == null) {
+					_error.value = "Missing user info."
+					false
+				} else {
+					val updatedInfo = api.updateUserInfoTourettes(resolved.id, update)
+					if (updatedInfo == null) {
+						_error.value = "Failed to update user info."
+						false
+					} else {
+						cacheUserDto(updatedInfo.user)
+						cacheUserInfoDto(updatedInfo)
+						true
+					}
+				}
+			}
+		} catch (t: Throwable) {
+			_error.value = t.message ?: "Update profile failed."
+			false
+		} finally {
+			_loading.value = false
+		}
+	}
+
 	suspend fun completeOnboarding(update: UserInfoTourettesUpdateDto): Boolean {
 		_error.value = null
 		_loading.value = true
