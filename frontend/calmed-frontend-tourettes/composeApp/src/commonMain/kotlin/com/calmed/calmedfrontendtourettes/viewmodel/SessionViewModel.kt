@@ -4,6 +4,7 @@ import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpdateDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedfrontendtourettes.model.joined.UserInfoTourettesJoined
 import com.calmed.calmedfrontendtourettes.model.joined.UserJoined
 import com.calmed.calmedfrontendtourettes.model.toEntity
@@ -33,6 +34,7 @@ class SessionViewModel(
 	private val userDao: IUserDao,
 	private val userInfoDao: IUserInfoTourettesDao,
 	private val homeRepository: HomeRepository,
+
 ) {
 	private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -47,6 +49,9 @@ class SessionViewModel(
 
 	private val _home = MutableStateFlow<HomeDto?>(null)
 	val home: StateFlow<HomeDto?> = _home
+
+	private val _allExercises = MutableStateFlow<List<ProgramExerciseDto>>(emptyList())
+	val allExercises: StateFlow<List<ProgramExerciseDto>> = _allExercises
 
 	val userInfo: StateFlow<UserInfoTourettesJoined?> = combine(
 		userDao.findFirst(),
@@ -247,6 +252,9 @@ class SessionViewModel(
 			println("HOME ERROR ${t.message}")
 			_error.value = t.message ?: "Home failed."
 		}
+	}
+	suspend fun loadAllExercises() {
+		_allExercises.value = api.getAllProgramExercises()
 	}
 
 

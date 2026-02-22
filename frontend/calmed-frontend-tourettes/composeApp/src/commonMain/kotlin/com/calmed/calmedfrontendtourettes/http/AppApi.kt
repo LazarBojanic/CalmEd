@@ -13,6 +13,7 @@ import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserInfoTourettesDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
@@ -151,6 +152,16 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 		val raw = resp.bodyAsText()
 		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 
+	}
+
+	override suspend fun getAllProgramExercises(): List<ProgramExerciseDto> {
+		val token = tokenDataStore.tokenDto.first()?.access
+
+		val resp: HttpResponse = client.get(urlString = "/program-exercises") {
+			token?.let { header("Authorization", "Bearer $it") }
+		}
+
+		return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
 	}
 
 

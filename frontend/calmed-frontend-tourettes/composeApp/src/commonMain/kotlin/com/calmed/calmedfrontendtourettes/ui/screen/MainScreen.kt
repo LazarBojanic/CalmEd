@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -24,6 +25,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedfrontendtourettes.http.AppHttpClient
+import com.calmed.calmedfrontendtourettes.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
 import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
@@ -31,7 +34,7 @@ import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
-private enum class MainTab { Home, Profile }
+private enum class MainTab { Home, Exercises, Profile }
 
 @Composable
 fun MainScreen(
@@ -47,16 +50,19 @@ fun MainScreen(
 	val error by sessionViewModel.error.collectAsState()
 	val user by sessionViewModel.user.collectAsState()
 	val userInfo by sessionViewModel.userInfo.collectAsState()
+	val home by sessionViewModel.home.collectAsState()
+	val allExercises by sessionViewModel.allExercises.collectAsState()
+
+	val selectedExercise = remember { mutableStateOf<ProgramExerciseDto?>(null) }
+	val showVideo = remember { mutableStateOf(false) }
 	val selectedTab = remember { mutableStateOf(MainTab.Home) }
 
 	LaunchedEffect(token?.access) {
 		val access = token?.access
 		if (!access.isNullOrBlank()) {
 			sessionViewModel.loadSession()
-			sessionViewModel.loadHome(
-				year = 2026,
-				month = 2
-			)
+			sessionViewModel.loadHome(year = 2026, month = 2)
+			sessionViewModel.loadAllExercises()
 		}
 	}
 
@@ -82,9 +88,7 @@ fun MainScreen(
 			ScreenScaffold(title = "Onboarding") {
 				Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 					Text("We couldn’t load your onboarding profile data.")
-					if (error != null) {
-						Text("Error: $error")
-					}
+					if (error != null) Text("Error: $error")
 					PrimaryButton(
 						text = "Retry",
 						onClick = { scope.launch { sessionViewModel.loadSession() } }
@@ -114,30 +118,65 @@ fun MainScreen(
 
 	Scaffold(
 		bottomBar = {
-			NavigationBar {
-				NavigationBarItem(
-					selected = selectedTab.value == MainTab.Home,
-					onClick = { selectedTab.value = MainTab.Home },
-					icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-					label = { Text("Home") }
-				)
-				NavigationBarItem(
-					selected = selectedTab.value == MainTab.Profile,
-					onClick = { selectedTab.value = MainTab.Profile },
-					icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-					label = { Text("Profile") }
-				)
+			if (!showVideo.value) {
+				NavigationBar {
+					NavigationBarItem(
+						selected = selectedTab.value == MainTab.Home,
+						onClick = { selectedTab.value = MainTab.Home },
+						icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+						label = { Text("Home") }
+					)
+					NavigationBarItem(
+						selected = selectedTab.value == MainTab.Exercises,
+						onClick = { selectedTab.value = MainTab.Exercises },
+						icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Exercises") },
+						label = { Text("Exercises") }
+					)
+					NavigationBarItem(
+						selected = selectedTab.value == MainTab.Profile,
+						onClick = { selectedTab.value = MainTab.Profile },
+						icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+						label = { Text("Profile") }
+					)
+				}
 			}
 		}
 	) { innerPadding ->
 		Box(modifier = Modifier.padding(innerPadding)) {
-			when (selectedTab.value) {
-				MainTab.Home -> HomeScreen(sessionViewModel = sessionViewModel)
-				MainTab.Profile -> ProfileScreen(
-					user = u,
-					userInfo = ui,
-					onLogout = { onLogoutToLogin() }
-				)
+
+			if (!showVideo.value) {
+				when (selectedTab.value) {
+					MainTab.Home -> HomeScreen(sessionViewModel = sessionViewModel)
+
+					MainTab.Profile -> ProfileScreen(
+						user = u,
+						userInfo = ui,
+						onLogout = { onLogoutToLogin() }
+					)
+
+					MainTab.Exercises -> {
+						val appHttpClient: AppHttpClient = koinInject()
+						ExercisesScreen(
+							currentWeek = home?.currentWeek ?: 1,
+							exercises = allExercises,
+							client = appHttpClient.client,
+							onExerciseClick = { ex ->
+								selectedExercise.value = ex
+								showVideo.value = true
+							}
+						)
+					}
+				}
+			} else {
+				val ex = selectedExercise.value
+				if (ex?.videoURL != null) {
+					FullscreenVideoScreen(
+						hlsUrl = ex.videoURL,
+						onBack = { showVideo.value = false }
+					)
+				} else {
+					showVideo.value = false
+				}
 			}
 		}
 	}

@@ -11,6 +11,7 @@ import com.calmed.calmedfrontendtourettes.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpdateDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserInfoTourettesDto
 
@@ -31,5 +32,6 @@ interface IAppApi {
     suspend fun updateUserInfoTourettes(id: String, dto: UserInfoTourettesUpdateDto): UserInfoTourettesDto?
     suspend fun loginWithApple(dto: AppleLoginDto): TokenDto?
     suspend fun getHome(year: Int, month: Int): HomeDto?
+    suspend fun getAllProgramExercises(): List<ProgramExerciseDto>
 
 }
