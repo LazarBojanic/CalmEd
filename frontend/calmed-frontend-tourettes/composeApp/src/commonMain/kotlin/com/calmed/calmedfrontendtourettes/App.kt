@@ -4,8 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -20,10 +23,12 @@ import com.calmed.calmedfrontendtourettes.ui.screen.FullscreenVideoScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.HomeScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.LoginScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.MainScreen
+import com.calmed.calmedfrontendtourettes.ui.screen.OfflineModeScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.RegisterScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.SplashScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.WelcomeVideoScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.OnboardingScreen
+import com.calmed.calmedfrontendtourettes.util.isBackendReachable
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
 import com.calmed.calmedfrontendtourettes.auth.launchAppleSignIn
@@ -41,12 +46,14 @@ object Routes {
     const val FullscreenVideo = "video/fullscreen"
     const val Main = "main"
     const val Onboarding = "onboarding"
+    const val Offline = "offline"
 }
 
 @Composable
 fun App() {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
+    var fullscreenVideoUrl by rememberSaveable { mutableStateOf<String?>(null) }
 
     val tokenStore: ITokenDataStore = koinInject()
     val authService: IAuthService = koinInject()
@@ -62,6 +69,25 @@ fun App() {
     val sessionLoading by sessionViewModel.loading.collectAsState()
     val sessionError by sessionViewModel.error.collectAsState()
 
+    suspend fun resolveNextAuthenticatedRoute(): String? {
+        val remoteUser = sessionViewModel.loadSession() ?: return null
+        val isOnboarded = remoteUser.isOnboarded == true
+        val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser.id)
+        return when {
+            showWelcomeVideo -> Routes.WelcomeVideo
+            !isOnboarded -> Routes.Onboarding
+            else -> Routes.Main
+        }
+    }
+
+    fun openFullscreen(url: String) {
+        if (url.isBlank()) return
+        fullscreenVideoUrl = url
+        navController.navigate(Routes.FullscreenVideo) {
+            launchSingleTop = true
+        }
+    }
+
     AppTheme {
         NavHost(navController, startDestination = Routes.Splash) {
 
@@ -69,6 +95,15 @@ fun App() {
                 SplashScreen()
 
                 LaunchedEffect(token) {
+                    val online = isBackendReachable(appApi)
+                    if (!online) {
+                        navController.navigate(Routes.Offline) {
+                            popUpTo(Routes.Splash) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                        return@LaunchedEffect
+                    }
+
                     val currentToken = tokenStore.tokenDto.value
                     if (currentToken == null) {
                         navController.navigate(Routes.Login) {
@@ -98,13 +133,13 @@ fun App() {
                         return@LaunchedEffect
                     }
 
-                    val remoteUser = sessionViewModel.loadSession()
-                    val isOnboarded = remoteUser?.isOnboarded == true
-                    val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser?.id)
-                    val nextRoute = when {
-                        showWelcomeVideo -> Routes.WelcomeVideo
-                        !isOnboarded -> Routes.Onboarding
-                        else -> Routes.Main
+                    val nextRoute = resolveNextAuthenticatedRoute()
+                    if (nextRoute == null) {
+                        navController.navigate(Routes.Login) {
+                            popUpTo(Routes.Splash) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                        return@LaunchedEffect
                     }
                     navController.navigate(nextRoute) {
                         popUpTo(Routes.Splash) { inclusive = true }
@@ -117,16 +152,22 @@ fun App() {
                 LoginScreen(
                     onNavigateRegister = { navController.navigate(Routes.Register) },
                     onNavigateForgotPassword = { navController.navigate(Routes.ForgotPassword) },
+                    onNavigateOffline = {
+                        navController.navigate(Routes.Offline) {
+                            popUpTo(Routes.Login) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
 
                     onLoginSuccess = {
                         scope.launch {
-                            val remoteUser = sessionViewModel.loadSession()
-                            val isOnboarded = remoteUser?.isOnboarded == true
-                            val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser?.id)
-                            val nextRoute = when {
-                                showWelcomeVideo -> Routes.WelcomeVideo
-                                !isOnboarded -> Routes.Onboarding
-                                else -> Routes.Main
+                            val nextRoute = resolveNextAuthenticatedRoute()
+                            if (nextRoute == null) {
+                                navController.navigate(Routes.Login) {
+                                    popUpTo(Routes.Login) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                return@launch
                             }
                             navController.navigate(nextRoute) {
                                 popUpTo(Routes.Login) { inclusive = true }
@@ -144,13 +185,13 @@ fun App() {
                                 val googleToken = getGoogleIdToken()
                                 val ok = authViewModel.loginWithGoogle(googleToken)
                                 if (ok) {
-                                    val remoteUser = sessionViewModel.loadSession()
-                                    val isOnboarded = remoteUser?.isOnboarded == true
-                                    val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser?.id)
-                                    val nextRoute = when {
-                                        showWelcomeVideo -> Routes.WelcomeVideo
-                                        !isOnboarded -> Routes.Onboarding
-                                        else -> Routes.Main
+                                    val nextRoute = resolveNextAuthenticatedRoute()
+                                    if (nextRoute == null) {
+                                        navController.navigate(Routes.Login) {
+                                            popUpTo(Routes.Login) { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                        return@launch
                                     }
                                     navController.navigate(nextRoute) {
                                         popUpTo(Routes.Login) { inclusive = true }
@@ -163,6 +204,54 @@ fun App() {
                             }
                         }
                     }
+                )
+            }
+
+            composable(Routes.Offline) {
+                OfflineModeScreen(
+                    onTryOnline = {
+                        scope.launch {
+                            val online = isBackendReachable(appApi)
+                            if (!online) {
+                                return@launch
+                            }
+
+                            val currentToken = tokenStore.tokenDto.value
+                            val access = currentToken?.access
+                            val refresh = currentToken?.refresh
+
+                            if (access.isNullOrBlank() || refresh.isNullOrBlank()) {
+                                navController.navigate(Routes.Login) {
+                                    popUpTo(Routes.Offline) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                return@launch
+                            }
+
+                            val refreshSuccess = authService.tryRefresh()
+                            if (!refreshSuccess) {
+                                navController.navigate(Routes.Login) {
+                                    popUpTo(Routes.Offline) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                return@launch
+                            }
+
+                            val nextRoute = resolveNextAuthenticatedRoute()
+                            if (nextRoute == null) {
+                                navController.navigate(Routes.Login) {
+                                    popUpTo(Routes.Offline) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                return@launch
+                            }
+                            navController.navigate(nextRoute) {
+                                popUpTo(Routes.Offline) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    onOpenFullscreen = { url -> openFullscreen(url) }
                 )
             }
 
@@ -206,7 +295,7 @@ fun App() {
                             launchSingleTop = true
                         }
                     },
-                    onFullscreen = { navController.navigate(Routes.FullscreenVideo) }
+                    onOpenFullscreen = { url -> openFullscreen(url) }
                 )
             }
 
@@ -259,9 +348,20 @@ fun App() {
 
 
             composable(Routes.FullscreenVideo) {
+                val activeVideoUrl = fullscreenVideoUrl
+                if (activeVideoUrl.isNullOrBlank()) {
+                    LaunchedEffect(Unit) {
+                        navController.popBackStack()
+                    }
+                    return@composable
+                }
+
                 FullscreenVideoScreen(
-                    hlsUrl = "https://bombona.rs/videos/testvideo/testvideo.m3u8",
-                    onBack = { navController.popBackStack() }
+                    hlsUrl = activeVideoUrl,
+                    onBack = {
+                        fullscreenVideoUrl = null
+                        navController.popBackStack()
+                    }
                 )
             }
 
@@ -273,13 +373,17 @@ fun App() {
                             popUpTo(Routes.Main) { inclusive = true }
                             launchSingleTop = true
                         }
-                    }
+                    },
+                    onOpenFullscreen = { url -> openFullscreen(url) }
                 )
             }
 
 
             composable(Routes.Home) {
-                HomeScreen(sessionViewModel = koinInject())
+                HomeScreen(
+                    sessionViewModel = koinInject(),
+                    onOpenFullscreen = { url -> openFullscreen(url) }
+                )
             }
         }
     }

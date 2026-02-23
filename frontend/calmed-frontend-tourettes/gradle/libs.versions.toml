@@ -102,6 +102,9 @@ media3UI = { module = "androidx.media3:media3-ui", version.ref = "media3" }
 media3Common = { module = "androidx.media3:media3-common", version.ref = "media3" }
 media3ExoplayerHLS = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "media3" }
 media3ExoplayerDash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "media3" }
+media3Database = { module = "androidx.media3:media3-database", version.ref = "media3" }
+media3Datasource = { module = "androidx.media3:media3-datasource", version.ref = "media3" }
+media3ExoplayerWorkmanager = { module = "androidx.media3:media3-exoplayer-workmanager", version.ref = "media3" }
 androidxBrowser = { module = "androidx.browser:browser", version.ref = "androidxBrowser" }
 
 [plugins]

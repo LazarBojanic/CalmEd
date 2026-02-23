@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedfrontendtourettes.http.AppHttpClient
-import com.calmed.calmedfrontendtourettes.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
 import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
@@ -39,6 +38,7 @@ private enum class MainTab { Home, Exercises, Profile }
 @Composable
 fun MainScreen(
 	onLogoutToLogin: () -> Unit,
+	onOpenFullscreen: (String) -> Unit,
 	sessionViewModel: SessionViewModel = koinInject()
 ) {
 	val scope = rememberCoroutineScope()
@@ -53,8 +53,6 @@ fun MainScreen(
 	val home by sessionViewModel.home.collectAsState()
 	val allExercises by sessionViewModel.allExercises.collectAsState()
 
-	val selectedExercise = remember { mutableStateOf<ProgramExerciseDto?>(null) }
-	val showVideo = remember { mutableStateOf(false) }
 	val selectedTab = remember { mutableStateOf(MainTab.Home) }
 
 	LaunchedEffect(token?.access) {
@@ -118,64 +116,54 @@ fun MainScreen(
 
 	Scaffold(
 		bottomBar = {
-			if (!showVideo.value) {
-				NavigationBar {
-					NavigationBarItem(
-						selected = selectedTab.value == MainTab.Home,
-						onClick = { selectedTab.value = MainTab.Home },
-						icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-						label = { Text("Home") }
-					)
-					NavigationBarItem(
-						selected = selectedTab.value == MainTab.Exercises,
-						onClick = { selectedTab.value = MainTab.Exercises },
-						icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Exercises") },
-						label = { Text("Exercises") }
-					)
-					NavigationBarItem(
-						selected = selectedTab.value == MainTab.Profile,
-						onClick = { selectedTab.value = MainTab.Profile },
-						icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-						label = { Text("Profile") }
-					)
-				}
+			NavigationBar {
+				NavigationBarItem(
+					selected = selectedTab.value == MainTab.Home,
+					onClick = { selectedTab.value = MainTab.Home },
+					icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+					label = { Text("Home") }
+				)
+				NavigationBarItem(
+					selected = selectedTab.value == MainTab.Exercises,
+					onClick = { selectedTab.value = MainTab.Exercises },
+					icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Exercises") },
+					label = { Text("Exercises") }
+				)
+				NavigationBarItem(
+					selected = selectedTab.value == MainTab.Profile,
+					onClick = { selectedTab.value = MainTab.Profile },
+					icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+					label = { Text("Profile") }
+				)
 			}
 		}
 	) { innerPadding ->
 		Box(modifier = Modifier.padding(innerPadding)) {
+			when (selectedTab.value) {
+				MainTab.Home -> HomeScreen(
+					sessionViewModel = sessionViewModel,
+					onOpenFullscreen = onOpenFullscreen
+				)
 
-			if (!showVideo.value) {
-				when (selectedTab.value) {
-					MainTab.Home -> HomeScreen(sessionViewModel = sessionViewModel)
+				MainTab.Profile -> ProfileScreen(
+					user = u,
+					userInfo = ui,
+					onLogout = { onLogoutToLogin() }
+				)
 
-					MainTab.Profile -> ProfileScreen(
-						user = u,
-						userInfo = ui,
-						onLogout = { onLogoutToLogin() }
-					)
-
-					MainTab.Exercises -> {
-						val appHttpClient: AppHttpClient = koinInject()
-						ExercisesScreen(
-							currentWeek = home?.currentWeek ?: 1,
-							exercises = allExercises,
-							client = appHttpClient.client,
-							onExerciseClick = { ex ->
-								selectedExercise.value = ex
-								showVideo.value = true
+				MainTab.Exercises -> {
+					val appHttpClient: AppHttpClient = koinInject()
+					ExercisesScreen(
+						currentWeek = home?.currentWeek ?: 1,
+						exercises = allExercises,
+						client = appHttpClient.client,
+						onExerciseClick = { ex ->
+							val url = ex.videoURL
+							if (!url.isNullOrBlank()) {
+								onOpenFullscreen(url)
 							}
-						)
-					}
-				}
-			} else {
-				val ex = selectedExercise.value
-				if (ex?.videoURL != null) {
-					FullscreenVideoScreen(
-						hlsUrl = ex.videoURL,
-						onBack = { showVideo.value = false }
+						}
 					)
-				} else {
-					showVideo.value = false
 				}
 			}
 		}
