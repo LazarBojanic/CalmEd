@@ -152,6 +152,9 @@ kotlin {
 			implementation(libs.media3Common)
 			implementation(libs.media3ExoplayerHLS)
 			implementation(libs.media3ExoplayerDash)
+			implementation(libs.media3Database)
+			implementation(libs.media3Datasource)
+			implementation(libs.media3ExoplayerWorkmanager)
 			implementation(libs.androidxBrowser)
 			implementation (libs.billingClient)
 

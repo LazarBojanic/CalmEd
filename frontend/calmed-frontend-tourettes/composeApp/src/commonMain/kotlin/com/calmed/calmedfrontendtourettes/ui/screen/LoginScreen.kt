@@ -2,9 +2,7 @@ package com.calmed.calmedfrontendtourettes.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedfrontendtourettes.ui.component.GoogleSignInButton
 import com.calmed.calmedfrontendtourettes.ui.component.AppleSignInButton
@@ -35,6 +32,7 @@ import com.calmed.calmedfrontendtourettes.auth.AppleAuthBridge
 fun LoginScreen(
     onNavigateRegister: () -> Unit,
     onNavigateForgotPassword: () -> Unit,
+    onNavigateOffline: () -> Unit,
     onLoginSuccess: () -> Unit,
     onGoogleSignIn: () -> Unit,
     onAppleSignIn: () -> Unit,
@@ -57,9 +55,6 @@ fun LoginScreen(
             AppleAuthBridge.onIdToken = null
         }
     }
-
-
-    val uriHandler = LocalUriHandler.current
 
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -111,6 +106,12 @@ fun LoginScreen(
             SecondaryButton(
                 text = "Create account",
                 onClick = onNavigateRegister,
+                enabled = !loading
+            )
+
+            SecondaryButton(
+                text = "Use offline mode",
+                onClick = onNavigateOffline,
                 enabled = !loading
             )
 

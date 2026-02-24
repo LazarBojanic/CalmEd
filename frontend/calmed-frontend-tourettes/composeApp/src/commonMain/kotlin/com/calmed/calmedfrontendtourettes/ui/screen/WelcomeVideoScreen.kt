@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,14 +15,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
 import com.calmed.calmedfrontendtourettes.ui.component.VideoPlayer
 
 @Composable
 fun WelcomeVideoScreen(
     onSkip: () -> Unit,
     onContinue: (Boolean) -> Unit,
-    onFullscreen: () -> Unit
+    onOpenFullscreen: (String) -> Unit
 ) {
+    val videoUrl = "https://bombona.rs/videos/testvideo/testvideo.m3u8"
     var dontShowAgain by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
@@ -31,14 +32,12 @@ fun WelcomeVideoScreen(
             .padding(16.dp)
     ) {
         VideoPlayer(
-            hlsUrl = "https://bombona.rs/videos/testvideo/testvideo.m3u8",
+            hlsUrl = videoUrl,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(16f / 9f)
+                .aspectRatio(16f / 9f),
+            onFullscreenToggle = { onOpenFullscreen(videoUrl) }
         )
-        Button(onClick = onFullscreen) {
-            Text("Fullscreen")
-        }
         Text("Welcome Video Screen")
         Row(modifier = Modifier.padding(top = 16.dp)) {
             Checkbox(

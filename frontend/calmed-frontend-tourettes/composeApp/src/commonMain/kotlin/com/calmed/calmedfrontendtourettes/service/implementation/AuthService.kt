@@ -72,18 +72,22 @@ class AuthService(
     }
 
     override suspend fun tryRefresh(): Boolean {
-        val currentToken = tokenStore.tokenDto.value
-        if (currentToken != null) {
-            val refresh = currentToken.refresh
-            if (refresh != null && refresh.isNotBlank()) {
-                val refreshDto = RefreshDto(refresh = refresh)
-                val newToken = api.refresh(refreshDto)
-                return storeTokenIfValid(newToken)
+        return try {
+            val currentToken = tokenStore.tokenDto.value
+            if (currentToken != null) {
+                val refresh = currentToken.refresh
+                if (refresh != null && refresh.isNotBlank()) {
+                    val refreshDto = RefreshDto(refresh = refresh)
+                    val newToken = api.refresh(refreshDto)
+                    storeTokenIfValid(newToken)
+                } else {
+                    false
+                }
             } else {
-                return false
+                false
             }
-        } else {
-            return false
+        } catch (_: Throwable) {
+            false
         }
     }
 

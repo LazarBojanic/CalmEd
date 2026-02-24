@@ -6,5 +6,7 @@ import androidx.compose.ui.Modifier
 @Composable
 expect fun VideoPlayer(
     hlsUrl: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isFullscreen: Boolean = false,
+    onFullscreenToggle: (() -> Unit)? = null
 )

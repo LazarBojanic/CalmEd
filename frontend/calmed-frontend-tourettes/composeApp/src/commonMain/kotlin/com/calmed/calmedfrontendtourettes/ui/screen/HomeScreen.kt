@@ -44,7 +44,8 @@ import org.koin.compose.koinInject
 
 @Composable
 fun HomeScreen(
-    sessionViewModel: SessionViewModel = koinInject()
+    sessionViewModel: SessionViewModel = koinInject(),
+    onOpenFullscreen: (String) -> Unit = {}
 ) {
     val home by sessionViewModel.home.collectAsState(initial = null)
     val ymd = currentYmd()
@@ -114,7 +115,8 @@ fun HomeScreen(
                             key(url) {
                                 VideoPlayer(
                                     hlsUrl = url,
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier.fillMaxSize(),
+                                    onFullscreenToggle = { onOpenFullscreen(url) }
                                 )
                             }
                         } else {
