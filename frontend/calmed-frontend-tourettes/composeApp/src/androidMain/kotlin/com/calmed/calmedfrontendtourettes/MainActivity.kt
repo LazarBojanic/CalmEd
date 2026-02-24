@@ -5,13 +5,25 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalContext
 import com.calmed.calmedfrontendtourettes.auth.AppleAuthBridge
 import com.calmed.calmedfrontendtourettes.auth.setGoogleAuthActivityProvider
 import androidx.lifecycle.lifecycleScope
+import com.calmed.calmedfrontendtourettes.billing.BillingProducts
+import com.calmed.calmedfrontendtourettes.billing.initBilling
+import com.calmed.calmedfrontendtourettes.billing.provideBillingService
+import com.calmed.calmedfrontendtourettes.notifications.NotificationHelper
+import com.calmed.calmedfrontendtourettes.notifications.ReminderScheduler
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-
+import java.util.Calendar
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 
 
@@ -23,12 +35,21 @@ class MainActivity : ComponentActivity() {
 	}
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		initBilling(this)
+		lifecycleScope.launch {
+			val billing = provideBillingService()
+			billing.connect()
+			val exists = billing.loadProduct(BillingProducts.PREMIUM_ONE_TIME)
+			Log.d("BILLING", "Product exists = $exists (id=${BillingProducts.PREMIUM_ONE_TIME})")
+		}
 		Log.d("APPLE_AUTH", "onCreate intent=$intent")
 		handleAppleDeepLink(intent)
 		setGoogleAuthActivityProvider { this }
 		appleSignInStarter = { startAppleSignIn() }
 		setContent {
 			App()
+			val context = LocalContext.current
+
 		}
 	}
 

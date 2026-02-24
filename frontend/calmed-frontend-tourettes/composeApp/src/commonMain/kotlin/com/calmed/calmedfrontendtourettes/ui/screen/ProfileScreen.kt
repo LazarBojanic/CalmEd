@@ -36,20 +36,23 @@ import com.calmed.calmedfrontendtourettes.ui.component.TextField
 import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import com.calmed.calmedfrontendtourettes.reminders.ReminderManager
 
 @Composable
 fun ProfileScreen(
 	user: UserJoined?,
 	userInfo: UserInfoTourettesJoined?,
 	onLogout: () -> Unit,
+	appSettings: com.calmed.calmedfrontendtourettes.settings.AppSettings = koinInject(),
 	sessionViewModel: SessionViewModel = koinInject()
 ) {
 	val scope = rememberCoroutineScope()
+	var remindersEnabled by remember { mutableStateOf(appSettings.isRemindersEnabled()) }
+	val reminderManager = ReminderManager()
 	val loading by sessionViewModel.loading.collectAsState()
 	val error by sessionViewModel.error.collectAsState()
 
 	var isEditing by remember { mutableStateOf(false) }
-
 	val preferredName = remember { mutableStateOf(userInfo?.preferredName ?: "") }
 	val age = remember { mutableIntStateOf(userInfo?.age ?: 18) }
 	val stress = remember { mutableIntStateOf(userInfo?.stressLevel ?: 5) }
@@ -59,6 +62,11 @@ fun ProfileScreen(
 	val followProgress = remember { mutableStateOf(userInfo?.followProgress ?: true) }
 	val ageText = remember { mutableStateOf(age.intValue.toString()) }
 
+	LaunchedEffect(Unit) {
+		if (remindersEnabled) {
+			reminderManager.enableMorningAndEvening()
+		}
+	}
 	LaunchedEffect(userInfo?.id) {
 		preferredName.value = userInfo?.preferredName ?: ""
 		age.intValue = userInfo?.age ?: 18
@@ -325,6 +333,27 @@ fun ProfileScreen(
 								value = if (it) "Yes" else "No"
 							)
 						}
+					}
+				}
+			}
+			item {
+				InfoSection(title = "Exercise Reminders") {
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						verticalAlignment = Alignment.CenterVertically
+					) {
+						Text("Morning & Evening reminders")
+						Spacer(Modifier.weight(1f))
+						Switch(
+							checked = remindersEnabled,
+							onCheckedChange = { enabled ->
+								remindersEnabled = enabled
+								appSettings.setRemindersEnabled(enabled)
+
+								if (enabled) reminderManager.enableMorningAndEvening()
+								else reminderManager.disableMorningAndEvening()
+							}
+						)
 					}
 				}
 			}

@@ -153,6 +153,10 @@ kotlin {
 			implementation(libs.media3ExoplayerHLS)
 			implementation(libs.media3ExoplayerDash)
 			implementation(libs.androidxBrowser)
+			implementation (libs.billingClient)
+
+
+
 
 
 		}

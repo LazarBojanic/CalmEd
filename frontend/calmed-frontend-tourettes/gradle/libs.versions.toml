@@ -10,6 +10,7 @@ androidxCore = "1.17.0"
 androidxLifecycle = "2.10.0-alpha07"
 androidxNavigation = "2.9.1"
 androidxDatastore = "1.2.0"
+billing = "7.1.1"
 
 oAuthJavaJwt = "4.5.0"
 squareupOkio = "3.16.4"
@@ -103,6 +104,7 @@ media3Common = { module = "androidx.media3:media3-common", version.ref = "media3
 media3ExoplayerHLS = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "media3" }
 media3ExoplayerDash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "media3" }
 androidxBrowser = { module = "androidx.browser:browser", version.ref = "androidxBrowser" }
+billingClient = { module = "com.android.billingclient:billing-ktx", version.ref = "billing" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -116,3 +118,8 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
+
+
+
+
+

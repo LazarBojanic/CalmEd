@@ -7,6 +7,7 @@ class AppSettings(
 ) {
     companion object {
         private const val KEY_SHOW_WELCOME_VIDEO = "showWelcomeVideo"
+        private const val KEY_REMINDERS_ENABLED = "reminders_enabled"
     }
 
     private fun welcomeVideoKey(userId: String?): String {
@@ -20,6 +21,12 @@ class AppSettings(
 
     fun setShowWelcomeVideo(userId: String?, value: Boolean) {
         settings.putBoolean(welcomeVideoKey(userId), value)
+    }
+    fun isRemindersEnabled(): Boolean =
+        settings.getBoolean(KEY_REMINDERS_ENABLED, false)
+
+    fun setRemindersEnabled(value: Boolean) {
+        settings.putBoolean(KEY_REMINDERS_ENABLED, value)
     }
 
 }
