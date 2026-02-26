@@ -63,10 +63,10 @@ actual class ReminderManager actual constructor() {
             options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge
         ) { granted, error ->
             if (error != null) {
-                NSLog("REMINDERS: permission error %@", error.localizedDescription ?: "unknown")
-            } else {
-                NSLog("REMINDERS: permission granted=%@", if (granted) "true" else "false")
-            }
+            NSLog("REMINDERS: permission error ${error.localizedDescription ?: "unknown"}")
+        } else {
+            NSLog("REMINDERS: permission granted=${if (granted) "true" else "false"}")
+        }
         }
     }
 
@@ -100,7 +100,7 @@ actual class ReminderManager actual constructor() {
         )
 
         center.addNotificationRequest(request) { _ -> }
-        NSLog("REMINDERS: scheduled daily id=%@ at %02d:%02d", id, hour, minute)
+        NSLog("REMINDERS: scheduled daily id=$id at ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}")
     }
     private fun scheduleAfterSeconds(
         id: String,
@@ -126,6 +126,6 @@ actual class ReminderManager actual constructor() {
         )
 
         center.addNotificationRequest(request) { _ -> }
-        NSLog("REMINDERS: scheduled test id=%@ in %d seconds", id, seconds)
+        NSLog("REMINDERS: scheduled test id=$id in ${seconds}s")
     }
 }
