@@ -1,5 +1,6 @@
 package com.calmed.calmedfrontendtourettes.service.specification
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -62,10 +63,10 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         val configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(
             identifier = DOWNLOAD_SESSION_ID
         )
-        AVAssetDownloadURLSession.URLSessionWithConfiguration(
-            configuration,
-            delegate,
-            NSOperationQueue.mainQueue()
+        AVAssetDownloadURLSession.sessionWithConfiguration(
+            configuration = configuration,
+            assetDownloadDelegate = delegate,
+            delegateQueue = NSOperationQueue.mainQueue()
         )
     }
 
@@ -90,12 +91,12 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
     }
 
     actual override fun refreshDownloaded() {
-        val allKeys = defaults.dictionaryRepresentation().allKeys
-        val urls = allKeys.mapNotNull { key ->
+        val allKeys = (defaults.dictionaryRepresentation() as Map<Any?, *>).keys
+        val urls = allKeys.mapNotNull { key: Any? ->
             (key as? String)
                 ?.takeIf { it.startsWith(OFFLINE_URL_PREFIX) }
                 ?.removePrefix(OFFLINE_URL_PREFIX)
-        }.filter { url ->
+        }.filter { url: String ->
             localFileUrl(url) != null
         }.distinct().sorted()
 
@@ -114,7 +115,7 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             return
         }
 
-        val asset = AVURLAsset.URLAssetWithURL(URL = remote, options = null)
+        val asset = AVURLAsset(remote, options = null)
         val task = session.assetDownloadTaskWithURLAsset(
             asset,
             "Offline Video",
@@ -132,6 +133,7 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         task.resume()
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     actual override fun remove(url: String) {
         localFileUrl(url)?.let { localUrl ->
             NSFileManager.defaultManager.removeItemAtURL(localUrl, error = null)
