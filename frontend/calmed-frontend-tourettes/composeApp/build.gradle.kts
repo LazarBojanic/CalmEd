@@ -45,6 +45,7 @@ buildConfig{
 	buildConfigField("appleIosBundleId", local.getProperty("APPLE_IOS_BUNDLE_ID") ?: "")
 	buildConfigField("appleWebClientId", local.getProperty("APPLE_WEB_CLIENT_ID") ?: "")
 	buildConfigField("appleCallbackURI", local.getProperty("APPLE_CALLBACK_URI") ?: "")
+	buildConfigField("notificationDebug", (local.getProperty("NOTIFICATION_DEBUG") ?: "false").toBoolean())
 }
 
 kotlin {
@@ -232,4 +233,3 @@ dependencies {
 	add("kspIosSimulatorArm64", libs.koinKspCompiler)
 	add("kspIosX64", libs.koinKspCompiler)
 }
-

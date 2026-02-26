@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import java.util.Calendar
 
 object ReminderScheduler {
@@ -50,6 +51,10 @@ object ReminderScheduler {
             cal.timeInMillis,
             pendingIntent
         )
+        Log.d(
+            "REMINDERS",
+            "Scheduled daily id=$notificationId at ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+        )
     }
 
     fun scheduleMorningAndEvening(
@@ -78,6 +83,29 @@ object ReminderScheduler {
         )
     }
 
+    fun scheduleTestReminders(
+        context: Context,
+        firstDelaySeconds: Int = 10,
+        secondDelaySeconds: Int = 20
+    ) {
+        scheduleReminderAfterSeconds(
+            context = context,
+            seconds = firstDelaySeconds,
+            notificationId = 4101,
+            title = "TEST Android 1",
+            text = "Should arrive after $firstDelaySeconds seconds"
+        )
+
+        scheduleReminderAfterSeconds(
+            context = context,
+            seconds = secondDelaySeconds,
+            notificationId = 4102,
+            title = "TEST Android 2",
+            text = "Should arrive after $secondDelaySeconds seconds"
+        )
+        Log.d("REMINDERS", "Scheduled test reminders after ${firstDelaySeconds}s and ${secondDelaySeconds}s")
+    }
+
     fun cancelReminder(context: Context, notificationId: Int) {
         val intent = Intent(context, ExerciseReminderReceiver::class.java)
 
@@ -95,5 +123,38 @@ object ReminderScheduler {
     fun cancelMorningAndEvening(context: Context) {
         cancelReminder(context, 4001)
         cancelReminder(context, 4002)
+        cancelReminder(context, 4101)
+        cancelReminder(context, 4102)
+    }
+
+    private fun scheduleReminderAfterSeconds(
+        context: Context,
+        seconds: Int,
+        notificationId: Int,
+        title: String,
+        text: String
+    ) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        val intent = Intent(context, ExerciseReminderReceiver::class.java).apply {
+            putExtra("id", notificationId)
+            putExtra("title", title)
+            putExtra("text", text)
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val triggerAtMillis = System.currentTimeMillis() + seconds * 1000L
+        alarmManager.setAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            triggerAtMillis,
+            pendingIntent
+        )
+        Log.d("REMINDERS", "Scheduled test id=$notificationId in ${seconds}s")
     }
 }

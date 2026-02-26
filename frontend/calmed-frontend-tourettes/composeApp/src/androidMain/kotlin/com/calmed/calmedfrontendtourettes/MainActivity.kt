@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -14,16 +15,10 @@ import androidx.lifecycle.lifecycleScope
 import com.calmed.calmedfrontendtourettes.billing.BillingProducts
 import com.calmed.calmedfrontendtourettes.billing.initBilling
 import com.calmed.calmedfrontendtourettes.billing.provideBillingService
-import com.calmed.calmedfrontendtourettes.notifications.NotificationHelper
-import com.calmed.calmedfrontendtourettes.notifications.ReminderScheduler
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
+import com.calmed.calmedfrontendtourettes.notifications.setNotificationPermissionRequester
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import java.util.Calendar
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 
 
 
@@ -35,6 +30,11 @@ class MainActivity : ComponentActivity() {
 	}
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		val notificationPermissionLauncher = registerForActivityResult(
+			ActivityResultContracts.RequestPermission()
+		) { granted ->
+			Log.d("NOTIFICATIONS", "POST_NOTIFICATIONS granted=$granted")
+		}
 		initBilling(this)
 		lifecycleScope.launch {
 			val billing = provideBillingService()
@@ -45,6 +45,9 @@ class MainActivity : ComponentActivity() {
 		Log.d("APPLE_AUTH", "onCreate intent=$intent")
 		handleAppleDeepLink(intent)
 		setGoogleAuthActivityProvider { this }
+		setNotificationPermissionRequester { permission ->
+			notificationPermissionLauncher.launch(permission)
+		}
 		appleSignInStarter = { startAppleSignIn() }
 		setContent {
 			App()

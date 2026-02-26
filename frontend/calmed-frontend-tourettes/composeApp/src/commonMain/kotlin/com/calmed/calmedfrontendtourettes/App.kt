@@ -71,7 +71,7 @@ fun App() {
 
     suspend fun resolveNextAuthenticatedRoute(): String? {
         val remoteUser = sessionViewModel.loadSession() ?: return null
-        val isOnboarded = remoteUser.isOnboarded == true
+        val isOnboarded = remoteUser.isOnboarded
         val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser.id)
         return when {
             showWelcomeVideo -> Routes.WelcomeVideo
