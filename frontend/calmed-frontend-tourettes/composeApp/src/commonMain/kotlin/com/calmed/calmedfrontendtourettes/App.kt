@@ -359,7 +359,6 @@ fun App() {
                 FullscreenVideoScreen(
                     hlsUrl = activeVideoUrl,
                     onBack = {
-                        fullscreenVideoUrl = null
                         navController.popBackStack()
                     }
                 )
