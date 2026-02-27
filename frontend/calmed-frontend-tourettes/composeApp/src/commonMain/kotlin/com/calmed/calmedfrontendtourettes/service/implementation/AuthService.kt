@@ -73,7 +73,7 @@ class AuthService(
 
     override suspend fun tryRefresh(): Boolean {
         return try {
-            val currentToken = tokenStore.tokenDto.value
+            val currentToken = tokenStore.getToken()
             if (currentToken != null) {
                 val refresh = currentToken.refresh
                 if (refresh != null && refresh.isNotBlank()) {
