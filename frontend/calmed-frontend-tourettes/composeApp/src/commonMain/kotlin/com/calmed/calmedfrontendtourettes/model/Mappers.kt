@@ -13,7 +13,9 @@ fun UserDto.toEntity(): UserEntity {
 		email = email,
 		username = username,
 		isEmailVerified = isEmailVerified,
-		isOnboarded = isOnboarded
+		isOnboarded = isOnboarded,
+		createdAt = createdAt,
+		updatedAt = updatedAt
 	)
 }
 
@@ -27,7 +29,9 @@ fun UserInfoTourettesDto.toEntity(): UserInfoTourettesEntity {
 		tickType = tickType,
 		tickFrequency = tickFrequency,
 		goal = goal,
-		followProgress = followProgress
+		followProgress = followProgress,
+		createdAt = createdAt,
+		updatedAt = updatedAt
 	)
 }
 
@@ -37,7 +41,9 @@ fun UserEntity.toJoined(): UserJoined {
 		email = email,
 		username = username,
 		isEmailVerified = isEmailVerified,
-		isOnboarded = isOnboarded
+		isOnboarded = isOnboarded,
+		createdAt = createdAt,
+		updatedAt = updatedAt
 	)
 }
 
@@ -51,7 +57,8 @@ fun UserInfoTourettesEntity.toJoined(user: UserJoined): UserInfoTourettesJoined 
 		tickType = tickType,
 		tickFrequency = tickFrequency,
 		goal = goal,
-		followProgress = followProgress
+		followProgress = followProgress,
+		createdAt = createdAt,
+		updatedAt = updatedAt
 	)
 }
-
