@@ -7,9 +7,11 @@ import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSCalendar
+import platform.Foundation.NSCalendarUnitDay
+import platform.Foundation.NSCalendarUnitMonth
+import platform.Foundation.NSCalendarUnitYear
 import platform.Foundation.NSDate
 import platform.Foundation.NSDateComponents
-import platform.Foundation.NSCalendar
 import platform.UIKit.UICalendarView
 import platform.UIKit.UICalendarSelectionSingleDate
 import platform.UIKit.UICalendarSelectionSingleDateDelegateProtocol

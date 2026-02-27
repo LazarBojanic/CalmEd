@@ -7,18 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		22688BD03FBDF720016B8095 /* Pods_iosApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7496BA347262C69219503E0 /* Pods_iosApp.framework */; };
-		78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F7F2F521A4F002CDD53 /* GoogleSignIn */; };
+  78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F7F2F521A4F002CDD53 /* GoogleSignIn */; };
 		78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F812F521A4F002CDD53 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		BAFEB580F79DC2196C9B91C8 /* calmedfrontendtourettes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = calmedfrontendtourettes.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F7496BA347262C69219503E0 /* Pods_iosApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iosApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+  BAFEB580F79DC2196C9B91C8 /* calmedfrontendtourettes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = calmedfrontendtourettes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		6221A75F544DDA22A5C905B8 /* Exceptions for "iosApp" folder in "iosApp" target */ = {
+		6221A75F544DDA22A5C905B8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -31,7 +29,7 @@
 		2CE245753B5F0A6F30333081 /* iosApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				6221A75F544DDA22A5C905B8 /* Exceptions for "iosApp" folder in "iosApp" target */,
+				6221A75F544DDA22A5C905B8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -47,11 +45,10 @@
 		6B5B2262EA070333970C98A8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
-			files = (
-				78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */,
-				22688BD03FBDF720016B8095 /* Pods_iosApp.framework in Frameworks */,
-				78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */,
-			);
+   files = (
+                                78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */,
+                                78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */,
+                        );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -69,18 +66,9 @@
 			isa = PBXGroup;
 			children = (
 				5CB45396187DA1F68CACA0DF /* Configuration */,
-				2CE245753B5F0A6F30333081 /* iosApp */,
-				38895CFF99B305D5EDBC6B1F /* Products */,
-				C2611114C4C3A3F61F3E384C /* Frameworks */,
-			);
-			sourceTree = "<group>";
-		};
-		C2611114C4C3A3F61F3E384C /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				F7496BA347262C69219503E0 /* Pods_iosApp.framework */,
-			);
-			name = Frameworks;
+                                2CE245753B5F0A6F30333081 /* iosApp */,
+                                38895CFF99B305D5EDBC6B1F /* Products */,
+                        );
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -89,9 +77,9 @@
 		54EEDB0CE103EB38AB6E3008 /* iosApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3E2FE65326F7E6E231107466 /* Build configuration list for PBXNativeTarget "iosApp" */;
-			buildPhases = (
-				ACC6C4724DD0B95D00421DD0 /* Compile Kotlin Framework */,
-				A2D7182D5AD16353388A15D5 /* Sources */,
+   buildPhases = (
+                                5C54CE75BC3F58C73B36529D /* Compile Kotlin */,
+                                A2D7182D5AD16353388A15D5 /* Sources */,
 				6B5B2262EA070333970C98A8 /* Frameworks */,
 				748A4AB543CDF5FE97090C9F /* Resources */,
 			);
@@ -155,24 +143,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		ACC6C4724DD0B95D00421DD0 /* Compile Kotlin Framework */ = {
+		5C54CE75BC3F58C73B36529D /* Compile Kotlin */ = {
 			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
 			inputPaths = (
 			);
-			name = "Compile Kotlin Framework";
-			outputFileListPaths = (
-			);
+			name = "Compile Kotlin";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignPodAppleFrameworkForXcode --no-configuration-cache -Pkotlin.native.cocoapods.generate.wrapper=true\n";
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode";
 		};
 /* End PBXShellScriptBuildPhase section */
 

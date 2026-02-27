@@ -27,6 +27,7 @@ import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import com.calmed.calmedfrontendtourettes.auth.AppleAuthBridge
+import com.calmed.calmedfrontendtourettes.auth.GoogleAuthBridge
 
 @Composable
 fun LoginScreen(
@@ -53,6 +54,16 @@ fun LoginScreen(
             }
 
             AppleAuthBridge.onIdToken = null
+        }
+
+        GoogleAuthBridge.onIdToken = { idToken ->
+            if (idToken.isSuccess) {
+                scope.launch {
+                    val ok = viewModel.loginWithGoogle(idToken.getOrNull() ?: "")
+                    if (ok) onLoginSuccess()
+                }
+            }
+            GoogleAuthBridge.onIdToken = null
         }
     }
 

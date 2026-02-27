@@ -3,6 +3,24 @@ import ComposeApp
 import GoogleSignIn
 import UserNotifications
 
+struct GoogleSignInHelper {
+    static func signIn() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootViewController = windowScene.windows.first?.rootViewController else {
+            return
+        }
+        
+        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { result, error in
+            if let error = error {
+                GoogleAuthBridge.shared.onIdTokenFailure(message: error.localizedDescription)
+            } else if let result = result {
+                let idToken = result.user.idToken?.tokenString ?? ""
+                GoogleAuthBridge.shared.onIdTokenSuccess(token: idToken)
+            }
+        }
+    }
+}
+
 final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 	static let shared = NotificationDelegate()
 
@@ -26,6 +44,9 @@ struct iOSApp: App {
             ContentView()
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerGoogleSignIn"))) { _ in
+                    GoogleSignInHelper.signIn()
                 }
         }
     }

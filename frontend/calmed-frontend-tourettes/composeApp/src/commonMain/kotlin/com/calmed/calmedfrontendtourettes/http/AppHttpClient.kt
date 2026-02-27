@@ -60,7 +60,7 @@ class AppHttpClient(
 
 
             headers.append("User-Agent", "Mozilla/5.0 (Android) CalmEd")
-            headers.append("Accept", "image/*,*/*;q=0.8")
+            // headers.append("Accept", "image/*,*/*;q=0.8") // Removed to avoid interfering with JSON responses
 
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
