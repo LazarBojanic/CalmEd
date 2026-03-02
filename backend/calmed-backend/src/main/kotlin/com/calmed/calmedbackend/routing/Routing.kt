@@ -17,5 +17,6 @@ fun Application.configureRouting() {
 		programExerciseRoutes()
 		userProgramRoutes()
 		userExerciseProgressRoutes()
+		videoPlaybackRoutes()
 	}
 }
