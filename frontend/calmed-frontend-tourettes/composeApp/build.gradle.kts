@@ -11,7 +11,6 @@ plugins {
 	alias(libs.plugins.ksp)
 	alias(libs.plugins.room)
 	alias(libs.plugins.buildConfig)
-	kotlin("native.cocoapods")
 }
 dependencies {
 	debugImplementation(compose.uiTooling)
@@ -45,6 +44,7 @@ buildConfig{
 	buildConfigField("appleIosBundleId", local.getProperty("APPLE_IOS_BUNDLE_ID") ?: "")
 	buildConfigField("appleWebClientId", local.getProperty("APPLE_WEB_CLIENT_ID") ?: "")
 	buildConfigField("appleCallbackURI", local.getProperty("APPLE_CALLBACK_URI") ?: "")
+	buildConfigField("notificationDebug", (local.getProperty("NOTIFICATION_DEBUG") ?: "false").toBoolean())
 }
 
 kotlin {
@@ -58,22 +58,13 @@ kotlin {
 	iosSimulatorArm64()
 	iosX64()
 
-	cocoapods {
-		summary = "Some description for the Shared Module"
-		homepage = "Link to the Shared Module homepage"
-		version = "1.0"
-		ios.deploymentTarget = "15.0"
-		podfile = project.file("../iosApp/Podfile")
-		framework {
-			baseName = "ComposeApp"
-			isStatic = true
-		}
-		pod("GoogleSignIn") {
-			version = "~> 7.0.0"
-		}
-	}
-
 	targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
+		binaries {
+			framework {
+				baseName = "ComposeApp"
+				isStatic = true
+			}
+		}
 		binaries.all {
 			linkerOpts("-lsqlite3")
 		}
@@ -232,4 +223,3 @@ dependencies {
 	add("kspIosSimulatorArm64", libs.koinKspCompiler)
 	add("kspIosX64", libs.koinKspCompiler)
 }
-

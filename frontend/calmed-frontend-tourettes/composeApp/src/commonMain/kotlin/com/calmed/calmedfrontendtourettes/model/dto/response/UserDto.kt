@@ -8,5 +8,7 @@ data class UserDto(
 	val email: String,
 	val username: String,
 	val isEmailVerified: Boolean,
-	val isOnboarded: Boolean
+	val isOnboarded: Boolean,
+	val createdAt: String,
+	val updatedAt: String
 )

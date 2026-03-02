@@ -10,5 +10,7 @@ data class ProgramExerciseDto(
 	val description: String?,
 	val videoURL: String?,
 	val thumbnailURL: String?,
-	val orderInWeek: Int?
+	val orderInWeek: Int?,
+	val createdAt: String,
+	val updatedAt: String
 )

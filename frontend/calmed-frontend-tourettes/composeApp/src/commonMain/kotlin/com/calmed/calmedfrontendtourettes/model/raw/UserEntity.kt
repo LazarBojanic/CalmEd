@@ -16,4 +16,8 @@ data class UserEntity(
 	val isEmailVerified: Boolean,
 	@ColumnInfo(name = "is_onboarded")
 	val isOnboarded: Boolean,
+	@ColumnInfo(name = "created_at")
+	val createdAt: String,
+	@ColumnInfo(name = "updated_at")
+	val updatedAt: String
 )

@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -33,6 +34,10 @@ class TokenDataStore(private val dataStore: DataStore<Preferences>) : ITokenData
         started = SharingStarted.Eagerly,
         initialValue = null
     )
+
+    override suspend fun getToken(): TokenDto? {
+        return tokenDtoFlow.first()
+    }
 
     override suspend fun setToken(tokenDto: TokenDto) {
         dataStore.edit { prefs ->

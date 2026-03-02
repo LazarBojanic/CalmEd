@@ -62,8 +62,8 @@ class SessionViewModel(
 		uiEntity.toJoined(uEntity.toJoined())
 	}.stateIn(scope, SharingStarted.Eagerly, null)
 
-	fun currentUserId(): String? {
-		val access = tokenStore.tokenDto.value?.access ?: return null
+	private suspend fun currentUserId(): String? {
+		val access = tokenStore.getToken()?.access ?: return null
 		val payload = jwtDecode(access)
 		return payload["sub"]?.jsonPrimitive?.content
 	}

@@ -23,5 +23,9 @@ data class UserInfoTourettesEntity(
 	@ColumnInfo(name = "goal")
 	val goal: String?,
 	@ColumnInfo(name = "follow_progress")
-	val followProgress: Boolean?
+	val followProgress: Boolean?,
+	@ColumnInfo(name = "created_at")
+	val createdAt: String,
+	@ColumnInfo(name = "updated_at")
+	val updatedAt: String
 )

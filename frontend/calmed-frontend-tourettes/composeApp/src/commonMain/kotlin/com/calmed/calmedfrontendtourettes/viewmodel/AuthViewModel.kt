@@ -122,20 +122,4 @@ class AuthViewModel(
             _loading.value = false
         }
     }
-
-    suspend fun loginWithApple___TEST(code: String): Boolean {
-        return loginWithApple(identityToken = code)
-    }
-
-
-    suspend fun logout() {
-        _error.value = null
-        _info.value = null
-        _loading.value = true
-        try {
-            authService.logout()
-        } finally {
-            _loading.value = false
-        }
-    }
 }

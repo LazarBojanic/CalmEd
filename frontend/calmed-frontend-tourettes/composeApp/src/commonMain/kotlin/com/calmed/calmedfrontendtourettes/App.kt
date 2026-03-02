@@ -2,7 +2,6 @@ package com.calmed.calmedfrontendtourettes
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +32,7 @@ import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
 import com.calmed.calmedfrontendtourettes.auth.launchAppleSignIn
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -59,7 +59,6 @@ fun App() {
     val authService: IAuthService = koinInject()
     val appApi: IAppApi = koinInject()
 
-    val token by tokenStore.tokenDto.collectAsState()
     val authViewModel = remember { AuthViewModel(authService) }
 
     val appSettings: AppSettings = koinInject()
@@ -71,7 +70,7 @@ fun App() {
 
     suspend fun resolveNextAuthenticatedRoute(): String? {
         val remoteUser = sessionViewModel.loadSession() ?: return null
-        val isOnboarded = remoteUser.isOnboarded == true
+        val isOnboarded = remoteUser.isOnboarded
         val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser.id)
         return when {
             showWelcomeVideo -> Routes.WelcomeVideo
@@ -94,7 +93,7 @@ fun App() {
             composable(Routes.Splash) {
                 SplashScreen()
 
-                LaunchedEffect(token) {
+                LaunchedEffect(Unit) {
                     val online = isBackendReachable(appApi)
                     if (!online) {
                         navController.navigate(Routes.Offline) {
@@ -104,7 +103,7 @@ fun App() {
                         return@LaunchedEffect
                     }
 
-                    val currentToken = tokenStore.tokenDto.value
+                    val currentToken = tokenStore.getToken()
                     if (currentToken == null) {
                         navController.navigate(Routes.Login) {
                             popUpTo(Routes.Splash) { inclusive = true }
@@ -216,7 +215,7 @@ fun App() {
                                 return@launch
                             }
 
-                            val currentToken = tokenStore.tokenDto.value
+                            val currentToken = tokenStore.getToken()
                             val access = currentToken?.access
                             val refresh = currentToken?.refresh
 
@@ -359,7 +358,6 @@ fun App() {
                 FullscreenVideoScreen(
                     hlsUrl = activeVideoUrl,
                     onBack = {
-                        fullscreenVideoUrl = null
                         navController.popBackStack()
                     }
                 )

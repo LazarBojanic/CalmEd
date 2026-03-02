@@ -30,6 +30,7 @@ import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
 import com.calmed.calmedfrontendtourettes.ui.component.PrimaryButton
 import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
 import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
+import com.calmed.calmedfrontendtourettes.util.currentYmd
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -58,8 +59,9 @@ fun MainScreen(
 	LaunchedEffect(token?.access) {
 		val access = token?.access
 		if (!access.isNullOrBlank()) {
+			val ymd = currentYmd()
 			sessionViewModel.loadSession()
-			sessionViewModel.loadHome(year = 2026, month = 2)
+			sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
 			sessionViewModel.loadAllExercises()
 		}
 	}

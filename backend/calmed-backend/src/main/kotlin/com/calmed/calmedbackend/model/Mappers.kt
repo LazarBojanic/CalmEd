@@ -179,7 +179,9 @@ fun UserJoined.toDto(): UserDto {
 		email = this.email,
 		username = this.username,
 		isEmailVerified = this.isEmailVerified,
-		isOnboarded = this.isOnboarded
+		isOnboarded = this.isOnboarded,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
 	)
 }
 
@@ -246,7 +248,9 @@ fun UserInfoTourettesJoined.toDto(): UserInfoTourettesDto {
 		tickType = this.tickType,
 		tickFrequency = this.tickFrequency,
 		goal = this.goal,
-		followProgress = this.followProgress
+		followProgress = this.followProgress,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
 	)
 }
 
@@ -306,7 +310,9 @@ fun ProgramExerciseJoined.toDto(): ProgramExerciseDto {
 		description = this.description,
 		videoURL = this.videoURL,
 		thumbnailURL = this.thumbnailURL,
-		orderInWeek = this.orderInWeek
+		orderInWeek = this.orderInWeek,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
 	)
 }
 
@@ -358,7 +364,9 @@ fun UserProgramJoined.toDto(): UserProgramDto {
 		user = this.user.toDto(),
 		startDate = this.startDate,
 		endDate = this.endDate,
-		timezone = this.timezone
+		timezone = this.timezone,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
 	)
 }
 
@@ -413,6 +421,8 @@ fun UserExerciseProgressJoined.toDto(): UserExerciseProgressDto {
 		user = this.user.toDto(),
 		programExercise = this.programExercise.toDto(),
 		session = this.session,
-		day = this.day
+		day = this.day,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
 	)
 }

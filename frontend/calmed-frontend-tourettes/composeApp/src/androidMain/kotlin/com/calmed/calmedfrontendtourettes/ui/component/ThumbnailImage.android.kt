@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import kotlinx.coroutines.CancellationException
 
 @Composable
@@ -26,7 +27,9 @@ actual fun ThumbnailImage(
     val bmpState = produceState<ImageBitmap?>(initialValue = null, key1 = url) {
         value = null
         try {
-            val bytes: ByteArray = client.get(url).body()
+            val bytes: ByteArray = client.get(url) {
+                header("Authorization", null)
+            }.body()
             val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
             value = bmp?.asImageBitmap()
         } catch (ce: CancellationException) {

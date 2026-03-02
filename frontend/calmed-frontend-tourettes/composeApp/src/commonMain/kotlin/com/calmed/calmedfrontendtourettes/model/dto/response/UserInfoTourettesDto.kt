@@ -15,5 +15,7 @@ data class UserInfoTourettesDto(
 	val tickType: TickType?,
 	val tickFrequency: TickFrequency?,
 	val goal: String?,
-	val followProgress: Boolean?
+	val followProgress: Boolean?,
+	val createdAt: String,
+	val updatedAt: String
 )

@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items as listItems
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,9 +35,11 @@ import com.calmed.calmedfrontendtourettes.http.AppHttpClient
 import com.calmed.calmedfrontendtourettes.ui.component.ScreenScaffold
 import com.calmed.calmedfrontendtourettes.ui.component.ThumbnailImage
 import com.calmed.calmedfrontendtourettes.ui.component.VideoPlayer
+import com.calmed.calmedfrontendtourettes.ui.component.NativeCalendar
 import com.calmed.calmedfrontendtourettes.util.currentYmd
 import com.calmed.calmedfrontendtourettes.viewmodel.SessionViewModel
 import org.koin.compose.koinInject
+import kotlin.time.Instant
 
 @Composable
 fun HomeScreen(
@@ -48,12 +47,15 @@ fun HomeScreen(
     onOpenFullscreen: (String) -> Unit = {}
 ) {
     val home by sessionViewModel.home.collectAsState(initial = null)
+    val user by sessionViewModel.user.collectAsState()
+    val allExercises by sessionViewModel.allExercises.collectAsState()
     val ymd = currentYmd()
     val days = home?.calendar?.days ?: emptyList()
     val appHttpClient: AppHttpClient = koinInject()
 
     var selectedVideoUrl by remember { mutableStateOf<String?>(null) }
     var selectedTitle by remember { mutableStateOf<String?>(null) }
+    var selectedWeekNumber by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(Unit) {
         sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
@@ -62,6 +64,27 @@ fun HomeScreen(
     LaunchedEffect(home?.upNext) {
         if (selectedVideoUrl.isNullOrBlank()) {
             val first = home?.upNext?.firstOrNull()
+            selectedVideoUrl = first?.videoURL
+            selectedTitle = first?.title
+        }
+    }
+
+    LaunchedEffect(home?.currentWeek) {
+        if (selectedWeekNumber == null) {
+            selectedWeekNumber = home?.currentWeek ?: 1
+        }
+    }
+
+    val sortedDays = remember(days) { days.sortedBy { it.day } }
+    val activeWeek = selectedWeekNumber ?: home?.currentWeek ?: 1
+    val weekExercises = remember(allExercises, activeWeek) {
+        allExercises.filter { it.weekNumber == activeWeek }.sortedBy { it.orderInWeek ?: Int.MAX_VALUE }
+    }
+    val displayExercises = if (weekExercises.isNotEmpty()) weekExercises else home?.upNext.orEmpty()
+
+    LaunchedEffect(displayExercises) {
+        if (selectedVideoUrl.isNullOrBlank()) {
+            val first = displayExercises.firstOrNull()
             selectedVideoUrl = first?.videoURL
             selectedTitle = first?.title
         }
@@ -80,21 +103,31 @@ fun HomeScreen(
                 if (days.isEmpty()) {
                     Text("Calendar loading...")
                 } else {
-                    val rows = (days.size + 6) / 7
-                    val gridHeight = (rows * 40).dp
-
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(7),
-                        userScrollEnabled = false,
+                    val month = home?.calendar?.month ?: ymd.month
+                    val year = home?.calendar?.year ?: ymd.year
+                    NativeCalendar(
+                        year = year,
+                        month = month,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(gridHeight)
-                    ) {
-                        gridItems(days) { d ->
-                            val isToday = d.day == ymd.day
-                            Text(if (isToday) "[${d.day}]" else "${d.day}")
+                            .height(320.dp),
+                        onDateSelected = { y, m, d ->
+                            val createdAt = user?.createdAt
+                            if (createdAt.isNullOrBlank()) return@NativeCalendar
+
+                            val programStartEpochDay = try {
+                                val parsed = Instant.parse(createdAt)
+                                epochDayFromMillis(parsed.toEpochMilliseconds())
+                            } catch (_: Throwable) {
+                                return@NativeCalendar
+                            }
+
+                            val selectedEpochDay = dateToEpochDay(y, m, d)
+                            val diffDays = selectedEpochDay - programStartEpochDay
+                            val weekIndex = if (diffDays < 0) 0 else diffDays / 7
+                            selectedWeekNumber = (weekIndex + 1).toInt()
                         }
-                    }
+                    )
                 }
             }
 
@@ -131,7 +164,7 @@ fun HomeScreen(
                 }
             }
 
-            listItems(home?.upNext ?: emptyList()) { ex ->
+            listItems(displayExercises) { ex ->
                 Card(
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier
@@ -182,4 +215,28 @@ fun HomeScreen(
             }
         }
     }
+}
+
+private const val MILLIS_PER_DAY = 86_400_000L
+
+private fun epochDayFromMillis(epochMillis: Long): Long {
+    return floorDiv(epochMillis, MILLIS_PER_DAY)
+}
+
+private fun floorDiv(a: Long, b: Long): Long {
+    var r = a / b
+    if ((a xor b) < 0 && a % b != 0L) r -= 1
+    return r
+}
+
+// ISO-8601 to epoch day, same as java.time.LocalDate.toEpochDay
+private fun dateToEpochDay(year: Int, month: Int, day: Int): Long {
+    var y = year
+    val m = month
+    y -= if (m <= 2) 1 else 0
+    val era = if (y >= 0) y / 400 else (y - 399) / 400
+    val yoe = y - era * 400
+    val doy = (153 * (m + if (m > 2) -3 else 9) + 2) / 5 + day - 1
+    val doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
+    return era * 146097L + doe - 719468L
 }

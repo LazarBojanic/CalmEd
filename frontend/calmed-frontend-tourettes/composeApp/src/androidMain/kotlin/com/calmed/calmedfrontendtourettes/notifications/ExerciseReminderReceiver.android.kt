@@ -7,10 +7,11 @@ import android.content.Intent
 class ExerciseReminderReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        android.util.Log.d("REMINDER", "RECEIVER FIRED id=${intent.getIntExtra("id", -1)}")
+        val id = intent.getIntExtra("id", -1)
         val title = intent.getStringExtra("title") ?: "Exercise"
         val text = intent.getStringExtra("text") ?: "Time for your practice."
-        val notificationId = intent.getIntExtra("id", 2001)
+        android.util.Log.d("REMINDER", "RECEIVER FIRED id=$id title=$title")
+        val notificationId = id.takeIf { it != -1 } ?: 2001
 
         val hour = intent.getIntExtra("hour", -1)
         val minute = intent.getIntExtra("minute", -1)
