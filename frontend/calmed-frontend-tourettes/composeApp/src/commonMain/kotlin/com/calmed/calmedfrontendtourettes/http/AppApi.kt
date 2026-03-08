@@ -175,12 +175,20 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 
 	override suspend fun createPaymentSheetParams(dto: CreateCheckoutSessionDto): PaymentSheetParamsDto? {
 		val resp: HttpResponse = client.post("/payment/checkout-session") { setBody(dto) }
-		return if (resp.status == HttpStatusCode.OK) resp.body() else null
+		return if (resp.status == HttpStatusCode.OK) {
+			resp.body()
+		} else {
+			error("Payment init failed (${resp.status.value}): ${resp.bodyAsText()}")
+		}
 	}
 
 	override suspend fun confirmPaymentIntent(dto: ConfirmPaymentIntentDto): PaymentStatusDto? {
 		val resp: HttpResponse = client.post("/payment/confirm") { setBody(dto) }
-		return if (resp.status == HttpStatusCode.OK) resp.body() else null
+		return if (resp.status == HttpStatusCode.OK) {
+			resp.body()
+		} else {
+			error("Payment confirm failed (${resp.status.value}): ${resp.bodyAsText()}")
+		}
 	}
 
 

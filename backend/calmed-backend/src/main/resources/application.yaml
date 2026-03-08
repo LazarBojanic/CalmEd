@@ -64,3 +64,4 @@ stripe:
     merchant_display_name: ${STRIPE_MERCHANT_DISPLAY_NAME:CalmEd}
     merchant_country_code: ${STRIPE_MERCHANT_COUNTRY_CODE:RS}
     apple_merchant_id: ${STRIPE_APPLE_MERCHANT_ID:placeholder}
+    api_version: ${STRIPE_API_VERSION:2026-02-25.clover}

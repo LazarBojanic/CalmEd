@@ -11,7 +11,8 @@ data class StripeConfig(
     val currency: String,
     val merchantDisplayName: String,
     val merchantCountryCode: String,
-    val appleMerchantId: String?
+    val appleMerchantId: String?,
+    val apiVersion: String
 ) {
     companion object {
         fun from(config: ApplicationConfig): StripeConfig {
@@ -23,7 +24,8 @@ data class StripeConfig(
                 currency = config.property("stripe.currency").getString(),
                 merchantDisplayName = config.property("stripe.merchant_display_name").getString(),
                 merchantCountryCode = config.property("stripe.merchant_country_code").getString(),
-                appleMerchantId = config.propertyOrNull("stripe.apple_merchant_id")?.getString()?.takeIf { it.isNotBlank() }
+                appleMerchantId = config.propertyOrNull("stripe.apple_merchant_id")?.getString()?.takeIf { it.isNotBlank() },
+                apiVersion = config.property("stripe.api_version").getString()
             )
         }
     }
