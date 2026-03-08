@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
   78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F7F2F521A4F002CDD53 /* GoogleSignIn */; };
 		78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F812F521A4F002CDD53 /* GoogleSignInSwift */; };
+		A19C9E3A10C14C8FAE1121C4 /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = A19C9E3A10C14C8FAE1121C3 /* StripePaymentSheet */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
    files = (
+                                A19C9E3A10C14C8FAE1121C4 /* StripePaymentSheet in Frameworks */,
                                 78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */,
                                 78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */,
                         );
@@ -121,6 +123,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				78290F7E2F521A4F002CDD53 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				A19C9E3A10C14C8FAE1121C2 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 38895CFF99B305D5EDBC6B1F /* Products */;
@@ -389,6 +392,14 @@
 				minimumVersion = 9.1.0;
 			};
 		};
+		A19C9E3A10C14C8FAE1121C2 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-ios-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 24.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -401,6 +412,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 78290F7E2F521A4F002CDD53 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		A19C9E3A10C14C8FAE1121C3 /* StripePaymentSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A19C9E3A10C14C8FAE1121C2 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
+			productName = StripePaymentSheet;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

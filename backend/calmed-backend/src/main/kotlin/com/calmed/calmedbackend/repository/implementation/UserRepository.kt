@@ -2,6 +2,7 @@ package com.calmed.calmedbackend.repository.implementation
 
 import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.MapMode
+import com.calmed.calmedbackend.model.raw.user.PaymentType
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
 import com.calmed.calmedbackend.model.raw.user.UserTable
@@ -97,6 +98,26 @@ class UserRepository : IUserRepository {
 				return@withTransaction e.toRaw()
 			}
 			else{
+				return@withTransaction null
+			}
+		}
+	}
+
+	override suspend fun setPaymentStatus(
+		id: UUID,
+		isPaid: Boolean,
+		paymentType: PaymentType?,
+		stripeCustomerId: String?
+	): User? {
+		return withTransaction {
+			val e = UserEntity.findById(id)
+			if (e != null) {
+				e.isPaid = isPaid
+				e.paymentType = paymentType
+				e.stripeCustomerId = stripeCustomerId
+				e.updatedAt = Instant.now()
+				return@withTransaction e.toRaw()
+			} else {
 				return@withTransaction null
 			}
 		}

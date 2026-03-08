@@ -15,6 +15,7 @@ fun Application.configureRouting() {
 		userInfoTourettesRoutes()
 		homeRoutes()
 		programExerciseRoutes()
+		paymentRoutes()
 		userProgramRoutes()
 		userExerciseProgressRoutes()
 		videoPlaybackRoutes()

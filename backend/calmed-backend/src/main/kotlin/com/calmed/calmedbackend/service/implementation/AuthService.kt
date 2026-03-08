@@ -943,6 +943,9 @@ class AuthService(private val userService: IUserService,
 												username = user.username,
 												isEmailVerified = true,
 												isOnboarded = user.isOnboarded,
+												isPaid = user.isPaid,
+												paymentType = user.paymentType,
+												stripeCustomerId = user.stripeCustomerId,
 												createdAt = user.createdAt,
 												updatedAt = Instant.now()
 											)

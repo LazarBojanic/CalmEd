@@ -6,17 +6,19 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.ui.platform.LocalContext
 import com.calmed.calmedfrontendtourettes.auth.AppleAuthBridge
 import com.calmed.calmedfrontendtourettes.auth.setGoogleAuthActivityProvider
 import androidx.lifecycle.lifecycleScope
 import com.calmed.calmedfrontendtourettes.billing.BillingProducts
 import com.calmed.calmedfrontendtourettes.billing.initBilling
 import com.calmed.calmedfrontendtourettes.billing.provideBillingService
+import com.calmed.calmedfrontendtourettes.model.dto.response.PaymentSheetParamsDto
+import com.calmed.calmedfrontendtourettes.payment.StripePaymentResultBridge
 import com.calmed.calmedfrontendtourettes.viewmodel.AuthViewModel
 import com.calmed.calmedfrontendtourettes.notifications.setNotificationPermissionRequester
+import com.stripe.android.PaymentConfiguration
+import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.paymentsheet.PaymentSheetResult
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -24,12 +26,16 @@ import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
 	private val authViewModel: AuthViewModel by inject()
+	private lateinit var stripePaymentSheet: PaymentSheet
+	private var pendingPaymentIntentId: String? = null
 	companion object {
 		var appleSignInStarter: (() -> Unit)? = null
 		var appleAuthCodeReceiver: ((String) -> Unit)? = null
+		var stripePaymentStarter: ((PaymentSheetParamsDto) -> Unit)? = null
 	}
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		stripePaymentSheet = PaymentSheet(this, ::onStripePaymentResult)
 		val notificationPermissionLauncher = registerForActivityResult(
 			ActivityResultContracts.RequestPermission()
 		) { granted ->
@@ -43,15 +49,17 @@ class MainActivity : ComponentActivity() {
 			Log.d("BILLING", "Product exists = $exists (id=${BillingProducts.PREMIUM_ONE_TIME})")
 		}
 		Log.d("APPLE_AUTH", "onCreate intent=$intent")
-		handleAppleDeepLink(intent)
+		handleDeepLink(intent)
 		setGoogleAuthActivityProvider { this }
 		setNotificationPermissionRequester { permission ->
 			notificationPermissionLauncher.launch(permission)
 		}
 		appleSignInStarter = { startAppleSignIn() }
+		stripePaymentStarter = { params ->
+			startStripePayment(params)
+		}
 		setContent {
 			App()
-			val context = LocalContext.current
 
 		}
 	}
@@ -59,16 +67,17 @@ class MainActivity : ComponentActivity() {
 	override fun onNewIntent(intent: Intent) {
 		super.onNewIntent(intent)
 		Log.d("APPLE_AUTH", "onNewIntent intent=$intent")
-		handleAppleDeepLink(intent)
+		handleDeepLink(intent)
 	}
 
-	private fun handleAppleDeepLink(intent: Intent?) {
+	private fun handleDeepLink(intent: Intent?) {
 		Log.d("APPLE_AUTH", "handleAppleDeepLink CALLED. intent=$intent")
 
 		val data = intent?.data ?: return
 		Log.d("APPLE_AUTH", "APPLE CALLBACK URI: $data")
 
-		if (data.scheme != "calmed" || data.host != "apple") return
+		if (data.scheme != "calmed") return
+		if (data.host != "apple") return
 
 		val idToken = data.getQueryParameter("id_token")
 		val code = data.getQueryParameter("code")
@@ -126,5 +135,50 @@ class MainActivity : ComponentActivity() {
 		Log.d("APPLE_AUTH", "AUTHORIZE_URL = $url")
 		val customTabsIntent = androidx.browser.customtabs.CustomTabsIntent.Builder().build()
 		customTabsIntent.launchUrl(this, url)
+	}
+
+	private fun startStripePayment(params: PaymentSheetParamsDto) {
+		try {
+			PaymentConfiguration.init(this, params.publishableKey)
+			pendingPaymentIntentId = params.paymentIntentId
+			val customerConfig = PaymentSheet.CustomerConfiguration(
+				id = params.customerId,
+				ephemeralKeySecret = params.customerEphemeralKeySecret
+			)
+			val googlePayConfig = PaymentSheet.GooglePayConfiguration(
+				environment = PaymentSheet.GooglePayConfiguration.Environment.Test,
+				countryCode = params.merchantCountryCode,
+				currencyCode = params.currency.uppercase()
+			)
+			val config = PaymentSheet.Configuration(
+				merchantDisplayName = params.merchantDisplayName,
+				customer = customerConfig,
+				googlePay = googlePayConfig
+			)
+			stripePaymentSheet.presentWithPaymentIntent(params.paymentIntentClientSecret, config)
+		} catch (t: Throwable) {
+			StripePaymentResultBridge.onFailure(t.message ?: "Unable to start Stripe PaymentSheet.")
+		}
+	}
+
+	private fun onStripePaymentResult(result: PaymentSheetResult) {
+		when (result) {
+			is PaymentSheetResult.Canceled -> {
+				StripePaymentResultBridge.onFailure("Payment canceled.")
+			}
+			is PaymentSheetResult.Failed -> {
+				StripePaymentResultBridge.onFailure(
+					result.error.localizedMessage ?: "Stripe payment failed."
+				)
+			}
+			is PaymentSheetResult.Completed -> {
+				val paymentIntentId = pendingPaymentIntentId
+				if (paymentIntentId.isNullOrBlank()) {
+					StripePaymentResultBridge.onFailure("Missing payment intent id.")
+				} else {
+					StripePaymentResultBridge.onSuccess(paymentIntentId)
+				}
+			}
+		}
 	}
 }

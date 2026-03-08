@@ -3,6 +3,7 @@ package com.calmed.calmedbackend.service.implementation
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.join
 import com.calmed.calmedbackend.model.joined.UserJoined
+import com.calmed.calmedbackend.model.raw.user.PaymentType
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.repository.specification.IUserRepository
 import com.calmed.calmedbackend.service.specification.IUserService
@@ -70,6 +71,20 @@ class UserService(
 
 	override suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): AppResult<UserJoined> {
 		val updated = userRepository.setIsOnboarded(id, isOnboarded)
+		return if (updated != null) {
+			AppResult.Success(updated.join())
+		} else {
+			AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
+		}
+	}
+
+	override suspend fun setPaymentStatus(
+		id: UUID,
+		isPaid: Boolean,
+		paymentType: PaymentType?,
+		stripeCustomerId: String?
+	): AppResult<UserJoined> {
+		val updated = userRepository.setPaymentStatus(id, isPaid, paymentType, stripeCustomerId)
 		return if (updated != null) {
 			AppResult.Success(updated.join())
 		} else {

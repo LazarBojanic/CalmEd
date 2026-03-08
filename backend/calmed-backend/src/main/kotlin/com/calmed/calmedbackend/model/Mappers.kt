@@ -39,6 +39,9 @@ fun UserEntity.toRaw(): User {
 		username = this.username,
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
+		isPaid = this.isPaid,
+		paymentType = this.paymentType,
+		stripeCustomerId = this.stripeCustomerId,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -76,6 +79,9 @@ fun User.join(): UserJoined {
 		username = this.username,
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
+		isPaid = this.isPaid,
+		paymentType = this.paymentType,
+		stripeCustomerId = this.stripeCustomerId,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -125,6 +131,9 @@ fun UserEntity.setFrom(d: User, mapMode: MapMode) {
 	username = d.username
 	isEmailVerified = d.isEmailVerified
 	isOnboarded = d.isOnboarded
+	isPaid = d.isPaid
+	paymentType = d.paymentType
+	stripeCustomerId = d.stripeCustomerId
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
@@ -180,6 +189,9 @@ fun UserJoined.toDto(): UserDto {
 		username = this.username,
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
+		isPaid = this.isPaid,
+		paymentType = this.paymentType,
+		stripeCustomerId = this.stripeCustomerId,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)

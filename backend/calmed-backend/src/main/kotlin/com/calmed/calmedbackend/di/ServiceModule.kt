@@ -9,6 +9,7 @@ import com.calmed.calmedbackend.service.implementation.RefreshTokenService
 import com.calmed.calmedbackend.service.implementation.UserInfoTourettesService
 import com.calmed.calmedbackend.service.implementation.UserService
 import com.calmed.calmedbackend.service.implementation.ProgramExerciseService
+import com.calmed.calmedbackend.service.implementation.PaymentService
 import com.calmed.calmedbackend.service.implementation.UserProgramService
 import com.calmed.calmedbackend.service.implementation.UserExerciseProgressService
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
@@ -17,6 +18,7 @@ import com.calmed.calmedbackend.service.specification.IRefreshTokenService
 import com.calmed.calmedbackend.service.specification.IUserInfoTourettesService
 import com.calmed.calmedbackend.service.specification.IUserService
 import com.calmed.calmedbackend.service.specification.IHomeService
+import com.calmed.calmedbackend.service.specification.IPaymentService
 
 import com.calmed.calmedbackend.service.specification.IProgramExerciseService
 import com.calmed.calmedbackend.service.specification.IUserProgramService
@@ -47,4 +49,5 @@ val serviceModule = module {
 	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get(), get()) }
 	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get()) }
 	single<IHomeService> { HomeService(get(), get()) }
+	single<IPaymentService> { PaymentService(get(), get()) }
 }

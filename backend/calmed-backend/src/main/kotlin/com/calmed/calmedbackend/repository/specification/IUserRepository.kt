@@ -1,6 +1,7 @@
 package com.calmed.calmedbackend.repository.specification
 
 import com.calmed.calmedbackend.model.raw.user.User
+import com.calmed.calmedbackend.model.raw.user.PaymentType
 import java.util.UUID
 
 interface IUserRepository {
@@ -11,5 +12,11 @@ interface IUserRepository {
 	suspend fun update(user: User): User?
 	suspend fun delete(id: UUID): Boolean
 	suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): User?
+	suspend fun setPaymentStatus(
+		id: UUID,
+		isPaid: Boolean,
+		paymentType: PaymentType?,
+		stripeCustomerId: String?
+	): User?
 
 }

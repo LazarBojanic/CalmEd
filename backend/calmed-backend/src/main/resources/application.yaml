@@ -54,3 +54,13 @@ oauth:
         client_id: ${OAUTH_APPLE_CLIENT_ID:placeholder}
         private_key: ${OAUTH_APPLE_PRIVATE_KEY:placeholder}
         redirect_uri: ${OAUTH_APPLE_REDIRECT_URI:placeholder}
+
+stripe:
+    secret_key: ${STRIPE_SECRET_KEY:placeholder}
+    publishable_key: ${STRIPE_PUBLISHABLE_KEY:placeholder}
+    webhook_secret: ${STRIPE_WEBHOOK_SECRET:placeholder}
+    amount_cents: ${STRIPE_AMOUNT_CENTS:1000}
+    currency: ${STRIPE_CURRENCY:usd}
+    merchant_display_name: ${STRIPE_MERCHANT_DISPLAY_NAME:CalmEd}
+    merchant_country_code: ${STRIPE_MERCHANT_COUNTRY_CODE:RS}
+    apple_merchant_id: ${STRIPE_APPLE_MERCHANT_ID:placeholder}
