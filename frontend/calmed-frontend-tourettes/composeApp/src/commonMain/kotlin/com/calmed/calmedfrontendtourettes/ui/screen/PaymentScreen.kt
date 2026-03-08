@@ -79,25 +79,23 @@ fun PaymentScreen(
         StripePaymentResultBridge.onResult = { success, paymentIntentId, bridgeError ->
             if (!success) {
                 error = bridgeError ?: "Payment failed."
-                return@onResult
-            }
-            if (paymentIntentId.isNullOrBlank()) {
+            } else if (paymentIntentId.isNullOrBlank()) {
                 error = "Missing payment intent id."
-                return@onResult
-            }
-            scope.launch {
-                loading = true
-                error = null
-                try {
-                    api.confirmPaymentIntent(ConfirmPaymentIntentDto(paymentIntentId = paymentIntentId))
-                    val user = sessionViewModel.loadSession()
-                    if (user?.isPaid == true) onPaid() else error = "Payment not confirmed yet."
-                } catch (t: Throwable) {
-                    error = t.message ?: "Payment confirmation failed."
-                } finally {
-                    loading = false
+            } else {
+                scope.launch {
+                    loading = true
+                    error = null
+                    try {
+                        api.confirmPaymentIntent(ConfirmPaymentIntentDto(paymentIntentId = paymentIntentId))
+                        val user = sessionViewModel.loadSession()
+                        if (user?.isPaid == true) onPaid() else error = "Payment not confirmed yet."
+                    } catch (t: Throwable) {
+                        error = t.message ?: "Payment confirmation failed."
+                    } finally {
+                        loading = false
+                    }
                 }
-            }
+            } 
         }
         onDispose { StripePaymentResultBridge.onResult = null }
     }
