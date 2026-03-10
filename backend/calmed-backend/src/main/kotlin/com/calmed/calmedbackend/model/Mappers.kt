@@ -308,7 +308,29 @@ fun ProgramExerciseJoined.toDto(): ProgramExerciseDto {
 		weekNumber = this.weekNumber,
 		title = this.title,
 		description = this.description,
-		videoURL = this.videoURL,
+		videoURL = this.videoURL?.let { pid ->
+			val muxKid = System.getenv("MUX_TOKEN_ID") ?: System.getenv("MUX_KID")
+			val muxPrivateKeyPath = System.getenv("MUX_PRIVATE_KEY_PATH")
+			val muxPrivateKey = System.getenv("MUX_PRIVATE_KEY")
+
+			val privateKeyPem = when {
+				!muxPrivateKeyPath.isNullOrBlank() -> java.io.File(muxPrivateKeyPath).readText()
+				!muxPrivateKey.isNullOrBlank() -> muxPrivateKey
+				else -> null
+			}
+
+			if (muxKid != null && privateKeyPem != null) {
+				val fixedKey = privateKeyPem.replace("\\n", "\n")
+				val token = MuxTokenGenerator.generatePlaybackToken(
+					playbackId = pid,
+					kid = muxKid,
+					privateKeyPemPkcs8 = fixedKey
+				)
+				"https://stream.mux.com/$pid.m3u8?token=$token"
+			} else {
+				null
+			}
+		},
 		thumbnailURL = this.thumbnailURL,
 		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,

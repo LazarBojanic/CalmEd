@@ -40,7 +40,10 @@ import com.calmed.calmedfrontendtourettes.service.specification.VideoDownloadSta
 import com.calmed.calmedfrontendtourettes.service.specification.stateFor
 import com.calmed.calmedfrontendtourettes.video.download.DownloadUtil
 import kotlinx.coroutines.flow.collectLatest
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 
+@OptIn(UnstableApi::class)
 @Composable
 actual fun VideoPlayer(
     hlsUrl: String,
@@ -97,7 +100,7 @@ actual fun VideoPlayer(
         onDownloadClick = onDownloadClick
     )
 }
-
+@OptIn(UnstableApi::class)
 @Composable
 private fun PlayerContent(
     modifier: Modifier,
@@ -138,14 +141,14 @@ private fun PlayerContent(
         }
     }
 }
-
+@OptIn(UnstableApi::class)
 private fun buildPlayer(context: android.content.Context, cacheFactory: CacheDataSource.Factory): ExoPlayer {
     val mediaSourceFactory = DefaultMediaSourceFactory(cacheFactory)
     return ExoPlayer.Builder(context)
         .setMediaSourceFactory(mediaSourceFactory)
         .build()
 }
-
+@OptIn(UnstableApi::class)
 private fun createPlayerView(
     ctx: android.content.Context,
     player: ExoPlayer
