@@ -1,6 +1,7 @@
 package com.calmed.calmedfrontendtourettes.model
 
 import androidx.room.TypeConverter
+import com.calmed.calmedfrontendtourettes.model.raw.PaymentType
 import com.calmed.calmedfrontendtourettes.model.raw.TickFrequency
 import com.calmed.calmedfrontendtourettes.model.raw.TickType
 
@@ -16,4 +17,10 @@ class RoomConverters {
 
 	@TypeConverter
 	fun toTickFrequency(value: String?): TickFrequency? = value?.let { TickFrequency.valueOf(it) }
+
+	@TypeConverter
+	fun fromPaymentType(value: PaymentType?): String? = value?.name
+
+	@TypeConverter
+	fun toPaymentType(value: String?): PaymentType? = value?.let { PaymentType.valueOf(it) }
 }

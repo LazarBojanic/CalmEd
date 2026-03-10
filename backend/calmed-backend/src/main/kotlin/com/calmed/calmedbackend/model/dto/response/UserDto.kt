@@ -2,6 +2,7 @@ package com.calmed.calmedbackend.model.dto.response
 
 import com.calmed.calmedbackend.util.UUIDSerializer
 import com.calmed.calmedbackend.util.InstantSerializer
+import com.calmed.calmedbackend.model.raw.user.PaymentType
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.util.UUID
@@ -14,6 +15,9 @@ data class UserDto(
 	val username: String,
 	val isEmailVerified: Boolean,
 	val isOnboarded: Boolean,
+	val isPaid: Boolean,
+	val paymentType: PaymentType?,
+	val stripeCustomerId: String?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)

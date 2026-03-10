@@ -11,6 +11,9 @@ class UserEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var username by UserTable.username
 	var isEmailVerified by UserTable.isEmailVerified
 	var isOnboarded by UserTable.isOnboarded
+	var isPaid by UserTable.isPaid
+	var paymentType by UserTable.paymentType
+	var stripeCustomerId by UserTable.stripeCustomerId
 	var createdAt by UserTable.createdAt
 	var updatedAt by UserTable.updatedAt
 }

@@ -148,6 +148,7 @@ kotlin {
 			implementation(libs.media3ExoplayerWorkmanager)
 			implementation(libs.androidxBrowser)
 			implementation (libs.billingClient)
+			implementation(libs.stripeAndroid)
 
 
 

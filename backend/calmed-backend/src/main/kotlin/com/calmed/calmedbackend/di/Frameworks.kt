@@ -6,6 +6,7 @@ import com.calmed.calmedbackend.config.EmailConfig
 import com.calmed.calmedbackend.config.GoogleOAuthConfig
 import com.calmed.calmedbackend.config.JwtConfig
 import com.calmed.calmedbackend.config.KtorConfig
+import com.calmed.calmedbackend.config.StripeConfig
 import io.ktor.server.application.*
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
@@ -21,6 +22,7 @@ fun Application.configureFrameworks() {
 			module { single { EmailConfig.from(environment.config) } },
 			module { single { AppleConfig.from(environment.config) } },
 			module { single { GoogleOAuthConfig.from(environment.config) } },
+			module { single { StripeConfig.from(environment.config) } },
 			repositoryModule,
 			serviceModule,
 		)

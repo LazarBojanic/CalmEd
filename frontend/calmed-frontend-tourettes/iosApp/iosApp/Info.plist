@@ -22,6 +22,14 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
+			<string>calmed_payments</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>calmed</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
 			<string>com.calmed.calmedfrontendtourettes</string>
 			<key>CFBundleURLSchemes</key>
 			<array>

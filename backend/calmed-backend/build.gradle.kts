@@ -65,6 +65,7 @@ dependencies {
 	implementation("io.ktor:ktor-client-content-negotiation")
 	implementation("io.ktor:ktor-serialization-kotlinx-json")
 	implementation("com.nimbusds:nimbus-jose-jwt:9.40")
+	implementation("com.stripe:stripe-java:31.1.0")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junit_version")

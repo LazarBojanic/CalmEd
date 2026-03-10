@@ -2,6 +2,8 @@ package com.calmed.calmedfrontendtourettes.http
 
 import com.calmed.calmedfrontendtourettes.model.dto.TokenDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.AppleLoginDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.ConfirmPaymentIntentDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.CreateCheckoutSessionDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.GoogleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
@@ -11,6 +13,8 @@ import com.calmed.calmedfrontendtourettes.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpdateDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.PaymentStatusDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.PaymentSheetParamsDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserInfoTourettesDto
@@ -33,5 +37,8 @@ interface IAppApi {
     suspend fun loginWithApple(dto: AppleLoginDto): TokenDto?
     suspend fun getHome(year: Int, month: Int): HomeDto?
     suspend fun getAllProgramExercises(): List<ProgramExerciseDto>
+    suspend fun getPaymentStatus(): PaymentStatusDto?
+    suspend fun createPaymentSheetParams(dto: CreateCheckoutSessionDto): PaymentSheetParamsDto?
+    suspend fun confirmPaymentIntent(dto: ConfirmPaymentIntentDto): PaymentStatusDto?
 
 }

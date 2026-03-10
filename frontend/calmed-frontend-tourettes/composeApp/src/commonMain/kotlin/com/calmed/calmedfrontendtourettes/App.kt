@@ -23,6 +23,7 @@ import com.calmed.calmedfrontendtourettes.ui.screen.HomeScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.LoginScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.MainScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.OfflineModeScreen
+import com.calmed.calmedfrontendtourettes.ui.screen.PaymentScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.RegisterScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.SplashScreen
 import com.calmed.calmedfrontendtourettes.ui.screen.WelcomeVideoScreen
@@ -46,6 +47,7 @@ object Routes {
     const val FullscreenVideo = "video/fullscreen"
     const val Main = "main"
     const val Onboarding = "onboarding"
+    const val Payment = "payment"
     const val Offline = "offline"
 }
 
@@ -71,8 +73,10 @@ fun App() {
     suspend fun resolveNextAuthenticatedRoute(): String? {
         val remoteUser = sessionViewModel.loadSession() ?: return null
         val isOnboarded = remoteUser.isOnboarded
+        val isPaid = remoteUser.isPaid
         val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser.id)
         return when {
+            !isPaid -> Routes.Payment
             showWelcomeVideo -> Routes.WelcomeVideo
             !isOnboarded -> Routes.Onboarding
             else -> Routes.Main
@@ -280,16 +284,28 @@ fun App() {
 
                 WelcomeVideoScreen(
                     onSkip = {
+                        val isPaid = sessionViewModel.user.value?.isPaid == true
                         val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
-                        navController.navigate(if (isOnboarded) Routes.Main else Routes.Onboarding) {
+                        val nextRoute = when {
+                            !isPaid -> Routes.Payment
+                            isOnboarded -> Routes.Main
+                            else -> Routes.Onboarding
+                        }
+                        navController.navigate(nextRoute) {
                             popUpTo(Routes.WelcomeVideo) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
                     onContinue = { dontShowAgain ->
                         if (dontShowAgain) settings.setShowWelcomeVideo(sessionViewModel.user.value?.id, false)
+                        val isPaid = sessionViewModel.user.value?.isPaid == true
                         val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
-                        navController.navigate(if (isOnboarded) Routes.Main else Routes.Onboarding) {
+                        val nextRoute = when {
+                            !isPaid -> Routes.Payment
+                            isOnboarded -> Routes.Main
+                            else -> Routes.Onboarding
+                        }
+                        navController.navigate(nextRoute) {
                             popUpTo(Routes.WelcomeVideo) { inclusive = true }
                             launchSingleTop = true
                         }
@@ -339,6 +355,20 @@ fun App() {
                                     popUpTo(Routes.Onboarding) { inclusive = true }
                                     launchSingleTop = true
                                 }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(Routes.Payment) {
+                PaymentScreen(
+                    onPaid = {
+                        scope.launch {
+                            val nextRoute = resolveNextAuthenticatedRoute() ?: Routes.Login
+                            navController.navigate(nextRoute) {
+                                popUpTo(Routes.Payment) { inclusive = true }
+                                launchSingleTop = true
                             }
                         }
                     }

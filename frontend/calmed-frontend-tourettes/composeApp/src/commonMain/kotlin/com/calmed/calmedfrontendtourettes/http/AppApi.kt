@@ -2,6 +2,8 @@ package com.calmed.calmedfrontendtourettes.http
 
 import com.calmed.calmedfrontendtourettes.model.dto.TokenDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.AppleLoginDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.ConfirmPaymentIntentDto
+import com.calmed.calmedfrontendtourettes.model.dto.request.CreateCheckoutSessionDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.ForgotPasswordDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.GoogleLoginDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.LoginUserDto
@@ -11,6 +13,8 @@ import com.calmed.calmedfrontendtourettes.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedfrontendtourettes.model.dto.request.UserInfoTourettesUpdateDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.HomeDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.MessageDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.PaymentStatusDto
+import com.calmed.calmedfrontendtourettes.model.dto.response.PaymentSheetParamsDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.UserInfoTourettesDto
 import com.calmed.calmedfrontendtourettes.model.dto.response.ProgramExerciseDto
@@ -162,6 +166,29 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 		}
 
 		return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
+	}
+
+	override suspend fun getPaymentStatus(): PaymentStatusDto? {
+		val resp: HttpResponse = client.get("/payment/status")
+		return if (resp.status == HttpStatusCode.OK) resp.body() else null
+	}
+
+	override suspend fun createPaymentSheetParams(dto: CreateCheckoutSessionDto): PaymentSheetParamsDto? {
+		val resp: HttpResponse = client.post("/payment/checkout-session") { setBody(dto) }
+		return if (resp.status == HttpStatusCode.OK) {
+			resp.body()
+		} else {
+			error("Payment init failed (${resp.status.value}): ${resp.bodyAsText()}")
+		}
+	}
+
+	override suspend fun confirmPaymentIntent(dto: ConfirmPaymentIntentDto): PaymentStatusDto? {
+		val resp: HttpResponse = client.post("/payment/confirm") { setBody(dto) }
+		return if (resp.status == HttpStatusCode.OK) {
+			resp.body()
+		} else {
+			error("Payment confirm failed (${resp.status.value}): ${resp.bodyAsText()}")
+		}
 	}
 
 

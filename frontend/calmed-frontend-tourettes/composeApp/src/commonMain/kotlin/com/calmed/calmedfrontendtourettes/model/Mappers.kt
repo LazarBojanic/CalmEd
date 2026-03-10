@@ -14,6 +14,9 @@ fun UserDto.toEntity(): UserEntity {
 		username = username,
 		isEmailVerified = isEmailVerified,
 		isOnboarded = isOnboarded,
+		isPaid = isPaid,
+		paymentType = paymentType,
+		stripeCustomerId = stripeCustomerId,
 		createdAt = createdAt,
 		updatedAt = updatedAt
 	)
@@ -42,6 +45,9 @@ fun UserEntity.toJoined(): UserJoined {
 		username = username,
 		isEmailVerified = isEmailVerified,
 		isOnboarded = isOnboarded,
+		isPaid = isPaid,
+		paymentType = paymentType,
+		stripeCustomerId = stripeCustomerId,
 		createdAt = createdAt,
 		updatedAt = updatedAt
 	)
