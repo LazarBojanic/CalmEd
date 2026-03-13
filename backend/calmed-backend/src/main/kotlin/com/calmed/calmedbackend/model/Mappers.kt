@@ -338,7 +338,7 @@ fun ProgramExerciseJoined.toDto(): ProgramExerciseDto {
 					kid = muxKid,
 					privateKeyPemPkcs8 = fixedKey
 				)
-				"https://stream.mux.com/$pid.m3u8?token=$token"
+				return@let "https://stream.mux.com/$pid.m3u8?token=$token"
 			} else {
 				null
 			}
