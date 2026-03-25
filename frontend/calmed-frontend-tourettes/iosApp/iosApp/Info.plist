@@ -82,5 +82,7 @@
 	</dict>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to allow you to securely scan your payment cards during the checkout process.</string>
 </dict>
 </plist>
