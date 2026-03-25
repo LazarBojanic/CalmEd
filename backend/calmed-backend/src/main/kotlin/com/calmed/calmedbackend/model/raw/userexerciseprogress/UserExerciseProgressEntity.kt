@@ -6,8 +6,8 @@ import com.calmed.calmedbackend.util.LocalDateSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
-import org.jetbrains.exposed.v1.dao.UUIDEntity
-import org.jetbrains.exposed.v1.dao.UUIDEntityClass
+import org.jetbrains.exposed.v1.dao.java.UUIDEntity
+import org.jetbrains.exposed.v1.dao.java.UUIDEntityClass
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID

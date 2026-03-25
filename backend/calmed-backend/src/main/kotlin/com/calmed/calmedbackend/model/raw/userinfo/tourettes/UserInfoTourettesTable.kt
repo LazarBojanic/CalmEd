@@ -1,13 +1,14 @@
 package com.calmed.calmedbackend.model.raw.userinfo.tourettes
 
 import com.calmed.calmedbackend.model.raw.user.UserTable
-import org.jetbrains.exposed.v1.core.dao.id.UUIDTable
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
+import org.jetbrains.exposed.v1.core.java.javaUUID
 import org.jetbrains.exposed.v1.javatime.CurrentTimestamp
 import org.jetbrains.exposed.v1.javatime.timestamp
 import java.time.Instant
 
 object UserInfoTourettesTable : UUIDTable(name = "user_info_tourettes") {
-	val userId = uuid("user_id").references(UserTable.id)
+	val userId = javaUUID("user_id").references(UserTable.id)
 	val preferredName = varchar("preferred_name", 255).nullable()
 	val age = integer("age").nullable()
 	val stressLevel = integer("stress_level").nullable()

@@ -1,8 +1,8 @@
 package com.calmed.calmedbackend.model.raw.userinfo.tourettes
 
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
-import org.jetbrains.exposed.v1.dao.UUIDEntity
-import org.jetbrains.exposed.v1.dao.UUIDEntityClass
+import org.jetbrains.exposed.v1.dao.java.UUIDEntity
+import org.jetbrains.exposed.v1.dao.java.UUIDEntityClass
 import java.util.*
 
 class UserInfoTourettesEntity(id: EntityID<UUID>) : UUIDEntity(id) {

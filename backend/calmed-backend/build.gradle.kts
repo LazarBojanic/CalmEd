@@ -6,16 +6,19 @@ val postgres_version: String by project
 val ktor_version: String by project
 val commons_email_version: String by project
 val java_jwt_version: String by project
+val jwks_rsa_version: String by project
 val lib_bcrypt: String by project
 val HikariCP_version: String by project
 val flyway_database_postgresql_version: String by project
 val junit_version: String by project
 val mockk_version: String by project
+val stripe_java_version: String by project
+val nimbus_jose_jwt_version: String by project
 
 plugins {
-	kotlin("jvm") version "2.3.0"
-	id("io.ktor.plugin") version "3.3.3"
-	id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
+	kotlin("jvm") version "2.3.20"
+	id("io.ktor.plugin") version "3.4.1"
+	id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
 }
 
 group = "com.calmed"
@@ -53,10 +56,10 @@ dependencies {
 	implementation("io.ktor:ktor-server-netty")
 	implementation("ch.qos.logback:logback-classic:$logback_version")
 	implementation("io.ktor:ktor-server-config-yaml")
-    testImplementation("io.ktor:ktor-server-test-host")
+	testImplementation("io.ktor:ktor-server-test-host")
 	implementation("org.apache.commons:commons-email:$commons_email_version")
 	implementation("com.auth0:java-jwt:$java_jwt_version")
-	implementation("com.auth0:jwks-rsa:0.22.1")
+	implementation("com.auth0:jwks-rsa:$jwks_rsa_version")
 	implementation("at.favre.lib:bcrypt:$lib_bcrypt")
 	implementation("com.zaxxer:HikariCP:$HikariCP_version")
 	implementation("org.flywaydb:flyway-database-postgresql:$flyway_database_postgresql_version")
@@ -64,8 +67,8 @@ dependencies {
 	implementation("io.ktor:ktor-client-cio")
 	implementation("io.ktor:ktor-client-content-negotiation")
 	implementation("io.ktor:ktor-serialization-kotlinx-json")
-	implementation("com.nimbusds:nimbus-jose-jwt:9.40")
-	implementation("com.stripe:stripe-java:31.1.0")
+	implementation("com.nimbusds:nimbus-jose-jwt:$nimbus_jose_jwt_version")
+	implementation("com.stripe:stripe-java:$stripe_java_version")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junit_version")

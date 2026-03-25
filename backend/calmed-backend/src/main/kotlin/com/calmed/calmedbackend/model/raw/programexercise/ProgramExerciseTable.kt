@@ -1,8 +1,14 @@
 package com.calmed.calmedbackend.model.raw.programexercise
 
-import org.jetbrains.exposed.v1.core.dao.id.UUIDTable
+import com.calmed.calmedbackend.model.raw.user.UserTable
+import com.calmed.calmedbackend.util.InstantSerializer
+import com.calmed.calmedbackend.util.UUIDSerializer
+import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.javatime.timestamp
 import org.jetbrains.exposed.v1.javatime.CurrentTimestamp
+import java.time.Instant
+import java.util.UUID
 
 object ProgramExerciseTable : UUIDTable("program_exercise") {
 	val weekNumber = integer("week_number")
