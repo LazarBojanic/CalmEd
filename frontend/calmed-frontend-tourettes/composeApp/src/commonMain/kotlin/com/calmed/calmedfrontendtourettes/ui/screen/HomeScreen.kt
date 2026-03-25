@@ -94,23 +94,29 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth(),
-            contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 72.dp),
+            contentPadding = PaddingValues(0.dp, 16.dp, 0.dp, 72.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item { Text("Welcome to CalmEd Tourettes.") }
+            item {
+                Text(
+                    "Welcome to CalmEd Tourettes.",
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
 
             item {
                 if (days.isEmpty()) {
-                    Text("Calendar loading...")
+                    Text(
+                        "Calendar loading...",
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                 } else {
                     val month = home?.calendar?.month ?: ymd.month
                     val year = home?.calendar?.year ?: ymd.year
                     NativeCalendar(
                         year = year,
                         month = month,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(320.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         onDateSelected = { y, m, d ->
                             val createdAt = user?.createdAt
                             if (createdAt.isNullOrBlank()) return@NativeCalendar
@@ -132,7 +138,10 @@ fun HomeScreen(
             }
 
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     if (!selectedTitle.isNullOrBlank()) {
                         Text(selectedTitle!!)
                     }
@@ -165,51 +174,53 @@ fun HomeScreen(
             }
 
             listItems(displayExercises) { ex ->
-                Card(
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            selectedVideoUrl = ex.videoURL
-                            selectedTitle = ex.title
-                        }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Card(
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedVideoUrl = ex.videoURL
+                                selectedTitle = ex.title
+                            }
                     ) {
-
-                        Card(
-                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                            modifier = Modifier.size(width = 140.dp, height = 80.dp)
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val thumb = ex.thumbnailURL
-                            if (!thumb.isNullOrBlank()) {
-                                ThumbnailImage(
-                                    client = appHttpClient.client,
-                                    url = thumb,
-                                    contentDescription = ex.title,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            } else {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text("No image")
+
+                            Card(
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                                modifier = Modifier.size(width = 140.dp, height = 80.dp)
+                            ) {
+                                val thumb = ex.thumbnailURL
+                                if (!thumb.isNullOrBlank()) {
+                                    ThumbnailImage(
+                                        client = appHttpClient.client,
+                                        url = thumb,
+                                        contentDescription = ex.title,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("No image")
+                                    }
                                 }
                             }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+
+                            Text(
+                                text = ex.title,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
                         }
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-
-                        Text(
-                            text = ex.title,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
                     }
                 }
             }

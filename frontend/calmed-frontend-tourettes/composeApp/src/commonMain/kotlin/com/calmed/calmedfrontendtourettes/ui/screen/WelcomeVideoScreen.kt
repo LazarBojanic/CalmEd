@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
@@ -48,49 +50,56 @@ fun WelcomeVideoScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        val url = videoUrl
-        if (url != null) {
-            VideoPlayer(
-                hlsUrl = url,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f),
-                onFullscreenToggle = { onOpenFullscreen(url) }
-            )
-        } else {
-            Text(error ?: "Loading video...")
-        }
+    Scaffold { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
+        ) {
+            val url = videoUrl
+            if (url != null) {
+                VideoPlayer(
+                    hlsUrl = url,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f),
+                    onFullscreenToggle = { onOpenFullscreen(url) }
+                )
+            } else {
+                Text(error ?: "Loading video...")
+            }
 
-        Text("Welcome Video Screen", modifier = Modifier.padding(top = 12.dp))
-
-        Row(modifier = Modifier.padding(top = 16.dp)) {
-            Checkbox(
-                checked = dontShowAgain,
-                onCheckedChange = { dontShowAgain = it }
-            )
             Text(
-                "Don't show again",
-                modifier = Modifier.padding(start = 8.dp, top = 12.dp)
+                "Welcome Video Screen",
+                modifier = Modifier.padding(top = 12.dp),
+                style = MaterialTheme.typography.titleLarge
             )
-        }
 
-        Button(
-            onClick = onSkip,
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text("Skip")
-        }
+            Row(modifier = Modifier.padding(top = 16.dp)) {
+                Checkbox(
+                    checked = dontShowAgain,
+                    onCheckedChange = { dontShowAgain = it }
+                )
+                Text(
+                    "Don't show again",
+                    modifier = Modifier.padding(start = 8.dp, top = 12.dp)
+                )
+            }
 
-        Button(
-            onClick = { onContinue(dontShowAgain) },
-            modifier = Modifier.padding(top = 8.dp)
-        ) {
-            Text("Continue")
+            Button(
+                onClick = onSkip,
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                Text("Skip")
+            }
+
+            Button(
+                onClick = { onContinue(dontShowAgain) },
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Text("Continue")
+            }
         }
     }
 }

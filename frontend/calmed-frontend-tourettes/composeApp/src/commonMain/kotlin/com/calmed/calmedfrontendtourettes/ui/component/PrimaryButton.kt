@@ -23,13 +23,7 @@ fun PrimaryButton(
 			.fillMaxWidth()
 			.defaultMinSize(minHeight = 48.dp)
 			.padding(horizontal = 16.dp)
-			.then(modifier),
-		colors = ButtonDefaults.buttonColors(
-			containerColor = MaterialTheme.colorScheme.primary,
-			contentColor = MaterialTheme.colorScheme.onPrimary,
-			disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.38f),
-			disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.38f)
-		)
+			.then(modifier)
 	) {
 		Text(text)
 	}
