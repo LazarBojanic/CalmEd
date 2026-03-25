@@ -26,6 +26,7 @@ actual fun ThumbnailImage(
 ) {
     val bmpState = produceState<ImageBitmap?>(initialValue = null, key1 = url) {
         value = null
+        if (url.isBlank()) return@produceState
         try {
             val bytes: ByteArray = client.get(url) {
                 header("Authorization", null)
@@ -33,7 +34,7 @@ actual fun ThumbnailImage(
             val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
             value = bmp?.asImageBitmap()
         } catch (ce: CancellationException) {
-
+            throw ce
         } catch (_: Throwable) {
             value = null
         }

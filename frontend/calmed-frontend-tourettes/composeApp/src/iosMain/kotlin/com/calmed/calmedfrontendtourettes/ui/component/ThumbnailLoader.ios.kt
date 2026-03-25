@@ -26,28 +26,20 @@ actual fun ThumbnailImage(
 ) {
     val bmpState = produceState<ImageBitmap?>(initialValue = null, key1 = url) {
         value = null
+        if (url.isBlank()) return@produceState
         try {
-            println("ThumbnailImage: Fetching URL: $url")
             val bytes: ByteArray = client.get(url) {
                 // Remove Authorization header and JSON content types for thumbnail requests to external CDNs
                 header("Authorization", null)
                 header("Accept", "image/*")
                 header("Content-Type", null)
             }.body()
-            println("ThumbnailImage: Received ${bytes.size} bytes for $url")
-            val skiaImage = Image.makeFromEncoded(bytes)
-            if (skiaImage == null) {
-                println("ThumbnailImage: Failed to decode Skia Image for $url")
-            } else {
-                println("ThumbnailImage: Successfully decoded Skia Image for $url (${skiaImage.width}x${skiaImage.height})")
-            }
+            val skiaImage = org.jetbrains.skia.Image.makeFromEncoded(bytes)
             value = skiaImage?.toComposeImageBitmap()
         } catch (ce: CancellationException) {
-            println("ThumbnailImage: Cancelled for $url")
             throw ce
         } catch (e: Throwable) {
-            println("ThumbnailImage error for $url: ${e.message}")
-            e.printStackTrace()
+            println("ThumbnailImage error for $url: ${e.toString()}")
             value = null
         }
     }.value

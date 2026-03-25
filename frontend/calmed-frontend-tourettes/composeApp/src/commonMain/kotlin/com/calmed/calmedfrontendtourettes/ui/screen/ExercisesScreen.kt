@@ -20,7 +20,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedfrontendtourettes.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedfrontendtourettes.ui.component.ThumbnailImage
@@ -37,9 +42,11 @@ fun ExercisesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val grouped = exercises
-        .sortedWith(compareBy({ it.weekNumber }, { it.orderInWeek ?: 0 }))
-        .groupBy { it.weekNumber }
+    val grouped = remember(exercises) {
+        exercises
+            .sortedWith(compareBy({ it.weekNumber }, { it.orderInWeek ?: 0 }))
+            .groupBy { it.weekNumber }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -59,50 +66,60 @@ fun ExercisesScreen(
                 items(weekItems) { ex ->
                     val locked = ex.weekNumber > currentWeek
 
-                    if (locked) {
-                        // ✅ LOCK "thumbnail"
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp)
-                                .padding(horizontal = 16.dp)
-                                .alpha(0.5f)
-                                .clickable {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                            .padding(horizontal = 16.dp)
+                            .clickable {
+                                if (locked) {
                                     scope.launch {
                                         snackbarHostState.showSnackbar("Još nije vreme za ovu vežbu.")
                                     }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = "Locked"
-                            )
-                        }
-                    } else {
-                        // ✅ REAL thumbnail
+                                } else {
+                                    onExerciseClick(ex)
+                                }
+                            }
+                    ) {
                         ThumbnailImage(
                             client = client,
                             url = ex.thumbnailURL ?: "",
                             contentDescription = ex.title,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp)
-                                .padding(horizontal = 16.dp)
-                                .clickable {
-                                    onExerciseClick(ex)
-                                }
+                                .fillMaxSize()
+                                .alpha(if (locked) 0.5f else 1f)
                         )
+
+                        if (locked) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = "Locked",
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(48.dp),
+                                tint = Color.White
+                            )
+                        }
                     }
 
                     Spacer(Modifier.height(8.dp))
 
-                    Text(
-                        text = if (locked) "🔒 ${ex.title}" else ex.title,
+                    Row(
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .alpha(if (locked) 0.6f else 1f)
-                    )
+                            .alpha(if (locked) 0.6f else 1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (locked) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                        }
+                        Text(text = ex.title)
+                    }
 
                     Spacer(Modifier.height(12.dp))
                 }
