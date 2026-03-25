@@ -15,8 +15,8 @@ actual fun launchStripePaymentSheet(params: PaymentSheetParamsDto) {
         "appleMerchantId" to params.appleMerchantId
     )
     NSNotificationCenter.defaultCenter.postNotificationName(
-        name = "StartStripePayment",
-        `object` = null,
-        userInfo = payload
+        "StartStripePayment",
+        null,
+        payload
     )
 }
