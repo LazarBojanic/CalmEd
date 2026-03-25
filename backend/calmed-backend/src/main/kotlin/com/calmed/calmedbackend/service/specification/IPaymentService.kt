@@ -10,4 +10,5 @@ interface IPaymentService {
     suspend fun paymentStatus(userId: UUID): AppResult<PaymentStatusDto>
     suspend fun createPaymentSheetParams(userId: UUID, paymentType: PaymentType): AppResult<PaymentSheetParamsDto>
     suspend fun confirmPaymentIntent(userId: UUID, paymentIntentId: String): AppResult<PaymentStatusDto>
+    suspend fun skipPayment(userId: UUID): AppResult<PaymentStatusDto>
 }

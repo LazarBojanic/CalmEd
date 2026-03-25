@@ -41,5 +41,5 @@ interface IAppApi {
     suspend fun getPaymentStatus(): PaymentStatusDto?
     suspend fun createPaymentSheetParams(dto: CreateCheckoutSessionDto): PaymentSheetParamsDto?
     suspend fun confirmPaymentIntent(dto: ConfirmPaymentIntentDto): PaymentStatusDto?
-
+    suspend fun skipPayment(): PaymentStatusDto?
 }

@@ -75,6 +75,22 @@ fun PaymentScreen(
         }
     }
 
+    fun skipPayment() {
+        scope.launch {
+            loading = true
+            error = null
+            try {
+                api.skipPayment()
+                val user = sessionViewModel.loadSession()
+                if (user?.isPaid == true) onPaid() else error = "Skip payment failed."
+            } catch (t: Throwable) {
+                error = t.message ?: "Skip payment failed."
+            } finally {
+                loading = false
+            }
+        }
+    }
+
     DisposableEffect(Unit) {
         StripePaymentResultBridge.onResult = { success, paymentIntentId, bridgeError ->
             if (!success) {
@@ -161,6 +177,20 @@ fun PaymentScreen(
                 )
             ) {
                 Text(if (loading) "Opening payment..." else "Pay $10.00")
+            }
+
+            Button(
+                onClick = { skipPayment() },
+                enabled = !loading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 52.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                )
+            ) {
+                Text(if (loading) "Processing..." else "Skip Payment (Dev Only)")
             }
 
             if (error != null) {
