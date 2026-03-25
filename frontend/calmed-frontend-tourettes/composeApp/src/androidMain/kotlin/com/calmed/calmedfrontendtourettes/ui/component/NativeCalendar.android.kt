@@ -8,7 +8,6 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -28,9 +27,18 @@ actual fun NativeCalendar(
     onDateSelected: (year: Int, month: Int, day: Int) -> Unit
 ) {
     val initialDate = GregorianCalendar(TimeZone.getTimeZone("UTC")).apply {
+        val today = Calendar.getInstance()
+        val currentYear = today.get(Calendar.YEAR)
+        val currentMonth = today.get(Calendar.MONTH) + 1
+        val currentDay = today.get(Calendar.DAY_OF_MONTH)
+
         set(Calendar.YEAR, year)
         set(Calendar.MONTH, month - 1)
-        set(Calendar.DAY_OF_MONTH, 1)
+        if (currentYear == year && currentMonth == month) {
+            set(Calendar.DAY_OF_MONTH, currentDay)
+        } else {
+            set(Calendar.DAY_OF_MONTH, 1)
+        }
         set(Calendar.HOUR_OF_DAY, 0)
         set(Calendar.MINUTE, 0)
         set(Calendar.SECOND, 0)
