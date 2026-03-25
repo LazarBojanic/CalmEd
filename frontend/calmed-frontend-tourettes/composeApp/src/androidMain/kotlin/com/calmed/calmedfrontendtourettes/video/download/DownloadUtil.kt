@@ -12,7 +12,9 @@ import androidx.media3.exoplayer.scheduler.Requirements
 import java.io.File
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
-
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+@OptIn(UnstableApi::class)
 object DownloadUtil {
     private const val DOWNLOAD_CONTENT_DIRECTORY = "video_downloads"
 

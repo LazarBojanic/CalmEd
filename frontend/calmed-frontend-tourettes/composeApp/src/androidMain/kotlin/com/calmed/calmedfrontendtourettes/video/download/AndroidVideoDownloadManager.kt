@@ -184,7 +184,7 @@ class AndroidVideoDownloadManager(context: Context) {
             .toList()
     }
 }
-
+@OptIn(UnstableApi::class)
 private inline fun DownloadCursor.useCursor(block: (Download) -> Unit) {
     try {
         while (moveToNext()) {

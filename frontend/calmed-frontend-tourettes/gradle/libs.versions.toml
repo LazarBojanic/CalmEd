@@ -1,45 +1,49 @@
 [versions]
 #libraries
-agp = "8.12.0"
+agp = "8.12.3"
 androidCompileSdk = "36"
 androidMinSdk = "24"
 androidTargetSdk = "36"
-androidxActivity = "1.12.2"
+androidxActivity = "1.13.0"
 androidxAppcompat = "1.7.1"
-androidxCore = "1.17.0"
-androidxLifecycle = "2.10.0-alpha07"
-androidxNavigation = "2.9.1"
-androidxDatastore = "1.2.0"
-billing = "7.1.1"
-stripeAndroid = "21.29.0"
+androidxCore = "1.18.0"
+androidxLifecycle = "2.10.0"
+androidxNavigation = "2.9.2"
+androidxDatastore = "1.2.1"
+billing = "8.3.0"
+stripeAndroid = "23.1.0"
 
-oAuthJavaJwt = "4.5.0"
-squareupOkio = "3.16.4"
+oAuthJavaJwt = "4.5.1"
+squareupOkio = "3.17.0"
 
 kotlinxSerializationJson = "1.10.0"
 kotlinxCoroutines = "1.10.2"
-ktor = "3.4.0"
-koin = "4.2.0-beta4"
+ktor = "3.4.1"
 
 androidxCredentials = "1.5.0"
 googleAndroidLibrariesIdentityGoogleId = "1.2.0"
-googleAndroidGmsPlayServicesAuth = "21.5.0"
+googleAndroidGmsPlayServicesAuth = "21.5.1"
 multiplatformSettings = "1.3.0"
 
 
-media3= "1.9.1"
+media3= "1.9.3"
 androidxBrowser = "1.9.0"
 
-#plugins
-kotlin = "2.3.0"
-composeMultiplatform = "1.10.0"
-composeHotReload = "1.0.0"
-ksp = "2.3.2"
+kotlinxDatetime = "0.7.1"
+kamelImage = "1.0.9"
 
-koinKspCompiler = "2.3.1"
+#plugins
+kotlin = "2.3.20"
+composeMultiplatform = "1.10.3"
+composeHotReload = "1.0.0"
+
+ksp = "2.3.6"
+koinAnnotations = "2.3.2-Beta1"
+koin = "4.2.0"
+
 room = "2.8.4"
 sqlite = "2.6.2"
-buildConfig = "6.0.7"
+buildConfig = "6.0.9"
 
 
 [libraries]
@@ -73,16 +77,16 @@ ktorClientDarwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor"
 ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktorClientLogging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktorSerializationKotlinxJson = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+koinKspCompiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnnotations" }
 koinAndroid = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koinAndroidXCompose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
-koinKspCompiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinKspCompiler" }
 koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koinCoreIosArm64 = { module = "io.insert-koin:koin-core-iosarm64", version.ref = "koin" }
 koinCoreIosSimulatorArm64 = { module = "io.insert-koin:koin-core-iossimulatorarm64", version.ref = "koin" }
 koinCoreIosX64 = { module = "io.insert-koin:koin-core-iosx64", version.ref = "koin" }
 koinCompose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 koinComposeViewModel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
-koinAnnotations = {module = "io.insert-koin:koin-annotations", version.ref = "koinKspCompiler"}
+koinAnnotations = { module = "io.insert-koin:koin-annotations", version.ref = "koinAnnotations" }
 roomCompiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 roomCommon = { module = "androidx.room:room-common", version.ref = "room" }
 roomRuntime = { module = "androidx.room:room-runtime", version.ref = "room" }
@@ -111,6 +115,10 @@ androidxBrowser = { module = "androidx.browser:browser", version.ref = "androidx
 billingClient = { module = "com.android.billingclient:billing-ktx", version.ref = "billing" }
 stripeAndroid = { module = "com.stripe:stripe-android", version.ref = "stripeAndroid" }
 
+kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+kamelImage = { module = "media.kamel:kamel-image", version.ref = "kamelImage" }
+
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
@@ -123,7 +131,5 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
-
-
 
 

@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.routing
 
+import com.calmed.calmedbackend.config.MuxConfig
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.toDto
 import com.calmed.calmedbackend.service.specification.IProgramExerciseService
@@ -14,12 +15,19 @@ import java.util.UUID
 
 fun Route.programExerciseRoutes() {
 	val service by inject<IProgramExerciseService>()
+	val muxConfig by inject<MuxConfig>()
 
 	authenticate("auth-jwt") {
 		route("/program-exercises") {
 			get("") {
 				when (val res = service.getAll()) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto() })
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig) })
+					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+				}
+			}
+			get("/welcome-video") {
+				when (val res = service.getWelcomeVideo()) {
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
@@ -31,13 +39,13 @@ fun Route.programExerciseRoutes() {
 				}
 				val id = UUID.fromString(idParam)
 				when (val res = service.getById(id)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
 			get("/up-next") {
 				when (val res = service.getUpNext()) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
@@ -53,7 +61,7 @@ fun Route.programExerciseRoutes() {
 					return@get
 				}
 				when (val res = service.getByWeek(week)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto() })
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig) })
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}

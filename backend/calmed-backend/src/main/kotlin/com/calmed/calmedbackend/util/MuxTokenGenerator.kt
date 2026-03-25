@@ -1,9 +1,10 @@
+package com.calmed.calmedbackend.util
+
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import java.security.KeyFactory
 import java.security.interfaces.RSAPrivateKey
 import java.security.spec.PKCS8EncodedKeySpec
-import java.time.Instant
 import java.util.Base64
 import java.util.Date
 

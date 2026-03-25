@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.model.dto.response
 
+import com.calmed.calmedbackend.model.raw.programexercise.Visibility
 import com.calmed.calmedbackend.util.UUIDSerializer
 import kotlinx.serialization.Serializable
 import com.calmed.calmedbackend.util.InstantSerializer
@@ -13,8 +14,10 @@ data class ProgramExerciseDto(
 	val weekNumber: Int,
 	val title: String,
 	val description: String?,
+	val playbackId: String?,
 	val videoURL: String?,
 	val thumbnailURL: String?,
+	val visibility: Visibility,
 	val orderInWeek: Int?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,

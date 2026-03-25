@@ -14,7 +14,7 @@ import com.calmed.calmedfrontendtourettes.repository.IUserInfoTourettesDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 
-@Database(version = 2, entities = [UserEntity::class, UserInfoTourettesEntity::class])
+@Database(version = 3, entities = [UserEntity::class, UserInfoTourettesEntity::class])
 @TypeConverters(RoomConverters::class)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

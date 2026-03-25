@@ -168,6 +168,14 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 		return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
 	}
 
+	override suspend fun getWelcomeVideo(): ProgramExerciseDto? {
+		val token = tokenDataStore.tokenDto.first()?.access
+		val resp: HttpResponse = client.get(urlString = "/program-exercises/welcome-video") {
+			token?.let { header("Authorization", "Bearer $it") }
+		}
+		return if (resp.status == HttpStatusCode.OK) resp.body() else null
+	}
+
 	override suspend fun getPaymentStatus(): PaymentStatusDto? {
 		val resp: HttpResponse = client.get("/payment/status")
 		return if (resp.status == HttpStatusCode.OK) resp.body() else null
@@ -175,12 +183,20 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 
 	override suspend fun createPaymentSheetParams(dto: CreateCheckoutSessionDto): PaymentSheetParamsDto? {
 		val resp: HttpResponse = client.post("/payment/checkout-session") { setBody(dto) }
-		return if (resp.status == HttpStatusCode.OK) resp.body() else null
+		return if (resp.status == HttpStatusCode.OK) {
+			resp.body()
+		} else {
+			error("Payment init failed (${resp.status.value}): ${resp.bodyAsText()}")
+		}
 	}
 
 	override suspend fun confirmPaymentIntent(dto: ConfirmPaymentIntentDto): PaymentStatusDto? {
 		val resp: HttpResponse = client.post("/payment/confirm") { setBody(dto) }
-		return if (resp.status == HttpStatusCode.OK) resp.body() else null
+		return if (resp.status == HttpStatusCode.OK) {
+			resp.body()
+		} else {
+			error("Payment confirm failed (${resp.status.value}): ${resp.bodyAsText()}")
+		}
 	}
 
 

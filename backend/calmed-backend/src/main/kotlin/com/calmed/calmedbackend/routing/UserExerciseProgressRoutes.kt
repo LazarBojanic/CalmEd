@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.routing
 
+import com.calmed.calmedbackend.config.MuxConfig
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.toDto
 import com.calmed.calmedbackend.service.specification.IUserExerciseProgressService
@@ -14,6 +15,7 @@ import java.util.UUID
 
 fun Route.userExerciseProgressRoutes() {
 	val service by inject<IUserExerciseProgressService>()
+	val muxConfig by inject<MuxConfig>()
 
 	authenticate("auth-jwt") {
 		route("/user-exercise-progress") {
@@ -25,7 +27,7 @@ fun Route.userExerciseProgressRoutes() {
 				}
 				val id = UUID.fromString(idParam)
 				when (val res = service.getById(id)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
@@ -39,7 +41,7 @@ fun Route.userExerciseProgressRoutes() {
 				}
 				val userId = UUID.fromString(userIdParam)
 				when (val res = service.getAllByUserId(userId)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto() })
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig) })
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}

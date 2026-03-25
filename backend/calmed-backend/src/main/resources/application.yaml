@@ -54,7 +54,9 @@ oauth:
         client_id: ${OAUTH_APPLE_CLIENT_ID:placeholder}
         private_key: ${OAUTH_APPLE_PRIVATE_KEY:placeholder}
         redirect_uri: ${OAUTH_APPLE_REDIRECT_URI:placeholder}
-
+mux:
+    signing_key: ${MUX_SIGNING_KEY:placeholder}
+    private_key: ${MUX_PRIVATE_KEY:placeholder}
 stripe:
     secret_key: ${STRIPE_SECRET_KEY:placeholder}
     publishable_key: ${STRIPE_PUBLISHABLE_KEY:placeholder}
@@ -64,3 +66,4 @@ stripe:
     merchant_display_name: ${STRIPE_MERCHANT_DISPLAY_NAME:CalmEd}
     merchant_country_code: ${STRIPE_MERCHANT_COUNTRY_CODE:RS}
     apple_merchant_id: ${STRIPE_APPLE_MERCHANT_ID:placeholder}
+    api_version: ${STRIPE_API_VERSION:2026-02-25.clover}

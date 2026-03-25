@@ -6,6 +6,7 @@ import java.util.UUID
 interface IProgramExerciseRepository {
 	suspend fun findAll(): List<ProgramExercise>
 	suspend fun findById(id: UUID): ProgramExercise?
+	suspend fun findWelcomeVideo(): ProgramExercise?
 	suspend fun findUpNext(): ProgramExercise?
 	suspend fun findUpNextList(limit: Int): List<ProgramExercise>
 	suspend fun findByWeek(week: Int): List<ProgramExercise>

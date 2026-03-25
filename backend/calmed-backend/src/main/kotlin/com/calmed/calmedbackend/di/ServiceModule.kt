@@ -48,6 +48,6 @@ val serviceModule = module {
 	single<IUserProgramService> { UserProgramService(get(), get()) }
 	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get(), get()) }
 	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get()) }
-	single<IHomeService> { HomeService(get(), get()) }
+	single<IHomeService> { HomeService(get(), get(), get()) }
 	single<IPaymentService> { PaymentService(get(), get()) }
 }

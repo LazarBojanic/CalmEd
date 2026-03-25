@@ -11,6 +11,7 @@ import com.stripe.Stripe
 import com.stripe.model.Customer
 import com.stripe.model.EphemeralKey
 import com.stripe.model.PaymentIntent
+import com.stripe.net.RequestOptions
 import com.stripe.param.CustomerCreateParams
 import com.stripe.param.EphemeralKeyCreateParams
 import com.stripe.param.PaymentIntentCreateParams
@@ -91,7 +92,12 @@ class PaymentService(
             val ephemeralKey = EphemeralKey.create(
                 EphemeralKeyCreateParams.builder()
                     .setCustomer(stripeCustomerId)
-                    .build()
+                    .setStripeVersion(stripeConfig.apiVersion)
+                    .build(),
+                RequestOptions.RequestOptionsBuilder.unsafeSetStripeVersionOverride(
+                    RequestOptions.builder(),
+                    stripeConfig.apiVersion
+                ).build()
             )
             val ephemeralKeySecret = ephemeralKey.secret
                 ?: return AppResult.Failure(HttpStatusCode.BadGateway, "Failed to create ephemeral key.")

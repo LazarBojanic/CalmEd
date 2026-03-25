@@ -8,8 +8,10 @@ data class ProgramExerciseDto(
 	val weekNumber: Int,
 	val title: String,
 	val description: String?,
+	val playbackId: String?,
 	val videoURL: String?,
 	val thumbnailURL: String?,
+	val visibility: String,
 	val orderInWeek: Int?,
 	val createdAt: String,
 	val updatedAt: String

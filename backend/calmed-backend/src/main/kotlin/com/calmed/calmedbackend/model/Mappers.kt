@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.model
 
+import com.calmed.calmedbackend.config.MuxConfig
 import com.calmed.calmedbackend.model.dto.response.UserDto
 import com.calmed.calmedbackend.model.dto.response.UserInfoTourettesDto
 import com.calmed.calmedbackend.model.dto.response.ProgramExerciseDto
@@ -22,10 +23,12 @@ import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
 import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettesEntity
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExercise
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseEntity
+import com.calmed.calmedbackend.model.raw.programexercise.Visibility
 import com.calmed.calmedbackend.model.raw.userprogram.UserProgram
 import com.calmed.calmedbackend.model.raw.userprogram.UserProgramEntity
 import com.calmed.calmedbackend.model.raw.userexerciseprogress.UserExerciseProgress
 import com.calmed.calmedbackend.model.raw.userexerciseprogress.UserExerciseProgressEntity
+import com.calmed.calmedbackend.util.MuxTokenGenerator
 import java.time.ZoneId
 
 enum class MapMode {
@@ -274,8 +277,9 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 		weekNumber = this.weekNumber,
 		title = this.title,
 		description = this.description,
-		videoURL = this.videoURL,
+		playbackId = this.playbackId,
 		thumbnailURL = this.thumbnailURL,
+		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
@@ -286,8 +290,9 @@ fun ProgramExerciseEntity.setFrom(d: ProgramExercise, mapMode: MapMode) {
 	weekNumber = d.weekNumber
 	title = d.title
 	description = d.description
-	videoURL = d.videoURL
+	playbackId = d.playbackId
 	thumbnailURL = d.thumbnailURL
+	visibility = d.visibility
 	orderInWeek = d.orderInWeek
 	when (mapMode) {
 		MapMode.CREATE -> {
@@ -306,22 +311,43 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 		weekNumber = this.weekNumber,
 		title = this.title,
 		description = this.description,
-		videoURL = this.videoURL,
+		playbackId = this.playbackId,
 		thumbnailURL = this.thumbnailURL,
+		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
 }
 
-fun ProgramExerciseJoined.toDto(): ProgramExerciseDto {
+fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
+	val baseURL = "https://stream.mux.com/";
+	var videoURL = ""
+	if(muxConfig.signingKey.isNotBlank() && muxConfig.privateKey.isNotBlank() && !this.playbackId.isNullOrBlank()){
+		if(this.visibility == Visibility.SIGNED){
+			val token = MuxTokenGenerator.generatePlaybackToken(
+				this.playbackId,
+				muxConfig.signingKey,
+				muxConfig.privateKey
+			)
+			videoURL = "$baseURL${this.playbackId}.m3u8?token=${token}"
+		}
+		else{
+			videoURL = "$baseURL${this.playbackId}.m3u8"
+		}
+	}
+	else{
+		videoURL = "$baseURL${this.playbackId}.m3u8"
+	}
 	return ProgramExerciseDto(
 		id = this.id,
 		weekNumber = this.weekNumber,
 		title = this.title,
 		description = this.description,
-		videoURL = this.videoURL,
+		playbackId = this.playbackId,
+		videoURL = videoURL,
 		thumbnailURL = this.thumbnailURL,
+		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
@@ -427,11 +453,11 @@ fun UserExerciseProgress.join(user: UserJoined, programExercise: ProgramExercise
 	)
 }
 
-fun UserExerciseProgressJoined.toDto(): UserExerciseProgressDto {
+fun UserExerciseProgressJoined.toDto(muxConfig: MuxConfig): UserExerciseProgressDto {
 	return UserExerciseProgressDto(
 		id = this.id,
 		user = this.user.toDto(),
-		programExercise = this.programExercise.toDto(),
+		programExercise = this.programExercise.toDto(muxConfig),
 		session = this.session,
 		day = this.day,
 		createdAt = this.createdAt,

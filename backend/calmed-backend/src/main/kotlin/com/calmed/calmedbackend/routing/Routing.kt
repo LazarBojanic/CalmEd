@@ -18,6 +18,5 @@ fun Application.configureRouting() {
 		paymentRoutes()
 		userProgramRoutes()
 		userExerciseProgressRoutes()
-		videoPlaybackRoutes()
 	}
 }

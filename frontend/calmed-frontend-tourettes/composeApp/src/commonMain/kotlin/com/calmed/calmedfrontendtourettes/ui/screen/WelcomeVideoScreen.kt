@@ -3,20 +3,18 @@ package com.calmed.calmedfrontendtourettes.ui.screen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
+import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.ui.component.VideoPlayer
+import org.koin.compose.koinInject
 
 @Composable
 fun WelcomeVideoScreen(
@@ -24,21 +22,52 @@ fun WelcomeVideoScreen(
     onContinue: (Boolean) -> Unit,
     onOpenFullscreen: (String) -> Unit
 ) {
-    val videoUrl = "https://bombona.rs/videos/testvideo/testvideo.m3u8"
+    val appApi: IAppApi = koinInject()
+
     var dontShowAgain by remember { mutableStateOf(false) }
+
+    var videoUrl by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        error = null
+        videoUrl = null
+
+        try {
+            val welcomeVideo = appApi.getWelcomeVideo()
+            if (welcomeVideo == null) {
+                error = "Welcome video is not available."
+                return@LaunchedEffect
+            }
+            videoUrl = welcomeVideo.videoURL
+            if (videoUrl == null) {
+                error = "Welcome video has no valid playback source."
+            }
+        } catch (t: Throwable) {
+            error = t.message ?: "Failed to load welcome video."
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        VideoPlayer(
-            hlsUrl = videoUrl,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f),
-            onFullscreenToggle = { onOpenFullscreen(videoUrl) }
-        )
-        Text("Welcome Video Screen")
+        val url = videoUrl
+        if (url != null) {
+            VideoPlayer(
+                hlsUrl = url,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f),
+                onFullscreenToggle = { onOpenFullscreen(url) }
+            )
+        } else {
+            Text(error ?: "Loading video...")
+        }
+
+        Text("Welcome Video Screen", modifier = Modifier.padding(top = 12.dp))
+
         Row(modifier = Modifier.padding(top = 16.dp)) {
             Checkbox(
                 checked = dontShowAgain,
@@ -49,11 +78,18 @@ fun WelcomeVideoScreen(
                 modifier = Modifier.padding(start = 8.dp, top = 12.dp)
             )
         }
-        Button(onClick = onSkip, modifier = Modifier.padding(top = 16.dp)) {
+
+        Button(
+            onClick = onSkip,
+            modifier = Modifier.padding(top = 16.dp)
+        ) {
             Text("Skip")
         }
 
-        Button(onClick = { onContinue(dontShowAgain) }, modifier = Modifier.padding(top = 8.dp)) {
+        Button(
+            onClick = { onContinue(dontShowAgain) },
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
             Text("Continue")
         }
     }

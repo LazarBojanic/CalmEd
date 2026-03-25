@@ -25,6 +25,7 @@ import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.setFrom
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExercise
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseEntity
+import com.calmed.calmedbackend.model.raw.programexercise.Visibility
 import java.time.Instant
 import java.util.UUID
 
@@ -71,15 +72,56 @@ suspend fun Application.module() {
 
 }
 
-suspend fun Application.seed(){
+suspend fun Application.seed() {
 	val seedExercises = listOf(
 		ProgramExercise(
-			id = UUID.fromString("11b919a8-bedb-4321-92cf-c7d4ed343219"),
-			weekNumber = 5,
+			id = UUID.fromString("3a420f83-c314-4731-b319-310c94e55752"),
+			weekNumber = 0,
+			title = "Introdukcija",
+			description = null,
+			playbackId = "uttZtmeMxS3Lwg0257AIQHgClHuGGxj1dE7fbrVkOMKg",
+			thumbnailURL = "https://thumbs.dreamstime.com/b/introduction-concept-word-cork-board-77226561.jpg",
+			visibility = Visibility.PUBLIC,
+			orderInWeek = 0,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+
+		// Week 1
+		ProgramExercise(
+			id = UUID.fromString("4d761512-a099-4a9f-bb64-c72232aec082"),
+			weekNumber = 1,
+			title = "Citanje pravila edukacije",
+			description = null,
+			playbackId = "9iViMPnA1B9sn5iJuvlhHXaPRdd69R30001z7yLEhcET00",
+			thumbnailURL = "https://bombona.rs/pictures/week001/week001exe001.jpg",
+			visibility = Visibility.SIGNED,
+			orderInWeek = 1,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+		ProgramExercise(
+			id = UUID.fromString("cf3fa3d2-3e3d-4faf-885f-d5264b8f294c"),
+			weekNumber = 1,
+			title = "Vežbe za diferencijaciju sheme tela",
+			description = null,
+			playbackId = "R8Oj750101jQ01MHabkoSH4MWldXxSE6REgthJAx512gKs",
+			thumbnailURL = "https://bombona.rs/pictures/week001/week001exe002.jpg",
+			visibility = Visibility.SIGNED,
+			orderInWeek = 2,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+
+		// Week 2
+		ProgramExercise(
+			id = UUID.fromString("2e2f609e-330e-42d1-befb-28f7eb4ad4ff"),
+			weekNumber = 2,
 			title = "Čitanje pravila edukacije sa ritmom",
 			description = null,
-			videoURL = "https://bombona.rs/videos/week5/exercise_01/week05_exe01.m3u8",
-			thumbnailURL = null,
+			playbackId = "eqQGtkCEl01v67TiCgwW5iYDdSujRKZYzc8jgqa8AxQk",
+			thumbnailURL = "https://bombona.rs/pictures/week002/week002exe001.jpg",
+			visibility = Visibility.SIGNED,
 			orderInWeek = 1,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -89,74 +131,23 @@ suspend fun Application.seed(){
 			weekNumber = 2,
 			title = "Vežbe protiv tikova očne regije",
 			description = null,
-			videoURL = "https://bombona.rs/videos/week2/exercise_02/week02_exe02.m3u8",
-			thumbnailURL = null,
+			playbackId = "NcOEF2uXBV7al5tmb6Sz6W4rXXVrQ92etBbR6Zcisxk",
+			thumbnailURL = "https://bombona.rs/pictures/week002/week002exe002.jpg",
+			visibility = Visibility.SIGNED,
 			orderInWeek = 2,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
 		),
+
+		// Week 3
 		ProgramExercise(
-			id = UUID.fromString("2e2f609e-330e-42d1-befb-28f7eb4ad4ff"),
-			weekNumber = 2,
-			title = "Čitanje pravila edukacije sa ritmom",
+			id = UUID.fromString("9cad8950-c379-4251-890a-697b4968343f"),
+			weekNumber = 3,
+			title = "Vežbe protiv tikova očne regije",
 			description = null,
-			videoURL = "https://bombona.rs/videos/week2/exercise_01/week02_exe01.m3u8",
-			thumbnailURL = null,
-			orderInWeek = 1,
-			createdAt = Instant.now(),
-			updatedAt = Instant.now()
-		),
-		ProgramExercise(
-			id = UUID.fromString("2ff667ca-da16-4fb7-b058-a574d4afb83e"),
-			weekNumber = 6,
-			title = "Vežbe za pažnju u Lazarovim krugovima",
-			description = null,
-			videoURL = "https://bombona.rs/videos/week6/exercise_02/week06_exe02.m3u8",
-			thumbnailURL = null,
-			orderInWeek = 2,
-			createdAt = Instant.now(),
-			updatedAt = Instant.now()
-		),
-		ProgramExercise(
-			id = UUID.fromString("4d375a8b-6308-4d7d-a265-7e7bb5b7a2e5"),
-			weekNumber = 7,
-			title = "Vežbe imaginacije (pisanje slova A; 5x)",
-			description = null,
-			videoURL = "https://bombona.rs/videos/week7/exercise_02/week07_exe02.m3u8",
-			thumbnailURL = null,
-			orderInWeek = 2,
-			createdAt = Instant.now(),
-			updatedAt = Instant.now()
-		),
-		ProgramExercise(
-			id = UUID.fromString("4d761512-a099-4a9f-bb64-c72232aec082"),
-			weekNumber = 1,
-			title = "Citanje pravila edukacije",
-			description = null,
-			videoURL = "https://bombona.rs/videos/week1/exercise_01/week01_exe01.m3u8",
-			thumbnailURL = null,
-			orderInWeek = 1,
-			createdAt = Instant.now(),
-			updatedAt = Instant.now()
-		),
-		ProgramExercise(
-			id = UUID.fromString("6a523493-1c23-4a6c-b3bd-35f7b5aed130"),
-			weekNumber = 5,
-			title = "Predilekciono pisanje",
-			description = null,
-			videoURL = "https://bombona.rs/videos/week5/exercise_02/week05_exe02.m3u8",
-			thumbnailURL = null,
-			orderInWeek = 2,
-			createdAt = Instant.now(),
-			updatedAt = Instant.now()
-		),
-		ProgramExercise(
-			id = UUID.fromString("8c43414b-fea9-48ae-b9b0-f0f7214d2188"),
-			weekNumber = 8,
-			title = "Vežbe za pažnju (brojanje od broja do broja)",
-			description = null,
-			videoURL = "https://bombona.rs/videos/week8/exercise_01/week08_exe01.m3u8",
-			thumbnailURL = null,
+			playbackId = "jjPCeg9nPvuqxVsLf00oZaO005tJ8ub4VS6ozsW900pjl4",
+			thumbnailURL = "https://bombona.rs/pictures/week003/week003exe001.jpg",
+			visibility = Visibility.SIGNED,
 			orderInWeek = 1,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -166,30 +157,23 @@ suspend fun Application.seed(){
 			weekNumber = 3,
 			title = "Progresivna relaksacija",
 			description = null,
-			videoURL = "https://bombona.rs/videos/week3/exercise_02/week03_exe02.m3u8",
-			thumbnailURL = null,
+			playbackId = "BtqluLXNZf8bCNd13s8HLg8EtUFK9xT5GTXjQtj4Pd8",
+			thumbnailURL = "https://bombona.rs/pictures/week003/week003exe002.jpg",
+			visibility = Visibility.SIGNED,
 			orderInWeek = 2,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
 		),
+
+		// Week 4
 		ProgramExercise(
-			id = UUID.fromString("92dffa84-a20c-4526-a8a6-e6669f2443b8"),
-			weekNumber = 7,
-			title = "Vežbe za pažnju u Lazarovim krugovima",
-			description = null,
-			videoURL = "https://bombona.rs/videos/week7/exercise_01/week07_exe01.m3u8",
-			thumbnailURL = null,
-			orderInWeek = 1,
-			createdAt = Instant.now(),
-			updatedAt = Instant.now()
-		),
-		ProgramExercise(
-			id = UUID.fromString("9cad8950-c379-4251-890a-697b4968343f"),
-			weekNumber = 3,
+			id = UUID.fromString("fada6c0b-78f1-43ae-a61e-a943f15647e8"),
+			weekNumber = 4,
 			title = "Vežbe protiv tikova očne regije",
 			description = null,
-			videoURL = "https://bombona.rs/videos/week3/exercise_01/week03_exe01.m3u8",
-			thumbnailURL = null,
+			playbackId = "9Iu8lJgg3JzHucSfrPwRvk9FB852RhcrUiGKiFfLCG00",
+			thumbnailURL = "https://bombona.rs/pictures/week004/week004exe001.jpg",
+			visibility = Visibility.SIGNED,
 			orderInWeek = 1,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -199,9 +183,102 @@ suspend fun Application.seed(){
 			weekNumber = 4,
 			title = "Progresivna relaksacija",
 			description = null,
-			videoURL = "https://bombona.rs/videos/week4/exercise_02/week04_exe02.m3u8",
-			thumbnailURL = null,
+			playbackId = "H3k1Z5sg9m01weNxiIqqNfOjawecGqfaNPu4zTUhemu8",
+			thumbnailURL = "https://bombona.rs/pictures/week004/week004exe002.jpg",
+			visibility = Visibility.SIGNED,
 			orderInWeek = 2,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+
+		// Week 5
+		ProgramExercise(
+			id = UUID.fromString("11b919a8-bedb-4321-92cf-c7d4ed343219"),
+			weekNumber = 5,
+			title = "Čitanje pravila edukacije sa ritmom",
+			description = null,
+			playbackId = "NYALF100QxOttoG02v2flVRcR8v6Fn9UR8tktA3mKdoiA",
+			thumbnailURL = "https://bombona.rs/pictures/week005/week005exe001.jpg",
+			visibility = Visibility.SIGNED,
+			orderInWeek = 1,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+		ProgramExercise(
+			id = UUID.fromString("6a523493-1c23-4a6c-b3bd-35f7b5aed130"),
+			weekNumber = 5,
+			title = "Predilekciono pisanje",
+			description = null,
+			playbackId = "hqOwZ9euuPPrC6EpZ01oKz02mcV4CiTDbwzNhE37Y02UOk",
+			thumbnailURL = "https://bombona.rs/pictures/week005/week005exe002.jpg",
+			visibility = Visibility.SIGNED,
+			orderInWeek = 2,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+
+		// Week 6
+		ProgramExercise(
+			id = UUID.fromString("d6c3ffff-cc26-4174-9a45-ad2ab8f31ed9"),
+			weekNumber = 6,
+			title = "Predilekciono pisanje",
+			description = null,
+			playbackId = "X28gzL23RtOvnrvlRa7N2bry6m4NvvZOn6J3KW01qdRE",
+			thumbnailURL = "https://bombona.rs/pictures/week006/week006exe001.jpg",
+			visibility = Visibility.SIGNED,
+			orderInWeek = 1,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+		ProgramExercise(
+			id = UUID.fromString("2ff667ca-da16-4fb7-b058-a574d4afb83e"),
+			weekNumber = 6,
+			title = "Vežbe za pažnju u Lazarovim krugovima",
+			description = null,
+			playbackId = "BqQWZZhnXWWbREy3q5EQk902BzS1bgOCyMiX01gpz9kiw",
+			thumbnailURL = "https://bombona.rs/pictures/week006/week006exe002.jpg",
+			visibility = Visibility.SIGNED,
+			orderInWeek = 2,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+
+		// Week 7
+		ProgramExercise(
+			id = UUID.fromString("92dffa84-a20c-4526-a8a6-e6669f2443b8"),
+			weekNumber = 7,
+			title = "Vežbe za pažnju u Lazarovim krugovima",
+			description = null,
+			playbackId = "nnU5TIpvFRASeunnqDLH7j7X8D2uBpALBsO8z21zEbQ",
+			thumbnailURL = "https://bombona.rs/pictures/week007/week007exe001.jpg",
+			visibility = Visibility.SIGNED,
+			orderInWeek = 1,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+		ProgramExercise(
+			id = UUID.fromString("4d375a8b-6308-4d7d-a265-7e7bb5b7a2e5"),
+			weekNumber = 7,
+			title = "Vežbe imaginacije (pisanje slova A; 5x)",
+			description = null,
+			playbackId = "iDKrQc5X3cN1IG4d139vzPmMeA016hVOmn5MXysu4BWo",
+			thumbnailURL = "https://bombona.rs/pictures/week007/week007exe002.jpg",
+			visibility = Visibility.SIGNED,
+			orderInWeek = 2,
+			createdAt = Instant.now(),
+			updatedAt = Instant.now()
+		),
+
+		// Week 8
+		ProgramExercise(
+			id = UUID.fromString("8c43414b-fea9-48ae-b9b0-f0f7214d2188"),
+			weekNumber = 8,
+			title = "Vežbe za pažnju (brojanje od broja do broja)",
+			description = null,
+			playbackId = "WVlRE01013JVODg7PQwv9JFg02CrN11bwncLJZ4AnctAoQ",
+			thumbnailURL = "https://bombona.rs/pictures/week008/week008exe001.jpg",
+			visibility = Visibility.SIGNED,
+			orderInWeek = 1,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
 		),
@@ -210,42 +287,10 @@ suspend fun Application.seed(){
 			weekNumber = 8,
 			title = "Vežbe imaginacije (pisanje slova E; 5x)",
 			description = null,
-			videoURL = "https://bombona.rs/videos/week8/exercise_02/week08_exe02.m3u8",
-			thumbnailURL = null,
+			playbackId = "HGzTKFXGdI8401nhtqnS7puZezE3029ppWT7bVb4dtjOM",
+			thumbnailURL = "https://bombona.rs/pictures/week008/week008exe002.jpg",
+			visibility = Visibility.SIGNED,
 			orderInWeek = 2,
-			createdAt = Instant.now(),
-			updatedAt = Instant.now()
-		),
-		ProgramExercise(
-			id = UUID.fromString("cf3fa3d2-3e3d-4faf-885f-d5264b8f294c"),
-			weekNumber = 1,
-			title = "Vežbe za diferencijaciju sheme tela",
-			description = null,
-			videoURL = "https://bombona.rs/videos/week1/exercise_02/week01_exe02.m3u8",
-			thumbnailURL = null,
-			orderInWeek = 2,
-			createdAt = Instant.now(),
-			updatedAt = Instant.now()
-		),
-		ProgramExercise(
-			id = UUID.fromString("d6c3ffff-cc26-4174-9a45-ad2ab8f31ed9"),
-			weekNumber = 6,
-			title = "Predilekciono pisanje",
-			description = null,
-			videoURL = "https://bombona.rs/videos/week6/exercise_01/week06_exe01.m3u8",
-			thumbnailURL = null,
-			orderInWeek = 1,
-			createdAt = Instant.now(),
-			updatedAt = Instant.now()
-		),
-		ProgramExercise(
-			id = UUID.fromString("fada6c0b-78f1-43ae-a61e-a943f15647e8"),
-			weekNumber = 4,
-			title = "Vežbe protiv tikova očne regije",
-			description = null,
-			videoURL = "https://bombona.rs/videos/week4/exercise_01/week04_exe01.m3u8",
-			thumbnailURL = null,
-			orderInWeek = 1,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
 		)

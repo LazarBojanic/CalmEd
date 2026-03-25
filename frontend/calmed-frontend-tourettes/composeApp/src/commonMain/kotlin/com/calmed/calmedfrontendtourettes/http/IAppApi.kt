@@ -37,6 +37,7 @@ interface IAppApi {
     suspend fun loginWithApple(dto: AppleLoginDto): TokenDto?
     suspend fun getHome(year: Int, month: Int): HomeDto?
     suspend fun getAllProgramExercises(): List<ProgramExerciseDto>
+    suspend fun getWelcomeVideo(): ProgramExerciseDto?
     suspend fun getPaymentStatus(): PaymentStatusDto?
     suspend fun createPaymentSheetParams(dto: CreateCheckoutSessionDto): PaymentSheetParamsDto?
     suspend fun confirmPaymentIntent(dto: ConfirmPaymentIntentDto): PaymentStatusDto?
