@@ -203,7 +203,7 @@ class PaymentService(
 
     override suspend fun skipPayment(userId: UUID): AppResult<PaymentStatusDto> {
         return when (val res = userService.setPaymentStatus(userId, true, null, null)) {
-            is AppResult.Success -> AppResult.Success(PaymentStatusDto(isPaid = true))
+            is AppResult.Success -> AppResult.Success(PaymentStatusDto(isPaid = true, paymentType = null, currency = stripeConfig.currency, amountCents = stripeConfig.amountCents))
             is AppResult.Failure -> AppResult.Failure(res.httpStatusCode, res.message)
         }
     }
