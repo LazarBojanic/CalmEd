@@ -12,21 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.calmed.calmedfrontendtourettes.http.AppHttpClient
-import com.calmed.calmedfrontendtourettes.store.ITokenDataStore
+import com.calmed.calmedfrontendtourettes.http.IAppApi
 import com.calmed.calmedfrontendtourettes.ui.component.VideoPlayer
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import kotlinx.coroutines.flow.first
-import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
-
-@Serializable
-data class PlaybackTokenResponse(
-    val playbackId: String,
-    val token: String
-)
 
 @Composable
 fun WelcomeVideoScreen(
@@ -34,35 +22,27 @@ fun WelcomeVideoScreen(
     onContinue: (Boolean) -> Unit,
     onOpenFullscreen: (String) -> Unit
 ) {
-
-    val welcomePlaybackId = "YWsHmIT6VfzNtNdP16UTBOaNHYPuoWxgL00npms3Wopg"
-
-    val appHttpClient: AppHttpClient = koinInject()
-    val tokenStore: ITokenDataStore = koinInject()
+    val appApi: IAppApi = koinInject()
 
     var dontShowAgain by remember { mutableStateOf(false) }
 
     var videoUrl by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(welcomePlaybackId) {
+    LaunchedEffect(Unit) {
         error = null
         videoUrl = null
 
         try {
-            val access = tokenStore.getToken()?.access ?: run {
-                error = "Missing access token."
+            val welcomeVideo = appApi.getWelcomeVideo()
+            if (welcomeVideo == null) {
+                error = "Welcome video is not available."
                 return@LaunchedEffect
             }
-
-            val resp: PlaybackTokenResponse =
-                appHttpClient.client
-                    .get("/videos/$welcomePlaybackId/token") {
-                        header("Authorization", "Bearer $access")
-                    }
-                    .body()
-
-            videoUrl = "https://stream.mux.com/${resp.playbackId}.m3u8?token=${resp.token}"
+            videoUrl = welcomeVideo.videoURL
+            if (videoUrl == null) {
+                error = "Welcome video has no valid playback source."
+            }
         } catch (t: Throwable) {
             error = t.message ?: "Failed to load welcome video."
         }

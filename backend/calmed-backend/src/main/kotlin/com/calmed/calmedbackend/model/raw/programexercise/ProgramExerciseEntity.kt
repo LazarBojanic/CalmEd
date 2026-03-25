@@ -10,8 +10,9 @@ class ProgramExerciseEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var weekNumber by ProgramExerciseTable.weekNumber
 	var title by ProgramExerciseTable.title
 	var description by ProgramExerciseTable.description
-	var videoURL by ProgramExerciseTable.videoURL
+	var playbackId by ProgramExerciseTable.playbackId
 	var thumbnailURL by ProgramExerciseTable.thumbnailURL
+	var visibility by ProgramExerciseTable.visibility
 	var orderInWeek by ProgramExerciseTable.orderInWeek
 	var createdAt by ProgramExerciseTable.createdAt
 	var updatedAt by ProgramExerciseTable.updatedAt

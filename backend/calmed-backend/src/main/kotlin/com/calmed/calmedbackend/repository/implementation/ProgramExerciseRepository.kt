@@ -25,6 +25,16 @@ class ProgramExerciseRepository : IProgramExerciseRepository {
 		}
 	}
 
+	override suspend fun findWelcomeVideo(): ProgramExercise? {
+		return withTransaction {
+			ProgramExerciseEntity
+				.find { ProgramExerciseTable.weekNumber eq 0 }
+				.orderBy(ProgramExerciseTable.orderInWeek to SortOrder.ASC)
+				.firstOrNull()
+				?.toRaw()
+		}
+	}
+
 	override suspend fun findUpNext(): ProgramExercise? {
 		return withTransaction {
 			val found = ProgramExerciseEntity

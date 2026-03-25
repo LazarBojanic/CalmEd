@@ -168,6 +168,14 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 		return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
 	}
 
+	override suspend fun getWelcomeVideo(): ProgramExerciseDto? {
+		val token = tokenDataStore.tokenDto.first()?.access
+		val resp: HttpResponse = client.get(urlString = "/program-exercises/welcome-video") {
+			token?.let { header("Authorization", "Bearer $it") }
+		}
+		return if (resp.status == HttpStatusCode.OK) resp.body() else null
+	}
+
 	override suspend fun getPaymentStatus(): PaymentStatusDto? {
 		val resp: HttpResponse = client.get("/payment/status")
 		return if (resp.status == HttpStatusCode.OK) resp.body() else null

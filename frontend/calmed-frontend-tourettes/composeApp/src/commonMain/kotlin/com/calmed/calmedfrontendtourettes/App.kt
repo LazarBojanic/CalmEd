@@ -56,6 +56,7 @@ fun App() {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     var fullscreenVideoUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    var welcomeHandledUserId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val tokenStore: ITokenDataStore = koinInject()
     val authService: IAuthService = koinInject()
@@ -75,9 +76,10 @@ fun App() {
         val isOnboarded = remoteUser.isOnboarded
         val isPaid = remoteUser.isPaid
         val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser.id)
+        val shouldShowWelcomeVideo = showWelcomeVideo && welcomeHandledUserId != remoteUser.id
         return when {
+            shouldShowWelcomeVideo -> Routes.WelcomeVideo
             !isPaid -> Routes.Payment
-            showWelcomeVideo -> Routes.WelcomeVideo
             !isOnboarded -> Routes.Onboarding
             else -> Routes.Main
         }
@@ -284,6 +286,7 @@ fun App() {
 
                 WelcomeVideoScreen(
                     onSkip = {
+                        welcomeHandledUserId = sessionViewModel.user.value?.id
                         val isPaid = sessionViewModel.user.value?.isPaid == true
                         val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
                         val nextRoute = when {
@@ -297,6 +300,7 @@ fun App() {
                         }
                     },
                     onContinue = { dontShowAgain ->
+                        welcomeHandledUserId = sessionViewModel.user.value?.id
                         if (dontShowAgain) settings.setShowWelcomeVideo(sessionViewModel.user.value?.id, false)
                         val isPaid = sessionViewModel.user.value?.isPaid == true
                         val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
@@ -397,6 +401,7 @@ fun App() {
             composable(Routes.Main) {
                 MainScreen(
                     onLogoutToLogin = {
+                        welcomeHandledUserId = null
                         navController.navigate(Routes.Login) {
                             popUpTo(Routes.Main) { inclusive = true }
                             launchSingleTop = true

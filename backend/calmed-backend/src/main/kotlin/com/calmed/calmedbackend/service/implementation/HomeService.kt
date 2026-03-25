@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.service.implementation
 
+import com.calmed.calmedbackend.config.MuxConfig
 import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.response.CalendarDayDto
@@ -20,7 +21,8 @@ import java.util.UUID
 
 class HomeService(
     private val programExerciseService: IProgramExerciseService,
-    private val userService: IUserService
+    private val userService: IUserService,
+    private val muxConfig: MuxConfig
 ) : IHomeService {
 
     override suspend fun getHome(userId: String, year: Int, month: Int): HomeDto {
@@ -75,7 +77,7 @@ class HomeService(
             is AppResult.Success -> {
                 var upNextDto = mutableListOf<ProgramExerciseDto>()
                 for(upNextJoined in upNextResult.data) {
-                    upNextDto.add(upNextJoined.toDto())
+                    upNextDto.add(upNextJoined.toDto(muxConfig))
                 }
                 return HomeDto(
                     greetingName = null,
