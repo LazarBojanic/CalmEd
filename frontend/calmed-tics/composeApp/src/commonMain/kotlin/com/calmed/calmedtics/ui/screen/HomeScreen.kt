@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.calmed.calmedtics.http.AppHttpClient
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.ui.component.VideoPlayer
@@ -51,7 +50,6 @@ fun HomeScreen(
     val allExercises by sessionViewModel.allExercises.collectAsState()
     val ymd = currentYmd()
     val days = home?.calendar?.days ?: emptyList()
-    val appHttpClient: AppHttpClient = koinInject()
 
     var selectedVideoUrl by remember { mutableStateOf<String?>(null) }
     var selectedTitle by remember { mutableStateOf<String?>(null) }
@@ -196,7 +194,6 @@ fun HomeScreen(
                                 val thumb = ex.thumbnailURL
                                 if (!thumb.isNullOrBlank()) {
                                     ThumbnailImage(
-                                        client = appHttpClient.client,
                                         url = thumb,
                                         contentDescription = ex.title,
                                         modifier = Modifier.fillMaxSize()

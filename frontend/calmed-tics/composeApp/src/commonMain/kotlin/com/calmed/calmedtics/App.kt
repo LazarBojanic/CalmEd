@@ -34,6 +34,13 @@ import com.calmed.calmedtics.viewmodel.SessionViewModel
 import com.calmed.calmedtics.auth.launchAppleSignIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.network.ktor3.KtorNetworkFetcherFactory
+import coil3.request.crossfade
+import coil3.util.DebugLogger
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -53,6 +60,17 @@ object Routes {
 
 @Composable
 fun App() {
+    val httpClient: HttpClient = koinInject()
+    setSingletonImageLoaderFactory { context ->
+        ImageLoader.Builder(context)
+            .components {
+                add(KtorNetworkFetcherFactory(httpClient))
+            }
+            .crossfade(true)
+            .logger(DebugLogger())
+            .build()
+    }
+
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     var fullscreenVideoUrl by rememberSaveable { mutableStateOf<String?>(null) }

@@ -30,14 +30,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.ui.component.ThumbnailImage
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.launch
 
 @Composable
 fun ExercisesScreen(
     currentWeek: Int,
     exercises: List<ProgramExerciseDto>,
-    client: HttpClient,
     onExerciseClick: (ProgramExerciseDto) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -84,7 +82,6 @@ fun ExercisesScreen(
                             }
                     ) {
                         ThumbnailImage(
-                            client = client,
                             url = ex.thumbnailURL ?: "",
                             contentDescription = ex.title,
                             modifier = Modifier

@@ -106,8 +106,9 @@ kotlin {
 
 			implementation(libs.oAuthJavaJwt)
 			implementation(libs.multiplatformSettings)
-			implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
-			implementation("media.kamel:kamel-image:1.0.9")
+			implementation(libs.kotlinxDatetime)
+			implementation(libs.coilCompose)
+			implementation(libs.coilNetworkKtor)
 
 
 

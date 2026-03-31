@@ -18,6 +18,7 @@ expect fun platformEngine(): HttpClientEngineFactory<*>
 
 fun commonModule(baseUrl: String) = module {
     single { AppHttpClient(baseUrl, platformEngine(), get()) }
+    single { get<AppHttpClient>().client }
     single<IAppApi> { AppApi(get(), get()) }
     single { HomeRepository(api = get()) }
 

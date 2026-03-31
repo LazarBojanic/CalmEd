@@ -25,7 +25,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.calmed.calmedtics.http.AppHttpClient
 import com.calmed.calmedtics.store.ITokenDataStore
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
@@ -154,11 +153,9 @@ fun MainScreen(
 				)
 
 				MainTab.Exercises -> {
-					val appHttpClient: AppHttpClient = koinInject()
 					ExercisesScreen(
 						currentWeek = home?.currentWeek ?: 1,
 						exercises = allExercises,
-						client = appHttpClient.client,
 						onExerciseClick = { ex ->
 							val url = ex.videoURL
 							if (!url.isNullOrBlank()) {
