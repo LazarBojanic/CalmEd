@@ -6,7 +6,7 @@ import com.calmed.calmedbackend.service.implementation.AuthCredentialService
 import com.calmed.calmedbackend.service.implementation.AuthService
 import com.calmed.calmedbackend.service.implementation.HomeService
 import com.calmed.calmedbackend.service.implementation.RefreshTokenService
-import com.calmed.calmedbackend.service.implementation.UserInfoTourettesService
+import com.calmed.calmedbackend.service.implementation.UserInfoTicsService
 import com.calmed.calmedbackend.service.implementation.UserService
 import com.calmed.calmedbackend.service.implementation.ProgramExerciseService
 import com.calmed.calmedbackend.service.implementation.PaymentService
@@ -15,7 +15,7 @@ import com.calmed.calmedbackend.service.implementation.UserExerciseProgressServi
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
-import com.calmed.calmedbackend.service.specification.IUserInfoTourettesService
+import com.calmed.calmedbackend.service.specification.IUserInfoTicsService
 import com.calmed.calmedbackend.service.specification.IUserService
 import com.calmed.calmedbackend.service.specification.IHomeService
 import com.calmed.calmedbackend.service.specification.IPaymentService
@@ -43,7 +43,7 @@ val serviceModule = module {
 	single<IUserService> { UserService(get()) }
 	single<IAuthCredentialService> { AuthCredentialService(get(), get()) }
 	single<IRefreshTokenService> { RefreshTokenService(get(), get()) }
-	single<IUserInfoTourettesService> { UserInfoTourettesService(get(), get()) }
+	single<IUserInfoTicsService> { UserInfoTicsService(get(), get()) }
 	single<IProgramExerciseService> { ProgramExerciseService(get()) }
 	single<IUserProgramService> { UserProgramService(get(), get()) }
 	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get(), get()) }

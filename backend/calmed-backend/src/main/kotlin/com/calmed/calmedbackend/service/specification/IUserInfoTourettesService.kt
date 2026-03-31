@@ -1,18 +1,18 @@
 package com.calmed.calmedbackend.service.specification
 
 import com.calmed.calmedbackend.model.AppResult
-import com.calmed.calmedbackend.model.dto.request.UserInfoTourettesUpdateDto
-import com.calmed.calmedbackend.model.joined.UserInfoTourettesJoined
-import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
+import com.calmed.calmedbackend.model.dto.request.UserInfoTicsUpdateDto
+import com.calmed.calmedbackend.model.joined.UserInfoTicsJoined
+import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
 import java.util.UUID
 
-interface IUserInfoTourettesService {
-	suspend fun getAll(): AppResult<List<UserInfoTourettesJoined>>
-	suspend fun getById(id: UUID): AppResult<UserInfoTourettesJoined>
-	suspend fun getByUserId(userId: UUID): AppResult<UserInfoTourettesJoined>
-	suspend fun create(userInfoTourettes: UserInfoTourettes): AppResult<UserInfoTourettesJoined>
-	suspend fun update(userInfoTourettes: UserInfoTourettes): AppResult<UserInfoTourettesJoined>
+interface IUserInfoTicsService {
+	suspend fun getAll(): AppResult<List<UserInfoTicsJoined>>
+	suspend fun getById(id: UUID): AppResult<UserInfoTicsJoined>
+	suspend fun getByUserId(userId: UUID): AppResult<UserInfoTicsJoined>
+	suspend fun create(userInfoTics: UserInfoTics): AppResult<UserInfoTicsJoined>
+	suspend fun update(userInfoTics: UserInfoTics): AppResult<UserInfoTicsJoined>
 	suspend fun delete(id: UUID): AppResult<Unit>
-	suspend fun updateById(id: UUID, dto: UserInfoTourettesUpdateDto): AppResult<UserInfoTourettesJoined>
+	suspend fun updateById(id: UUID, dto: UserInfoTicsUpdateDto): AppResult<UserInfoTicsJoined>
 
 }

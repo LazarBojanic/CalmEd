@@ -11,7 +11,7 @@ import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseTable
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenTable
 import com.calmed.calmedbackend.model.raw.user.UserTable
 import com.calmed.calmedbackend.model.raw.userexerciseprogress.UserExerciseProgressTable
-import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettesTable
+import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTicsTable
 import com.calmed.calmedbackend.model.raw.userprogram.UserProgramTable
 import com.calmed.calmedbackend.routing.configureRouting
 import com.calmed.calmedbackend.routing.configureStaticRouting
@@ -54,7 +54,7 @@ suspend fun Application.module() {
 		UserTable,
 		AuthCredentialTable,
 		RefreshTokenTable,
-		UserInfoTourettesTable,
+		UserInfoTicsTable,
 		UserProgramTable,
 		ProgramExerciseTable,
 		UserExerciseProgressTable

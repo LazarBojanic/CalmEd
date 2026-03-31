@@ -21,12 +21,12 @@ import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialType
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.user.User
-import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
+import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
 import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
-import com.calmed.calmedbackend.service.specification.IUserInfoTourettesService
+import com.calmed.calmedbackend.service.specification.IUserInfoTicsService
 import com.calmed.calmedbackend.service.specification.IUserService
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -48,7 +48,7 @@ import java.util.UUID
 class AuthService(private val userService: IUserService,
 				  private val authCredentialService: IAuthCredentialService,
 				  private val refreshTokenService: IRefreshTokenService,
-				  private val userInfoTourettesService: IUserInfoTourettesService,
+				  private val userInfoTicsService: IUserInfoTicsService,
 				  private val jwtConfig: JwtConfig,
 				  private val emailConfig: EmailConfig,
 				  private val appleConfig: AppleConfig,
@@ -188,7 +188,7 @@ class AuthService(private val userService: IUserService,
 															}
 														}
 													}
-													val newUserInfoTourettes = UserInfoTourettes.createNew(
+													val newUserInfoTics = UserInfoTics.createNew(
 														userId = newUser.id,
 														preferredName = null,
 														age = null,
@@ -198,9 +198,9 @@ class AuthService(private val userService: IUserService,
 														goal = null,
 														followProgress = null
 													)
-													val userInfoTourettesResult =
-														userInfoTourettesService.create(newUserInfoTourettes)
-													when (userInfoTourettesResult) {
+													val userInfoTicsResult =
+														userInfoTicsService.create(newUserInfoTics)
+													when (userInfoTicsResult) {
 														is AppResult.Success -> {
 															return@withTransaction createTokenPair(
 																createdUserResult.data.id, createdUserResult.data.email
@@ -209,8 +209,8 @@ class AuthService(private val userService: IUserService,
 
 														is AppResult.Failure -> {
 															return@withTransaction AppResult.Failure(
-																userInfoTourettesResult.httpStatusCode,
-																"Failed to create user info tourettes. ${userInfoTourettesResult.message}"
+																userInfoTicsResult.httpStatusCode,
+																"Failed to create user info tics. ${userInfoTicsResult.message}"
 															)
 														}
 													}
@@ -382,7 +382,7 @@ class AuthService(private val userService: IUserService,
 										when (createdGoogleCredResult) {
 											is AppResult.Success -> {
 												if (createdNewUser) {
-													val newUserInfoTourettes = UserInfoTourettes.createNew(
+													val newUserInfoTics = UserInfoTics.createNew(
 														userId = user.id,
 														preferredName = null,
 														age = null,
@@ -392,14 +392,14 @@ class AuthService(private val userService: IUserService,
 														goal = null,
 														followProgress = null
 													)
-													val userInfoTourettesResult =
-														userInfoTourettesService.create(newUserInfoTourettes)
+													val userInfoTicsResult =
+														userInfoTicsService.create(newUserInfoTics)
 
-													when (userInfoTourettesResult) {
+													when (userInfoTicsResult) {
 														is AppResult.Success -> createTokenPair(user.id, email)
 														is AppResult.Failure -> AppResult.Failure(
-															userInfoTourettesResult.httpStatusCode,
-															"Failed to create user info tourettes. ${userInfoTourettesResult.message}"
+															userInfoTicsResult.httpStatusCode,
+															"Failed to create user info tics. ${userInfoTicsResult.message}"
 														)
 													}
 												}
@@ -509,7 +509,7 @@ class AuthService(private val userService: IUserService,
 								when (createdAppleCredResult) {
 									is AppResult.Success -> {
 										if (createdNewUser) {
-											val newUserInfoTourettes = UserInfoTourettes.createNew(
+											val newUserInfoTics = UserInfoTics.createNew(
 												userId = user.id,
 												preferredName = null,
 												age = null,
@@ -519,14 +519,14 @@ class AuthService(private val userService: IUserService,
 												goal = null,
 												followProgress = null
 											)
-											val userInfoTourettesResult =
-												userInfoTourettesService.create(newUserInfoTourettes)
+											val userInfoTicsResult =
+												userInfoTicsService.create(newUserInfoTics)
 
-											when (userInfoTourettesResult) {
+											when (userInfoTicsResult) {
 												is AppResult.Success -> createTokenPair(user.id, safeEmail)
 												is AppResult.Failure -> AppResult.Failure(
-													userInfoTourettesResult.httpStatusCode,
-													"Failed to create user info tourettes. ${userInfoTourettesResult.message}"
+													userInfoTicsResult.httpStatusCode,
+													"Failed to create user info tics. ${userInfoTicsResult.message}"
 												)
 											}
 										} else {

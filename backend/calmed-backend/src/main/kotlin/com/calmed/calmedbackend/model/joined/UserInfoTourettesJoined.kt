@@ -1,7 +1,7 @@
 package com.calmed.calmedbackend.model.joined
 
-import com.calmed.calmedbackend.model.raw.userinfo.tourettes.TickFrequency
-import com.calmed.calmedbackend.model.raw.userinfo.tourettes.TickType
+import com.calmed.calmedbackend.model.raw.userinfo.tics.TickFrequency
+import com.calmed.calmedbackend.model.raw.userinfo.tics.TickType
 import com.calmed.calmedbackend.util.InstantSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer
 import kotlinx.serialization.Serializable
@@ -9,7 +9,7 @@ import java.time.Instant
 import java.util.UUID
 
 @Serializable
-data class UserInfoTourettesJoined(
+data class UserInfoTicsJoined(
 	@Serializable(with = UUIDSerializer::class)
 	val id: UUID,
 	val user: UserJoined,
@@ -37,11 +37,11 @@ data class UserInfoTourettesJoined(
 			followProgress: Boolean?,
 			createdAt: Instant? = null,
 			updatedAt: Instant? = null,
-		): UserInfoTourettesJoined {
+		): UserInfoTicsJoined {
 			val now = Instant.now()
 			val cat = createdAt ?: now
 			val uat = updatedAt ?: now
-			return UserInfoTourettesJoined(
+			return UserInfoTicsJoined(
 				id = UUID.randomUUID(),
 				user = user,
 				preferredName = preferredName,

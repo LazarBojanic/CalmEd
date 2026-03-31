@@ -2,13 +2,13 @@ package com.calmed.calmedbackend.model
 
 import com.calmed.calmedbackend.config.MuxConfig
 import com.calmed.calmedbackend.model.dto.response.UserDto
-import com.calmed.calmedbackend.model.dto.response.UserInfoTourettesDto
+import com.calmed.calmedbackend.model.dto.response.UserInfoTicsDto
 import com.calmed.calmedbackend.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedbackend.model.dto.response.UserProgramDto
 import com.calmed.calmedbackend.model.dto.response.UserExerciseProgressDto
 import com.calmed.calmedbackend.model.joined.AuthCredentialJoined
 import com.calmed.calmedbackend.model.joined.RefreshTokenJoined
-import com.calmed.calmedbackend.model.joined.UserInfoTourettesJoined
+import com.calmed.calmedbackend.model.joined.UserInfoTicsJoined
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.joined.ProgramExerciseJoined
 import com.calmed.calmedbackend.model.joined.UserProgramJoined
@@ -19,8 +19,8 @@ import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenEntity
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
-import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
-import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettesEntity
+import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
+import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTicsEntity
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExercise
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseEntity
 import com.calmed.calmedbackend.model.raw.programexercise.Visibility
@@ -200,8 +200,8 @@ fun UserJoined.toDto(): UserDto {
 	)
 }
 
-fun UserInfoTourettes.join(user: UserJoined): UserInfoTourettesJoined {
-	return UserInfoTourettesJoined(
+fun UserInfoTics.join(user: UserJoined): UserInfoTicsJoined {
+	return UserInfoTicsJoined(
 		id = this.id,
 		user = user,
 		preferredName = this.preferredName,
@@ -216,8 +216,8 @@ fun UserInfoTourettes.join(user: UserJoined): UserInfoTourettesJoined {
 	)
 }
 
-fun UserInfoTourettesEntity.toRaw(): UserInfoTourettes {
-	return UserInfoTourettes(
+fun UserInfoTicsEntity.toRaw(): UserInfoTics {
+	return UserInfoTics(
 		id = this.id.value,
 		userId = this.userId,
 		preferredName = this.preferredName,
@@ -232,7 +232,7 @@ fun UserInfoTourettesEntity.toRaw(): UserInfoTourettes {
 	)
 }
 
-fun UserInfoTourettesEntity.setFrom(d: UserInfoTourettes, mapMode: MapMode) {
+fun UserInfoTicsEntity.setFrom(d: UserInfoTics, mapMode: MapMode) {
 	userId = d.userId
 	preferredName = d.preferredName
 	age = d.age
@@ -253,8 +253,8 @@ fun UserInfoTourettesEntity.setFrom(d: UserInfoTourettes, mapMode: MapMode) {
 	}
 }
 
-fun UserInfoTourettesJoined.toDto(): UserInfoTourettesDto {
-	return UserInfoTourettesDto(
+fun UserInfoTicsJoined.toDto(): UserInfoTicsDto {
+	return UserInfoTicsDto(
 		id = this.id,
 		user = this.user.toDto(),
 		preferredName = this.preferredName,

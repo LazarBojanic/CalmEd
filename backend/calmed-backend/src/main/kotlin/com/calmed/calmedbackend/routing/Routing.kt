@@ -12,7 +12,7 @@ fun Application.configureRouting() {
 	routing {
 		authRoutes()
 		userRoutes()
-		userInfoTourettesRoutes()
+		userInfoTicsRoutes()
 		homeRoutes()
 		programExerciseRoutes()
 		paymentRoutes()

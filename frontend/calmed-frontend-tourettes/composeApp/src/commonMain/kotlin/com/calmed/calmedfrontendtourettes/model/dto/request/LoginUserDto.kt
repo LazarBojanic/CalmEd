@@ -1,9 +1,0 @@
-package com.calmed.calmedfrontendtourettes.model.dto.request
-
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class LoginUserDto(
-    val email: String,
-    val password: String
-)

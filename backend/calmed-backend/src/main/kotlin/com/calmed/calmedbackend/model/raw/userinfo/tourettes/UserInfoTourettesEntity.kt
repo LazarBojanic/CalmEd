@@ -1,20 +1,20 @@
-package com.calmed.calmedbackend.model.raw.userinfo.tourettes
+package com.calmed.calmedbackend.model.raw.userinfo.tics
 
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.dao.java.UUIDEntity
 import org.jetbrains.exposed.v1.dao.java.UUIDEntityClass
 import java.util.*
 
-class UserInfoTourettesEntity(id: EntityID<UUID>) : UUIDEntity(id) {
-	companion object : UUIDEntityClass<UserInfoTourettesEntity>(UserInfoTourettesTable)
-	var userId by UserInfoTourettesTable.userId
-	var preferredName by UserInfoTourettesTable.preferredName
-	var age by UserInfoTourettesTable.age
-	var stressLevel by UserInfoTourettesTable.stressLevel
-	var tickType by UserInfoTourettesTable.tickType
-	var tickFrequency by UserInfoTourettesTable.tickFrequency
-	var goal by UserInfoTourettesTable.goal
-	var followProgress by UserInfoTourettesTable.followProgress
-	var createdAt by UserInfoTourettesTable.createdAt
-	var updatedAt by UserInfoTourettesTable.updatedAt
+class UserInfoTicsEntity(id: EntityID<UUID>) : UUIDEntity(id) {
+	companion object : UUIDEntityClass<UserInfoTicsEntity>(UserInfoTicsTable)
+	var userId by UserInfoTicsTable.userId
+	var preferredName by UserInfoTicsTable.preferredName
+	var age by UserInfoTicsTable.age
+	var stressLevel by UserInfoTicsTable.stressLevel
+	var tickType by UserInfoTicsTable.tickType
+	var tickFrequency by UserInfoTicsTable.tickFrequency
+	var goal by UserInfoTicsTable.goal
+	var followProgress by UserInfoTicsTable.followProgress
+	var createdAt by UserInfoTicsTable.createdAt
+	var updatedAt by UserInfoTicsTable.updatedAt
 }

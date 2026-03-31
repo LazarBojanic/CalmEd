@@ -1,23 +1,23 @@
 package com.calmed.calmedbackend.service.implementation
 
 import com.calmed.calmedbackend.model.AppResult
-import com.calmed.calmedbackend.model.dto.request.UserInfoTourettesUpdateDto
+import com.calmed.calmedbackend.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedbackend.model.join
-import com.calmed.calmedbackend.model.joined.UserInfoTourettesJoined
-import com.calmed.calmedbackend.model.raw.userinfo.tourettes.UserInfoTourettes
-import com.calmed.calmedbackend.repository.specification.IUserInfoTourettesRepository
-import com.calmed.calmedbackend.service.specification.IUserInfoTourettesService
+import com.calmed.calmedbackend.model.joined.UserInfoTicsJoined
+import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
+import com.calmed.calmedbackend.repository.specification.IUserInfoTicsRepository
+import com.calmed.calmedbackend.service.specification.IUserInfoTicsService
 import com.calmed.calmedbackend.service.specification.IUserService
 import io.ktor.http.HttpStatusCode
 import java.util.UUID
 
-class UserInfoTourettesService(private val userInfoTourettesRepository: IUserInfoTourettesRepository,
+class UserInfoTicsService(private val userInfoTicsRepository: IUserInfoTicsRepository,
                                private val userService: IUserService
-) : IUserInfoTourettesService {
-	override suspend fun getAll(): AppResult<List<UserInfoTourettesJoined>> {
-		val result = mutableListOf<UserInfoTourettesJoined>()
+) : IUserInfoTicsService {
+	override suspend fun getAll(): AppResult<List<UserInfoTicsJoined>> {
+		val result = mutableListOf<UserInfoTicsJoined>()
 
-		for (userInfo in userInfoTourettesRepository.findAll()) {
+		for (userInfo in userInfoTicsRepository.findAll()) {
 			val userResult = userService.getById(userInfo.userId)
 			when (userResult) {
 				is AppResult.Success -> result.add(userInfo.join(userResult.data))
@@ -30,8 +30,8 @@ class UserInfoTourettesService(private val userInfoTourettesRepository: IUserInf
 		return AppResult.Success(result)
 	}
 
-	override suspend fun getById(id: UUID): AppResult<UserInfoTourettesJoined> {
-		val userInfo = userInfoTourettesRepository.findById(id) ?: return AppResult.Failure(
+	override suspend fun getById(id: UUID): AppResult<UserInfoTicsJoined> {
+		val userInfo = userInfoTicsRepository.findById(id) ?: return AppResult.Failure(
 			HttpStatusCode.NotFound,
 			"User info not found."
 		)
@@ -44,7 +44,7 @@ class UserInfoTourettesService(private val userInfoTourettesRepository: IUserInf
 		}
 	}
 
-	override suspend fun getByUserId(userId: UUID): AppResult<UserInfoTourettesJoined> {
+	override suspend fun getByUserId(userId: UUID): AppResult<UserInfoTicsJoined> {
 		val userResult = userService.getById(userId)
 		val user = when (userResult) {
 			is AppResult.Success -> userResult.data
@@ -52,14 +52,14 @@ class UserInfoTourettesService(private val userInfoTourettesRepository: IUserInf
 				userResult.httpStatusCode, "Failed to retrieve user. ${userResult.message}"
 			)
 		}
-		val existing = userInfoTourettesRepository.findByUserId(userId)
-		var resolved: UserInfoTourettes? = null
+		val existing = userInfoTicsRepository.findByUserId(userId)
+		var resolved: UserInfoTics? = null
 		if (existing != null) {
 			resolved = existing
 			return AppResult.Success(resolved.join(user))
 		}
 		else {
-			val createdRaw = UserInfoTourettes.createNew(
+			val createdRaw = UserInfoTics.createNew(
 				userId = userId,
 				preferredName = null,
 				age = null,
@@ -74,8 +74,8 @@ class UserInfoTourettesService(private val userInfoTourettesRepository: IUserInf
 
 	}
 
-	override suspend fun create(userInfoTourettes: UserInfoTourettes): AppResult<UserInfoTourettesJoined> {
-		val created = userInfoTourettesRepository.create(userInfoTourettes) ?: return AppResult.Failure(
+	override suspend fun create(userInfoTics: UserInfoTics): AppResult<UserInfoTicsJoined> {
+		val created = userInfoTicsRepository.create(userInfoTics) ?: return AppResult.Failure(
 			HttpStatusCode.NotFound,
 			"Failed to create user info."
 		)
@@ -88,8 +88,8 @@ class UserInfoTourettesService(private val userInfoTourettesRepository: IUserInf
 		}
 	}
 
-	override suspend fun update(userInfoTourettes: UserInfoTourettes): AppResult<UserInfoTourettesJoined> {
-		val updated = userInfoTourettesRepository.update(userInfoTourettes) ?: return AppResult.Failure(
+	override suspend fun update(userInfoTics: UserInfoTics): AppResult<UserInfoTicsJoined> {
+		val updated = userInfoTicsRepository.update(userInfoTics) ?: return AppResult.Failure(
 			HttpStatusCode.NotFound,
 			"Failed to update user info."
 		)
@@ -103,7 +103,7 @@ class UserInfoTourettesService(private val userInfoTourettesRepository: IUserInf
 	}
 
 	override suspend fun delete(id: UUID): AppResult<Unit> {
-		return if (userInfoTourettesRepository.delete(id)) {
+		return if (userInfoTicsRepository.delete(id)) {
 			AppResult.Success(Unit)
 		}
 		else {
@@ -111,8 +111,8 @@ class UserInfoTourettesService(private val userInfoTourettesRepository: IUserInf
 		}
 	}
 
-	override suspend fun updateById(id: UUID, dto: UserInfoTourettesUpdateDto): AppResult<UserInfoTourettesJoined> {
-		val existing = userInfoTourettesRepository.findById(id) ?: return AppResult.Failure(
+	override suspend fun updateById(id: UUID, dto: UserInfoTicsUpdateDto): AppResult<UserInfoTicsJoined> {
+		val existing = userInfoTicsRepository.findById(id) ?: return AppResult.Failure(
 			HttpStatusCode.NotFound,
 			"User info not found."
 		)
@@ -120,7 +120,7 @@ class UserInfoTourettesService(private val userInfoTourettesRepository: IUserInf
 		if (existing.userId != dto.userId) {
 			return AppResult.Failure(HttpStatusCode.BadRequest, "Invalid userId")
 		}
-		val updated = userInfoTourettesRepository.updateById(id, dto) ?: return AppResult.Failure(
+		val updated = userInfoTicsRepository.updateById(id, dto) ?: return AppResult.Failure(
 			HttpStatusCode.NotFound,
 			"Failed to update user info."
 		)

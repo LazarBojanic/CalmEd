@@ -1,4 +1,4 @@
-package com.calmed.calmedbackend.model.raw.userinfo.tourettes
+package com.calmed.calmedbackend.model.raw.userinfo.tics
 
 import com.calmed.calmedbackend.util.InstantSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer
@@ -7,7 +7,7 @@ import java.time.Instant
 import java.util.UUID
 
 @Serializable
-data class UserInfoTourettes(
+data class UserInfoTics(
 	@Serializable(with = UUIDSerializer::class)
 	val id: UUID,
 	@Serializable(with = UUIDSerializer::class)
@@ -36,11 +36,11 @@ data class UserInfoTourettes(
 			followProgress: Boolean?,
 			createdAt: Instant? = null,
 			updatedAt: Instant? = null,
-		): UserInfoTourettes {
+		): UserInfoTics {
 			val now = Instant.now()
 			val cat = createdAt ?: now
 			val uat = updatedAt ?: now
-			return UserInfoTourettes(
+			return UserInfoTics(
 				id = UUID.randomUUID(),
 				userId = userId,
 				preferredName = preferredName,
