@@ -5,9 +5,9 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDisplayName</key>
-	<string>Calmed Tics</string>
+	<string>CalmEd Tics</string>
 	<key>CFBundleName</key>
-	<string>Calmed Tics</string>
+	<string>CalmEd Tics</string>
 	<key>GIDClientID</key>
 	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
 	<key>CFBundleIcons</key>

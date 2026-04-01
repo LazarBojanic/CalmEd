@@ -321,23 +321,38 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 }
 
 fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
-	val baseURL = "https://stream.mux.com/";
+	val videoBaseURL = "https://stream.mux.com/";
+	val thumbnailBaseURL = "https://image.mux.com/";
 	var videoURL = ""
+	var thumbnailURL = this.thumbnailURL
 	if(muxConfig.signingKey.isNotBlank() && muxConfig.privateKey.isNotBlank() && !this.playbackId.isNullOrBlank()){
 		if(this.visibility == Visibility.SIGNED){
-			val token = MuxTokenGenerator.generatePlaybackToken(
+			val videoToken = MuxTokenGenerator.generatePlaybackToken(
 				this.playbackId,
 				muxConfig.signingKey,
 				muxConfig.privateKey
 			)
-			videoURL = "$baseURL${this.playbackId}.m3u8?token=${token}"
+			videoURL = "$videoBaseURL${this.playbackId}.m3u8?token=${videoToken}"
+
+			val thumbnailToken = MuxTokenGenerator.generateThumbnailToken(
+				this.playbackId,
+				muxConfig.signingKey,
+				muxConfig.privateKey
+			)
+			thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg?token=${thumbnailToken}"
 		}
 		else{
-			videoURL = "$baseURL${this.playbackId}.m3u8"
+			videoURL = "$videoBaseURL${this.playbackId}.m3u8"
+			if (thumbnailURL.isNullOrBlank()) {
+				thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
+			}
 		}
 	}
-	else{
-		videoURL = "$baseURL${this.playbackId}.m3u8"
+	else if (!this.playbackId.isNullOrBlank()){
+		videoURL = "$videoBaseURL${this.playbackId}.m3u8"
+		if (thumbnailURL.isNullOrBlank()) {
+			thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
+		}
 	}
 	return ProgramExerciseDto(
 		id = this.id,
@@ -346,7 +361,7 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 		description = this.description,
 		playbackId = this.playbackId,
 		videoURL = videoURL,
-		thumbnailURL = this.thumbnailURL,
+		thumbnailURL = thumbnailURL,
 		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,

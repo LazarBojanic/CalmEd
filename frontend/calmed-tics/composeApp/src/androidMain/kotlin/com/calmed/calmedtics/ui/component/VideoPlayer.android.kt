@@ -53,10 +53,10 @@ actual fun VideoPlayer(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
 
-    val cacheDataSourceFactory = remember(context) {
+    val cacheDataSourceFactory = remember {
         DownloadUtil.getPlaybackDataSourceFactory(context)
     }
-    val player = remember(context, cacheDataSourceFactory) {
+    val player = remember(cacheDataSourceFactory) {
         buildPlayer(context, cacheDataSourceFactory)
     }
 
@@ -80,12 +80,8 @@ actual fun VideoPlayer(
         val currentUri = player.currentMediaItem?.localConfiguration?.uri
 
         if (currentUri != targetUri) {
-            val resumePositionMs = player.currentPosition
             player.setMediaItem(MediaItem.fromUri(targetUri))
             player.prepare()
-            if (resumePositionMs > 0L) {
-                player.seekTo(resumePositionMs)
-            }
         }
 
         player.playWhenReady = true

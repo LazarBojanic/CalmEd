@@ -34,10 +34,11 @@ object MuxTokenGenerator {
         return key as RSAPrivateKey
     }
 
-    fun generatePlaybackToken(
+    private fun generateToken(
         playbackId: String,
         kid: String,
-        privateKeyPemPkcs8: String
+        privateKeyPemPkcs8: String,
+        audience: String
     ): String {
         val privateKey = loadPrivateKeyPkcs8(privateKeyPemPkcs8)
         val alg = Algorithm.RSA256(null, privateKey)
@@ -46,9 +47,25 @@ object MuxTokenGenerator {
 
         return JWT.create()
             .withKeyId(kid)
-            .withAudience("v")
+            .withAudience(audience)
             .withSubject(playbackId)
             .withExpiresAt(exp)
             .sign(alg)
+    }
+
+    fun generatePlaybackToken(
+        playbackId: String,
+        kid: String,
+        privateKeyPemPkcs8: String
+    ): String {
+        return generateToken(playbackId, kid, privateKeyPemPkcs8, "v")
+    }
+
+    fun generateThumbnailToken(
+        playbackId: String,
+        kid: String,
+        privateKeyPemPkcs8: String
+    ): String {
+        return generateToken(playbackId, kid, privateKeyPemPkcs8, "t")
     }
 }
