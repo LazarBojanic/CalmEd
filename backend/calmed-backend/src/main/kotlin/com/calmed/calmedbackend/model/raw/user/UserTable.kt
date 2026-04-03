@@ -14,6 +14,8 @@ object UserTable : UUIDTable(name = "user") {
 	val isPaid = bool("is_paid").default(false)
 	val paymentType = enumerationByName("payment_type", 16, PaymentType::class).nullable()
 	val stripeCustomerId = varchar("stripe_customer_id", 255).nullable()
+	val appleOriginalTransactionId = varchar("apple_original_transaction_id", 255).nullable()
+	val googleOrderId = varchar("google_order_id", 255).nullable()
 	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
 }

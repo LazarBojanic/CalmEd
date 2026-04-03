@@ -946,6 +946,8 @@ class AuthService(private val userService: IUserService,
 												isPaid = user.isPaid,
 												paymentType = user.paymentType,
 												stripeCustomerId = user.stripeCustomerId,
+												appleOriginalTransactionId = user.appleOriginalTransactionId,
+												googleOrderId = user.googleOrderId,
 												createdAt = user.createdAt,
 												updatedAt = Instant.now()
 											)

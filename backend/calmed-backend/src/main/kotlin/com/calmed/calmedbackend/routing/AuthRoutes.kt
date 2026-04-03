@@ -123,13 +123,26 @@ fun Route.authRoutes() {
 		val appleConfig by inject<AppleConfig>()
 
 		get {
-			// Diagnostic: GET /auth/apple/callback returns 200. If you get 403 here, the issue is routing/static/CORS, not our handler.
 			val params = call.request.queryParameters
 			handleAppleCallback(call, params, appleTokenApi, appleConfig)
 		}
 		post {
 			val params = call.receiveParameters()
 			handleAppleCallback(call, params, appleTokenApi, appleConfig)
+		}
+	}
+
+	route("/auth/apple/callback/web") {
+		val appleTokenApi by inject<AppleTokenApi>()
+		val appleConfig by inject<AppleConfig>()
+
+		get {
+			val params = call.request.queryParameters
+			handleAppleWebCallback(call, params, appleTokenApi, appleConfig)
+		}
+		post {
+			val params = call.receiveParameters()
+			handleAppleWebCallback(call, params, appleTokenApi, appleConfig)
 		}
 	}
 
@@ -270,38 +283,27 @@ private suspend fun handleAppleCallback(
 	appleConfig: AppleConfig
 ) {
 	val error = params["error"]
-	val errorDesc = params["error_description"]
 	val code = params["code"]
-	val idToken = params["id_token"]
-	val state = params["state"]
+	val idTokenRaw = params["id_token"]
 
 	val redirectUrl = when {
 		!error.isNullOrBlank() -> {
-			"calmed://apple?status=error" +
-				"&error=" + URLEncoder.encode(error, "UTF-8") +
-				"&error_description=" + URLEncoder.encode(errorDesc ?: "", "UTF-8")
+			"calmed://apple?status=error&error=${URLEncoder.encode(error, "UTF-8")}"
 		}
-		!idToken.isNullOrBlank() -> {
-			"calmed://apple?status=success" +
-				"&id_token=" + URLEncoder.encode(idToken, "UTF-8") +
-				"&state=" + URLEncoder.encode(state ?: "", "UTF-8")
+		!idTokenRaw.isNullOrBlank() -> {
+			"calmed://apple?status=success&id_token=${URLEncoder.encode(idTokenRaw, "UTF-8")}"
 		}
 		!code.isNullOrBlank() -> {
 			val tokenResponse = appleTokenApi.exchangeCode(code, appleConfig.redirectURI)
 			val resolvedIdToken = tokenResponse.id_token
 			if (!resolvedIdToken.isNullOrBlank()) {
-				"calmed://apple?status=success" +
-					"&id_token=" + URLEncoder.encode(resolvedIdToken, "UTF-8") +
-					"&state=" + URLEncoder.encode(state ?: "", "UTF-8")
+				"calmed://apple?status=success&id_token=${URLEncoder.encode(resolvedIdToken, "UTF-8")}"
 			} else {
-				"calmed://apple?status=error" +
-					"&error=" + URLEncoder.encode(tokenResponse.error ?: "token_exchange_failed", "UTF-8") +
-					"&error_description=" + URLEncoder.encode(tokenResponse.error_description ?: "", "UTF-8")
+				val err = tokenResponse.error ?: "token_exchange_failed"
+				"calmed://apple?status=error&error=${URLEncoder.encode(err, "UTF-8")}"
 			}
 		}
-		else -> {
-			"calmed://apple?status=error&error=missing_params"
-		}
+		else -> "calmed://apple?status=error&error=missing_params"
 	}
 
 	call.respondText(
@@ -310,13 +312,63 @@ private suspend fun handleAppleCallback(
 			<html>
 			<head>
 			<meta charset="utf-8"/>
-			<title>Apple Sign In</title>
+			<title>Apple Sign In Redirect</title>
 			</head>
 			<body>
 			<script>
 				window.location.href = "$redirectUrl";
 			</script>
-			<p>Redirecting to app…</p>
+			<p>Redirecting…</p>
+			</body>
+			</html>
+		""".trimIndent(),
+		ContentType.Text.Html
+	)
+}
+
+private suspend fun handleAppleWebCallback(
+	call: ApplicationCall,
+	params: Parameters,
+	appleTokenApi: AppleTokenApi,
+	appleConfig: AppleConfig
+) {
+	val error = params["error"]
+	val code = params["code"]
+	val idTokenRaw = params["id_token"]
+
+	val redirectUrl = when {
+		!error.isNullOrBlank() -> {
+			"/login?status=error&error=${URLEncoder.encode(error, "UTF-8")}"
+		}
+		!idTokenRaw.isNullOrBlank() -> {
+			"/payment?status=success&id_token=${URLEncoder.encode(idTokenRaw, "UTF-8")}"
+		}
+		!code.isNullOrBlank() -> {
+			val tokenResponse = appleTokenApi.exchangeCode(code, "https://api.calm-ed.com/auth/apple/callback/web")
+			val resolvedIdToken = tokenResponse.id_token
+			if (!resolvedIdToken.isNullOrBlank()) {
+				"/payment?status=success&id_token=${URLEncoder.encode(resolvedIdToken, "UTF-8")}"
+			} else {
+				val err = tokenResponse.error ?: "token_exchange_failed"
+				"/login?status=error&error=${URLEncoder.encode(err, "UTF-8")}"
+			}
+		}
+		else -> "/login?status=error&error=missing_params"
+	}
+
+	call.respondText(
+		"""
+			<!DOCTYPE html>
+			<html>
+			<head>
+			<meta charset="utf-8"/>
+			<title>Apple Sign In Web Redirect</title>
+			</head>
+			<body>
+			<script>
+				window.location.href = "$redirectUrl";
+			</script>
+			<p>Redirecting…</p>
 			</body>
 			</html>
 		""".trimIndent(),

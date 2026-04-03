@@ -82,9 +82,18 @@ class UserService(
 		id: UUID,
 		isPaid: Boolean,
 		paymentType: PaymentType?,
-		stripeCustomerId: String?
+		stripeCustomerId: String?,
+		appleOriginalTransactionId: String?,
+		googleOrderId: String?
 	): AppResult<UserJoined> {
-		val updated = userRepository.setPaymentStatus(id, isPaid, paymentType, stripeCustomerId)
+		val updated = userRepository.setPaymentStatus(
+			id,
+			isPaid,
+			paymentType,
+			stripeCustomerId,
+			appleOriginalTransactionId,
+			googleOrderId
+		)
 		return if (updated != null) {
 			AppResult.Success(updated.join())
 		} else {

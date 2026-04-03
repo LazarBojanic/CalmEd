@@ -16,7 +16,9 @@ interface IUserRepository {
 		id: UUID,
 		isPaid: Boolean,
 		paymentType: PaymentType?,
-		stripeCustomerId: String?
+		stripeCustomerId: String? = null,
+		appleOriginalTransactionId: String? = null,
+		googleOrderId: String? = null
 	): User?
 
 }

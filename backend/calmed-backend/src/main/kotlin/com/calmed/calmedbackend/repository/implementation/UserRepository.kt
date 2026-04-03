@@ -107,18 +107,31 @@ class UserRepository : IUserRepository {
 		id: UUID,
 		isPaid: Boolean,
 		paymentType: PaymentType?,
-		stripeCustomerId: String?
+		stripeCustomerId: String?,
+		appleOriginalTransactionId: String?,
+		googleOrderId: String?
 	): User? {
+		println("[DEBUG_LOG] UserRepository: setPaymentStatus entering withTransaction for user $id")
 		return withTransaction {
 			val e = UserEntity.findById(id)
 			if (e != null) {
+				println("[DEBUG_LOG] UserRepository PRE-UPDATE: user ${e.id.value}. isPaid current=${e.isPaid}, new=$isPaid")
 				e.isPaid = isPaid
 				e.paymentType = paymentType
-				e.stripeCustomerId = stripeCustomerId
+				if (stripeCustomerId != null) e.stripeCustomerId = stripeCustomerId
+				if (appleOriginalTransactionId != null) e.appleOriginalTransactionId = appleOriginalTransactionId
+				if (googleOrderId != null) e.googleOrderId = googleOrderId
 				e.updatedAt = Instant.now()
-				return@withTransaction e.toRaw()
+				
+				// Flush manually to ensure it hits DB before toRaw if necessary, 
+				// though suspendTransaction/withTransaction should handle it.
+				
+				val raw = e.toRaw()
+				println("[DEBUG_LOG] UserRepository POST-UPDATE: user ${raw.id}. isPaid in Raw: ${raw.isPaid}")
+				raw
 			} else {
-				return@withTransaction null
+				println("[DEBUG_LOG] UserRepository: User not found for id $id during setPaymentStatus update")
+				null
 			}
 		}
 	}

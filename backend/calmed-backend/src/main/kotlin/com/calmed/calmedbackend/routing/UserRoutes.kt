@@ -23,6 +23,26 @@ fun Route.userRoutes() {
 
 	authenticate("auth-jwt") {
 		route("/user") {
+			get("/me") {
+				val jwt = call.principal<JWTPrincipal>() ?: throw BusinessException(
+					HttpStatusCode.Unauthorized,
+					"Invalid authentication"
+				)
+				val id = UUID.fromString(jwt.subject)
+				println("[DEBUG_LOG] UserRoutes: /me called for userId: $id")
+				val res = userService.getById(id)
+				when (res) {
+					is AppResult.Success -> {
+						println("[DEBUG_LOG] UserRoutes: /me success for userId: $id, isPaid: ${res.data.isPaid}")
+						call.respond(HttpStatusCode.OK, res.data.toDto())
+					}
+					is AppResult.Failure -> {
+						println("[DEBUG_LOG] UserRoutes: /me FAILURE for userId: $id, error: ${res.message}")
+						call.respond(res.httpStatusCode, res.message)
+					}
+				}
+			}
+
 			get("/{id}") {
 				val idParam = call.parameters["id"]
 				if (idParam != null) {

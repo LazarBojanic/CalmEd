@@ -2,6 +2,7 @@ package com.calmed.calmedtics.billing
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -13,7 +14,10 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.calmed.calmedtics.model.raw.PaymentType
 import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -21,6 +25,9 @@ class AndroidBillingService(
     context: Context,
     private val activityProvider: () -> Activity?
 ) : BillingService, PurchasesUpdatedListener {
+
+    private val _purchaseResults = MutableSharedFlow<PurchaseResult>()
+    override val purchaseResults = _purchaseResults.asSharedFlow()
 
     private val billingClient: BillingClient =
         BillingClient.newBuilder(context)
@@ -76,6 +83,10 @@ class AndroidBillingService(
             ?: productDetails.oneTimePurchaseOfferDetails
                 ?.offerToken
                 ?.takeIf { it.isNotBlank() }
+            ?: productDetails.subscriptionOfferDetails
+                ?.firstOrNull()
+                ?.offerToken
+                ?.takeIf { it.isNotBlank() }
 
         if (oneTimeOfferToken != null) {
             productDetailsParamsBuilder.setOfferToken(oneTimeOfferToken)
@@ -107,10 +118,13 @@ class AndroidBillingService(
     }
 
     override fun onPurchasesUpdated(result: BillingResult, purchases: MutableList<Purchase>?) {
-        if (result.responseCode != BillingClient.BillingResponseCode.OK || purchases.isNullOrEmpty()) {
-            return
+        if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
+            purchases.forEach(::processPurchase)
+        } else if (result.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
+            _purchaseResults.tryEmit(PurchaseResult.Failure("User cancelled"))
+        } else {
+            _purchaseResults.tryEmit(PurchaseResult.Failure("Billing error: ${result.debugMessage}"))
         }
-        purchases.forEach(::processPurchase)
     }
 
     override suspend fun loadProduct(productId: String): Boolean {
@@ -119,32 +133,49 @@ class AndroidBillingService(
     }
 
     private suspend fun fetchProductDetails(productId: String): ProductDetails? {
-        val query = QueryProductDetailsParams.newBuilder()
-            .setProductList(
-                listOf(
-                    QueryProductDetailsParams.Product.newBuilder()
-                        .setProductId(productId)
-                        .setProductType(BillingClient.ProductType.INAPP)
-                        .build()
+        Log.d("Billing", "Fetching product details for: $productId")
+
+        suspend fun tryQuery(type: String): ProductDetails? {
+            val query = QueryProductDetailsParams.newBuilder()
+                .setProductList(
+                    listOf(
+                        QueryProductDetailsParams.Product.newBuilder()
+                            .setProductId(productId)
+                            .setProductType(type)
+                            .build()
+                    )
                 )
-            )
-            .build()
+                .build()
 
-        return suspendCancellableCoroutine { cont ->
-            billingClient.queryProductDetailsAsync(query) { result, productDetailsResult ->
-                if (result.responseCode != BillingClient.BillingResponseCode.OK) {
-                    cont.resume(null)
-                    return@queryProductDetailsAsync
-                }
+            return suspendCancellableCoroutine { cont ->
+                billingClient.queryProductDetailsAsync(query) { result, productDetailsResult ->
+                    if (result.responseCode != BillingClient.BillingResponseCode.OK) {
+                        Log.e("Billing", "Query for $type failed with code: ${result.responseCode}, message: ${result.debugMessage}")
+                        cont.resume(null)
+                        return@queryProductDetailsAsync
+                    }
 
-                val found = productDetailsResult.productDetailsList
-                    .firstOrNull { it.productId == productId }
-                if (found != null) {
-                    productCache[productId] = found
+                    val found = productDetailsResult.productDetailsList
+                        .firstOrNull { it.productId == productId }
+                    cont.resume(found)
                 }
-                cont.resume(found)
             }
         }
+
+        // Try INAPP first, then SUBS
+        var found = tryQuery(BillingClient.ProductType.INAPP)
+        if (found == null) {
+            Log.d("Billing", "Not found as INAPP, trying SUBS...")
+            found = tryQuery(BillingClient.ProductType.SUBS)
+        }
+
+        if (found != null) {
+            Log.d("Billing", "Product '$productId' found and cached.")
+            productCache[productId] = found
+        } else {
+            Log.w("Billing", "Product '$productId' not found in any category.")
+        }
+        return found
     }
 
     private suspend fun queryOwnedPurchases(productType: String): List<Purchase> {
@@ -164,6 +195,18 @@ class AndroidBillingService(
 
     private fun processPurchase(purchase: Purchase) {
         if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) return
+        
+        // Notify common code about the purchase
+        val productId = purchase.products.firstOrNull() ?: ""
+        _purchaseResults.tryEmit(
+            PurchaseResult.Success(
+                paymentType = PaymentType.GOOGLE,
+                googleOrderId = purchase.orderId,
+                googlePurchaseToken = purchase.purchaseToken,
+                productId = productId
+            )
+        )
+
         if (purchase.isAcknowledged) return
 
         val params = AcknowledgePurchaseParams.newBuilder()

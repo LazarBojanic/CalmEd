@@ -2,19 +2,18 @@ package com.calmed.calmedbackend.service.implementation
 
 import com.calmed.calmedbackend.config.StripeConfig
 import com.calmed.calmedbackend.model.AppResult
-import com.calmed.calmedbackend.model.dto.response.PaymentSheetParamsDto
+import com.calmed.calmedbackend.model.dto.request.CreateCheckoutSessionDto
+import com.calmed.calmedbackend.model.dto.request.VerifyAppleReceiptDto
+import com.calmed.calmedbackend.model.dto.request.VerifyGoogleReceiptDto
+import com.calmed.calmedbackend.model.dto.response.CheckoutSessionResponseDto
 import com.calmed.calmedbackend.model.dto.response.PaymentStatusDto
 import com.calmed.calmedbackend.model.raw.user.PaymentType
 import com.calmed.calmedbackend.service.specification.IPaymentService
 import com.calmed.calmedbackend.service.specification.IUserService
 import com.stripe.Stripe
-import com.stripe.model.Customer
-import com.stripe.model.EphemeralKey
-import com.stripe.model.PaymentIntent
-import com.stripe.net.RequestOptions
-import com.stripe.param.CustomerCreateParams
-import com.stripe.param.EphemeralKeyCreateParams
-import com.stripe.param.PaymentIntentCreateParams
+import com.stripe.model.checkout.Session
+import com.stripe.net.Webhook
+import com.stripe.param.checkout.SessionCreateParams
 import io.ktor.http.HttpStatusCode
 import java.util.UUID
 
@@ -42,130 +41,161 @@ class PaymentService(
         }
     }
 
-    override suspend fun createPaymentSheetParams(
+    override suspend fun createCheckoutSession(
         userId: UUID,
-        paymentType: PaymentType
-    ): AppResult<PaymentSheetParamsDto> {
-        if (stripeConfig.secretKey.isBlank() || stripeConfig.secretKey == "placeholder") {
-            return AppResult.Failure(HttpStatusCode.InternalServerError, "Stripe is not configured.")
-        }
-        if (stripeConfig.publishableKey.isBlank() || stripeConfig.publishableKey == "placeholder") {
-            return AppResult.Failure(HttpStatusCode.InternalServerError, "Stripe publishable key is not configured.")
-        }
-
-        val userResult = userService.getById(userId)
-        val user = when (userResult) {
-            is AppResult.Success -> userResult.data
-            is AppResult.Failure -> return AppResult.Failure(userResult.httpStatusCode, userResult.message)
-        }
-
-        if (user.isPaid) {
-            return AppResult.Failure(HttpStatusCode.Conflict, "User is already paid.")
-        }
-
+        dto: CreateCheckoutSessionDto
+    ): AppResult<CheckoutSessionResponseDto> {
         return try {
-            val stripeCustomerId = if (!user.stripeCustomerId.isNullOrBlank()) {
-                user.stripeCustomerId
-            } else {
-                Customer.create(
-                    CustomerCreateParams.builder()
-                        .setEmail(user.email)
-                        .putMetadata("user_id", user.id.toString())
+            val params = SessionCreateParams.builder()
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl(dto.successUrl)
+                .setCancelUrl(dto.cancelUrl)
+                .setClientReferenceId(userId.toString())
+                .addLineItem(
+                    SessionCreateParams.LineItem.builder()
+                        .setQuantity(1L)
+                        .setPriceData(
+                            SessionCreateParams.LineItem.PriceData.builder()
+                                .setCurrency(stripeConfig.currency)
+                                .setUnitAmount(stripeConfig.amountCents)
+                                .setProductData(
+                                    SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                        .setName("CalmEd Program")
+                                        .build()
+                                )
+                                .build()
+                        )
                         .build()
-                ).id
+                )
+                .build()
+
+            val session = Session.create(params)
+            AppResult.Success(CheckoutSessionResponseDto(session.url))
+        } catch (e: Exception) {
+            AppResult.Failure(HttpStatusCode.InternalServerError, e.message ?: "Failed to create checkout session")
+        }
+    }
+
+    override suspend fun handleStripeWebhook(payload: String, sigHeader: String): AppResult<Unit> {
+        println("[DEBUG_LOG] PaymentService: handleStripeWebhook called. Payload: ${payload.take(100)}...")
+        return try {
+            val event = try {
+                Webhook.constructEvent(
+                    payload, sigHeader, stripeConfig.webhookSecret
+                )
+            } catch (e: Exception) {
+                println("[DEBUG_LOG] PaymentService: Webhook signature verification FAILED: ${e.message}")
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Signature verification failed")
             }
+            
+            println("[DEBUG_LOG] PaymentService: Webhook event constructed. ID: ${event.id}, Type: ${event.type}")
 
-            if (stripeCustomerId.isNullOrBlank()) {
-                return AppResult.Failure(HttpStatusCode.BadGateway, "Failed to create Stripe customer.")
-            }
+            if (event.type == "checkout.session.completed") {
+                val session = event.dataObjectDeserializer.`object`.get() as Session
+                val userIdStr = session.clientReferenceId
+                println("[DEBUG_LOG] PaymentService: checkout.session.completed. ClientReferenceId (UserId): $userIdStr, Customer: ${session.customer}")
+                
+                if (userIdStr != null) {
+                    val userId = try { UUID.fromString(userIdStr) } catch(e: Exception) { null }
+                    if (userId == null) {
+                        println("[DEBUG_LOG] PaymentService: CRITICAL: clientReferenceId $userIdStr is not a valid UUID")
+                        return AppResult.Failure(HttpStatusCode.BadRequest, "Invalid clientReferenceId")
+                    }
 
-            val userUpdateResult = userService.setPaymentStatus(
-                id = userId,
-                isPaid = false,
-                paymentType = paymentType,
-                stripeCustomerId = stripeCustomerId
-            )
-            if (userUpdateResult is AppResult.Failure) {
-                return AppResult.Failure(userUpdateResult.httpStatusCode, userUpdateResult.message)
-            }
-
-            val ephemeralKey = EphemeralKey.create(
-                EphemeralKeyCreateParams.builder()
-                    .setCustomer(stripeCustomerId)
-                    .setStripeVersion(stripeConfig.apiVersion)
-                    .build(),
-                RequestOptions.RequestOptionsBuilder.unsafeSetStripeVersionOverride(
-                    RequestOptions.builder(),
-                    stripeConfig.apiVersion
-                ).build()
-            )
-            val ephemeralKeySecret = ephemeralKey.secret
-                ?: return AppResult.Failure(HttpStatusCode.BadGateway, "Failed to create ephemeral key.")
-
-            val paymentIntent = PaymentIntent.create(
-                PaymentIntentCreateParams.builder()
-                    .setAmount(stripeConfig.amountCents)
-                    .setCurrency(stripeConfig.currency)
-                    .setCustomer(stripeCustomerId)
-                    .setAutomaticPaymentMethods(
-                        PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                            .setEnabled(true)
-                            .build()
+                    val customerId = session.customer
+                    println("[DEBUG_LOG] PaymentService: Updating payment status for user $userId")
+                    val result = userService.setPaymentStatus(
+                        id = userId,
+                        isPaid = true,
+                        paymentType = PaymentType.CARD,
+                        stripeCustomerId = customerId
                     )
-                    .putMetadata("user_id", user.id.toString())
-                    .putMetadata("payment_type_requested", paymentType.name)
-                    .build()
-            )
-            val clientSecret = paymentIntent.clientSecret
-                ?: return AppResult.Failure(HttpStatusCode.BadGateway, "Payment intent missing client secret.")
-            val paymentIntentId = paymentIntent.id
-                ?: return AppResult.Failure(HttpStatusCode.BadGateway, "Payment intent id missing.")
+                    when (result) {
+                        is AppResult.Success -> {
+                            println("[DEBUG_LOG] PaymentService: DB Update Success for user $userId. isPaid in returned data: ${result.data.isPaid}")
+                        }
+                        is AppResult.Failure -> {
+                            println("[DEBUG_LOG] PaymentService: DB Update FAILURE for user $userId: ${result.message}")
+                        }
+                    }
+                } else {
+                    println("[DEBUG_LOG] PaymentService: CRITICAL: clientReferenceId is null in checkout.session.completed")
+                }
+            } else {
+                println("[DEBUG_LOG] PaymentService: Received unhandled event type: ${event.type}")
+            }
+            AppResult.Success(Unit)
+        } catch (e: Exception) {
+            println("[DEBUG_LOG] PaymentService: Unexpected error during webhook processing: ${e.message}")
+            e.printStackTrace()
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Internal error")
+        }
+    }
 
-            AppResult.Success(
-                PaymentSheetParamsDto(
-                    paymentIntentId = paymentIntentId,
-                    paymentIntentClientSecret = clientSecret,
-                    customerId = stripeCustomerId,
-                    customerEphemeralKeySecret = ephemeralKeySecret,
-                    publishableKey = stripeConfig.publishableKey,
-                    merchantDisplayName = stripeConfig.merchantDisplayName,
-                    merchantCountryCode = stripeConfig.merchantCountryCode,
-                    appleMerchantId = stripeConfig.appleMerchantId,
-                    paymentType = paymentType,
+    override suspend fun skipPayment(userId: UUID): AppResult<PaymentStatusDto> {
+        return when (val res = userService.setPaymentStatus(userId, true, null)) {
+            is AppResult.Success -> AppResult.Success(
+                PaymentStatusDto(
+                    isPaid = true,
+                    paymentType = null,
+                    currency = stripeConfig.currency,
+                    amountCents = stripeConfig.amountCents
+                )
+            )
+
+            is AppResult.Failure -> AppResult.Failure(res.httpStatusCode, res.message)
+        }
+    }
+
+    override suspend fun verifyApplePurchase(userId: UUID, dto: VerifyAppleReceiptDto): AppResult<PaymentStatusDto> {
+        val updateResult = userService.setPaymentStatus(
+            id = userId,
+            isPaid = true,
+            paymentType = PaymentType.APPLE,
+            appleOriginalTransactionId = dto.transactionId
+        )
+        return when (updateResult) {
+            is AppResult.Success -> AppResult.Success(
+                PaymentStatusDto(
+                    isPaid = true,
+                    paymentType = updateResult.data.paymentType,
                     amountCents = stripeConfig.amountCents,
                     currency = stripeConfig.currency
                 )
             )
-        } catch (t: Throwable) {
-            AppResult.Failure(HttpStatusCode.BadGateway, "Stripe payment setup failed: ${t.message}")
+            is AppResult.Failure -> AppResult.Failure(updateResult.httpStatusCode, updateResult.message)
         }
     }
 
-    override suspend fun confirmPaymentIntent(userId: UUID, paymentIntentId: String): AppResult<PaymentStatusDto> {
-        if (paymentIntentId.isBlank()) {
-            return AppResult.Failure(HttpStatusCode.BadRequest, "Payment intent id is required.")
+    override suspend fun verifyGooglePurchase(userId: UUID, dto: VerifyGoogleReceiptDto): AppResult<PaymentStatusDto> {
+        val updateResult = userService.setPaymentStatus(
+            id = userId,
+            isPaid = true,
+            paymentType = PaymentType.GOOGLE,
+            googleOrderId = dto.orderId
+        )
+        return when (updateResult) {
+            is AppResult.Success -> AppResult.Success(
+                PaymentStatusDto(
+                    isPaid = true,
+                    paymentType = updateResult.data.paymentType,
+                    amountCents = stripeConfig.amountCents,
+                    currency = stripeConfig.currency
+                )
+            )
+            is AppResult.Failure -> AppResult.Failure(updateResult.httpStatusCode, updateResult.message)
         }
-        val userResult = userService.getById(userId)
-        val user = when (userResult) {
-            is AppResult.Success -> userResult.data
-            is AppResult.Failure -> return AppResult.Failure(userResult.httpStatusCode, userResult.message)
-        }
+    }
 
+    override suspend fun verifyStripeSession(userId: UUID, sessionId: String): AppResult<PaymentStatusDto> {
         return try {
-            val paymentIntent = PaymentIntent.retrieve(paymentIntentId)
-            val userIdFromStripe = paymentIntent.metadata["user_id"]
-            if (userIdFromStripe != userId.toString()) {
-                return AppResult.Failure(HttpStatusCode.Forbidden, "Payment intent does not belong to this user.")
-            }
-
-            val succeeded = paymentIntent.status.equals("succeeded", ignoreCase = true)
-            if (succeeded) {
-                val actualType = resolvePaymentType(paymentIntent, fallback = user.paymentType)
+            val session = Session.retrieve(sessionId)
+            if (session.clientReferenceId == userId.toString() && session.paymentStatus == "paid") {
                 val updateResult = userService.setPaymentStatus(
                     id = userId,
                     isPaid = true,
-                    paymentType = actualType,
-                    stripeCustomerId = paymentIntent.customer ?: user.stripeCustomerId
+                    paymentType = PaymentType.CARD,
+                    stripeCustomerId = session.customer
                 )
                 when (updateResult) {
                     is AppResult.Success -> AppResult.Success(
@@ -176,35 +206,13 @@ class PaymentService(
                             currency = stripeConfig.currency
                         )
                     )
-
                     is AppResult.Failure -> AppResult.Failure(updateResult.httpStatusCode, updateResult.message)
                 }
             } else {
-                AppResult.Success(
-                    PaymentStatusDto(
-                        isPaid = user.isPaid,
-                        paymentType = user.paymentType,
-                        amountCents = stripeConfig.amountCents,
-                        currency = stripeConfig.currency
-                    )
-                )
+                AppResult.Failure(HttpStatusCode.BadRequest, "Session not paid or user mismatch")
             }
-        } catch (t: Throwable) {
-            AppResult.Failure(HttpStatusCode.BadGateway, "Stripe payment confirmation failed: ${t.message}")
-        }
-    }
-
-    private fun resolvePaymentType(paymentIntent: PaymentIntent, fallback: PaymentType?): PaymentType {
-        val requested = paymentIntent.metadata["payment_type_requested"]
-        return requested?.let { runCatching { PaymentType.valueOf(it) }.getOrNull() }
-            ?: fallback
-            ?: PaymentType.CARD
-    }
-
-    override suspend fun skipPayment(userId: UUID): AppResult<PaymentStatusDto> {
-        return when (val res = userService.setPaymentStatus(userId, true, null, null)) {
-            is AppResult.Success -> AppResult.Success(PaymentStatusDto(isPaid = true, paymentType = null, currency = stripeConfig.currency, amountCents = stripeConfig.amountCents))
-            is AppResult.Failure -> AppResult.Failure(res.httpStatusCode, res.message)
+        } catch (e: Exception) {
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to verify session: ${e.message}")
         }
     }
 }

@@ -2,8 +2,6 @@ package com.calmed.calmedtics.http
 
 import com.calmed.calmedtics.model.dto.TokenDto
 import com.calmed.calmedtics.model.dto.request.AppleLoginDto
-import com.calmed.calmedtics.model.dto.request.ConfirmPaymentIntentDto
-import com.calmed.calmedtics.model.dto.request.CreateCheckoutSessionDto
 import com.calmed.calmedtics.model.dto.request.ForgotPasswordDto
 import com.calmed.calmedtics.model.dto.request.GoogleLoginDto
 import com.calmed.calmedtics.model.dto.request.LoginUserDto
@@ -11,10 +9,11 @@ import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.model.dto.request.RegisterUserDto
 import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
+import com.calmed.calmedtics.model.dto.request.VerifyAppleReceiptDto
+import com.calmed.calmedtics.model.dto.request.VerifyGoogleReceiptDto
 import com.calmed.calmedtics.model.dto.response.HomeDto
 import com.calmed.calmedtics.model.dto.response.MessageDto
 import com.calmed.calmedtics.model.dto.response.PaymentStatusDto
-import com.calmed.calmedtics.model.dto.response.PaymentSheetParamsDto
 import com.calmed.calmedtics.model.dto.response.UserDto
 import com.calmed.calmedtics.model.dto.response.UserInfoTicsDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
@@ -181,30 +180,30 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 	}
 
-	override suspend fun createPaymentSheetParams(dto: CreateCheckoutSessionDto): PaymentSheetParamsDto? {
-		val resp: HttpResponse = client.post("/payment/checkout-session") { setBody(dto) }
-		return if (resp.status == HttpStatusCode.OK) {
-			resp.body()
-		} else {
-			error("Payment init failed (${resp.status.value}): ${resp.bodyAsText()}")
-		}
-	}
-
-	override suspend fun confirmPaymentIntent(dto: ConfirmPaymentIntentDto): PaymentStatusDto? {
-		val resp: HttpResponse = client.post("/payment/confirm") { setBody(dto) }
-		return if (resp.status == HttpStatusCode.OK) {
-			resp.body()
-		} else {
-			error("Payment confirm failed (${resp.status.value}): ${resp.bodyAsText()}")
-		}
-	}
-
 	override suspend fun skipPayment(): PaymentStatusDto? {
 		val resp: HttpResponse = client.post("/payment/skip-payment")
 		return if (resp.status == HttpStatusCode.OK) {
 			resp.body()
 		} else {
 			error("Skip payment failed (${resp.status.value}): ${resp.bodyAsText()}")
+		}
+	}
+
+	override suspend fun verifyApplePurchase(dto: VerifyAppleReceiptDto): PaymentStatusDto? {
+		val resp: HttpResponse = client.post("/payment/apple/verify") { setBody(dto) }
+		return if (resp.status == HttpStatusCode.OK) {
+			resp.body()
+		} else {
+			error("Apple verification failed (${resp.status.value}): ${resp.bodyAsText()}")
+		}
+	}
+
+	override suspend fun verifyGooglePurchase(dto: VerifyGoogleReceiptDto): PaymentStatusDto? {
+		val resp: HttpResponse = client.post("/payment/google/verify") { setBody(dto) }
+		return if (resp.status == HttpStatusCode.OK) {
+			resp.body()
+		} else {
+			error("Google verification failed (${resp.status.value}): ${resp.bodyAsText()}")
 		}
 	}
 }

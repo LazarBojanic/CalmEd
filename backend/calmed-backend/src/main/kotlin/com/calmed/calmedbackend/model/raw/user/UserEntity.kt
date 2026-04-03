@@ -14,6 +14,8 @@ class UserEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var isPaid by UserTable.isPaid
 	var paymentType by UserTable.paymentType
 	var stripeCustomerId by UserTable.stripeCustomerId
+	var appleOriginalTransactionId by UserTable.appleOriginalTransactionId
+	var googleOrderId by UserTable.googleOrderId
 	var createdAt by UserTable.createdAt
 	var updatedAt by UserTable.updatedAt
 }

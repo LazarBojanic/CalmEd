@@ -2,8 +2,6 @@ package com.calmed.calmedtics.http
 
 import com.calmed.calmedtics.model.dto.TokenDto
 import com.calmed.calmedtics.model.dto.request.AppleLoginDto
-import com.calmed.calmedtics.model.dto.request.ConfirmPaymentIntentDto
-import com.calmed.calmedtics.model.dto.request.CreateCheckoutSessionDto
 import com.calmed.calmedtics.model.dto.request.ForgotPasswordDto
 import com.calmed.calmedtics.model.dto.request.GoogleLoginDto
 import com.calmed.calmedtics.model.dto.request.LoginUserDto
@@ -11,10 +9,11 @@ import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.model.dto.request.RegisterUserDto
 import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
+import com.calmed.calmedtics.model.dto.request.VerifyAppleReceiptDto
+import com.calmed.calmedtics.model.dto.request.VerifyGoogleReceiptDto
 import com.calmed.calmedtics.model.dto.response.HomeDto
 import com.calmed.calmedtics.model.dto.response.MessageDto
 import com.calmed.calmedtics.model.dto.response.PaymentStatusDto
-import com.calmed.calmedtics.model.dto.response.PaymentSheetParamsDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.model.dto.response.UserDto
 import com.calmed.calmedtics.model.dto.response.UserInfoTicsDto
@@ -39,7 +38,7 @@ interface IAppApi {
     suspend fun getAllProgramExercises(): List<ProgramExerciseDto>
     suspend fun getWelcomeVideo(): ProgramExerciseDto?
     suspend fun getPaymentStatus(): PaymentStatusDto?
-    suspend fun createPaymentSheetParams(dto: CreateCheckoutSessionDto): PaymentSheetParamsDto?
-    suspend fun confirmPaymentIntent(dto: ConfirmPaymentIntentDto): PaymentStatusDto?
     suspend fun skipPayment(): PaymentStatusDto?
+    suspend fun verifyApplePurchase(dto: VerifyAppleReceiptDto): PaymentStatusDto?
+    suspend fun verifyGooglePurchase(dto: VerifyGoogleReceiptDto): PaymentStatusDto?
 }

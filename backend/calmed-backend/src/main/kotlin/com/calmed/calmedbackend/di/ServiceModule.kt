@@ -5,11 +5,11 @@ import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.service.implementation.AuthCredentialService
 import com.calmed.calmedbackend.service.implementation.AuthService
 import com.calmed.calmedbackend.service.implementation.HomeService
+import com.calmed.calmedbackend.service.implementation.PaymentService
 import com.calmed.calmedbackend.service.implementation.RefreshTokenService
 import com.calmed.calmedbackend.service.implementation.UserInfoTicsService
 import com.calmed.calmedbackend.service.implementation.UserService
 import com.calmed.calmedbackend.service.implementation.ProgramExerciseService
-import com.calmed.calmedbackend.service.implementation.PaymentService
 import com.calmed.calmedbackend.service.implementation.UserProgramService
 import com.calmed.calmedbackend.service.implementation.UserExerciseProgressService
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
