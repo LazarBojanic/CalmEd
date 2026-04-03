@@ -18,6 +18,8 @@ data class UserJoined(
 	val isPaid: Boolean,
 	val paymentType: PaymentType?,
 	val stripeCustomerId: String?,
+	val appleOriginalTransactionId: String?,
+	val googleOrderId: String?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)

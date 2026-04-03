@@ -45,6 +45,7 @@ buildConfig{
 	buildConfigField("appleWebClientId", local.getProperty("APPLE_WEB_CLIENT_ID") ?: "")
 	buildConfigField("appleCallbackURI", local.getProperty("APPLE_CALLBACK_URI") ?: "")
 	buildConfigField("notificationDebug", (local.getProperty("NOTIFICATION_DEBUG") ?: "false").toBoolean())
+	buildConfigField("useMockBilling", (local.getProperty("USE_MOCK_BILLING") ?: "true").toBoolean())
 }
 
 kotlin {
@@ -148,13 +149,7 @@ kotlin {
 			implementation(libs.media3Datasource)
 			implementation(libs.media3ExoplayerWorkmanager)
 			implementation(libs.androidxBrowser)
-			implementation (libs.billingClient)
-			implementation(libs.stripeAndroid)
-
-
-
-
-
+			implementation(libs.billingClient)
 		}
 		iosMain.dependencies {
 			implementation(libs.roomRuntime)

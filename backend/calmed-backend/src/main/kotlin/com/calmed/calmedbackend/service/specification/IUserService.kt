@@ -18,6 +18,8 @@ interface IUserService {
 		id: UUID,
 		isPaid: Boolean,
 		paymentType: PaymentType?,
-		stripeCustomerId: String?
+		stripeCustomerId: String? = null,
+		appleOriginalTransactionId: String? = null,
+		googleOrderId: String? = null
 	): AppResult<UserJoined>
 }

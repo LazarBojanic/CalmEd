@@ -12,7 +12,6 @@ val HikariCP_version: String by project
 val flyway_database_postgresql_version: String by project
 val junit_version: String by project
 val mockk_version: String by project
-val stripe_java_version: String by project
 val nimbus_jose_jwt_version: String by project
 
 plugins {
@@ -73,7 +72,7 @@ dependencies {
 	implementation("io.ktor:ktor-client-content-negotiation")
 	implementation("io.ktor:ktor-serialization-kotlinx-json")
 	implementation("com.nimbusds:nimbus-jose-jwt:$nimbus_jose_jwt_version")
-	implementation("com.stripe:stripe-java:$stripe_java_version")
+	implementation("com.stripe:stripe-java:24.0.0")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junit_version")

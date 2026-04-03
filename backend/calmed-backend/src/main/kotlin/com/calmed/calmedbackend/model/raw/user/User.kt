@@ -17,6 +17,8 @@ data class User(
 	val isPaid: Boolean,
 	val paymentType: PaymentType?,
 	val stripeCustomerId: String?,
+	val appleOriginalTransactionId: String?,
+	val googleOrderId: String?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
@@ -31,6 +33,8 @@ data class User(
 			isPaid: Boolean = false,
 			paymentType: PaymentType? = null,
 			stripeCustomerId: String? = null,
+			appleOriginalTransactionId: String? = null,
+			googleOrderId: String? = null,
 			createdAt: Instant? = null,
 			updatedAt: Instant? = null,
 		): User {
@@ -46,6 +50,8 @@ data class User(
 				isPaid = isPaid,
 				paymentType = paymentType,
 				stripeCustomerId = stripeCustomerId,
+				appleOriginalTransactionId = appleOriginalTransactionId,
+				googleOrderId = googleOrderId,
 				createdAt = cat,
 				updatedAt = uat
 			)

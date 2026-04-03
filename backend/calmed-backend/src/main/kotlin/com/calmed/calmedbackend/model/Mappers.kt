@@ -45,6 +45,8 @@ fun UserEntity.toRaw(): User {
 		isPaid = this.isPaid,
 		paymentType = this.paymentType,
 		stripeCustomerId = this.stripeCustomerId,
+		appleOriginalTransactionId = this.appleOriginalTransactionId,
+		googleOrderId = this.googleOrderId,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -85,6 +87,8 @@ fun User.join(): UserJoined {
 		isPaid = this.isPaid,
 		paymentType = this.paymentType,
 		stripeCustomerId = this.stripeCustomerId,
+		appleOriginalTransactionId = this.appleOriginalTransactionId,
+		googleOrderId = this.googleOrderId,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -137,6 +141,8 @@ fun UserEntity.setFrom(d: User, mapMode: MapMode) {
 	isPaid = d.isPaid
 	paymentType = d.paymentType
 	stripeCustomerId = d.stripeCustomerId
+	appleOriginalTransactionId = d.appleOriginalTransactionId
+	googleOrderId = d.googleOrderId
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
@@ -195,6 +201,8 @@ fun UserJoined.toDto(): UserDto {
 		isPaid = this.isPaid,
 		paymentType = this.paymentType,
 		stripeCustomerId = this.stripeCustomerId,
+		appleOriginalTransactionId = this.appleOriginalTransactionId,
+		googleOrderId = this.googleOrderId,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)

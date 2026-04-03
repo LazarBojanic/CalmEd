@@ -61,8 +61,8 @@ suspend fun Application.module() {
 	)
 	transaction {
 		if(ktorConfig.development){
-			exec("DROP SCHEMA IF EXISTS public CASCADE;")
-			exec("CREATE SCHEMA public;")
+			// exec("DROP SCHEMA IF EXISTS public CASCADE;")
+			// exec("CREATE SCHEMA public;")
 		}
 	}
 	transaction{
