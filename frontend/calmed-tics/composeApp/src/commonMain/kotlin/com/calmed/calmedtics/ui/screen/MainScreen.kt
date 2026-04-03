@@ -25,6 +25,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
+import com.calmed.calmedtics.service.specification.IAuthService
 import com.calmed.calmedtics.store.ITokenDataStore
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
@@ -33,13 +35,14 @@ import com.calmed.calmedtics.util.currentYmd
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
-private enum class MainTab { Home, Exercises, Profile }
+private enum class MainTab { Home, Exercises, Profile, HelpSupport }
 
 @Composable
 fun MainScreen(
 	onLogoutToLogin: () -> Unit,
 	onOpenFullscreen: (String) -> Unit,
-	sessionViewModel: SessionViewModel = koinInject()
+	sessionViewModel: SessionViewModel = koinInject(),
+	authService: IAuthService = koinInject()
 ) {
 	val scope = rememberCoroutineScope()
 
@@ -54,6 +57,7 @@ fun MainScreen(
 	val allExercises by sessionViewModel.allExercises.collectAsState()
 
 	val selectedTab = remember { mutableStateOf(MainTab.Home) }
+	val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
 
 	LaunchedEffect(token?.access) {
 		val access = token?.access
@@ -149,9 +153,26 @@ fun MainScreen(
 				MainTab.Profile -> ProfileScreen(
 					user = u,
 					userInfo = ui,
-					onLogout = { onLogoutToLogin() }
+					onLogout = { onLogoutToLogin() },
+					onHelpSupportClick = {
+						selectedTab.value = MainTab.HelpSupport
+					}
 				)
-
+				MainTab.HelpSupport -> HelpSupportScreen(
+					onBack = {
+						selectedTab.value = MainTab.Profile
+					},
+					onSendMessage = { subject, message ->
+						scope.launch {
+							authService.sendSupportMessage(
+								SupportMessageRequestDto(
+									subject = subject,
+									message = message
+								)
+							)
+						}
+					}
+				)
 				MainTab.Exercises -> {
 					ExercisesScreen(
 						currentWeek = home?.currentWeek ?: 1,

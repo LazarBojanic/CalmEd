@@ -27,6 +27,11 @@ version = "1.0.0"
 application {
 	mainClass = "io.ktor.server.netty.EngineMain"
 }
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(21))
+	}
+}
 
 dependencies {
 	implementation("io.ktor:ktor-server-compression")

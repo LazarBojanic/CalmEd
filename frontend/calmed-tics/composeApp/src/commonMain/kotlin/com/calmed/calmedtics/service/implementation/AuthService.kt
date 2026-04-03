@@ -8,8 +8,11 @@ import com.calmed.calmedtics.model.dto.request.GoogleLoginDto
 import com.calmed.calmedtics.model.dto.request.LoginUserDto
 import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.model.dto.request.RegisterUserDto
+import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
+import com.calmed.calmedtics.model.dto.response.SupportMessageResponseDto
 import com.calmed.calmedtics.service.specification.IAuthService
 import com.calmed.calmedtics.store.ITokenDataStore
+import io.ktor.client.utils.EmptyContent.contentType
 
 class AuthService(
     private val api: IAppApi,
@@ -106,6 +109,7 @@ class AuthService(
             return false
         }
     }
+
     override suspend fun loginWithGoogle(idToken: String): Boolean {
         println("AUTH: loginWithGoogle() called")
         val token = api.loginWithGoogle(GoogleLoginDto(idToken = idToken))
@@ -114,6 +118,7 @@ class AuthService(
         println("AUTH: storeTokenIfValid = $ok")
         return ok
     }
+
     override suspend fun loginWithApple(identityToken: String): Boolean {
         return try {
             val token = api.loginWithApple(
@@ -132,4 +137,9 @@ class AuthService(
         }
     }
 
+    override suspend fun sendSupportMessage(
+        request: SupportMessageRequestDto
+    ): SupportMessageResponseDto {
+        return api.sendSupportMessage(request)
+    }
 }

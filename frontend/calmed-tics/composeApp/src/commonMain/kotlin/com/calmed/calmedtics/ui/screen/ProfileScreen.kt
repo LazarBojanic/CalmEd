@@ -43,6 +43,7 @@ fun ProfileScreen(
 	user: UserJoined?,
 	userInfo: UserInfoTicsJoined?,
 	onLogout: () -> Unit,
+	onHelpSupportClick: () -> Unit = {},
 	appSettings: com.calmed.calmedtics.settings.AppSettings = koinInject(),
 	sessionViewModel: SessionViewModel = koinInject()
 ) {
@@ -337,6 +338,25 @@ fun ProfileScreen(
 				}
 			}
 			item {
+				InfoSection(title = "Support") {
+					SettingsRow(
+						icon = Icons.Default.Help,
+						label = "Help & Support",
+						onClick = onHelpSupportClick
+					)
+					SettingsRow(
+						icon = Icons.Default.Lock,
+						label = "Privacy Policy",
+						onClick = { }
+					)
+					SettingsRow(
+						icon = Icons.Default.Description,
+						label = "Terms of Service",
+						onClick = { }
+					)
+				}
+			}
+			item {
 				InfoSection(title = "Exercise Reminders") {
 					Row(
 						modifier = Modifier.fillMaxWidth(),
@@ -468,6 +488,44 @@ fun InfoRow(icon: ImageVector, label: String, value: String) {
 				text = value,
 				style = MaterialTheme.typography.bodyLarge,
 				fontWeight = FontWeight.Medium
+			)
+		}
+	}
+
+}
+@Composable
+fun SettingsRow(
+	icon: ImageVector,
+	label: String,
+	onClick: () -> Unit
+) {
+	Surface(
+		onClick = onClick,
+		color = androidx.compose.ui.graphics.Color.Transparent
+	) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(vertical = 4.dp),
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			Icon(
+				imageVector = icon,
+				contentDescription = null,
+				modifier = Modifier.size(20.dp),
+				tint = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+			Spacer(modifier = Modifier.width(12.dp))
+			Text(
+				text = label,
+				style = MaterialTheme.typography.bodyLarge,
+				fontWeight = FontWeight.Medium
+			)
+			Spacer(modifier = Modifier.weight(1f))
+			Icon(
+				imageVector = Icons.Default.KeyboardArrowRight,
+				contentDescription = null,
+				tint = MaterialTheme.colorScheme.onSurfaceVariant
 			)
 		}
 	}

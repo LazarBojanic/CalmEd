@@ -10,6 +10,7 @@ import com.calmed.calmedtics.model.dto.request.LoginUserDto
 import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.model.dto.request.RegisterUserDto
 import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
+import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.dto.response.HomeDto
 import com.calmed.calmedtics.model.dto.response.MessageDto
@@ -18,6 +19,7 @@ import com.calmed.calmedtics.model.dto.response.PaymentSheetParamsDto
 import com.calmed.calmedtics.model.dto.response.UserDto
 import com.calmed.calmedtics.model.dto.response.UserInfoTicsDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.model.dto.response.SupportMessageResponseDto
 import com.calmed.calmedtics.store.ITokenDataStore
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
@@ -207,4 +209,17 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 			error("Skip payment failed (${resp.status.value}): ${resp.bodyAsText()}")
 		}
 	}
+	override suspend fun sendSupportMessage(
+		request: SupportMessageRequestDto
+	): SupportMessageResponseDto {
+		val resp: HttpResponse = client.post("/support/message") {
+			setBody(request)
+		}
+
+		return when (resp.status) {
+			HttpStatusCode.OK -> resp.body()
+			else -> error("Support message failed (${resp.status.value}): ${resp.bodyAsText()}")
+		}
+	}
 }
+

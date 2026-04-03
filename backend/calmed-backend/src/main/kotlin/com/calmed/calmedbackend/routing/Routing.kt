@@ -18,5 +18,6 @@ fun Application.configureRouting() {
 		paymentRoutes()
 		userProgramRoutes()
 		userExerciseProgressRoutes()
+		supportRoutes()
 	}
 }
