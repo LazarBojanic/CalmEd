@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.amount_label
 import com.calmed.calmedtics.getPlatform
 import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.model.dto.request.VerifyAppleReceiptDto
@@ -36,10 +38,24 @@ import com.calmed.calmedtics.billing.BillingProducts
 import com.calmed.calmedtics.billing.BillingService
 import com.calmed.calmedtics.billing.PurchaseResult
 import com.calmed.calmedtics.billing.provideBillingService
+import com.calmed.calmedtics.error_init_payment
+import com.calmed.calmedtics.error_payment_not_confirmed
+import com.calmed.calmedtics.error_payment_verification
+import com.calmed.calmedtics.error_skip_payment
+import com.calmed.calmedtics.opening_payment
+import com.calmed.calmedtics.pay_button
+import com.calmed.calmedtics.payment_description
+import com.calmed.calmedtics.payment_heading
+import com.calmed.calmedtics.payment_title
+import com.calmed.calmedtics.premium_access
+import com.calmed.calmedtics.processing
+import com.calmed.calmedtics.secure_payment
+import com.calmed.calmedtics.skip_payment
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -58,15 +74,19 @@ fun PaymentScreen(
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var priceLabel by remember { mutableStateOf("$10.00 (USD)") }
-
+    val errorInitPayment = stringResource(Res.string.error_init_payment)
+    val errorSkipPayment = stringResource(Res.string.error_skip_payment)
+    val errorPaymentNotConfirmed = stringResource(Res.string.error_payment_not_confirmed)
+    val errorpayementVerification = stringResource(Res.string.error_payment_verification)
     fun startNativePayment() {
+
         scope.launch {
             loading = true
             error = null
             try {
                 billingService.purchase(BillingProducts.PREMIUM_ONE_TIME)
             } catch (t: Throwable) {
-                error = t.message ?: "Unable to initialize payment."
+                error = t.message ?: errorInitPayment
                 loading = false
             }
         }
@@ -79,9 +99,9 @@ fun PaymentScreen(
             try {
                 api.skipPayment()
                 val user = sessionViewModel.loadSession()
-                if (user?.isPaid == true) onPaid() else error = "Skip payment failed."
+                if (user?.isPaid == true) onPaid() else error = errorSkipPayment
             } catch (t: Throwable) {
-                error = t.message ?: "Skip payment failed."
+                error = t.message ?: errorSkipPayment
             } finally {
                 loading = false
             }
@@ -117,9 +137,9 @@ fun PaymentScreen(
                                 else -> {}
                             }
                             val user = sessionViewModel.loadSession()
-                            if (user?.isPaid == true) onPaid() else error = "Payment not confirmed yet."
+                            if (user?.isPaid == true) onPaid() else  error = errorPaymentNotConfirmed
                         } catch (t: Throwable) {
-                            error = t.message ?: "Payment verification failed."
+                            error = t.message ?: errorpayementVerification
                         } finally {
                             loading = false
                         }
@@ -134,18 +154,18 @@ fun PaymentScreen(
         onDispose { job.cancel() }
     }
 
-    ScreenScaffold(title = "Unlock Premium") {
+    ScreenScaffold(title = stringResource(Res.string.payment_title)) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Get full CalmEd access",
+                text = stringResource(Res.string.payment_heading),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "One-time payment. Securely handled via your $storeName account.",
+                text = stringResource(Res.string.payment_description, storeName),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -163,20 +183,20 @@ fun PaymentScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.ReceiptLong, contentDescription = null)
                     Text(
-                        text = "  Premium Program Access",
+                        stringResource(Res.string.premium_access),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium
                     )
                 }
                 Text(
-                    text = "Amount: $priceLabel",
+                    stringResource(Res.string.amount_label, priceLabel),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Lock, contentDescription = null)
                     Text(
-                        text = "  Secure payment via $storeName",
+                        text = "  " + stringResource(Res.string.secure_payment, storeName),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -194,7 +214,7 @@ fun PaymentScreen(
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
-                Text(if (loading) "Opening payment..." else "Pay $10.00")
+                Text(if (loading) stringResource(Res.string.opening_payment) else  stringResource(Res.string.pay_button, "$10.00"))
             }
 
             Button(
@@ -208,7 +228,7 @@ fun PaymentScreen(
                     contentColor = MaterialTheme.colorScheme.onSecondary
                 )
             ) {
-                Text(if (loading) "Processing..." else "Skip Payment (Dev Only)")
+                Text(if (loading) stringResource(Res.string.processing) else stringResource(Res.string.skip_payment))
             }
 
             if (error != null) {

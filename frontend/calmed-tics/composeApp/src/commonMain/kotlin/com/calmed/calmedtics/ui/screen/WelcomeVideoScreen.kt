@@ -14,8 +14,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.`continue`
+import com.calmed.calmedtics.dont_show_again
+import com.calmed.calmedtics.error_video_failed
+import com.calmed.calmedtics.error_video_no_source
+import com.calmed.calmedtics.error_video_not_available
 import com.calmed.calmedtics.http.IAppApi
+import com.calmed.calmedtics.loading_video
+import com.calmed.calmedtics.skip
 import com.calmed.calmedtics.ui.component.VideoPlayer
+import com.calmed.calmedtics.welcome_video_screen
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -30,6 +40,10 @@ fun WelcomeVideoScreen(
 
     var videoUrl by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    val errorNotAvailable = stringResource(Res.string.error_video_not_available)
+    val errorNoSource = stringResource(Res.string.error_video_no_source)
+    val errorFailed = stringResource(Res.string.error_video_failed)
+    val loadingVideo = stringResource(Res.string.loading_video)
 
     LaunchedEffect(Unit) {
         error = null
@@ -38,15 +52,15 @@ fun WelcomeVideoScreen(
         try {
             val welcomeVideo = appApi.getWelcomeVideo()
             if (welcomeVideo == null) {
-                error = "Welcome video is not available."
+                error = errorNotAvailable
                 return@LaunchedEffect
             }
             videoUrl = welcomeVideo.videoURL
             if (videoUrl == null) {
-                error = "Welcome video has no valid playback source."
+                error = errorNoSource
             }
         } catch (t: Throwable) {
-            error = t.message ?: "Failed to load welcome video."
+            error = t.message ?: errorFailed
         }
     }
 
@@ -67,11 +81,11 @@ fun WelcomeVideoScreen(
                     onFullscreenToggle = { onOpenFullscreen(url) }
                 )
             } else {
-                Text(error ?: "Loading video...")
+                Text(error ?: loadingVideo)
             }
 
             Text(
-                "Welcome Video Screen",
+                stringResource(Res.string.welcome_video_screen),
                 modifier = Modifier.padding(top = 12.dp),
                 style = MaterialTheme.typography.titleLarge
             )
@@ -82,7 +96,7 @@ fun WelcomeVideoScreen(
                     onCheckedChange = { dontShowAgain = it }
                 )
                 Text(
-                    "Don't show again",
+                    stringResource(Res.string.dont_show_again),
                     modifier = Modifier.padding(start = 8.dp, top = 12.dp)
                 )
             }
@@ -91,14 +105,14 @@ fun WelcomeVideoScreen(
                 onClick = onSkip,
                 modifier = Modifier.padding(top = 16.dp)
             ) {
-                Text("Skip")
+                Text(stringResource(Res.string.skip))
             }
 
             Button(
                 onClick = { onContinue(dontShowAgain) },
                 modifier = Modifier.padding(top = 8.dp)
             ) {
-                Text("Continue")
+                Text(stringResource((Res.string.`continue`)))
             }
         }
     }

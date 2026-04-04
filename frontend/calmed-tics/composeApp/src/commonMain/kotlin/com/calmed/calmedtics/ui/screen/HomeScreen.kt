@@ -31,12 +31,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.calendar_loading
+import com.calmed.calmedtics.home_title
+import com.calmed.calmedtics.home_welcome
+import com.calmed.calmedtics.no_image
+import com.calmed.calmedtics.select_video
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.ui.component.NativeCalendar
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.viewmodel.SessionViewModel
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import kotlin.time.Instant
 
@@ -88,7 +95,7 @@ fun HomeScreen(
         }
     }
 
-    ScreenScaffold(title = "Home") {
+    ScreenScaffold(title = stringResource(Res.string.home_title)) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -97,7 +104,7 @@ fun HomeScreen(
         ) {
             item {
                 Text(
-                    "Welcome to CalmEd Tics.",
+                    stringResource(Res.string.home_welcome),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
@@ -105,7 +112,7 @@ fun HomeScreen(
             item {
                 if (days.isEmpty()) {
                     Text(
-                        "Calendar loading...",
+                        stringResource(Res.string.calendar_loading),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 } else {
@@ -164,7 +171,7 @@ fun HomeScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("Select a video")
+                                Text(stringResource(Res.string.select_video))
                             }
                         }
                     }
@@ -203,7 +210,7 @@ fun HomeScreen(
                                         modifier = Modifier.fillMaxSize(),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("No image")
+                                        Text(stringResource(Res.string.no_image))
                                     }
                                 }
                             }

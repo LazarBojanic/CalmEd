@@ -25,14 +25,24 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.error_prefix
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
+import com.calmed.calmedtics.onboarding_error
+import com.calmed.calmedtics.onboarding_title
+import com.calmed.calmedtics.retry
 import com.calmed.calmedtics.service.specification.IAuthService
+import com.calmed.calmedtics.skip_onboarding
 import com.calmed.calmedtics.store.ITokenDataStore
+import com.calmed.calmedtics.tab_exercises
+import com.calmed.calmedtics.tab_home
+import com.calmed.calmedtics.tab_profile
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import com.calmed.calmedtics.util.currentYmd
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 private enum class MainTab { Home, Exercises, Profile, HelpSupport }
@@ -88,16 +98,16 @@ fun MainScreen(
 		}
 
 		if (ui == null) {
-			ScreenScaffold(title = "Onboarding") {
+			ScreenScaffold(title = stringResource(Res.string.onboarding_title)){
 				Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-					Text("We couldn’t load your onboarding profile data.")
-					if (error != null) Text("Error: $error")
+					Text(stringResource(Res.string.onboarding_error))
+					if (error != null) Text(stringResource(Res.string.error_prefix, error ?: ""))
 					PrimaryButton(
-						text = "Retry",
+						text = stringResource(Res.string.retry),
 						onClick = { scope.launch { sessionViewModel.loadSession() } }
 					)
 					PrimaryButton(
-						text = "Skip onboarding",
+						text = stringResource(Res.string.skip_onboarding),
 						onClick = { scope.launch { sessionViewModel.skipOnboarding() } }
 					)
 				}
@@ -125,20 +135,20 @@ fun MainScreen(
 				NavigationBarItem(
 					selected = selectedTab.value == MainTab.Home,
 					onClick = { selectedTab.value = MainTab.Home },
-					icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-					label = { Text("Home") }
+					icon = { Icon(Icons.Default.Home, contentDescription = stringResource(Res.string.tab_home)) },
+					label = { Text(stringResource(Res.string.tab_home)) }
 				)
 				NavigationBarItem(
 					selected = selectedTab.value == MainTab.Exercises,
 					onClick = { selectedTab.value = MainTab.Exercises },
-					icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Exercises") },
-					label = { Text("Exercises") }
+					icon = { Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.tab_exercises))},
+					label = { Text(stringResource(Res.string.tab_exercises)) }
 				)
 				NavigationBarItem(
 					selected = selectedTab.value == MainTab.Profile,
 					onClick = { selectedTab.value = MainTab.Profile },
-					icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-					label = { Text("Profile") }
+					icon = { Icon(Icons.Default.Person, contentDescription = stringResource(Res.string.tab_profile)) },
+					label = { Text(stringResource(Res.string.tab_profile)) }
 				)
 			}
 		}

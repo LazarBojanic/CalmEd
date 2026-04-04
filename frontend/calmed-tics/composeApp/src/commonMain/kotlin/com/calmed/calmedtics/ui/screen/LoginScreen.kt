@@ -28,6 +28,16 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import com.calmed.calmedtics.auth.AppleAuthBridge
 import com.calmed.calmedtics.auth.GoogleAuthBridge
+import org.jetbrains.compose.resources.stringResource
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.create_account
+import com.calmed.calmedtics.email_label
+import com.calmed.calmedtics.forgot_password
+import com.calmed.calmedtics.logging_in
+import com.calmed.calmedtics.login_button
+import com.calmed.calmedtics.login_title
+import com.calmed.calmedtics.password_label
+import com.calmed.calmedtics.use_offline_mode
 
 @Composable
 fun LoginScreen(
@@ -73,7 +83,7 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    ScreenScaffold(title = "Login") {
+    ScreenScaffold(title = stringResource(Res.string.login_title)) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -87,14 +97,14 @@ fun LoginScreen(
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email",
+                label = stringResource(Res.string.email_label),
                 singleLine = true
             )
 
             PasswordTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = "Password",
+                label = stringResource(Res.string.password_label),
                 singleLine = true,
                 isError = false,
                 supportingText = null,
@@ -102,7 +112,7 @@ fun LoginScreen(
             )
 
             PrimaryButton(
-                text = if (loading) "Logging in..." else "Login",
+                text = if (loading) stringResource(Res.string.logging_in) else stringResource(Res.string.login_button),
                 onClick = {
                     scope.launch {
                         val success = viewModel.login(email, password)
@@ -115,13 +125,13 @@ fun LoginScreen(
             )
 
             SecondaryButton(
-                text = "Create account",
+                text = stringResource(Res.string.create_account),
                 onClick = onNavigateRegister,
                 enabled = !loading
             )
 
             SecondaryButton(
-                text = "Use offline mode",
+                text = stringResource(Res.string.use_offline_mode),
                 onClick = onNavigateOffline,
                 enabled = !loading
             )
@@ -139,7 +149,7 @@ fun LoginScreen(
                 onClick = onNavigateForgotPassword,
                 enabled = !loading
             ) {
-                Text("Forgot password?")
+                Text(stringResource(Res.string.forgot_password))
             }
         }
     }

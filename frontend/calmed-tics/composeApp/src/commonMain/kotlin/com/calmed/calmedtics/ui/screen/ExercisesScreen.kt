@@ -28,9 +28,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.exercise_locked_message
+import com.calmed.calmedtics.locked
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import com.calmed.calmedtics.week_title
+
 
 @Composable
 fun ExercisesScreen(
@@ -57,7 +63,7 @@ fun ExercisesScreen(
 
                 item {
                     Text(
-                        text = "Week $week",
+                        text = stringResource(Res.string.week_title, week),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -65,6 +71,7 @@ fun ExercisesScreen(
 
                 items(weekItems) { ex ->
                     val locked = ex.weekNumber > currentWeek
+                    val lockedMessage = stringResource(Res.string.exercise_locked_message)
 
                     Box(
                         modifier = Modifier
@@ -74,7 +81,7 @@ fun ExercisesScreen(
                             .clickable {
                                 if (locked) {
                                     scope.launch {
-                                        snackbarHostState.showSnackbar("Još nije vreme za ovu vežbu.")
+                                        snackbarHostState.showSnackbar(lockedMessage)
                                     }
                                 } else {
                                     onExerciseClick(ex)
@@ -92,7 +99,7 @@ fun ExercisesScreen(
                         if (locked) {
                             Icon(
                                 imageVector = Icons.Default.Lock,
-                                contentDescription = "Locked",
+                                contentDescription = stringResource(Res.string.locked),
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .size(48.dp),

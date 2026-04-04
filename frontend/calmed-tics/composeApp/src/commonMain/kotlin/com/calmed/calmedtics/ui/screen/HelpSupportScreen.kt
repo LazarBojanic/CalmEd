@@ -18,6 +18,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.back_button
+import com.calmed.calmedtics.help_support_description
+import com.calmed.calmedtics.help_support_heading
+import com.calmed.calmedtics.help_support_title
+import com.calmed.calmedtics.message_label
+import com.calmed.calmedtics.message_success
+import com.calmed.calmedtics.send_message_button
+import com.calmed.calmedtics.subject_label
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun HelpSupportScreen(
@@ -30,7 +40,7 @@ fun HelpSupportScreen(
 
     val isFormValid = subject.value.isNotBlank() && message.value.isNotBlank()
 
-    ScreenScaffold(title = "Help & Support") {
+    ScreenScaffold(title = stringResource(Res.string.help_support_title)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -38,12 +48,12 @@ fun HelpSupportScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "How can we help?",
+                text = stringResource(Res.string.help_support_heading),
                 style = MaterialTheme.typography.headlineSmall
             )
 
             Text(
-                text = "Send us your question and we’ll get back to you as soon as possible.",
+                text = stringResource(Res.string.help_support_description),
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -66,7 +76,7 @@ fun HelpSupportScreen(
                             showSuccessMessage.value = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Subject") }
+                        label = { Text(stringResource(Res.string.subject_label)) }
                     )
 
                     OutlinedTextField(
@@ -76,12 +86,12 @@ fun HelpSupportScreen(
                             showSuccessMessage.value = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Message") },
+                        label = { Text(stringResource(Res.string.message_label)) },
                         minLines = 5
                     )
 
                     PrimaryButton(
-                        text = "Send message",
+                        text = stringResource(Res.string.send_message_button),
                         enabled = isFormValid,
                         onClick = {
                             onSendMessage(subject.value, message.value)
@@ -93,7 +103,7 @@ fun HelpSupportScreen(
 
                     if (showSuccessMessage.value) {
                         Text(
-                            text = "Your message has been prepared successfully.",
+                            text = stringResource(Res.string.message_success),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -101,7 +111,7 @@ fun HelpSupportScreen(
             }
 
             PrimaryButton(
-                text = "Back",
+                text = stringResource(Res.string.back_button),
                 onClick = onBack
             )
         }

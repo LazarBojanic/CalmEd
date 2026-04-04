@@ -28,11 +28,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.downloaded_videos
+import com.calmed.calmedtics.no_downloads
+import com.calmed.calmedtics.offline_description
+import com.calmed.calmedtics.offline_label
+import com.calmed.calmedtics.offline_title
+import com.calmed.calmedtics.play_offline_video
+import com.calmed.calmedtics.remove_downloaded_video
 import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
+import com.calmed.calmedtics.status_downloaded
+import com.calmed.calmedtics.status_downloading
+import com.calmed.calmedtics.status_failed
+import com.calmed.calmedtics.status_not_downloaded
+import com.calmed.calmedtics.try_online
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
+import com.calmed.calmedtics.you_are_offline
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OfflineModeScreen(
@@ -52,7 +67,7 @@ fun OfflineModeScreen(
         }
     }
 
-    ScreenScaffold(title = "Offline Library") {
+    ScreenScaffold(title = stringResource(Res.string.offline_title)){
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -71,7 +86,7 @@ fun OfflineModeScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.CloudOff,
-                        contentDescription = "Offline",
+                        contentDescription = stringResource(Res.string.offline_label),
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Column(
@@ -79,11 +94,11 @@ fun OfflineModeScreen(
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
-                            text = "You are offline",
+                            stringResource(Res.string.you_are_offline),
                             style = MaterialTheme.typography.titleSmall
                         )
                         Text(
-                            text = "Only videos already downloaded to this device are available.",
+                            stringResource(Res.string.offline_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -92,12 +107,12 @@ fun OfflineModeScreen(
             }
 
             PrimaryButton(
-                text = "Try Online Mode",
+                text = stringResource(Res.string.try_online),
                 onClick = onTryOnline
             )
 
             Text(
-                text = "Downloaded Videos (${downloadedUrls.size})",
+                stringResource(Res.string.downloaded_videos, downloadedUrls.size),
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -109,7 +124,7 @@ fun OfflineModeScreen(
                     )
                 ) {
                     Text(
-                        text = "No downloaded videos found on this device.",
+                        stringResource(Res.string.no_downloads),
                         modifier = Modifier.padding(12.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -161,7 +176,7 @@ fun OfflineModeScreen(
                             IconButton(onClick = { onOpenFullscreen(url) }) {
                                 Icon(
                                     imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = "Play offline video"
+                                    contentDescription = stringResource(Res.string.play_offline_video)
                                 )
                             }
 
@@ -173,7 +188,7 @@ fun OfflineModeScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
-                                    contentDescription = "Remove downloaded video"
+                                    contentDescription = stringResource(Res.string.remove_downloaded_video)
                                 )
                             }
                         }
@@ -184,12 +199,13 @@ fun OfflineModeScreen(
     }
 }
 
+@Composable
 private fun statusLabel(status: VideoDownloadStatus): String {
     return when (status) {
-        VideoDownloadStatus.NotDownloaded -> "Not downloaded"
-        VideoDownloadStatus.Downloading -> "Downloading"
-        VideoDownloadStatus.Downloaded -> "Downloaded"
-        VideoDownloadStatus.Failed -> "Download failed"
+        VideoDownloadStatus.NotDownloaded -> stringResource(Res.string.status_not_downloaded)
+        VideoDownloadStatus.Downloading -> stringResource(Res.string.status_downloading)
+        VideoDownloadStatus.Downloaded -> stringResource(Res.string.status_downloaded)
+        VideoDownloadStatus.Failed -> stringResource(Res.string.status_failed)
     }
 }
 

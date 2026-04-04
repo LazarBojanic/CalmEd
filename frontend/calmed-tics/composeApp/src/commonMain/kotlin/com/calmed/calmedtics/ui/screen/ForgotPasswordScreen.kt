@@ -14,12 +14,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.back
+import com.calmed.calmedtics.email_label
+import com.calmed.calmedtics.forgot_password_title
+import com.calmed.calmedtics.send_reset_email
+import com.calmed.calmedtics.sending
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.SecondaryButton
 import com.calmed.calmedtics.ui.component.TextField
 import com.calmed.calmedtics.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -35,7 +42,7 @@ fun ForgotPasswordScreen(
 
     var email by remember { mutableStateOf("") }
 
-    ScreenScaffold(title = "Forgot Password?") {
+    ScreenScaffold(title = stringResource(Res.string.forgot_password_title)) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -52,12 +59,12 @@ fun ForgotPasswordScreen(
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email",
+                label = stringResource(Res.string.email_label),
                 singleLine = true,
             )
 
             PrimaryButton(
-                text = if (loading) "Sending..." else "Send reset email",
+                text = if (loading) stringResource(Res.string.sending) else stringResource(Res.string.send_reset_email),
                 onClick = {
                     scope.launch {
                         viewModel.forgotPassword(email)
@@ -67,7 +74,7 @@ fun ForgotPasswordScreen(
             )
 
             SecondaryButton(
-                text = "Back",
+                text = stringResource(Res.string.back),
                 onClick = onNavigateBack,
                 enabled = !loading
             )

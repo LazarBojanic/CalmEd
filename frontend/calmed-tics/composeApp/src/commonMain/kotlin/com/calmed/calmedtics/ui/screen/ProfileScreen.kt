@@ -25,11 +25,41 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.account_info
+import com.calmed.calmedtics.age
+import com.calmed.calmedtics.cancel
+import com.calmed.calmedtics.condition_info
+import com.calmed.calmedtics.default_user
+import com.calmed.calmedtics.edit_condition_info
+import com.calmed.calmedtics.edit_personal_details
+import com.calmed.calmedtics.edit_profile
+import com.calmed.calmedtics.email
+import com.calmed.calmedtics.error_prefix
+import com.calmed.calmedtics.follow_progress
+import com.calmed.calmedtics.follow_progress_title
+import com.calmed.calmedtics.following_progress
+import com.calmed.calmedtics.frequency_daily
+import com.calmed.calmedtics.frequency_moderate
+import com.calmed.calmedtics.frequency_rare
+import com.calmed.calmedtics.goal
+import com.calmed.calmedtics.goal_label
+import com.calmed.calmedtics.help_support
+import com.calmed.calmedtics.loading
+import com.calmed.calmedtics.logout
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TickFrequency
 import com.calmed.calmedtics.model.raw.TickType
+import com.calmed.calmedtics.morning_evening
+import com.calmed.calmedtics.no
+import com.calmed.calmedtics.personal_details
+import com.calmed.calmedtics.preferred_name
+import com.calmed.calmedtics.privacy_policy
+import com.calmed.calmedtics.profile_error
+import com.calmed.calmedtics.profile_title
+import com.calmed.calmedtics.reminders
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.TextField
@@ -37,6 +67,21 @@ import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import com.calmed.calmedtics.reminders.ReminderManager
+import com.calmed.calmedtics.retry
+import com.calmed.calmedtics.save
+import com.calmed.calmedtics.saving
+import com.calmed.calmedtics.stress_level
+import com.calmed.calmedtics.stress_value
+import com.calmed.calmedtics.support
+import com.calmed.calmedtics.terms
+import com.calmed.calmedtics.tics_both
+import com.calmed.calmedtics.tics_frequency
+import com.calmed.calmedtics.tics_motor
+import com.calmed.calmedtics.tics_type
+import com.calmed.calmedtics.tics_type_title
+import com.calmed.calmedtics.username
+import com.calmed.calmedtics.yes
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ProfileScreen(
@@ -130,7 +175,7 @@ fun ProfileScreen(
 		}
 	}
 
-	ScreenScaffold(title = "Profile") {
+	ScreenScaffold(title = stringResource(Res.string.profile_title)){
 		LazyColumn(
 			modifier = Modifier.fillMaxWidth(),
 			verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -142,13 +187,13 @@ fun ProfileScreen(
 
 			if (user != null && userInfo == null) {
 				item {
-					InfoSection(title = "Personal Details") {
-						Text("We couldn’t load your profile details.")
+					InfoSection(title = stringResource(Res.string.personal_details)) {
+						Text(stringResource(Res.string.profile_error))
 						if (error != null) {
-							Text("Error: $error")
+							Text(stringResource(Res.string.error_prefix, error ?: ""))
 						}
 						PrimaryButton(
-							text = if (loading) "Loading..." else "Retry",
+							text = if (loading) stringResource(Res.string.loading) else stringResource(Res.string.retry),
 							enabled = !loading,
 							onClick = { scope.launch { sessionViewModel.loadSession() } }
 						)
@@ -160,21 +205,21 @@ fun ProfileScreen(
 				if (!isEditing) {
 					item {
 						PrimaryButton(
-							text = "Edit profile",
+							text = stringResource(Res.string.edit_profile),
 							onClick = { isEditing = true }
 						)
 					}
 				} else {
 					item {
-						InfoSection(title = "Edit Personal Details") {
+						InfoSection(title = stringResource(Res.string.edit_personal_details)) {
 							TextField(
 								value = preferredName.value,
 								onValueChange = { preferredName.value = it },
-								label = "Preferred name",
+								label = stringResource(Res.string.preferred_name),
 								singleLine = true
 							)
 
-							Text("Age")
+							Text(stringResource(Res.string.age))
 							TextField(
 								value = ageText.value,
 								onValueChange = { raw ->
@@ -185,7 +230,7 @@ fun ProfileScreen(
 										age.intValue = parsed.coerceIn(5, 80)
 									}
 								},
-								label = "Age",
+								label = stringResource(Res.string.age),
 								singleLine = true
 							)
 							Slider(
@@ -195,7 +240,7 @@ fun ProfileScreen(
 								steps = 74
 							)
 
-							Text("Stress: ${stress.intValue} / 10")
+							Text(stringResource(Res.string.stress_value, stress.intValue))
 							Slider(
 								value = stress.intValue.toFloat(),
 								onValueChange = { stress.intValue = it.toInt() },
@@ -206,40 +251,40 @@ fun ProfileScreen(
 					}
 
 					item {
-						InfoSection(title = "Edit Condition Info") {
-							Text("Tics type")
+						InfoSection(title = stringResource(Res.string.edit_condition_info)) {
+							Text( stringResource(Res.string.tics_type))
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 								RadioOptionRow(
-									text = "Motor",
+									text =  stringResource(Res.string.tics_motor),
 									selected = tickType.value == TickType.MOTOR,
 									onClick = { tickType.value = TickType.MOTOR }
 								)
 								RadioOptionRow(
-									text = "Vocal",
+									text =  stringResource(Res.string.tics_motor),
 									selected = tickType.value == TickType.VOCAL,
 									onClick = { tickType.value = TickType.VOCAL }
 								)
 								RadioOptionRow(
-									text = "Both",
+									text =  stringResource(Res.string.tics_both),
 									selected = tickType.value == TickType.BOTH,
 									onClick = { tickType.value = TickType.BOTH }
 								)
 							}
 
-							Text("Tics frequency")
+							Text( stringResource(Res.string.tics_frequency))
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 								RadioOptionRow(
-									text = "Rare",
+									text =  stringResource(Res.string.frequency_rare),
 									selected = tickFrequency.value == TickFrequency.RARE,
 									onClick = { tickFrequency.value = TickFrequency.RARE }
 								)
 								RadioOptionRow(
-									text = "Moderate",
+									text =  stringResource(Res.string.frequency_moderate),
 									selected = tickFrequency.value == TickFrequency.MODERATE,
 									onClick = { tickFrequency.value = TickFrequency.MODERATE }
 								)
 								RadioOptionRow(
-									text = "Daily",
+									text =  stringResource(Res.string.frequency_daily),
 									selected = tickFrequency.value == TickFrequency.DAILY,
 									onClick = { tickFrequency.value = TickFrequency.DAILY }
 								)
@@ -248,7 +293,7 @@ fun ProfileScreen(
 							TextField(
 								value = goal.value,
 								onValueChange = { goal.value = it },
-								label = "Your goal",
+								label =  stringResource(Res.string.goal_label),
 								singleLine = false
 							)
 
@@ -256,7 +301,7 @@ fun ProfileScreen(
 								modifier = Modifier.fillMaxWidth(),
 								verticalAlignment = Alignment.CenterVertically
 							) {
-								Text("Follow progress")
+								Text( stringResource(Res.string.follow_progress))
 								Spacer(modifier = Modifier.width(12.dp))
 								Switch(
 									checked = followProgress.value,
@@ -268,7 +313,7 @@ fun ProfileScreen(
 
 					item {
 						PrimaryButton(
-							text = if (loading) "Saving..." else "Save",
+							text = if (loading)  stringResource(Res.string.saving) else  stringResource(Res.string.save),
 							enabled = !loading,
 							onClick = {
 								val u = user
@@ -285,7 +330,7 @@ fun ProfileScreen(
 					}
 					item {
 						PrimaryButton(
-							text = "Cancel",
+							text =  stringResource(Res.string.cancel),
 							enabled = !loading,
 							onClick = {
 								isEditing = false
@@ -297,72 +342,72 @@ fun ProfileScreen(
 
 			if (user != null) {
 				item {
-					InfoSection(title = "Account Information") {
-						InfoRow(icon = Icons.Default.Email, label = "Email", value = user.email)
-						InfoRow(icon = Icons.Default.Person, label = "Username", value = user.username)
+					InfoSection(title =  stringResource(Res.string.account_info)) {
+						InfoRow(icon = Icons.Default.Email, label =  stringResource(Res.string.email), value = user.email)
+						InfoRow(icon = Icons.Default.Person, label =  stringResource(Res.string.username), value = user.username)
 					}
 				}
 			}
 
 			if (userInfo != null) {
 				item {
-					InfoSection(title = "Personal Details") {
+					InfoSection(title =  stringResource(Res.string.personal_details)) {
 						userInfo.age?.let {
-							InfoRow(icon = Icons.Default.DateRange, label = "Age", value = it.toString())
+							InfoRow(icon = Icons.Default.DateRange, label =  stringResource(Res.string.age), value = it.toString())
 						}
 						userInfo.stressLevel?.let {
-							InfoRow(icon = Icons.Default.Warning, label = "Stress Level", value = "$it/10")
+							InfoRow(icon = Icons.Default.Warning, label =  stringResource(Res.string.stress_level), value = "$it/10")
 						}
 					}
 				}
 
 				item {
-					InfoSection(title = "Condition Info") {
+					InfoSection(title = stringResource(Res.string.condition_info)) {
 						userInfo.tickType?.let {
-							InfoRow(icon = Icons.Default.Info, label = "Tick Type", value = it.name)
+							InfoRow(icon = Icons.Default.Info, label = stringResource(Res.string.tics_type), value = it.name)
 						}
 						userInfo.tickFrequency?.let {
-							InfoRow(icon = Icons.Default.Refresh, label = "Frequency", value = it.name)
+							InfoRow(icon = Icons.Default.Refresh, label = stringResource(Res.string.tics_frequency), value = it.name)
 						}
 						userInfo.goal?.let {
-							InfoRow(icon = Icons.Default.Star, label = "Goal", value = it)
+							InfoRow(icon = Icons.Default.Star, label = stringResource(Res.string.goal), value = it)
 						}
 						userInfo.followProgress?.let {
 							InfoRow(
 								icon = Icons.Default.CheckCircle,
-								label = "Following Progress",
-								value = if (it) "Yes" else "No"
+								label = stringResource(Res.string.following_progress),
+								value = if (it) stringResource(Res.string.yes) else stringResource(Res.string.no)
 							)
 						}
 					}
 				}
 			}
 			item {
-				InfoSection(title = "Support") {
+				InfoSection(title = stringResource(Res.string.support)) {
 					SettingsRow(
 						icon = Icons.Default.Help,
-						label = "Help & Support",
+						label = stringResource(Res.string.help_support),
 						onClick = onHelpSupportClick
 					)
 					SettingsRow(
 						icon = Icons.Default.Lock,
-						label = "Privacy Policy",
+						label = stringResource(Res.string.privacy_policy),
 						onClick = { }
 					)
 					SettingsRow(
 						icon = Icons.Default.Description,
-						label = "Terms of Service",
+						label = stringResource(Res.string.terms),
 						onClick = { }
 					)
 				}
 			}
 			item {
-				InfoSection(title = "Exercise Reminders") {
+				InfoSection(title = stringResource(Res.string.reminders)) {
 					Row(
 						modifier = Modifier.fillMaxWidth(),
 						verticalAlignment = Alignment.CenterVertically
 					) {
-						Text("Morning & Evening reminders")
+						Text(stringResource(Res.string.morning_evening))
 						Spacer(Modifier.weight(1f))
 						Switch(
 							checked = remindersEnabled,
@@ -381,7 +426,7 @@ fun ProfileScreen(
 			item {
 				Spacer(modifier = Modifier.height(8.dp))
 				PrimaryButton(
-					text = "Logout",
+					text = stringResource(Res.string.logout),
 					onClick = {
 						scope.launch {
 							sessionViewModel.logout()
@@ -396,7 +441,9 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileHeader(user: UserJoined?, userInfo: UserInfoTicsJoined?) {
-	val displayName = userInfo?.preferredName ?: user?.username ?: "User"
+	val displayName = userInfo?.preferredName
+		?: user?.username
+		?: stringResource(Res.string.default_user)
 	val email = user?.email ?: ""
 
 	Column(

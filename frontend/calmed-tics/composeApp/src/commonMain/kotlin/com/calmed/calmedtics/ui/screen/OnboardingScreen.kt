@@ -25,14 +25,40 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.age_label
+import com.calmed.calmedtics.age_title
+import com.calmed.calmedtics.finish
+import com.calmed.calmedtics.follow_progress_question
+import com.calmed.calmedtics.follow_progress_title
+import com.calmed.calmedtics.frequency_daily
+import com.calmed.calmedtics.frequency_moderate
+import com.calmed.calmedtics.frequency_rare
+import com.calmed.calmedtics.goal_label
+import com.calmed.calmedtics.goal_title
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TickFrequency
 import com.calmed.calmedtics.model.raw.TickType
+import com.calmed.calmedtics.next
+import com.calmed.calmedtics.onboarding_title
+import com.calmed.calmedtics.personalize_experience
+import com.calmed.calmedtics.preferred_name_label
+import com.calmed.calmedtics.preferred_name_title
+import com.calmed.calmedtics.skip
+import com.calmed.calmedtics.start
+import com.calmed.calmedtics.stress_value
+import com.calmed.calmedtics.tics_both
+import com.calmed.calmedtics.tics_frequency_title
+import com.calmed.calmedtics.tics_motor
+import com.calmed.calmedtics.tics_type_title
+import com.calmed.calmedtics.tics_vocal
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.TextField
+import com.calmed.calmedtics.welcome_user
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OnboardingScreen(
@@ -103,36 +129,37 @@ fun OnboardingScreen(
 	}
 
 	ScreenScaffold(
-		title = "Onboarding",
+		title = stringResource(Res.string.onboarding_title),
 		onBack = if (step.intValue > 0) ({ step.intValue -= 1 }) else null
 	) {
 		Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
 			TextButton(onClick = onSkip) {
-				Text("Skip")
+				Text(stringResource(Res.string.skip))
 			}
 		}
 
 		Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 			when (step.intValue) {
 				0 -> {
-					Text("Welcome ${user.username}", style = MaterialTheme.typography.headlineSmall)
-					Text("Let’s personalize your experience.")
-					PrimaryButton(text = "Start", onClick = { step.intValue = 1 })
+					Text(stringResource(Res.string.welcome_user, user.username), style = MaterialTheme.typography.headlineSmall)
+					Text(stringResource(Res.string.personalize_experience))
+					PrimaryButton(text = stringResource(Res.string.start), onClick = { step.intValue = 1 })
 				}
 
 				1 -> {
-					Text("Preferred name", style = MaterialTheme.typography.titleLarge)
+					Text(stringResource(Res.string.preferred_name_title), style = MaterialTheme.typography.titleLarge)
 					TextField(
 						value = preferredName.value,
 						onValueChange = { preferredName.value = it },
-						label = "Preferred name",
+						label = stringResource(Res.string.preferred_name_label),
 						singleLine = true
 					)
-					PrimaryButton(text = "Next", onClick = { step.intValue = 2 })
+					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 2 })
 				}
 
 				2 -> {
-					Text("Age", style = MaterialTheme.typography.titleLarge)
+					Text(
+						stringResource(Res.string.age_title), style = MaterialTheme.typography.titleLarge)
 					TextField(
 						value = ageText.value,
 						onValueChange = { raw ->
@@ -143,7 +170,7 @@ fun OnboardingScreen(
 								age.intValue = parsed.coerceIn(5, 80)
 							}
 						},
-						label = "Age",
+						label = stringResource(Res.string.age_label),
 						singleLine = true
 					)
 					Slider(
@@ -152,85 +179,85 @@ fun OnboardingScreen(
 						valueRange = 5f..80f,
 						steps = 74
 					)
-					PrimaryButton(text = "Next", onClick = { step.intValue = 3 })
+					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 3 })
 				}
 
 				3 -> {
-					Text("Stress level", style = MaterialTheme.typography.titleLarge)
-					Text("Stress: ${stress.intValue} / 10")
+					Text(stringResource(Res.string.stress_value, stress.intValue), style = MaterialTheme.typography.titleLarge)
+					Text(stringResource(Res.string.stress_value, stress.intValue))
 					Slider(
 						value = stress.intValue.toFloat(),
 						onValueChange = { stress.intValue = it.toInt() },
 						valueRange = 0f..10f,
 						steps = 9
 					)
-					PrimaryButton(text = "Next", onClick = { step.intValue = 4 })
+					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 4 })
 				}
 
 				4 -> {
-					Text("Tics type", style = MaterialTheme.typography.titleLarge)
+					Text(stringResource(Res.string.tics_type_title), style = MaterialTheme.typography.titleLarge)
 
 					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 						RadioOptionRow(
-							text = "Motor",
+							text = stringResource(Res.string.tics_motor),
 							selected = tickType.value == TickType.MOTOR,
 							onClick = { tickType.value = TickType.MOTOR }
 						)
 						RadioOptionRow(
-							text = "Vocal",
+							text = stringResource(Res.string.tics_vocal),
 							selected = tickType.value == TickType.VOCAL,
 							onClick = { tickType.value = TickType.VOCAL }
 						)
 						RadioOptionRow(
-							text = "Both",
+							text = stringResource(Res.string.tics_both),
 							selected = tickType.value == TickType.BOTH,
 							onClick = { tickType.value = TickType.BOTH }
 						)
 					}
 
-					PrimaryButton(text = "Next", onClick = { step.intValue = 5 })
+					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 5 })
 				}
 
 				5 -> {
-					Text("Tics frequency", style = MaterialTheme.typography.titleLarge)
+					Text(stringResource(Res.string.tics_frequency_title), style = MaterialTheme.typography.titleLarge)
 
 					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 						RadioOptionRow(
-							text = "Rare",
+							text = stringResource(Res.string.frequency_rare),
 							selected = tickFrequency.value == TickFrequency.RARE,
 							onClick = { tickFrequency.value = TickFrequency.RARE }
 						)
 						RadioOptionRow(
-							text = "Moderate",
+							text = stringResource(Res.string.frequency_moderate),
 							selected = tickFrequency.value == TickFrequency.MODERATE,
 							onClick = { tickFrequency.value = TickFrequency.MODERATE }
 						)
 						RadioOptionRow(
-							text = "Daily",
+							text = stringResource(Res.string.frequency_daily),
 							selected = tickFrequency.value == TickFrequency.DAILY,
 							onClick = { tickFrequency.value = TickFrequency.DAILY }
 						)
 					}
 
-					PrimaryButton(text = "Next", onClick = { step.intValue = 6 })
+					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 6 })
 				}
 
 				6 -> {
-					Text("Goal", style = MaterialTheme.typography.titleLarge)
+					Text(stringResource(Res.string.goal_title), style = MaterialTheme.typography.titleLarge)
 					TextField(
 						value = goal.value,
 						onValueChange = { goal.value = it },
-						label = "Your goal",
+						label = stringResource(Res.string.goal_label),
 						singleLine = false
 					)
-					PrimaryButton(text = "Next", onClick = { step.intValue = 7 })
+					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 7 })
 				}
 
 				7 -> {
-					Text("Follow progress", style = MaterialTheme.typography.titleLarge)
-					Text("Would you like to follow your progress over time?")
+					Text(stringResource(Res.string.follow_progress_title), style = MaterialTheme.typography.titleLarge)
+					Text(stringResource(Res.string.follow_progress_question))
 					Switch(checked = followProgress.value, onCheckedChange = { followProgress.value = it })
-					PrimaryButton(text = "Finish", onClick = { onFinished(buildUpdate()) })
+					PrimaryButton(text = stringResource(Res.string.finish), onClick = { onFinished(buildUpdate()) })
 				}
 			}
 		}
