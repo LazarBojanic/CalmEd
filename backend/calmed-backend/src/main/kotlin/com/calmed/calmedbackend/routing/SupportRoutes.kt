@@ -29,8 +29,15 @@ fun Route.supportRoutes() {
                 email.setFrom("calmedapplication@gmail.com")
                 email.addTo("calmedapplication@gmail.com")
 
-                email.subject = request.subject
-                email.setMsg(request.message)
+                email.subject = "[Support] ${request.subject}"
+                email.setMsg(
+                    """
+                User email: ${request.userEmail}
+                Message:
+                ${request.message}
+                """.trimIndent()
+                )
+                email.addReplyTo(request.userEmail)
 
                 email.send()
 

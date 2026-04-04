@@ -167,7 +167,8 @@ fun MainScreen(
 							authService.sendSupportMessage(
 								SupportMessageRequestDto(
 									subject = subject,
-									message = message
+									message = message,
+									userEmail = u?.email ?: ""
 								)
 							)
 						}

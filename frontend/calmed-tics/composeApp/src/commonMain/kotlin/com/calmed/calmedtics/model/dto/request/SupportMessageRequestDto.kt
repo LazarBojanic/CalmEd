@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SupportMessageRequestDto(
     val subject: String,
-    val message: String
+    val message: String,
+    val userEmail: String
 )
