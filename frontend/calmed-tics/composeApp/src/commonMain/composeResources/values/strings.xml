@@ -135,4 +135,8 @@
     <string name="error_video_failed">Failed to load welcome video.</string>
     <string name="dont_show_again">Don't show again</string>
     <string name="continue">Continue</string>
+    <string name="language_settings">Language</string>
+    <string name="use_system_language">Use system language</string>
+    <string name="language_english">English</string>
+    <string name="language_spanish">Spanish</string>
 </resources>

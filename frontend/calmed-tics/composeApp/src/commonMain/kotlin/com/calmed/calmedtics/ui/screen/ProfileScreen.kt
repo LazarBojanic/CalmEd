@@ -45,7 +45,11 @@ import com.calmed.calmedtics.frequency_rare
 import com.calmed.calmedtics.goal
 import com.calmed.calmedtics.goal_label
 import com.calmed.calmedtics.help_support
+import com.calmed.calmedtics.language_english
+import com.calmed.calmedtics.language_settings
+import com.calmed.calmedtics.language_spanish
 import com.calmed.calmedtics.loading
+import com.calmed.calmedtics.localization.customAppLocale
 import com.calmed.calmedtics.logout
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
@@ -79,6 +83,7 @@ import com.calmed.calmedtics.tics_frequency
 import com.calmed.calmedtics.tics_motor
 import com.calmed.calmedtics.tics_type
 import com.calmed.calmedtics.tics_type_title
+import com.calmed.calmedtics.use_system_language
 import com.calmed.calmedtics.username
 import com.calmed.calmedtics.yes
 import org.jetbrains.compose.resources.stringResource
@@ -421,7 +426,25 @@ fun ProfileScreen(
 						)
 					}
 				}
+				InfoSection(title = stringResource(Res.string.language_settings)) {
+
+					PrimaryButton(
+						text = stringResource(Res.string.language_english),
+						onClick = { customAppLocale = "en" }
+					)
+
+					PrimaryButton(
+						text = stringResource(Res.string.language_spanish),
+						onClick = { customAppLocale = "es" }
+					)
+
+					PrimaryButton(
+						text = stringResource(Res.string.use_system_language),
+						onClick = { customAppLocale = null }
+					)
+				}
 			}
+
 
 			item {
 				Spacer(modifier = Modifier.height(8.dp))

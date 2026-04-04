@@ -135,4 +135,8 @@
     <string name="error_video_failed">Error al cargar el video de bienvenida.</string>
     <string name="dont_show_again">No mostrar de nuevo</string>
     <string name="continue">Continuar</string>
+    <string name="language_settings">Idioma</string>
+    <string name="use_system_language">Usar idioma del sistema</string>
+    <string name="language_english">Inglés</string>
+    <string name="language_spanish">Español</string>
 </resources>

@@ -43,6 +43,7 @@ import coil3.util.DebugLogger
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import com.calmed.calmedtics.localization.AppLocaleProvider
 
 object Routes {
     const val Splash = "splash"
@@ -110,331 +111,335 @@ fun App() {
             launchSingleTop = true
         }
     }
+    AppLocaleProvider {
+        AppTheme {
+            NavHost(navController, startDestination = Routes.Splash) {
 
-    AppTheme {
-        NavHost(navController, startDestination = Routes.Splash) {
+                composable(Routes.Splash) {
+                    SplashScreen()
 
-            composable(Routes.Splash) {
-                SplashScreen()
+                    LaunchedEffect(Unit) {
+                        val online = isBackendReachable(appApi)
+                        if (!online) {
+                            navController.navigate(Routes.Offline) {
+                                popUpTo(Routes.Splash) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                            return@LaunchedEffect
+                        }
 
-                LaunchedEffect(Unit) {
-                    val online = isBackendReachable(appApi)
-                    if (!online) {
-                        navController.navigate(Routes.Offline) {
+                        val currentToken = tokenStore.getToken()
+                        if (currentToken == null) {
+                            navController.navigate(Routes.Login) {
+                                popUpTo(Routes.Splash) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                            return@LaunchedEffect
+                        }
+
+                        val access = currentToken.access
+                        val refresh = currentToken.refresh
+
+                        if (access.isNullOrBlank() || refresh.isNullOrBlank()) {
+                            navController.navigate(Routes.Login) {
+                                popUpTo(Routes.Splash) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                            return@LaunchedEffect
+                        }
+
+                        val refreshSuccess = authService.tryRefresh()
+                        if (!refreshSuccess) {
+                            navController.navigate(Routes.Login) {
+                                popUpTo(Routes.Splash) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                            return@LaunchedEffect
+                        }
+
+                        val nextRoute = resolveNextAuthenticatedRoute()
+                        if (nextRoute == null) {
+                            navController.navigate(Routes.Login) {
+                                popUpTo(Routes.Splash) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                            return@LaunchedEffect
+                        }
+                        navController.navigate(nextRoute) {
                             popUpTo(Routes.Splash) { inclusive = true }
                             launchSingleTop = true
                         }
-                        return@LaunchedEffect
-                    }
-
-                    val currentToken = tokenStore.getToken()
-                    if (currentToken == null) {
-                        navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Splash) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                        return@LaunchedEffect
-                    }
-
-                    val access = currentToken.access
-                    val refresh = currentToken.refresh
-
-                    if (access.isNullOrBlank() || refresh.isNullOrBlank()) {
-                        navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Splash) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                        return@LaunchedEffect
-                    }
-
-                    val refreshSuccess = authService.tryRefresh()
-                    if (!refreshSuccess) {
-                        navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Splash) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                        return@LaunchedEffect
-                    }
-
-                    val nextRoute = resolveNextAuthenticatedRoute()
-                    if (nextRoute == null) {
-                        navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Splash) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                        return@LaunchedEffect
-                    }
-                    navController.navigate(nextRoute) {
-                        popUpTo(Routes.Splash) { inclusive = true }
-                        launchSingleTop = true
                     }
                 }
-            }
 
-            composable(Routes.Login) {
-                LoginScreen(
-                    onNavigateRegister = { navController.navigate(Routes.Register) },
-                    onNavigateForgotPassword = { navController.navigate(Routes.ForgotPassword) },
-                    onNavigateOffline = {
-                        navController.navigate(Routes.Offline) {
-                            popUpTo(Routes.Login) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
-
-                    onLoginSuccess = {
-                        scope.launch {
-                            val nextRoute = resolveNextAuthenticatedRoute()
-                            if (nextRoute == null) {
-                                navController.navigate(Routes.Login) {
-                                    popUpTo(Routes.Login) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                                return@launch
-                            }
-                            navController.navigate(nextRoute) {
+                composable(Routes.Login) {
+                    LoginScreen(
+                        onNavigateRegister = { navController.navigate(Routes.Register) },
+                        onNavigateForgotPassword = { navController.navigate(Routes.ForgotPassword) },
+                        onNavigateOffline = {
+                            navController.navigate(Routes.Offline) {
                                 popUpTo(Routes.Login) { inclusive = true }
                                 launchSingleTop = true
                             }
-                        }
-                    },
-                    onAppleSignIn = {
-                        launchAppleSignIn()
+                        },
 
-                    },
-                    onGoogleSignIn = {
-                        scope.launch {
-                            try {
-                                val googleToken = getGoogleIdToken()
-                                val ok = authViewModel.loginWithGoogle(googleToken)
-                                if (ok) {
-                                    val nextRoute = resolveNextAuthenticatedRoute()
-                                    if (nextRoute == null) {
-                                        navController.navigate(Routes.Login) {
-                                            popUpTo(Routes.Login) { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                        return@launch
-                                    }
-                                    navController.navigate(nextRoute) {
+                        onLoginSuccess = {
+                            scope.launch {
+                                val nextRoute = resolveNextAuthenticatedRoute()
+                                if (nextRoute == null) {
+                                    navController.navigate(Routes.Login) {
                                         popUpTo(Routes.Login) { inclusive = true }
                                         launchSingleTop = true
                                     }
+                                    return@launch
                                 }
-                            } catch (t: Throwable) {
-                                println("GoogleSignIn failed: ${t.message}")
-                                t.printStackTrace()
+                                navController.navigate(nextRoute) {
+                                    popUpTo(Routes.Login) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        },
+                        onAppleSignIn = {
+                            launchAppleSignIn()
+
+                        },
+                        onGoogleSignIn = {
+                            scope.launch {
+                                try {
+                                    val googleToken = getGoogleIdToken()
+                                    val ok = authViewModel.loginWithGoogle(googleToken)
+                                    if (ok) {
+                                        val nextRoute = resolveNextAuthenticatedRoute()
+                                        if (nextRoute == null) {
+                                            navController.navigate(Routes.Login) {
+                                                popUpTo(Routes.Login) { inclusive = true }
+                                                launchSingleTop = true
+                                            }
+                                            return@launch
+                                        }
+                                        navController.navigate(nextRoute) {
+                                            popUpTo(Routes.Login) { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                } catch (t: Throwable) {
+                                    println("GoogleSignIn failed: ${t.message}")
+                                    t.printStackTrace()
+                                }
                             }
                         }
-                    }
-                )
-            }
+                    )
+                }
 
-            composable(Routes.Offline) {
-                OfflineModeScreen(
-                    onTryOnline = {
-                        scope.launch {
-                            val online = isBackendReachable(appApi)
-                            if (!online) {
-                                return@launch
-                            }
+                composable(Routes.Offline) {
+                    OfflineModeScreen(
+                        onTryOnline = {
+                            scope.launch {
+                                val online = isBackendReachable(appApi)
+                                if (!online) {
+                                    return@launch
+                                }
 
-                            val currentToken = tokenStore.getToken()
-                            val access = currentToken?.access
-                            val refresh = currentToken?.refresh
+                                val currentToken = tokenStore.getToken()
+                                val access = currentToken?.access
+                                val refresh = currentToken?.refresh
 
-                            if (access.isNullOrBlank() || refresh.isNullOrBlank()) {
-                                navController.navigate(Routes.Login) {
+                                if (access.isNullOrBlank() || refresh.isNullOrBlank()) {
+                                    navController.navigate(Routes.Login) {
+                                        popUpTo(Routes.Offline) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                    return@launch
+                                }
+
+                                val refreshSuccess = authService.tryRefresh()
+                                if (!refreshSuccess) {
+                                    navController.navigate(Routes.Login) {
+                                        popUpTo(Routes.Offline) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                    return@launch
+                                }
+
+                                val nextRoute = resolveNextAuthenticatedRoute()
+                                if (nextRoute == null) {
+                                    navController.navigate(Routes.Login) {
+                                        popUpTo(Routes.Offline) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                    return@launch
+                                }
+                                navController.navigate(nextRoute) {
                                     popUpTo(Routes.Offline) { inclusive = true }
                                     launchSingleTop = true
                                 }
-                                return@launch
                             }
+                        },
+                        onOpenFullscreen = { url -> openFullscreen(url) }
+                    )
+                }
 
-                            val refreshSuccess = authService.tryRefresh()
-                            if (!refreshSuccess) {
-                                navController.navigate(Routes.Login) {
-                                    popUpTo(Routes.Offline) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                                return@launch
+                composable(Routes.Register) {
+                    RegisterScreen(
+                        onNavigateLogin = {
+                            navController.navigate(Routes.Login) {
+                                popUpTo(Routes.Register) { inclusive = true }
+                                launchSingleTop = true
                             }
-
-                            val nextRoute = resolveNextAuthenticatedRoute()
-                            if (nextRoute == null) {
-                                navController.navigate(Routes.Login) {
-                                    popUpTo(Routes.Offline) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                                return@launch
-                            }
-                            navController.navigate(nextRoute) {
-                                popUpTo(Routes.Offline) { inclusive = true }
+                        },
+                        onRegisterSuccess = {
+                            navController.navigate(Routes.Login) {
+                                popUpTo(Routes.Register) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
-                    },
-                    onOpenFullscreen = { url -> openFullscreen(url) }
-                )
-            }
-
-            composable(Routes.Register) {
-                RegisterScreen(
-                    onNavigateLogin = {
-                        navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Register) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
-                    onRegisterSuccess = {
-                        navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Register) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
-
-            composable(Routes.ForgotPassword) {
-                ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
-            }
-
-            composable(Routes.WelcomeVideo) {
-                val settings: AppSettings = koinInject()
-
-                WelcomeVideoScreen(
-                    onSkip = {
-                        welcomeHandledUserId = sessionViewModel.user.value?.id
-                        val isPaid = sessionViewModel.user.value?.isPaid == true
-                        val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
-                        val nextRoute = when {
-                            !isPaid -> Routes.Payment
-                            isOnboarded -> Routes.Main
-                            else -> Routes.Onboarding
-                        }
-                        navController.navigate(nextRoute) {
-                            popUpTo(Routes.WelcomeVideo) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
-                    onContinue = { dontShowAgain ->
-                        welcomeHandledUserId = sessionViewModel.user.value?.id
-                        if (dontShowAgain) settings.setShowWelcomeVideo(sessionViewModel.user.value?.id, false)
-                        val isPaid = sessionViewModel.user.value?.isPaid == true
-                        val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
-                        val nextRoute = when {
-                            !isPaid -> Routes.Payment
-                            isOnboarded -> Routes.Main
-                            else -> Routes.Onboarding
-                        }
-                        navController.navigate(nextRoute) {
-                            popUpTo(Routes.WelcomeVideo) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
-                    onOpenFullscreen = { url -> openFullscreen(url) }
-                )
-            }
-
-            composable(Routes.Onboarding) {
-                val u = user
-                val info = userInfo
-
-                if (u == null) {
-                    LaunchedEffect(Unit) {
-                        if (!sessionLoading && sessionError == null) {
-                            sessionViewModel.loadSession()
-                        }
-                    }
-                    Text(sessionError ?: "Loading...")
-                    return@composable
+                    )
                 }
 
-                if (info == null) {
-                    Text("UserInfo is missing (backend doesn't return it).")
-                    return@composable
+                composable(Routes.ForgotPassword) {
+                    ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
                 }
 
-                OnboardingScreen(
-                    user = u,
-                    userInfo = info,
-                    onSkip = {
-                        scope.launch {
-                            val ok = sessionViewModel.skipOnboarding()
-                            if (ok) {
-                                navController.navigate(Routes.Main) {
-                                    popUpTo(Routes.Onboarding) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
-                    },
-                    onFinished = { dto ->
-                        scope.launch {
-                            val ok = sessionViewModel.completeOnboarding(dto)
-                            if (ok) {
-                                navController.navigate(Routes.Main) {
-                                    popUpTo(Routes.Onboarding) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
-                    }
-                )
-            }
+                composable(Routes.WelcomeVideo) {
+                    val settings: AppSettings = koinInject()
 
-            composable(Routes.Payment) {
-                PaymentScreen(
-                    onPaid = {
-                        scope.launch {
-                            val nextRoute = resolveNextAuthenticatedRoute() ?: Routes.Login
+                    WelcomeVideoScreen(
+                        onSkip = {
+                            welcomeHandledUserId = sessionViewModel.user.value?.id
+                            val isPaid = sessionViewModel.user.value?.isPaid == true
+                            val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
+                            val nextRoute = when {
+                                !isPaid -> Routes.Payment
+                                isOnboarded -> Routes.Main
+                                else -> Routes.Onboarding
+                            }
                             navController.navigate(nextRoute) {
-                                popUpTo(Routes.Payment) { inclusive = true }
+                                popUpTo(Routes.WelcomeVideo) { inclusive = true }
                                 launchSingleTop = true
                             }
-                        }
-                    }
-                )
-            }
-
-
-            composable(Routes.FullscreenVideo) {
-                val activeVideoUrl = fullscreenVideoUrl
-                if (activeVideoUrl.isNullOrBlank()) {
-                    LaunchedEffect(Unit) {
-                        navController.popBackStack()
-                    }
-                    return@composable
+                        },
+                        onContinue = { dontShowAgain ->
+                            welcomeHandledUserId = sessionViewModel.user.value?.id
+                            if (dontShowAgain) settings.setShowWelcomeVideo(
+                                sessionViewModel.user.value?.id,
+                                false
+                            )
+                            val isPaid = sessionViewModel.user.value?.isPaid == true
+                            val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
+                            val nextRoute = when {
+                                !isPaid -> Routes.Payment
+                                isOnboarded -> Routes.Main
+                                else -> Routes.Onboarding
+                            }
+                            navController.navigate(nextRoute) {
+                                popUpTo(Routes.WelcomeVideo) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                        onOpenFullscreen = { url -> openFullscreen(url) }
+                    )
                 }
 
-                FullscreenVideoScreen(
-                    hlsUrl = activeVideoUrl,
-                    onBack = {
-                        navController.popBackStack()
-                    }
-                )
-            }
+                composable(Routes.Onboarding) {
+                    val u = user
+                    val info = userInfo
 
-
-            composable(Routes.Main) {
-                MainScreen(
-                    onLogoutToLogin = {
-                        welcomeHandledUserId = null
-                        navController.navigate(Routes.Login) {
-                            popUpTo(Routes.Main) { inclusive = true }
-                            launchSingleTop = true
+                    if (u == null) {
+                        LaunchedEffect(Unit) {
+                            if (!sessionLoading && sessionError == null) {
+                                sessionViewModel.loadSession()
+                            }
                         }
-                    },
-                    onOpenFullscreen = { url -> openFullscreen(url) }
-                )
-            }
+                        Text(sessionError ?: "Loading...")
+                        return@composable
+                    }
+
+                    if (info == null) {
+                        Text("UserInfo is missing (backend doesn't return it).")
+                        return@composable
+                    }
+
+                    OnboardingScreen(
+                        user = u,
+                        userInfo = info,
+                        onSkip = {
+                            scope.launch {
+                                val ok = sessionViewModel.skipOnboarding()
+                                if (ok) {
+                                    navController.navigate(Routes.Main) {
+                                        popUpTo(Routes.Onboarding) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        },
+                        onFinished = { dto ->
+                            scope.launch {
+                                val ok = sessionViewModel.completeOnboarding(dto)
+                                if (ok) {
+                                    navController.navigate(Routes.Main) {
+                                        popUpTo(Routes.Onboarding) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+
+                composable(Routes.Payment) {
+                    PaymentScreen(
+                        onPaid = {
+                            scope.launch {
+                                val nextRoute = resolveNextAuthenticatedRoute() ?: Routes.Login
+                                navController.navigate(nextRoute) {
+                                    popUpTo(Routes.Payment) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                    )
+                }
 
 
-            composable(Routes.Home) {
-                HomeScreen(
-                    sessionViewModel = koinInject(),
-                    onOpenFullscreen = { url -> openFullscreen(url) }
-                )
+                composable(Routes.FullscreenVideo) {
+                    val activeVideoUrl = fullscreenVideoUrl
+                    if (activeVideoUrl.isNullOrBlank()) {
+                        LaunchedEffect(Unit) {
+                            navController.popBackStack()
+                        }
+                        return@composable
+                    }
+
+                    FullscreenVideoScreen(
+                        hlsUrl = activeVideoUrl,
+                        onBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+
+                composable(Routes.Main) {
+                    MainScreen(
+                        onLogoutToLogin = {
+                            welcomeHandledUserId = null
+                            navController.navigate(Routes.Login) {
+                                popUpTo(Routes.Main) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                        onOpenFullscreen = { url -> openFullscreen(url) }
+                    )
+                }
+
+
+                composable(Routes.Home) {
+                    HomeScreen(
+                        sessionViewModel = koinInject(),
+                        onOpenFullscreen = { url -> openFullscreen(url) }
+                    )
+                }
             }
         }
     }
