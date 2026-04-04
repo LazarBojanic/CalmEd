@@ -44,6 +44,7 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import com.calmed.calmedtics.localization.AppLocaleProvider
+import com.calmed.calmedtics.localization.customAppLocale
 
 object Routes {
     const val Splash = "splash"
@@ -89,6 +90,10 @@ fun App() {
     val userInfo by sessionViewModel.userInfo.collectAsState()
     val sessionLoading by sessionViewModel.loading.collectAsState()
     val sessionError by sessionViewModel.error.collectAsState()
+
+    LaunchedEffect(Unit) {
+        customAppLocale = appSettings.getAppLanguage()
+    }
 
     suspend fun resolveNextAuthenticatedRoute(): String? {
         val remoteUser = sessionViewModel.loadSession() ?: return null

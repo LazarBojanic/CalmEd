@@ -430,17 +430,26 @@ fun ProfileScreen(
 
 					PrimaryButton(
 						text = stringResource(Res.string.language_english),
-						onClick = { customAppLocale = "en" }
+						onClick = {
+							customAppLocale = "en"
+							appSettings.setAppLanguage("en")
+						}
 					)
 
 					PrimaryButton(
 						text = stringResource(Res.string.language_spanish),
-						onClick = { customAppLocale = "es" }
+						onClick = {
+							customAppLocale = "es"
+							appSettings.setAppLanguage("es")
+						}
 					)
 
 					PrimaryButton(
 						text = stringResource(Res.string.use_system_language),
-						onClick = { customAppLocale = null }
+						onClick = {
+							customAppLocale = null
+							appSettings.setAppLanguage(null)
+						}
 					)
 				}
 			}

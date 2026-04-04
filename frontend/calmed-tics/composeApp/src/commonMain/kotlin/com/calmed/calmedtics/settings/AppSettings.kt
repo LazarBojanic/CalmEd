@@ -8,6 +8,7 @@ class AppSettings(
     companion object {
         private const val KEY_SHOW_WELCOME_VIDEO = "showWelcomeVideo"
         private const val KEY_REMINDERS_ENABLED = "reminders_enabled"
+        private const val KEY_APP_LANGUAGE = "app_language"
     }
 
     private fun welcomeVideoKey(userId: String?): String {
@@ -28,5 +29,14 @@ class AppSettings(
     fun setRemindersEnabled(value: Boolean) {
         settings.putBoolean(KEY_REMINDERS_ENABLED, value)
     }
+    fun getAppLanguage(): String? =
+        settings.getStringOrNull(KEY_APP_LANGUAGE)
 
+    fun setAppLanguage(value: String?) {
+        if (value == null) {
+            settings.remove(KEY_APP_LANGUAGE)
+        } else {
+            settings.putString(KEY_APP_LANGUAGE, value)
+        }
+    }
 }
