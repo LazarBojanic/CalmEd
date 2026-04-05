@@ -15,6 +15,7 @@ data class ProgramExercise(
 	val titleEs: String?,
 	val description: String?,
 	val playbackId: String?,
+	val playbackIdEs: String?,
 	val thumbnailURL: String?,
 	val visibility: Visibility,
 	val orderInWeek: Int?,

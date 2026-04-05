@@ -28,6 +28,14 @@ class ProgramExerciseService(private val repository: IProgramExerciseRepository)
 			AppResult.Failure(HttpStatusCode.NotFound, "Welcome video not found.")
 		}
 	}
+	override suspend fun getCourseOverviewVideo(): AppResult<ProgramExerciseJoined> {
+		val found = repository.findCourseOverviewVideo()
+		return if (found != null) {
+			AppResult.Success(found.join())
+		} else {
+			AppResult.Failure(HttpStatusCode.NotFound, "Course overview video not found.")
+		}
+	}
 
 	override suspend fun getUpNext(): AppResult<ProgramExerciseJoined> {
 		val found = repository.findUpNext()

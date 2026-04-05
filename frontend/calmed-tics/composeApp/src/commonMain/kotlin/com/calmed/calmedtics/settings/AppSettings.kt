@@ -7,6 +7,7 @@ class AppSettings(
 ) {
     companion object {
         private const val KEY_SHOW_WELCOME_VIDEO = "showWelcomeVideo"
+        private const val KEY_SHOW_COURSE_OVERVIEW = "showCourseOverview"
         private const val KEY_REMINDERS_ENABLED = "reminders_enabled"
         private const val KEY_APP_LANGUAGE = "app_language"
     }
@@ -16,12 +17,24 @@ class AppSettings(
         return if (suffix == null) KEY_SHOW_WELCOME_VIDEO else "$KEY_SHOW_WELCOME_VIDEO:$suffix"
     }
 
+    private fun courseOverviewKey(userId: String?): String {
+        val suffix = userId?.takeIf { it.isNotBlank() }
+        return if (suffix == null) KEY_SHOW_COURSE_OVERVIEW else "$KEY_SHOW_COURSE_OVERVIEW:$suffix"
+    }
+
     fun getShowWelcomeVideo(userId: String?): Boolean =
         settings.getBoolean(welcomeVideoKey(userId), defaultValue = true)
 
 
     fun setShowWelcomeVideo(userId: String?, value: Boolean) {
         settings.putBoolean(welcomeVideoKey(userId), value)
+    }
+
+    fun getShowCourseOverview(userId: String?): Boolean =
+        settings.getBoolean(courseOverviewKey(userId), defaultValue = true)
+
+    fun setShowCourseOverview(userId: String?, value: Boolean) {
+        settings.putBoolean(courseOverviewKey(userId), value)
     }
     fun isRemindersEnabled(): Boolean =
         settings.getBoolean(KEY_REMINDERS_ENABLED, false)

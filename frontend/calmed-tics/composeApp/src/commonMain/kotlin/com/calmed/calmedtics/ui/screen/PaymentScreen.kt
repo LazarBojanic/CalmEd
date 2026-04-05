@@ -214,7 +214,7 @@ fun PaymentScreen(
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
-                Text(if (loading) stringResource(Res.string.opening_payment) else  stringResource(Res.string.pay_button, "$10.00"))
+                Text(if (loading) stringResource(Res.string.opening_payment) else  stringResource(Res.string.pay_button, priceLabel))
             }
 
             Button(
@@ -224,11 +224,11 @@ fun PaymentScreen(
                     .fillMaxWidth()
                     .defaultMinSize(minHeight = 52.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
+                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f),
                     contentColor = MaterialTheme.colorScheme.onSecondary
                 )
             ) {
-                Text(if (loading) stringResource(Res.string.processing) else stringResource(Res.string.skip_payment))
+                Text(if (loading) stringResource(Res.string.processing) else "Payment Bypass (Dev Only)")
             }
 
             if (error != null) {

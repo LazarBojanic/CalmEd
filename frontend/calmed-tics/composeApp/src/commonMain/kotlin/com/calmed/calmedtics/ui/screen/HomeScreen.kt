@@ -37,13 +37,16 @@ import com.calmed.calmedtics.home_title
 import com.calmed.calmedtics.home_welcome
 import com.calmed.calmedtics.no_image
 import com.calmed.calmedtics.select_video
-import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.ui.component.NativeCalendar
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.util.getTitle
+import com.calmed.calmedtics.util.getVideoURL
+import com.calmed.calmedtics.localization.LocalAppLocale
+import com.calmed.calmedtics.localization.customAppLocale
+import com.calmed.calmedtics.localization.resolveContentLanguage
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -57,47 +60,35 @@ fun HomeScreen(
     val home by sessionViewModel.home.collectAsState(initial = null)
     val user by sessionViewModel.user.collectAsState()
     val allExercises by sessionViewModel.allExercises.collectAsState()
+    val uiLocaleTag = LocalAppLocale.current
+    val contentLanguage = remember(customAppLocale, uiLocaleTag) {
+        resolveContentLanguage(customAppLocale, uiLocaleTag)
+    }
     val ymd = currentYmd()
     val days = home?.calendar?.days ?: emptyList()
 
-    var selectedVideoUrl by remember { mutableStateOf<String?>(null) }
-    var selectedTitle by remember { mutableStateOf<String?>(null) }
+    var selectedExerciseId by remember { mutableStateOf<String?>(null) }
     var selectedWeekNumber by remember { mutableStateOf<Int?>(null) }
-    val appSettings = koinInject<AppSettings>()
-    val language = appSettings.getAppLanguage()
 
     LaunchedEffect(Unit) {
         sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
     }
 
-    LaunchedEffect(home?.upNext) {
-        if (selectedVideoUrl.isNullOrBlank()) {
-            val first = home?.upNext?.firstOrNull()
-            selectedVideoUrl = first?.videoURL
-            selectedTitle = first?.getTitle(language ?: "en")
-        }
-    }
-
-    LaunchedEffect(home?.currentWeek) {
-        if (selectedWeekNumber == null) {
-            selectedWeekNumber = home?.currentWeek ?: 1
-        }
-    }
-
-    val sortedDays = remember(days) { days.sortedBy { it.day } }
     val activeWeek = selectedWeekNumber ?: home?.currentWeek ?: 1
     val weekExercises = remember(allExercises, activeWeek) {
         allExercises.filter { it.weekNumber == activeWeek }.sortedBy { it.orderInWeek ?: Int.MAX_VALUE }
     }
     val displayExercises = if (weekExercises.isNotEmpty()) weekExercises else home?.upNext.orEmpty()
-
-    LaunchedEffect(displayExercises) {
-        if (selectedVideoUrl.isNullOrBlank()) {
-            val first = displayExercises.firstOrNull()
-            selectedVideoUrl = first?.videoURL
-            selectedTitle = first?.getTitle(language ?: "en")
+    val selectedExercise = remember(displayExercises, selectedExerciseId) {
+        val id = selectedExerciseId
+        if (id.isNullOrBlank()) {
+            displayExercises.firstOrNull()
+        } else {
+            displayExercises.firstOrNull { it.id == id } ?: displayExercises.firstOrNull()
         }
     }
+    val selectedVideoUrl = remember(selectedExercise, contentLanguage) { selectedExercise?.getVideoURL(contentLanguage) }
+    val selectedTitle = remember(selectedExercise, contentLanguage) { selectedExercise?.getTitle(contentLanguage) }
 
     ScreenScaffold(title = stringResource(Res.string.home_title)) {
         LazyColumn(
@@ -152,7 +143,7 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     if (!selectedTitle.isNullOrBlank()) {
-                        Text(selectedTitle!!)
+                        Text(selectedTitle)
                     }
 
                     Card(
@@ -189,8 +180,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                selectedVideoUrl = ex.videoURL
-                                selectedTitle = ex.getTitle(language ?: "en")
+                                selectedExerciseId = ex.id
                             }
                     ) {
                         Row(
@@ -206,7 +196,7 @@ fun HomeScreen(
                                 if (!thumb.isNullOrBlank()) {
                                     ThumbnailImage(
                                         url = thumb,
-                                        contentDescription = ex.getTitle(language ?: "en"),
+                                        contentDescription = ex.getTitle(contentLanguage),
                                         modifier = Modifier.fillMaxSize()
                                     )
                                 } else {
@@ -223,7 +213,7 @@ fun HomeScreen(
 
 
                             Text(
-                                text = ex.getTitle(language ?: "en"),
+                                text = ex.getTitle(contentLanguage),
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)

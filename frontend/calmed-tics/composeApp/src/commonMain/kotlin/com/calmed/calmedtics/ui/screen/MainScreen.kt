@@ -22,11 +22,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
 import com.calmed.calmedtics.error_prefix
+import com.calmed.calmedtics.localization.LocalAppLocale
+import com.calmed.calmedtics.localization.customAppLocale
+import com.calmed.calmedtics.localization.resolveContentLanguage
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
 import com.calmed.calmedtics.onboarding_error
 import com.calmed.calmedtics.onboarding_title
@@ -42,6 +46,7 @@ import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import com.calmed.calmedtics.util.currentYmd
+import com.calmed.calmedtics.util.getVideoURL
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -70,9 +75,12 @@ fun MainScreen(
 	val selectedTab = remember { mutableStateOf(MainTab.Home) }
 	val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
 	val appSettings = koinInject<AppSettings>()
-	val language = appSettings.getAppLanguage() ?: "en"
+	val uiLocaleTag = LocalAppLocale.current
+	val contentLanguage = remember(customAppLocale, uiLocaleTag) {
+		resolveContentLanguage(customAppLocale, uiLocaleTag)
+	}
 
-	LaunchedEffect(token?.access) {
+	LaunchedEffect(token?.access, customAppLocale) {
 		val access = token?.access
 		if (!access.isNullOrBlank()) {
 			val ymd = currentYmd()
@@ -191,9 +199,9 @@ fun MainScreen(
 					ExercisesScreen(
 						currentWeek = home?.currentWeek ?: 1,
 						exercises = allExercises,
-						language = language,
+						language = contentLanguage,
 						onExerciseClick = { ex ->
-							val url = ex.videoURL
+							val url = ex.getVideoURL(contentLanguage)
 							if (!url.isNullOrBlank()) {
 								onOpenFullscreen(url)
 							}

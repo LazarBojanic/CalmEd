@@ -64,6 +64,7 @@ import com.calmed.calmedtics.privacy_policy
 import com.calmed.calmedtics.profile_error
 import com.calmed.calmedtics.profile_title
 import com.calmed.calmedtics.reminders
+import com.calmed.calmedtics.ui.component.LanguageToggle
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.TextField
@@ -427,29 +428,16 @@ fun ProfileScreen(
 					}
 				}
 				InfoSection(title = stringResource(Res.string.language_settings)) {
+					var currentLanguage by remember { mutableStateOf(appSettings.getAppLanguage()) }
 
-					PrimaryButton(
-						text = stringResource(Res.string.language_english),
-						onClick = {
-							customAppLocale = "en"
-							appSettings.setAppLanguage("en")
-						}
-					)
-
-					PrimaryButton(
-						text = stringResource(Res.string.language_spanish),
-						onClick = {
-							customAppLocale = "es"
-							appSettings.setAppLanguage("es")
-						}
-					)
-
-					PrimaryButton(
-						text = stringResource(Res.string.use_system_language),
-						onClick = {
-							customAppLocale = null
-							appSettings.setAppLanguage(null)
-						}
+					LanguageToggle(
+						selectedLanguage = currentLanguage,
+						onLanguageSelected = { lang ->
+							currentLanguage = lang
+							customAppLocale = lang
+							appSettings.setAppLanguage(lang)
+						},
+						modifier = Modifier.padding(top = 8.dp)
 					)
 				}
 			}

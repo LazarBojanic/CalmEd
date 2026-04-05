@@ -39,6 +39,7 @@ interface IAppApi {
     suspend fun getHome(year: Int, month: Int): HomeDto?
     suspend fun getAllProgramExercises(): List<ProgramExerciseDto>
     suspend fun getWelcomeVideo(): ProgramExerciseDto?
+    suspend fun getCourseOverviewVideo(): ProgramExerciseDto?
     suspend fun getPaymentStatus(): PaymentStatusDto?
     suspend fun skipPayment(): PaymentStatusDto?
     suspend fun sendSupportMessage(

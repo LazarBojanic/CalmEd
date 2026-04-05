@@ -9,15 +9,17 @@ import platform.Foundation.preferredLanguages
 
 actual object LocalAppLocale {
     private const val LANG_KEY = "AppleLanguages"
-    private val defaultLocale = (NSLocale.preferredLanguages.firstOrNull() as? String) ?: "en"
-    private val LocalAppLocaleState = staticCompositionLocalOf { defaultLocale }
+    private val LocalAppLocaleState =
+        staticCompositionLocalOf { (NSLocale.preferredLanguages.firstOrNull() as? String) ?: "en" }
 
     actual val current: String
         @Composable get() = LocalAppLocaleState.current
 
     @Composable
     actual infix fun provides(value: String?): ProvidedValue<*> {
-        val newValue = value ?: defaultLocale
+        val newValue = value
+            ?: (NSLocale.preferredLanguages.firstOrNull() as? String)
+            ?: "en"
 
         if (value == null) {
             NSUserDefaults.standardUserDefaults.removeObjectForKey(LANG_KEY)

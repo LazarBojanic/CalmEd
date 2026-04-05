@@ -287,6 +287,7 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 		titleEs = this.titleEs,
 		description = this.description,
 		playbackId = this.playbackId,
+		playbackIdEs = this.playbackIdEs,
 		thumbnailURL = this.thumbnailURL,
 		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,
@@ -298,8 +299,10 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 fun ProgramExerciseEntity.setFrom(d: ProgramExercise, mapMode: MapMode) {
 	weekNumber = d.weekNumber
 	title = d.title
+	titleEs = d.titleEs
 	description = d.description
 	playbackId = d.playbackId
+	playbackIdEs = d.playbackIdEs
 	thumbnailURL = d.thumbnailURL
 	visibility = d.visibility
 	orderInWeek = d.orderInWeek
@@ -322,6 +325,7 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 		titleEs = this.titleEs,
 		description = this.description,
 		playbackId = this.playbackId,
+		playbackIdEs = this.playbackIdEs,
 		thumbnailURL = this.thumbnailURL,
 		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,
@@ -334,34 +338,56 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 	val videoBaseURL = "https://stream.mux.com/";
 	val thumbnailBaseURL = "https://image.mux.com/";
 	var videoURL = ""
+	var videoURLEs = ""
 	var thumbnailURL = this.thumbnailURL
-	if(muxConfig.signingKey.isNotBlank() && muxConfig.privateKey.isNotBlank() && !this.playbackId.isNullOrBlank()){
-		if(this.visibility == Visibility.SIGNED){
-			val videoToken = MuxTokenGenerator.generatePlaybackToken(
-				this.playbackId,
-				muxConfig.signingKey,
-				muxConfig.privateKey
-			)
-			videoURL = "$videoBaseURL${this.playbackId}.m3u8?token=${videoToken}"
+	if(muxConfig.signingKey.isNotBlank() && muxConfig.privateKey.isNotBlank()){
+		if(!this.playbackId.isNullOrBlank()){
+			if(this.visibility == Visibility.SIGNED){
+				val videoToken = MuxTokenGenerator.generatePlaybackToken(
+					this.playbackId,
+					muxConfig.signingKey,
+					muxConfig.privateKey
+				)
+				videoURL = "$videoBaseURL${this.playbackId}.m3u8?token=${videoToken}"
 
-			val thumbnailToken = MuxTokenGenerator.generateThumbnailToken(
-				this.playbackId,
-				muxConfig.signingKey,
-				muxConfig.privateKey
-			)
-			thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg?token=${thumbnailToken}"
+				val thumbnailToken = MuxTokenGenerator.generateThumbnailToken(
+					this.playbackId,
+					muxConfig.signingKey,
+					muxConfig.privateKey
+				)
+				thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg?token=${thumbnailToken}"
+			}
+			else{
+				videoURL = "$videoBaseURL${this.playbackId}.m3u8"
+				if (thumbnailURL.isNullOrBlank()) {
+					thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
+				}
+			}
 		}
-		else{
+
+		if(!this.playbackIdEs.isNullOrBlank()){
+			if(this.visibility == Visibility.SIGNED){
+				val videoTokenEs = MuxTokenGenerator.generatePlaybackToken(
+					this.playbackIdEs,
+					muxConfig.signingKey,
+					muxConfig.privateKey
+				)
+				videoURLEs = "$videoBaseURL${this.playbackIdEs}.m3u8?token=${videoTokenEs}"
+			}
+			else{
+				videoURLEs = "$videoBaseURL${this.playbackIdEs}.m3u8"
+			}
+		}
+	}
+	else {
+		if (!this.playbackId.isNullOrBlank()){
 			videoURL = "$videoBaseURL${this.playbackId}.m3u8"
 			if (thumbnailURL.isNullOrBlank()) {
 				thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
 			}
 		}
-	}
-	else if (!this.playbackId.isNullOrBlank()){
-		videoURL = "$videoBaseURL${this.playbackId}.m3u8"
-		if (thumbnailURL.isNullOrBlank()) {
-			thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
+		if (!this.playbackIdEs.isNullOrBlank()){
+			videoURLEs = "$videoBaseURL${this.playbackIdEs}.m3u8"
 		}
 	}
 	return ProgramExerciseDto(
@@ -371,7 +397,9 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 		titleEs = this.titleEs,
 		description = this.description,
 		playbackId = this.playbackId,
+		playbackIdEs = this.playbackIdEs,
 		videoURL = videoURL,
+		videoURLEs = videoURLEs,
 		thumbnailURL = thumbnailURL,
 		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,

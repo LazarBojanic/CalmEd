@@ -45,7 +45,6 @@ buildConfig{
 	buildConfigField("appleWebClientId", local.getProperty("APPLE_WEB_CLIENT_ID") ?: "")
 	buildConfigField("appleCallbackURI", local.getProperty("APPLE_CALLBACK_URI") ?: "")
 	buildConfigField("notificationDebug", (local.getProperty("NOTIFICATION_DEBUG") ?: "false").toBoolean())
-	buildConfigField("useMockBilling", (local.getProperty("USE_MOCK_BILLING") ?: "true").toBoolean())
 }
 
 kotlin {

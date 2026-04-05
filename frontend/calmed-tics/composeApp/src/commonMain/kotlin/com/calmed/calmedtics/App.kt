@@ -27,6 +27,7 @@ import com.calmed.calmedtics.ui.screen.PaymentScreen
 import com.calmed.calmedtics.ui.screen.RegisterScreen
 import com.calmed.calmedtics.ui.screen.SplashScreen
 import com.calmed.calmedtics.ui.screen.WelcomeVideoScreen
+import com.calmed.calmedtics.ui.screen.CourseOverviewScreen
 import com.calmed.calmedtics.ui.screen.OnboardingScreen
 import com.calmed.calmedtics.util.isBackendReachable
 import com.calmed.calmedtics.viewmodel.AuthViewModel
@@ -53,6 +54,7 @@ object Routes {
     const val ForgotPassword = "auth/forgot-password"
     const val Home = "home"
     const val WelcomeVideo = "welcome-video"
+    const val CourseOverview = "course-overview"
     const val FullscreenVideo = "video/fullscreen"
     const val Main = "main"
     const val Onboarding = "onboarding"
@@ -77,6 +79,7 @@ fun App() {
     val scope = rememberCoroutineScope()
     var fullscreenVideoUrl by rememberSaveable { mutableStateOf<String?>(null) }
     var welcomeHandledUserId by rememberSaveable { mutableStateOf<String?>(null) }
+    var courseOverviewHandledUserId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val tokenStore: ITokenDataStore = koinInject()
     val authService: IAuthService = koinInject()
@@ -101,8 +104,11 @@ fun App() {
         val isPaid = remoteUser.isPaid
         val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser.id)
         val shouldShowWelcomeVideo = showWelcomeVideo && welcomeHandledUserId != remoteUser.id
+        val showCourseOverview = appSettings.getShowCourseOverview(remoteUser.id)
+        val shouldShowCourseOverview = showCourseOverview && courseOverviewHandledUserId != remoteUser.id
         return when {
             shouldShowWelcomeVideo -> Routes.WelcomeVideo
+            shouldShowCourseOverview -> Routes.CourseOverview
             !isPaid -> Routes.Payment
             !isOnboarded -> Routes.Onboarding
             else -> Routes.Main
@@ -311,6 +317,32 @@ fun App() {
                     WelcomeVideoScreen(
                         onSkip = {
                             welcomeHandledUserId = sessionViewModel.user.value?.id
+                            navController.navigate(Routes.CourseOverview) {
+                                popUpTo(Routes.WelcomeVideo) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                        onContinue = { dontShowAgain ->
+                            welcomeHandledUserId = sessionViewModel.user.value?.id
+                            if (dontShowAgain) settings.setShowWelcomeVideo(
+                                sessionViewModel.user.value?.id,
+                                false
+                            )
+                            navController.navigate(Routes.CourseOverview) {
+                                popUpTo(Routes.WelcomeVideo) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                        onOpenFullscreen = { url -> openFullscreen(url) }
+                    )
+                }
+
+                composable(Routes.CourseOverview) {
+                    val settings: AppSettings = koinInject()
+
+                    CourseOverviewScreen(
+                        onSkip = {
+                            courseOverviewHandledUserId = sessionViewModel.user.value?.id
                             val isPaid = sessionViewModel.user.value?.isPaid == true
                             val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
                             val nextRoute = when {
@@ -319,13 +351,13 @@ fun App() {
                                 else -> Routes.Onboarding
                             }
                             navController.navigate(nextRoute) {
-                                popUpTo(Routes.WelcomeVideo) { inclusive = true }
+                                popUpTo(Routes.CourseOverview) { inclusive = true }
                                 launchSingleTop = true
                             }
                         },
                         onContinue = { dontShowAgain ->
-                            welcomeHandledUserId = sessionViewModel.user.value?.id
-                            if (dontShowAgain) settings.setShowWelcomeVideo(
+                            courseOverviewHandledUserId = sessionViewModel.user.value?.id
+                            if (dontShowAgain) settings.setShowCourseOverview(
                                 sessionViewModel.user.value?.id,
                                 false
                             )
@@ -337,7 +369,7 @@ fun App() {
                                 else -> Routes.Onboarding
                             }
                             navController.navigate(nextRoute) {
-                                popUpTo(Routes.WelcomeVideo) { inclusive = true }
+                                popUpTo(Routes.CourseOverview) { inclusive = true }
                                 launchSingleTop = true
                             }
                         },

@@ -26,13 +26,10 @@ class ProgramExerciseRepository : IProgramExerciseRepository {
 	}
 
 	override suspend fun findWelcomeVideo(): ProgramExercise? {
-		return withTransaction {
-			ProgramExerciseEntity
-				.find { ProgramExerciseTable.weekNumber eq 0 }
-				.orderBy(ProgramExerciseTable.orderInWeek to SortOrder.ASC)
-				.firstOrNull()
-				?.toRaw()
-		}
+		return findById(UUID.fromString("3a420f83-c314-4731-b319-310c94e55752"))
+	}
+	override suspend fun findCourseOverviewVideo(): ProgramExercise? {
+		return findById(UUID.fromString("d84f5be0-c5e1-4445-a102-3e16e1b32355"))
 	}
 
 	override suspend fun findUpNext(): ProgramExercise? {

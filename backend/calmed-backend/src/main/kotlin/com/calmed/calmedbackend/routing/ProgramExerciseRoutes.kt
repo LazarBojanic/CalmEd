@@ -31,6 +31,12 @@ fun Route.programExerciseRoutes() {
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
+			get("/course-overview-video") {
+				when (val res = service.getCourseOverviewVideo()) {
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
+					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+				}
+			}
 			get("/{id}") {
 				val idParam = call.parameters["id"]
 				if (idParam == null) {

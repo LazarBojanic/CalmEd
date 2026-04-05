@@ -9,7 +9,6 @@ import androidx.compose.ui.platform.LocalContext
 import java.util.Locale
 
 actual object LocalAppLocale {
-    private var defaultLocale: Locale? = null
     private val LocalAppLocaleState = staticCompositionLocalOf { Locale.getDefault().toLanguageTag() }
 
     actual val current: String
@@ -19,11 +18,12 @@ actual object LocalAppLocale {
     actual infix fun provides(value: String?): ProvidedValue<*> {
         val configuration = Configuration(LocalConfiguration.current)
 
-        if (defaultLocale == null) {
-            defaultLocale = Locale.getDefault()
+        val configLocales = LocalConfiguration.current.locales
+        val newLocale = if (value == null) {
+            if (configLocales.isEmpty) Locale.getDefault() else configLocales[0]
+        } else {
+            Locale.forLanguageTag(value)
         }
-
-        val newLocale = if (value == null) defaultLocale!! else Locale.forLanguageTag(value)
         Locale.setDefault(newLocale)
         configuration.setLocale(newLocale)
 

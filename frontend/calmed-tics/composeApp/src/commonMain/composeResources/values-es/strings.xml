@@ -128,11 +128,10 @@
     <string name="creating">Creando...</string>
     <string name="back_to_login">Volver al inicio de sesión</string>
     <string name="welcome_video_title">Video de bienvenida</string>
-    <string name="welcome_video_screen">Pantalla de video de bienvenida</string>
     <string name="loading_video">Cargando video...</string>
-    <string name="error_video_not_available">El video de bienvenida no está disponible.</string>
-    <string name="error_video_no_source">El video de bienvenida no tiene una fuente válida.</string>
-    <string name="error_video_failed">Error al cargar el video de bienvenida.</string>
+    <string name="error_video_not_available">El video no está disponible.</string>
+    <string name="error_video_no_source">El video no tiene una fuente de reproducción válida.</string>
+    <string name="error_video_failed">Error al cargar el video.</string>
     <string name="dont_show_again">No mostrar de nuevo</string>
     <string name="continue">Continuar</string>
     <string name="language_settings">Idioma</string>

@@ -128,11 +128,10 @@
     <string name="creating">Creating...</string>
     <string name="back_to_login">Back to login</string>
     <string name="welcome_video_title">Welcome Video</string>
-    <string name="welcome_video_screen">Welcome Video Screen</string>
     <string name="loading_video">Loading video...</string>
-    <string name="error_video_not_available">Welcome video is not available.</string>
-    <string name="error_video_no_source">Welcome video has no valid playback source.</string>
-    <string name="error_video_failed">Failed to load welcome video.</string>
+    <string name="error_video_not_available">The video is not available.</string>
+    <string name="error_video_no_source">The video has no valid playback source.</string>
+    <string name="error_video_failed">Failed to load the video.</string>
     <string name="dont_show_again">Don't show again</string>
     <string name="continue">Continue</string>
     <string name="language_settings">Language</string>

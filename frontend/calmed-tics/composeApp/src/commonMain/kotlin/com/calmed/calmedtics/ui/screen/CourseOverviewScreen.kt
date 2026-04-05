@@ -22,9 +22,9 @@ import com.calmed.calmedtics.error_video_no_source
 import com.calmed.calmedtics.error_video_not_available
 import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.loading_video
-import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.skip
 import com.calmed.calmedtics.ui.component.VideoPlayer
+import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.util.getTitle
 import com.calmed.calmedtics.util.getVideoURL
 import org.jetbrains.compose.resources.stringResource
@@ -34,19 +34,19 @@ import com.calmed.calmedtics.localization.customAppLocale
 import com.calmed.calmedtics.localization.resolveContentLanguage
 
 @Composable
-fun WelcomeVideoScreen(
+fun CourseOverviewScreen(
     onSkip: () -> Unit,
     onContinue: (Boolean) -> Unit,
     onOpenFullscreen: (String) -> Unit
 ) {
     val appApi: IAppApi = koinInject()
     val appSettings: AppSettings = koinInject()
-
     var dontShowAgain by remember { mutableStateOf(false) }
 
     var videoUrl by remember { mutableStateOf<String?>(null) }
     var title by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+
     val errorNotAvailable = stringResource(Res.string.error_video_not_available)
     val errorNoSource = stringResource(Res.string.error_video_no_source)
     val errorFailed = stringResource(Res.string.error_video_failed)
@@ -57,9 +57,9 @@ fun WelcomeVideoScreen(
         error = null
         try {
             val lang = resolveContentLanguage(customAppLocale, uiLocaleTag)
-            val welcomeVideo = appApi.getWelcomeVideo()
-            videoUrl = welcomeVideo?.getVideoURL(lang)
-            title = welcomeVideo?.getTitle(lang)
+            val video = appApi.getCourseOverviewVideo()
+            videoUrl = video?.getVideoURL(lang)
+            title = video?.getTitle(lang)
             if (videoUrl == null) {
                 error = errorNoSource
             }

@@ -9,6 +9,7 @@ interface IProgramExerciseService {
 	suspend fun getAll(): AppResult<List<ProgramExerciseJoined>>
 	suspend fun getById(id: UUID): AppResult<ProgramExerciseJoined>
 	suspend fun getWelcomeVideo(): AppResult<ProgramExerciseJoined>
+	suspend fun getCourseOverviewVideo(): AppResult<ProgramExerciseJoined>
 	suspend fun getUpNext(): AppResult<ProgramExerciseJoined>
 	suspend fun getUpNextList(limit: Int): AppResult<List<ProgramExerciseJoined>>
 	suspend fun getByWeek(week: Int): AppResult<List<ProgramExerciseJoined>>

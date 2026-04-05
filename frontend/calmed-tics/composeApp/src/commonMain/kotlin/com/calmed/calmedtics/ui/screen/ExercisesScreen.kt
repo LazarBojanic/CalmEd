@@ -92,7 +92,7 @@ fun ExercisesScreen(
                     ) {
                         ThumbnailImage(
                             url = ex.thumbnailURL ?: "",
-                            contentDescription = ex.title,
+                            contentDescription = ex.getTitle(language),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .alpha(if (locked) 0.5f else 1f)
