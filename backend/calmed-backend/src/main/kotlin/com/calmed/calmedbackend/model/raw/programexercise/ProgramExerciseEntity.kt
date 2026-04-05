@@ -9,6 +9,7 @@ class ProgramExerciseEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	companion object : UUIDEntityClass<ProgramExerciseEntity>(ProgramExerciseTable)
 	var weekNumber by ProgramExerciseTable.weekNumber
 	var title by ProgramExerciseTable.title
+	var titleEs by ProgramExerciseTable.titleEs
 	var description by ProgramExerciseTable.description
 	var playbackId by ProgramExerciseTable.playbackId
 	var thumbnailURL by ProgramExerciseTable.thumbnailURL

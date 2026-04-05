@@ -37,11 +37,13 @@ import com.calmed.calmedtics.home_title
 import com.calmed.calmedtics.home_welcome
 import com.calmed.calmedtics.no_image
 import com.calmed.calmedtics.select_video
+import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.ui.component.NativeCalendar
 import com.calmed.calmedtics.util.currentYmd
+import com.calmed.calmedtics.util.getTitle
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -61,6 +63,8 @@ fun HomeScreen(
     var selectedVideoUrl by remember { mutableStateOf<String?>(null) }
     var selectedTitle by remember { mutableStateOf<String?>(null) }
     var selectedWeekNumber by remember { mutableStateOf<Int?>(null) }
+    val appSettings = koinInject<AppSettings>()
+    val language = appSettings.getAppLanguage()
 
     LaunchedEffect(Unit) {
         sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
@@ -70,7 +74,7 @@ fun HomeScreen(
         if (selectedVideoUrl.isNullOrBlank()) {
             val first = home?.upNext?.firstOrNull()
             selectedVideoUrl = first?.videoURL
-            selectedTitle = first?.title
+            selectedTitle = first?.getTitle(language ?: "en")
         }
     }
 
@@ -91,7 +95,7 @@ fun HomeScreen(
         if (selectedVideoUrl.isNullOrBlank()) {
             val first = displayExercises.firstOrNull()
             selectedVideoUrl = first?.videoURL
-            selectedTitle = first?.title
+            selectedTitle = first?.getTitle(language ?: "en")
         }
     }
 
@@ -186,7 +190,7 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .clickable {
                                 selectedVideoUrl = ex.videoURL
-                                selectedTitle = ex.title
+                                selectedTitle = ex.getTitle(language ?: "en")
                             }
                     ) {
                         Row(
@@ -202,7 +206,7 @@ fun HomeScreen(
                                 if (!thumb.isNullOrBlank()) {
                                     ThumbnailImage(
                                         url = thumb,
-                                        contentDescription = ex.title,
+                                        contentDescription = ex.getTitle(language ?: "en"),
                                         modifier = Modifier.fillMaxSize()
                                     )
                                 } else {
@@ -219,7 +223,7 @@ fun HomeScreen(
 
 
                             Text(
-                                text = ex.title,
+                                text = ex.getTitle(language ?: "en"),
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)

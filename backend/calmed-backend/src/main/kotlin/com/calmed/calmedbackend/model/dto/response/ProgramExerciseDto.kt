@@ -13,6 +13,7 @@ data class ProgramExerciseDto(
 	val id: UUID,
 	val weekNumber: Int,
 	val title: String,
+	val titleEs: String?,
 	val description: String?,
 	val playbackId: String?,
 	val videoURL: String?,

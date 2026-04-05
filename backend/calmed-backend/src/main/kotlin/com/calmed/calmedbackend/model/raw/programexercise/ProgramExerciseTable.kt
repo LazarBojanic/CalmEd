@@ -20,4 +20,5 @@ object ProgramExerciseTable : UUIDTable("program_exercise") {
 	val orderInWeek = integer("order_in_week").nullable()
 	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
+	val titleEs = varchar(name = "title_es", length = 100).nullable()
 }

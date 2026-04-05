@@ -32,6 +32,7 @@ import com.calmed.calmedtics.onboarding_error
 import com.calmed.calmedtics.onboarding_title
 import com.calmed.calmedtics.retry
 import com.calmed.calmedtics.service.specification.IAuthService
+import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.skip_onboarding
 import com.calmed.calmedtics.store.ITokenDataStore
 import com.calmed.calmedtics.tab_exercises
@@ -68,6 +69,8 @@ fun MainScreen(
 
 	val selectedTab = remember { mutableStateOf(MainTab.Home) }
 	val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+	val appSettings = koinInject<AppSettings>()
+	val language = appSettings.getAppLanguage() ?: "en"
 
 	LaunchedEffect(token?.access) {
 		val access = token?.access
@@ -188,6 +191,7 @@ fun MainScreen(
 					ExercisesScreen(
 						currentWeek = home?.currentWeek ?: 1,
 						exercises = allExercises,
+						language = language,
 						onExerciseClick = { ex ->
 							val url = ex.videoURL
 							if (!url.isNullOrBlank()) {

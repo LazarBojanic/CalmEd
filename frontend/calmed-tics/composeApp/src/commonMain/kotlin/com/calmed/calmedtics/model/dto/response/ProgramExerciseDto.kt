@@ -7,6 +7,7 @@ data class ProgramExerciseDto(
 	val id: String,
 	val weekNumber: Int,
 	val title: String,
+	val titleEs: String?,
 	val description: String?,
 	val playbackId: String?,
 	val videoURL: String?,

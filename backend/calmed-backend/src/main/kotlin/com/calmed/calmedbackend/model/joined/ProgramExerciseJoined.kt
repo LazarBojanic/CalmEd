@@ -13,6 +13,7 @@ data class ProgramExerciseJoined(
 	val id: UUID,
 	val weekNumber: Int,
 	val title: String,
+	val titleEs: String?,
 	val description: String?,
 	val playbackId: String?,
 	val thumbnailURL: String?,

@@ -33,6 +33,7 @@ import com.calmed.calmedtics.exercise_locked_message
 import com.calmed.calmedtics.locked
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.ui.component.ThumbnailImage
+import com.calmed.calmedtics.util.getTitle
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.calmed.calmedtics.week_title
@@ -42,7 +43,8 @@ import com.calmed.calmedtics.week_title
 fun ExercisesScreen(
     currentWeek: Int,
     exercises: List<ProgramExerciseDto>,
-    onExerciseClick: (ProgramExerciseDto) -> Unit
+    onExerciseClick: (ProgramExerciseDto) -> Unit,
+    language: String
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -124,7 +126,7 @@ fun ExercisesScreen(
                             )
                             Spacer(Modifier.width(4.dp))
                         }
-                        Text(text = ex.title)
+                        Text(text = ex.getTitle(language))
                     }
 
                     Spacer(Modifier.height(12.dp))
