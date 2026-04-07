@@ -7,17 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-  78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F7F2F521A4F002CDD53 /* GoogleSignIn */; };
+		78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F7F2F521A4F002CDD53 /* GoogleSignIn */; };
 		78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F812F521A4F002CDD53 /* GoogleSignInSwift */; };
 		A19C9E3A10C14C8FAE1121C4 /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = A19C9E3A10C14C8FAE1121C3 /* StripePaymentSheet */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-  BAFEB580F79DC2196C9B91C8 /* calmedtics.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = calmedtics.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BAFEB580F79DC2196C9B91C8 /* calmedtics.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = calmedtics.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		6221A75F544DDA22A5C905B8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		6221A75F544DDA22A5C905B8 /* Exceptions for "iosApp" folder in "iosApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -30,7 +30,7 @@
 		2CE245753B5F0A6F30333081 /* iosApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				6221A75F544DDA22A5C905B8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				6221A75F544DDA22A5C905B8 /* Exceptions for "iosApp" folder in "iosApp" target */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -46,11 +46,11 @@
 		6B5B2262EA070333970C98A8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
-   files = (
-                                A19C9E3A10C14C8FAE1121C4 /* StripePaymentSheet in Frameworks */,
-                                78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */,
-                                78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */,
-                        );
+			files = (
+				A19C9E3A10C14C8FAE1121C4 /* StripePaymentSheet in Frameworks */,
+				78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */,
+				78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -68,9 +68,9 @@
 			isa = PBXGroup;
 			children = (
 				5CB45396187DA1F68CACA0DF /* Configuration */,
-                                2CE245753B5F0A6F30333081 /* iosApp */,
-                                38895CFF99B305D5EDBC6B1F /* Products */,
-                        );
+				2CE245753B5F0A6F30333081 /* iosApp */,
+				38895CFF99B305D5EDBC6B1F /* Products */,
+			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -79,9 +79,9 @@
 		54EEDB0CE103EB38AB6E3008 /* iosApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3E2FE65326F7E6E231107466 /* Build configuration list for PBXNativeTarget "iosApp" */;
-   buildPhases = (
-                                5C54CE75BC3F58C73B36529D /* Compile Kotlin */,
-                                A2D7182D5AD16353388A15D5 /* Sources */,
+			buildPhases = (
+				5C54CE75BC3F58C73B36529D /* Compile Kotlin */,
+				A2D7182D5AD16353388A15D5 /* Sources */,
 				6B5B2262EA070333970C98A8 /* Frameworks */,
 				748A4AB543CDF5FE97090C9F /* Resources */,
 			);
@@ -148,12 +148,16 @@
 /* Begin PBXShellScriptBuildPhase section */
 		5C54CE75BC3F58C73B36529D /* Compile Kotlin */ = {
 			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
 			inputPaths = (
 			);
 			name = "Compile Kotlin";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
 			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode";
 		};
 /* End PBXShellScriptBuildPhase section */
