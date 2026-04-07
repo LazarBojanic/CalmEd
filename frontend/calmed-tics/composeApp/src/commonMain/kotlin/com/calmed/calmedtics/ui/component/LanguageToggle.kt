@@ -27,8 +27,8 @@ fun LanguageToggle(
     modifier: Modifier = Modifier
 ) {
     val languages = listOf(
-        LanguageOption("en", getFlagEmoji("US"), "EN"),
-        LanguageOption("es", getFlagEmoji("ES"), "ES"),
+        LanguageOption("en", "🇺🇸", "EN"),
+        LanguageOption("es", "🇪🇸", "ES"),
         LanguageOption(null, "🌐", "AUTO")
     )
 
@@ -77,13 +77,6 @@ fun LanguageToggle(
             }
         }
     }
-}
-
-private fun getFlagEmoji(countryCode: String): String {
-    if (countryCode.length != 2) return "🌐"
-    val firstLetter = countryCode[0].uppercaseChar().code - 0x41 + 0x1F1E6
-    val secondLetter = countryCode[1].uppercaseChar().code - 0x41 + 0x1F1E6
-    return String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))
 }
 
 private data class LanguageOption(
