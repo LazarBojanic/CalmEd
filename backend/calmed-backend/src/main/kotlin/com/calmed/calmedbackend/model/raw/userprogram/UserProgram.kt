@@ -26,4 +26,26 @@ data class UserProgram(
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
 	val updatedAt: Instant
-)
+) {
+	companion object {
+		fun createNew(
+			userId: UUID,
+			startDate: LocalDate,
+			endDate: LocalDate? = null,
+			timezone: ZoneId? = null,
+			createdAt: Instant? = null,
+			updatedAt: Instant? = null
+		): UserProgram {
+			val now = Instant.now()
+			return UserProgram(
+				id = UUID.randomUUID(),
+				userId = userId,
+				startDate = startDate,
+				endDate = endDate,
+				timezone = timezone,
+				createdAt = createdAt ?: now,
+				updatedAt = updatedAt ?: now
+			)
+		}
+	}
+}

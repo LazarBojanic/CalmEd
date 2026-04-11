@@ -1,9 +1,11 @@
 package com.calmed.calmedbackend.model.raw.user
 
 import com.calmed.calmedbackend.util.InstantSerializer
+import com.calmed.calmedbackend.util.LocalDateSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer
 import kotlinx.serialization.Serializable
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 @Serializable
@@ -22,7 +24,7 @@ data class User(
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
-	val updatedAt: Instant,
+	val updatedAt: Instant
 ) {
 	companion object {
 		fun createNew(

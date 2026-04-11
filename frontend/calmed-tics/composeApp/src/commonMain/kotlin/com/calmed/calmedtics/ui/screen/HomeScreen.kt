@@ -106,8 +106,8 @@ fun HomeScreen(
     val todayEpoch = remember(ymd) { dateToEpochDay(ymd.year, ymd.month, ymd.day) }
     
     // Program start weekday calculation (0=Mon, ..., 6=Sun)
-    val startWeekday = remember(user?.createdAt) {
-        val startDate = user?.createdAt ?: ""
+    val startWeekday = remember(home?.programStartDate, user?.createdAt) {
+        val startDate = home?.programStartDate ?: user?.createdAt ?: ""
         if (startDate.isNotBlank()) {
             try {
                 val parts = startDate.substring(0, 10).split("-")
@@ -129,7 +129,9 @@ fun HomeScreen(
     val todayDayOfWeek = ((todayEpoch + 3) % 7).toInt() // Current weekday (0=Mon, ..., 6=Sun)
     val daysSinceWeekStart = (todayDayOfWeek - startWeekday + 7) % 7
     
-    var trackerStartEpoch by remember(todayEpoch, daysSinceWeekStart) { 
+    val activeWeek = home?.currentWeek ?: 1
+
+    var trackerStartEpoch by remember(todayEpoch, daysSinceWeekStart, activeWeek) { 
         mutableStateOf(todayEpoch - daysSinceWeekStart) 
     }
     
@@ -143,14 +145,13 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
+        sessionViewModel.loadAllExercises()
     }
 
-    val activeWeek = home?.currentWeek ?: 1
-    
-    // We want the exercises to follow the week shown in the tracker, 
+    // displayWeek should use the activeWeek from home
     // but constrained by activeWeek for safety (though tracker is now constrained)
-    val displayWeek = remember(trackerStartEpoch, user?.createdAt, startWeekday, activeWeek) {
-        val startDate = user?.createdAt ?: ""
+    val displayWeek = remember(trackerStartEpoch, home?.programStartDate, user?.createdAt, startWeekday, activeWeek) {
+        val startDate = home?.programStartDate ?: user?.createdAt ?: ""
         if (startDate.isBlank()) {
             activeWeek
         } else {
@@ -228,8 +229,8 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val startEpoch = remember(user?.createdAt) {
-                                val startDate = user?.createdAt ?: ""
+                            val startEpoch = remember(home?.programStartDate, user?.createdAt) {
+                                val startDate = home?.programStartDate ?: user?.createdAt ?: ""
                                 if (startDate.isNotBlank()) {
                                     try {
                                         val parts = startDate.substring(0, 10).split("-")
@@ -510,28 +511,4 @@ fun HomeScreen(
             }
         }
     }
-}
-
-private const val MILLIS_PER_DAY = 86_400_000L
-
-private fun epochDayFromMillis(epochMillis: Long): Long {
-    return floorDiv(epochMillis, MILLIS_PER_DAY)
-}
-
-private fun floorDiv(a: Long, b: Long): Long {
-    var r = a / b
-    if ((a xor b) < 0 && a % b != 0L) r -= 1
-    return r
-}
-
-// ISO-8601 to epoch day, same as java.time.LocalDate.toEpochDay
-private fun dateToEpochDay(year: Int, month: Int, day: Int): Long {
-    var y = year
-    val m = month
-    y -= if (m <= 2) 1 else 0
-    val era = if (y >= 0) y / 400 else (y - 399) / 400
-    val yoe = y - era * 400
-    val doy = (153 * (m + if (m > 2) -3 else 9) + 2) / 5 + day - 1
-    val doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
-    return era * 146097L + doe - 719468L
 }

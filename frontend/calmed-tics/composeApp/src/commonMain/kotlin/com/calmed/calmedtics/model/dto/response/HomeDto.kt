@@ -9,8 +9,17 @@ data class HomeDto(
     val avatarUrl: String? = null,
     val calendar: CalendarMonthDto,
     val upNext: List<ProgramExerciseDto>,
-    val currentWeek: Int
+    val currentWeek: Int,
+    val programStartDate: String? = null,
+    val completions: List<UserExerciseProgressCompactDto> = emptyList()
+)
 
+@Serializable
+data class UserExerciseProgressCompactDto(
+    val exerciseId: String,
+    val session: com.calmed.calmedtics.model.raw.ExerciseSession,
+    val date: String,
+    val completed: Boolean = true
 )
 
 @Serializable

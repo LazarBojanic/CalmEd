@@ -9,6 +9,7 @@ import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.model.dto.request.RegisterUserDto
 import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
+import com.calmed.calmedtics.model.dto.request.UserExerciseProgressUpdateDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.dto.request.VerifyAppleReceiptDto
 import com.calmed.calmedtics.model.dto.request.VerifyGoogleReceiptDto
@@ -121,6 +122,11 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 			HttpStatusCode.OK -> resp.body<UserDto>()
 			else -> null
 		}
+	}
+
+	override suspend fun syncExerciseProgress(dto: UserExerciseProgressUpdateDto): Boolean {
+		val resp: HttpResponse = client.post("/user-exercise-progress/sync") { setBody(dto) }
+		return resp.status == HttpStatusCode.OK
 	}
 
 	override suspend fun getUserInfoTicsByUserId(userId: String): UserInfoTicsDto? {

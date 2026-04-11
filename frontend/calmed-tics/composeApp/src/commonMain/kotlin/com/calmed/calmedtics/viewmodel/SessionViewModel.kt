@@ -2,12 +2,14 @@ package com.calmed.calmedtics.viewmodel
 
 import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
+import com.calmed.calmedtics.model.dto.request.UserExerciseProgressUpdateDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.dto.response.HomeDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.ExerciseCompletionEntity
+import com.calmed.calmedtics.model.raw.ExerciseSession
 import com.calmed.calmedtics.model.toEntity
 import com.calmed.calmedtics.model.toJoined
 import com.calmed.calmedtics.repository.HomeRepository
@@ -22,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -105,6 +108,13 @@ class SessionViewModel(
 		completed: Boolean
 	) {
 		println("[DEBUG_LOG] markExerciseCompleted: ex=$exerciseId, user=$userId, date=$date, session=$session, completed=$completed")
+		
+		val exerciseSession = try {
+			ExerciseSession.valueOf(session.uppercase())
+		} catch (e: Exception) {
+			ExerciseSession.MORNING
+		}
+
 		if (completed) {
 			exerciseCompletionDao.upsert(
 				ExerciseCompletionEntity(
@@ -118,6 +128,22 @@ class SessionViewModel(
 			)
 		} else {
 			exerciseCompletionDao.delete(exerciseId, userId, date, session)
+		}
+
+		// Sync with backend
+		scope.launch {
+			try {
+				api.syncExerciseProgress(
+					UserExerciseProgressUpdateDto(
+						exerciseId = exerciseId,
+						session = exerciseSession,
+						date = date,
+						completed = completed
+					)
+				)
+			} catch (e: Exception) {
+				println("[DEBUG_LOG] Failed to sync exercise progress: ${e.message}")
+			}
 		}
 	}
 
@@ -316,6 +342,29 @@ class SessionViewModel(
 		try {
 			val result = homeRepository.getHome(year, month)
 			_home.value = result
+
+			// Sync completions to local DB
+			if (result != null) {
+				scope.launch(Dispatchers.IO) {
+					val userId = currentUserId() ?: return@launch
+					result.completions.forEach { comp ->
+						val sessionStr = comp.session.name.lowercase()
+						val existing = exerciseCompletionDao.findExisting(comp.exerciseId, userId, comp.date, sessionStr)
+						if (existing == null) {
+							exerciseCompletionDao.upsert(
+								ExerciseCompletionEntity(
+									exerciseId = comp.exerciseId,
+									userId = userId,
+									date = comp.date,
+									session = sessionStr,
+									completed = true,
+									timestamp = currentTimeMillis()
+								)
+							)
+						}
+					}
+				}
+			}
 		} catch (t: Throwable) {
 			println("HOME ERROR ${t.message}")
 			_error.value = t.message ?: "Home failed."

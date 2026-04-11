@@ -9,6 +9,7 @@ import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.model.dto.request.RegisterUserDto
 import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
+import com.calmed.calmedtics.model.dto.request.UserExerciseProgressUpdateDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.dto.request.VerifyAppleReceiptDto
 import com.calmed.calmedtics.model.dto.request.VerifyGoogleReceiptDto
@@ -32,6 +33,7 @@ interface IAppApi {
 
     suspend fun getUser(id: String): UserDto?
     suspend fun setOnboarded(id: String, dto: SetIsOnboardedDto): UserDto?
+    suspend fun syncExerciseProgress(dto: UserExerciseProgressUpdateDto): Boolean
 
     suspend fun getUserInfoTicsByUserId(userId: String): UserInfoTicsDto?
     suspend fun updateUserInfoTics(id: String, dto: UserInfoTicsUpdateDto): UserInfoTicsDto?

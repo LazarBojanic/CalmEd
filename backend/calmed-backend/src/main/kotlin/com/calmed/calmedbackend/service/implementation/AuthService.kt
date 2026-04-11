@@ -22,6 +22,10 @@ import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialType
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
+import com.calmed.calmedbackend.model.raw.userprogram.UserProgram
+import java.time.LocalDate
+import com.calmed.calmedbackend.service.specification.IUserProgramService
+import java.time.ZoneOffset
 import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
@@ -48,8 +52,10 @@ import java.util.UUID
 class AuthService(private val userService: IUserService,
 				  private val authCredentialService: IAuthCredentialService,
 				  private val refreshTokenService: IRefreshTokenService,
-				  private val userInfoTicsService: IUserInfoTicsService,
-				  private val jwtConfig: JwtConfig,
+	private val userInfoTicsService: IUserInfoTicsService,
+	private val userProgramService: IUserProgramService,
+	private val userExerciseProgressService: com.calmed.calmedbackend.service.specification.IUserExerciseProgressService,
+	private val jwtConfig: JwtConfig,
 				  private val emailConfig: EmailConfig,
 				  private val appleConfig: AppleConfig,
 				  private val googleOAuthConfig: GoogleOAuthConfig
@@ -202,9 +208,35 @@ class AuthService(private val userService: IUserService,
 														userInfoTicsService.create(newUserInfoTics)
 													when (userInfoTicsResult) {
 														is AppResult.Success -> {
-															return@withTransaction createTokenPair(
-																createdUserResult.data.id, createdUserResult.data.email
+															val newUserProgram = UserProgram.createNew(
+																userId = newUser.id,
+																startDate = LocalDate.now(ZoneOffset.UTC)
 															)
+															val userProgramResult = userProgramService.create(newUserProgram)
+															when (userProgramResult) {
+																is AppResult.Success -> {
+																	val initProgressResult = userExerciseProgressService.initializeUserProgress(newUser.id, newUserProgram.startDate)
+																	when (initProgressResult) {
+																		is AppResult.Success -> {
+																			return@withTransaction createTokenPair(
+																				createdUserResult.data.id, createdUserResult.data.email
+																			)
+																		}
+																		is AppResult.Failure -> {
+																			return@withTransaction AppResult.Failure(
+																				initProgressResult.httpStatusCode,
+																				"Failed to initialize user progress. ${initProgressResult.message}"
+																			)
+																		}
+																	}
+																}
+																is AppResult.Failure -> {
+																	return@withTransaction AppResult.Failure(
+																		userProgramResult.httpStatusCode,
+																		"Failed to create user program. ${userProgramResult.message}"
+																	)
+																}
+															}
 														}
 
 														is AppResult.Failure -> {
@@ -396,7 +428,29 @@ class AuthService(private val userService: IUserService,
 														userInfoTicsService.create(newUserInfoTics)
 
 													when (userInfoTicsResult) {
-														is AppResult.Success -> createTokenPair(user.id, email)
+														is AppResult.Success -> {
+															val newUserProgram = UserProgram.createNew(
+																userId = user.id,
+																startDate = LocalDate.now(ZoneOffset.UTC)
+															)
+															val userProgramResult = userProgramService.create(newUserProgram)
+															when (userProgramResult) {
+																is AppResult.Success -> {
+																	val initProgressResult = userExerciseProgressService.initializeUserProgress(user.id, newUserProgram.startDate)
+																	when (initProgressResult) {
+																		is AppResult.Success -> createTokenPair(user.id, email)
+																		is AppResult.Failure -> AppResult.Failure(
+																			initProgressResult.httpStatusCode,
+																			"Failed to initialize user progress. ${initProgressResult.message}"
+																		)
+																	}
+																}
+																is AppResult.Failure -> AppResult.Failure(
+																	userProgramResult.httpStatusCode,
+																	"Failed to create user program. ${userProgramResult.message}"
+																)
+															}
+														}
 														is AppResult.Failure -> AppResult.Failure(
 															userInfoTicsResult.httpStatusCode,
 															"Failed to create user info tics. ${userInfoTicsResult.message}"
@@ -523,7 +577,29 @@ class AuthService(private val userService: IUserService,
 												userInfoTicsService.create(newUserInfoTics)
 
 											when (userInfoTicsResult) {
-												is AppResult.Success -> createTokenPair(user.id, safeEmail)
+												is AppResult.Success -> {
+													val newUserProgram = UserProgram.createNew(
+														userId = user.id,
+														startDate = LocalDate.now(ZoneOffset.UTC)
+													)
+													val userProgramResult = userProgramService.create(newUserProgram)
+													when (userProgramResult) {
+														is AppResult.Success -> {
+															val initProgressResult = userExerciseProgressService.initializeUserProgress(user.id, newUserProgram.startDate)
+															when (initProgressResult) {
+																is AppResult.Success -> createTokenPair(user.id, safeEmail)
+																is AppResult.Failure -> AppResult.Failure(
+																	initProgressResult.httpStatusCode,
+																	"Failed to initialize user progress. ${initProgressResult.message}"
+																)
+															}
+														}
+														is AppResult.Failure -> AppResult.Failure(
+															userProgramResult.httpStatusCode,
+															"Failed to create user program. ${userProgramResult.message}"
+														)
+													}
+												}
 												is AppResult.Failure -> AppResult.Failure(
 													userInfoTicsResult.httpStatusCode,
 													"Failed to create user info tics. ${userInfoTicsResult.message}"

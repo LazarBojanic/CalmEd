@@ -2,9 +2,11 @@ package com.calmed.calmedbackend.model.dto.response
 
 import com.calmed.calmedbackend.util.UUIDSerializer
 import com.calmed.calmedbackend.util.InstantSerializer
+import com.calmed.calmedbackend.util.LocalDateSerializer
 import com.calmed.calmedbackend.model.raw.user.PaymentType
 import kotlinx.serialization.Serializable
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 @Serializable

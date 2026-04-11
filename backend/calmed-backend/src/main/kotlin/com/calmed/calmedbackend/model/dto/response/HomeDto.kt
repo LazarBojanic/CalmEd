@@ -8,7 +8,9 @@ data class HomeDto(
     val avatarUrl: String?,
     val calendar: CalendarMonthDto,
     val upNext: List<ProgramExerciseDto> = emptyList(),
-    val currentWeek: Int
+   	val currentWeek: Int,
+	val programStartDate: String? = null,
+    val completions: List<UserExerciseProgressCompactDto> = emptyList()
 )
 
 @Serializable

@@ -46,8 +46,8 @@ val serviceModule = module {
 	single<IUserInfoTicsService> { UserInfoTicsService(get(), get()) }
 	single<IProgramExerciseService> { ProgramExerciseService(get()) }
 	single<IUserProgramService> { UserProgramService(get(), get()) }
-	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get(), get()) }
-	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get()) }
-	single<IHomeService> { HomeService(get(), get(), get()) }
+	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get(), get(), get()) }
+	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+	single<IHomeService> { HomeService(get(), get(), get(), get(), get()) }
 	single<IPaymentService> { PaymentService(get(), get()) }
 }

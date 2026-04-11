@@ -28,7 +28,7 @@ fun iosModule() = module {
 fun initKoinIos() {
     var url = ""
     if (BuildConfig.development) {
-        url = "http://192.168.0.35:8080"
+        url = "http://127.0.0.1:8080"
     }
     else{
         url = "https://api.calm-ed.com"

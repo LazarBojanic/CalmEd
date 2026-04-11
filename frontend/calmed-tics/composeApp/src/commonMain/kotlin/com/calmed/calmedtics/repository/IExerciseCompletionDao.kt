@@ -12,6 +12,9 @@ interface IExerciseCompletionDao {
     @Query("SELECT * FROM exercise_completion WHERE userId = :userId AND date = :date")
     fun getCompletionForDay(userId: String, date: String): Flow<List<ExerciseCompletionEntity>>
 
+    @Query("SELECT * FROM exercise_completion WHERE exerciseId = :exerciseId AND userId = :userId AND date = :date AND session = :session LIMIT 1")
+    suspend fun findExisting(exerciseId: String, userId: String, date: String, session: String): ExerciseCompletionEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(completion: ExerciseCompletionEntity)
 

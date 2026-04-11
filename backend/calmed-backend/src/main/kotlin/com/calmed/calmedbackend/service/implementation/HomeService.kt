@@ -10,7 +10,9 @@ import com.calmed.calmedbackend.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedbackend.model.toDto
 import com.calmed.calmedbackend.service.specification.IHomeService
 import com.calmed.calmedbackend.service.specification.IProgramExerciseService
+import com.calmed.calmedbackend.service.specification.IUserProgramService
 import com.calmed.calmedbackend.service.specification.IUserService
+import com.calmed.calmedbackend.repository.specification.IUserExerciseProgressRepository
 import io.ktor.http.HttpStatusCode
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -22,20 +24,33 @@ import java.util.UUID
 class HomeService(
     private val programExerciseService: IProgramExerciseService,
     private val userService: IUserService,
+    private val userProgramService: IUserProgramService,
+    private val userExerciseProgressRepository: IUserExerciseProgressRepository,
     private val muxConfig: MuxConfig
 ) : IHomeService {
 
     override suspend fun getHome(userId: String, year: Int, month: Int): HomeDto {
+        val uid = UUID.fromString(userId)
         val today: LocalDate = LocalDate.now(ZoneOffset.UTC)
         val totalWeeks = 25
 
-        val userResult = userService.getById(UUID.fromString(userId))
+        val userResult = userService.getById(uid)
         val user = (userResult as AppResult.Success).data
 
-
-        val startDate: LocalDate = user.createdAt
+        val userProgram = (userProgramService.getByUserId(user.id) as? AppResult.Success)?.data
+        val startDate: LocalDate = userProgram?.startDate ?: user.createdAt
             .atZone(ZoneOffset.UTC)
             .toLocalDate()
+
+        val progressList = userExerciseProgressRepository.findAllByUserId(uid)
+        val completions = progressList.filter { it.completedAt != null }.map {
+            com.calmed.calmedbackend.model.dto.response.UserExerciseProgressCompactDto(
+                exerciseId = it.programExerciseId.toString(),
+                session = it.session ?: com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession.MORNING,
+                date = (it.day ?: today).toString(),
+                completed = true
+            )
+        }
 
 
         val daysFromStartToday: Long =
@@ -88,7 +103,9 @@ class HomeService(
                         days = calendarDays
                     ),
                     currentWeek = currentWeek,
-                    upNext = upNextDto
+                    upNext = upNextDto,
+                    programStartDate = startDate.toString(),
+                    completions = completions
                 )
             }
             is AppResult.Failure -> {
