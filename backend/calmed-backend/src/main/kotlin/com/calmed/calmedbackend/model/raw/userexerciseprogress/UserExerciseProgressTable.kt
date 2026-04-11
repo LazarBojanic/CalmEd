@@ -23,4 +23,8 @@ object UserExerciseProgressTable : UUIDTable("user_exercise_progress") {
 	val day = date("day").nullable()
 	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
+
+	init {
+		uniqueIndex(userId, programExerciseId, day, session)
+	}
 }

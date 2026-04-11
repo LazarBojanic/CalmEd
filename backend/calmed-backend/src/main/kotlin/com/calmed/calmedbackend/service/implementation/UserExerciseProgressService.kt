@@ -91,23 +91,36 @@ class UserExerciseProgressService(
 		val now = java.time.Instant.now()
 		
 		for (exercise in allExercises) {
-			// Calculate the date for this exercise based on weekNumber
-			// If weekNumber is 1, it's the first week. We assume exercises are meant to be done in that week.
-			// For simplicity, we can set the day to (weekNumber - 1) * 7 days after startDate
-			val exerciseDate = startDate.plusWeeks((exercise.weekNumber - 1).toLong())
+			if (exercise.weekNumber <= 0) continue // Skip non-week exercises (like Intro) or handle differently if needed
 			
-			for (session in listOf(com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession.MORNING, com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession.EVENING)) {
-				val progress = UserExerciseProgress(
-					id = UUID.randomUUID(),
-					userId = userId,
-					programExerciseId = exercise.id,
-					session = session,
-					completedAt = null,
-					day = exerciseDate,
-					createdAt = now,
-					updatedAt = now
-				)
-				repository.create(progress)
+			val exerciseDateBase = startDate.plusWeeks((exercise.weekNumber - 1).toLong())
+			
+			// orderInWeek 1 -> MORNING, orderInWeek 2 -> EVENING
+			val session = when (exercise.orderInWeek) {
+				1 -> com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession.MORNING
+				2 -> com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession.EVENING
+				else -> null
+			}
+			
+			if (session != null) {
+				// For each day of that week (7 days)
+				for (i in 0 until 7) {
+					val exerciseDate = exerciseDateBase.plusDays(i.toLong())
+					val existing = repository.findByCriteria(userId, exercise.id, session, exerciseDate)
+					if (existing == null) {
+						val progress = UserExerciseProgress(
+							id = UUID.randomUUID(),
+							userId = userId,
+							programExerciseId = exercise.id,
+							session = session,
+							completedAt = null,
+							day = exerciseDate,
+							createdAt = now,
+							updatedAt = now
+						)
+						repository.create(progress)
+					}
+				}
 			}
 		}
 		return AppResult.Success(Unit)
@@ -136,30 +149,40 @@ class UserExerciseProgressService(
 		val exerciseId = try { UUID.fromString(dto.exerciseId) } catch (e: Exception) { return AppResult.Failure(HttpStatusCode.BadRequest, "Invalid exerciseId format") }
 		val day = try { java.time.LocalDate.parse(dto.date) } catch (e: Exception) { return AppResult.Failure(HttpStatusCode.BadRequest, "Invalid date format") }
 		
+		val exercise = programExerciseRepository.findById(exerciseId) ?: return AppResult.Failure(HttpStatusCode.NotFound, "Exercise not found")
+		
+		// Validate that the session matches the exercise's orderInWeek
+		val expectedSession = when (exercise.orderInWeek) {
+			1 -> com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession.MORNING
+			2 -> com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession.EVENING
+			else -> null
+		}
+		
+		if (expectedSession != null && dto.session != expectedSession) {
+			return AppResult.Failure(HttpStatusCode.BadRequest, "Invalid session for this exercise. Expected $expectedSession but got ${dto.session}")
+		}
+		
 		val existing = repository.findByCriteria(userId, exerciseId, dto.session, day)
+		val now = java.time.Instant.now()
 		if (existing != null) {
-			val now = java.time.Instant.now()
 			val updated = existing.copy(
-				completedAt = if (dto.completed) now else null,
+				completedAt = if (dto.completed) (existing.completedAt ?: now) else null,
 				updatedAt = now
 			)
 			repository.update(updated) ?: return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to update progress record.")
 		} else {
-			// If it doesn't exist (which shouldn't happen if initialized properly), create it if completed
-			if (dto.completed) {
-				val now = java.time.Instant.now()
-				val progress = UserExerciseProgress(
-					id = UUID.randomUUID(),
-					userId = userId,
-					programExerciseId = exerciseId,
-					session = dto.session,
-					day = day,
-					completedAt = now,
-					createdAt = now,
-					updatedAt = now
-				)
-				repository.create(progress) ?: return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to create progress record.")
-			}
+			// If it doesn't exist (e.g. not pre-initialized), create it
+			val progress = UserExerciseProgress(
+				id = UUID.randomUUID(),
+				userId = userId,
+				programExerciseId = exerciseId,
+				session = dto.session,
+				day = day,
+				completedAt = if (dto.completed) now else null,
+				createdAt = now,
+				updatedAt = now
+			)
+			repository.create(progress) ?: return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to create progress record.")
 		}
 		return AppResult.Success(Unit)
 	}

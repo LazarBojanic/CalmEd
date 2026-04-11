@@ -42,7 +42,7 @@ class HomeService(
             .atZone(ZoneOffset.UTC)
             .toLocalDate()
 
-        val progressList = userExerciseProgressRepository.findAllByUserId(uid)
+        val progressList = userExerciseProgressRepository.findAllByUserIdAndMonth(uid, year, month)
         val completions = progressList.filter { it.completedAt != null }.map {
             com.calmed.calmedbackend.model.dto.response.UserExerciseProgressCompactDto(
                 exerciseId = it.programExerciseId.toString(),

@@ -347,9 +347,12 @@ class SessionViewModel(
 			if (result != null) {
 				scope.launch(Dispatchers.IO) {
 					val userId = currentUserId() ?: return@launch
+					val remoteCompletionsKeys = mutableSetOf<String>()
 					result.completions.forEach { comp ->
 						val sessionStr = comp.session.name.lowercase()
-						val existing = exerciseCompletionDao.findExisting(comp.exerciseId, userId, comp.date, sessionStr)
+						remoteCompletionsKeys.add("${comp.exerciseId}_${comp.date}_$sessionStr")
+						val existing =
+							exerciseCompletionDao.findExisting(comp.exerciseId, userId, comp.date, sessionStr)
 						if (existing == null) {
 							exerciseCompletionDao.upsert(
 								ExerciseCompletionEntity(
@@ -361,6 +364,18 @@ class SessionViewModel(
 									timestamp = currentTimeMillis()
 								)
 							)
+						}
+					}
+
+					// Remove local completions that are not in the remote list for this month
+					val localCompletions = exerciseCompletionDao.getCompletionForMonth(
+						userId,
+						"${result.calendar.year}-${result.calendar.month.toString().padStart(2, '0')}%"
+					)
+					localCompletions.forEach { local ->
+						val key = "${local.exerciseId}_${local.date}_${local.session}"
+						if (key !in remoteCompletionsKeys) {
+							exerciseCompletionDao.delete(local.exerciseId, userId, local.date, local.session)
 						}
 					}
 				}

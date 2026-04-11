@@ -24,6 +24,9 @@ interface IExerciseCompletionDao {
     @Query("SELECT * FROM exercise_completion")
     fun getAllCompletions(): Flow<List<ExerciseCompletionEntity>>
 
+    @Query("SELECT * FROM exercise_completion WHERE userId = :userId AND date LIKE :datePattern")
+    suspend fun getCompletionForMonth(userId: String, datePattern: String): List<ExerciseCompletionEntity>
+
     @Query("DELETE FROM exercise_completion")
     suspend fun clearAll()
 }
