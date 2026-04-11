@@ -112,7 +112,6 @@ private fun PlayerContent(
             factory = { ctx -> createPlayerView(ctx, player) },
             update = { playerView ->
                 playerView.player = player
-                playerView.showController()
             }
         )
 
@@ -152,16 +151,9 @@ private fun createPlayerView(
     return PlayerView(ctx).apply {
         this.player = player
         useController = true
-        setControllerShowTimeoutMs(3_000)
-        setControllerHideOnTouch(false)
-        setControllerAutoShow(true)
-        setControllerAnimationEnabled(false)
-        setShowSubtitleButton(true)
         setShowNextButton(false)
         setShowPreviousButton(false)
-        setShowShuffleButton(false)
-        setShowVrButton(false)
-        showController()
+        setShowSubtitleButton(true)
     }
 }
 

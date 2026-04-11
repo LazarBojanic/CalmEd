@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 fun ScreenScaffold(
 	title: String,
 	onBack: (() -> Unit)? = null,
+	actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
 	content: @Composable ColumnScope.() -> Unit
 ) {
 	Surface(
@@ -22,7 +23,7 @@ fun ScreenScaffold(
 		contentColor = MaterialTheme.colorScheme.onBackground
 	) {
 		Column(Modifier.fillMaxSize()) {
-			Header(title = title, onBack = onBack)
+			Header(title = title, onBack = onBack, actions = actions)
 			Column(Modifier.fillMaxSize().padding(16.dp)) {
 				content()
 			}

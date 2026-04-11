@@ -11,6 +11,8 @@
     <string name="forgot_password">Forgot password?</string>
     <string name="week_title">Week %1$d</string>
     <string name="exercise_locked_message">It's not time for this exercise yet.</string>
+    <string name="exercise_locked_dialog_message">This screen is meant to be a full overview of the course, however it is not yet time for this exercise, are you sure you still want to view it?</string>
+    <string name="i_am_sure">I am sure</string>
     <string name="locked">Locked</string>
     <string name="forgot_password_title">Forgot Password?</string>
     <string name="sending">Sending...</string>
@@ -119,6 +121,8 @@
     <string name="terms">Terms of Service</string>
     <string name="reminders">Exercise Reminders</string>
     <string name="morning_evening">Morning &amp; Evening reminders</string>
+    <string name="morning_reminder_label">Exercise 1 (Morning) (HH:mm)</string>
+    <string name="evening_reminder_label">Exercise 2 (Evening) (HH:mm)</string>
     <string name="logout">Logout</string>
     <string name="default_user">User</string>
     <string name="condition_info">Condition Info</string>

@@ -56,6 +56,8 @@ import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TickFrequency
 import com.calmed.calmedtics.model.raw.TickType
+import com.calmed.calmedtics.morning_reminder_label
+import com.calmed.calmedtics.evening_reminder_label
 import com.calmed.calmedtics.morning_evening
 import com.calmed.calmedtics.no
 import com.calmed.calmedtics.personal_details
@@ -64,6 +66,7 @@ import com.calmed.calmedtics.privacy_policy
 import com.calmed.calmedtics.profile_error
 import com.calmed.calmedtics.profile_title
 import com.calmed.calmedtics.reminders
+import com.calmed.calmedtics.save
 import com.calmed.calmedtics.ui.component.LanguageToggle
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
@@ -73,7 +76,6 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import com.calmed.calmedtics.reminders.ReminderManager
 import com.calmed.calmedtics.retry
-import com.calmed.calmedtics.save
 import com.calmed.calmedtics.saving
 import com.calmed.calmedtics.stress_level
 import com.calmed.calmedtics.stress_value
@@ -409,6 +411,9 @@ fun ProfileScreen(
 			}
 			item {
 				InfoSection(title = stringResource(Res.string.reminders)) {
+					var morningTime by remember { mutableStateOf(appSettings.getMorningReminderTime()) }
+					var eveningTime by remember { mutableStateOf(appSettings.getEveningReminderTime()) }
+
 					Row(
 						modifier = Modifier.fillMaxWidth(),
 						verticalAlignment = Alignment.CenterVertically
@@ -423,6 +428,32 @@ fun ProfileScreen(
 
 								if (enabled) reminderManager.enableMorningAndEvening()
 								else reminderManager.disableMorningAndEvening()
+							}
+						)
+					}
+
+					if (remindersEnabled) {
+						Spacer(modifier = Modifier.height(8.dp))
+						TextField(
+							value = morningTime,
+							onValueChange = { morningTime = it },
+							label = stringResource(Res.string.morning_reminder_label),
+							singleLine = true
+						)
+						Spacer(modifier = Modifier.height(8.dp))
+						TextField(
+							value = eveningTime,
+							onValueChange = { eveningTime = it },
+							label = stringResource(Res.string.evening_reminder_label),
+							singleLine = true
+						)
+						Spacer(modifier = Modifier.height(8.dp))
+						PrimaryButton(
+							text = stringResource(Res.string.save),
+							onClick = {
+								appSettings.setMorningReminderTime(morningTime)
+								appSettings.setEveningReminderTime(eveningTime)
+								reminderManager.enableMorningAndEvening()
 							}
 						)
 					}

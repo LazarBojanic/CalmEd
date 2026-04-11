@@ -21,10 +21,9 @@ fun commonModule(baseUrl: String) = module {
     single { get<AppHttpClient>().client }
     single<IAppApi> { AppApi(get(), get()) }
     single { HomeRepository(api = get()) }
-
     single<IAuthService> { AuthService(get(), get()) }
     factory { AuthViewModel(get()) }
-    factory { SessionViewModel(get(), get(), get(), get(), get(), homeRepository = get()) }
+    factory { SessionViewModel(get(), get(), get(), get(), get(), get(), homeRepository = get()) }
 }
 
 fun initKoin(baseUrl: String, vararg platformModules: Module) {

@@ -16,7 +16,8 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun Header(
 	title: String,
-	onBack: (() -> Unit)? = null
+	onBack: (() -> Unit)? = null,
+	actions: @Composable RowScope.() -> Unit = {}
 ) {
 	Surface(
 		modifier = Modifier
@@ -35,8 +36,7 @@ fun Header(
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 8.dp, bottom = 4.dp),
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.Start
+				verticalAlignment = Alignment.CenterVertically
 			) {
 				if (onBack != null) {
 					IconButton(onClick = onBack) {
@@ -46,8 +46,10 @@ fun Header(
 				Text(
 					text = title,
 					style = MaterialTheme.typography.titleLarge,
-					modifier = Modifier.padding(start = if (onBack != null) 4.dp else 0.dp)
+					modifier = Modifier.padding(start = if (onBack != null) 4.dp else 0.dp).weight(1f)
 				)
+
+				actions()
 			}
 		}
 	}

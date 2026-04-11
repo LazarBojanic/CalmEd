@@ -10,3 +10,5 @@ actual fun currentYmd(): Ymd {
         day = cal.get(Calendar.DAY_OF_MONTH)
     )
 }
+
+actual fun currentTimeMillis(): Long = System.currentTimeMillis()

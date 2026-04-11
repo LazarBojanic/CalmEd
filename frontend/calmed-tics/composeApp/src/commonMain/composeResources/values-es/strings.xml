@@ -11,6 +11,8 @@
     <string name="forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="week_title">Semana %1$d</string>
     <string name="exercise_locked_message">Todavía no es el momento para este ejercicio.</string>
+    <string name="exercise_locked_dialog_message">Esta pantalla está pensada para ser una visión general del curso, sin embargo, aún no es el momento para este ejercicio, ¿estás seguro de que quieres verlo?</string>
+    <string name="i_am_sure">Estoy seguro</string>
     <string name="locked">Bloqueado</string>
     <string name="forgot_password_title">¿Olvidaste tu contraseña?</string>
     <string name="sending">Enviando...</string>
@@ -119,6 +121,8 @@
     <string name="terms">Términos de servicio</string>
     <string name="reminders">Recordatorios de ejercicios</string>
     <string name="morning_evening">Recordatorios de mañana y noche</string>
+    <string name="morning_reminder_label">Ejercicio 1 (Mañana) (HH:mm)</string>
+    <string name="evening_reminder_label">Ejercicio 2 (Noche) (HH:mm)</string>
     <string name="logout">Cerrar sesión</string>
     <string name="default_user">Usuario</string>
     <string name="condition_info">Información de la condición</string>

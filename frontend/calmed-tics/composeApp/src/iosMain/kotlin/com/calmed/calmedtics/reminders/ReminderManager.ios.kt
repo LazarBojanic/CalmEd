@@ -29,18 +29,27 @@ actual class ReminderManager actual constructor() {
                 body = "Should arrive after 20 seconds"
             )
         } else {
-            NSLog("REMINDERS: scheduling daily notifications 09:00 and 20:00")
+            val appSettings = org.koin.core.context.GlobalContext.get().get<com.calmed.calmedtics.settings.AppSettings>()
+            val morningTime = appSettings.getMorningReminderTime().split(":")
+            val eveningTime = appSettings.getEveningReminderTime().split(":")
+
+            val mHour = morningTime.getOrNull(0)?.toIntOrNull() ?: 9
+            val mMin = morningTime.getOrNull(1)?.toIntOrNull() ?: 0
+            val eHour = eveningTime.getOrNull(0)?.toIntOrNull() ?: 20
+            val eMin = eveningTime.getOrNull(1)?.toIntOrNull() ?: 0
+
+            NSLog("REMINDERS: scheduling daily notifications $mHour:$mMin and $eHour:$eMin")
             scheduleDaily(
                 id = "morning_reminder",
-                hour = 9,
-                minute = 0,
+                hour = mHour,
+                minute = mMin,
                 title = "Morning exercise",
                 body = "Time for your morning practice."
             )
             scheduleDaily(
                 id = "evening_reminder",
-                hour = 20,
-                minute = 0,
+                hour = eHour,
+                minute = eMin,
                 title = "Evening exercise",
                 body = "Time for your evening practice."
             )

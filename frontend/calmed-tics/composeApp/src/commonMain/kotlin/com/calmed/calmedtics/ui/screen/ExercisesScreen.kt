@@ -12,11 +12,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.calmed.calmedtics.exercise_locked_dialog_message
+import com.calmed.calmedtics.i_am_sure
+import com.calmed.calmedtics.cancel
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -24,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -33,11 +41,14 @@ import com.calmed.calmedtics.exercise_locked_message
 import com.calmed.calmedtics.locked
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.ui.component.ThumbnailImage
+import androidx.compose.ui.draw.clip
 import com.calmed.calmedtics.util.getTitle
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.calmed.calmedtics.week_title
-
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 fun ExercisesScreen(
@@ -48,6 +59,7 @@ fun ExercisesScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var selectedLockedExercise by remember { mutableStateOf<ProgramExerciseDto?>(null) }
 
     val grouped = remember(exercises) {
         exercises
@@ -59,79 +71,110 @@ fun ExercisesScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
 
-        LazyColumn(modifier = Modifier.padding(padding)) {
+        Column(modifier = Modifier.padding(padding)) {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                grouped.forEach { (week, weekItems) ->
+                    item {
+                        Text(
+                            text = stringResource(Res.string.week_title, week),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = if (week > currentWeek) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
+                        )
+                    }
 
-            grouped.forEach { (week, weekItems) ->
+                    items(weekItems) { ex ->
+                        val locked = week > currentWeek
+                        val lockedMessage = stringResource(Res.string.exercise_locked_message)
 
-                item {
-                    Text(
-                        text = stringResource(Res.string.week_title, week),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-
-                items(weekItems) { ex ->
-                    val locked = ex.weekNumber > currentWeek
-                    val lockedMessage = stringResource(Res.string.exercise_locked_message)
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                            .padding(horizontal = 16.dp)
-                            .clickable {
-                                if (locked) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(lockedMessage)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                                .alpha(if (locked) 0.5f else 1f)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(160.dp)
+                                    .padding(horizontal = 16.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        if (locked) {
+                                            selectedLockedExercise = ex
+                                        } else {
+                                            onExerciseClick(ex)
+                                        }
                                     }
-                                } else {
-                                    onExerciseClick(ex)
+                            ) {
+                                ThumbnailImage(
+                                    url = ex.thumbnailURL ?: "",
+                                    contentDescription = ex.getTitle(language),
+                                    modifier = Modifier.fillMaxSize()
+                                )
+
+                                if (locked) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Lock,
+                                            contentDescription = stringResource(Res.string.locked),
+                                            modifier = Modifier.size(48.dp),
+                                            tint = Color.White
+                                        )
+                                    }
                                 }
                             }
-                    ) {
-                        ThumbnailImage(
-                            url = ex.thumbnailURL ?: "",
-                            contentDescription = ex.getTitle(language),
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .alpha(if (locked) 0.5f else 1f)
-                        )
 
-                        if (locked) {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = stringResource(Res.string.locked),
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(48.dp),
-                                tint = Color.White
-                            )
+                            Spacer(Modifier.height(8.dp))
+
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val isWeek0 = ex.weekNumber == 0
+                                val isMorning = ex.orderInWeek == 1
+                                val isEvening = ex.orderInWeek == 2
+                                val displayTitle = if (!isWeek0) {
+                                    val suffix = if (isMorning) " (Morning)" else if (isEvening) " (Evening)" else ""
+                                    ex.getTitle(language) + suffix
+                                } else {
+                                    ex.getTitle(language)
+                                }
+
+                                Text(
+                                    text = displayTitle,
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
                         }
                     }
-
-                    Spacer(Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .alpha(if (locked) 0.6f else 1f),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (locked) {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                        }
-                        Text(text = ex.getTitle(language))
-                    }
-
-                    Spacer(Modifier.height(12.dp))
                 }
             }
         }
+    }
+
+    selectedLockedExercise?.let { ex ->
+        AlertDialog(
+            onDismissRequest = { selectedLockedExercise = null },
+            title = { Text(text = ex.getTitle(language)) },
+            text = { Text(text = stringResource(Res.string.exercise_locked_dialog_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedLockedExercise = null
+                    onExerciseClick(ex)
+                }) {
+                    Text(text = stringResource(Res.string.i_am_sure))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedLockedExercise = null }) {
+                    Text(text = stringResource(Res.string.cancel))
+                }
+            }
+        )
     }
 }

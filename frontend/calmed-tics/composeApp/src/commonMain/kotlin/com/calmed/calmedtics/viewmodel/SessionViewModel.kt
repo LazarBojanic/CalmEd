@@ -7,13 +7,16 @@ import com.calmed.calmedtics.model.dto.response.HomeDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
+import com.calmed.calmedtics.model.raw.ExerciseCompletionEntity
 import com.calmed.calmedtics.model.toEntity
 import com.calmed.calmedtics.model.toJoined
 import com.calmed.calmedtics.repository.HomeRepository
 import com.calmed.calmedtics.repository.IUserDao
 import com.calmed.calmedtics.repository.IUserInfoTicsDao
+import com.calmed.calmedtics.repository.IExerciseCompletionDao
 import com.calmed.calmedtics.service.specification.IAuthService
 import com.calmed.calmedtics.store.ITokenDataStore
+import com.calmed.calmedtics.util.currentTimeMillis
 import com.calmed.calmedtics.util.jwtDecode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +29,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.coroutines.flow.flow
 
 class SessionViewModel(
 	private val api: IAppApi,
@@ -33,6 +37,7 @@ class SessionViewModel(
 	private val authService: IAuthService,
 	private val userDao: IUserDao,
 	private val userInfoDao: IUserInfoTicsDao,
+	private val exerciseCompletionDao: IExerciseCompletionDao,
 	private val homeRepository: HomeRepository,
 
 ) {
@@ -52,6 +57,69 @@ class SessionViewModel(
 
 	private val _allExercises = MutableStateFlow<List<ProgramExerciseDto>>(emptyList())
 	val allExercises: StateFlow<List<ProgramExerciseDto>> = _allExercises
+
+	val allCompletions: StateFlow<List<ExerciseCompletionEntity>> =
+		exerciseCompletionDao.getAllCompletions()
+			.stateIn(scope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+	val calendarWithCompletions: StateFlow<Map<Int, Int>> = combine(
+		home,
+		user,
+		allCompletions
+	) { home, user, completions ->
+		if (home == null) return@combine emptyMap()
+		
+		val result = mutableMapOf<Int, Int>()
+		val calendarYear = home.calendar.year
+		val calendarMonth = home.calendar.month
+		
+		// Map completions by date string YYYY-MM-DD
+		val completionsByDate = completions
+			.filter { it.completed }
+			.groupBy { it.date }
+		
+		home.calendar.days.forEach { dayDto ->
+			val dateStr = "${calendarYear}-${calendarMonth.toString().padStart(2, '0')}-${dayDto.day.toString().padStart(2, '0')}"
+			println("[DEBUG_LOG] Checking completions for date: $dateStr")
+			val dayCompletions = completionsByDate[dateStr].orEmpty()
+			println("[DEBUG_LOG] Found ${dayCompletions.size} completions for $dateStr")
+			
+			// Group by session to see how many unique sessions are completed
+			val completedSessions = dayCompletions.map { it.session }.distinct()
+			
+			val level = when (completedSessions.size) {
+				2 -> 2
+				1 -> 1
+				else -> 0
+			}
+			result[dayDto.day] = level
+		}
+		result
+	}.stateIn(scope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+	suspend fun markExerciseCompleted(
+		exerciseId: String,
+		userId: String,
+		date: String,
+		session: String,
+		completed: Boolean
+	) {
+		println("[DEBUG_LOG] markExerciseCompleted: ex=$exerciseId, user=$userId, date=$date, session=$session, completed=$completed")
+		if (completed) {
+			exerciseCompletionDao.upsert(
+				ExerciseCompletionEntity(
+					exerciseId = exerciseId,
+					userId = userId,
+					date = date,
+					session = session,
+					completed = true,
+					timestamp = currentTimeMillis()
+				)
+			)
+		} else {
+			exerciseCompletionDao.delete(exerciseId, userId, date, session)
+		}
+	}
 
 	val userInfo: StateFlow<UserInfoTicsJoined?> = combine(
 		userDao.findFirst(),
@@ -255,6 +323,11 @@ class SessionViewModel(
 	}
 	suspend fun loadAllExercises() {
 		_allExercises.value = api.getAllProgramExercises()
+	}
+
+	fun getCompletionForDay(userId: String, date: String): StateFlow<List<ExerciseCompletionEntity>> {
+		return exerciseCompletionDao.getCompletionForDay(userId, date)
+			.stateIn(scope, SharingStarted.WhileSubscribed(5000), emptyList())
 	}
 
 
