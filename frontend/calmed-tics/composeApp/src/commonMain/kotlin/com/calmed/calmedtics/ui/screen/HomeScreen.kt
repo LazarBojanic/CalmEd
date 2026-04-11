@@ -202,7 +202,7 @@ fun HomeScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Hello, ${home?.greetingName ?: "User"}",
+                            text = "Hello, ${user?.username ?: "User"}",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -228,8 +228,40 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(onClick = { trackerStartEpoch -= 7 }) {
-                                Icon(Icons.Default.ChevronLeft, "Previous Week")
+                            val startEpoch = remember(user?.createdAt) {
+                                val startDate = user?.createdAt ?: ""
+                                if (startDate.isNotBlank()) {
+                                    try {
+                                        val parts = startDate.substring(0, 10).split("-")
+                                        val startYear = parts[0].toInt()
+                                        val startMonth = parts[1].toInt()
+                                        val startDay = parts[2].toInt()
+                                        dateToEpochDay(startYear, startMonth, startDay)
+                                    } catch (e: Exception) {
+                                        0L
+                                    }
+                                } else {
+                                    0L
+                                }
+                            }
+                            
+                            val startWeekMondayEpoch = remember(startEpoch, startWeekday) {
+                                if (startEpoch == 0L) 0L else startEpoch - ((startEpoch + 3) % 7 - startWeekday + 7) % 7
+                            }
+
+                            IconButton(
+                                onClick = { 
+                                    if (trackerStartEpoch - 7 >= startWeekMondayEpoch) {
+                                        trackerStartEpoch -= 7 
+                                    }
+                                },
+                                enabled = trackerStartEpoch - 7 >= startWeekMondayEpoch
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ChevronLeft, 
+                                    contentDescription = "Previous Week",
+                                    tint = if (trackerStartEpoch - 7 >= startWeekMondayEpoch) LocalContentColor.current else Color.Gray
+                                )
                             }
                             
                             val startYmd = epochDayToYmd(trackerStartEpoch)
@@ -237,25 +269,12 @@ fun HomeScreen(
                             
                             val maxAllowedWeek = home?.currentWeek ?: 1
                             
-                            val weekNumber = remember(trackerStartEpoch, user?.createdAt, startWeekday) {
-                                val startDate = user?.createdAt ?: ""
-                                if (startDate.isBlank()) {
+                            val weekNumber = remember(trackerStartEpoch, startWeekMondayEpoch) {
+                                if (startWeekMondayEpoch == 0L) {
                                     activeWeek
                                 } else {
-                                    try {
-                                        // user.createdAt is typically ISO format: 2026-04-11T... or 2026-04-11 ...
-                                        val parts = startDate.substring(0, 10).split("-")
-                                        val startYear = parts[0].toInt()
-                                        val startMonth = parts[1].toInt()
-                                        val startDay = parts[2].toInt()
-                                        val startEpoch = dateToEpochDay(startYear, startMonth, startDay)
-                                        // Align startEpoch to the user-defined start of its week
-                                        val startWeekMondayEpoch = startEpoch - ((startEpoch + 3) % 7 - startWeekday + 7) % 7
-                                        val diff = trackerStartEpoch - startWeekMondayEpoch
-                                        (diff / 7).toInt() + 1
-                                    } catch (e: Exception) {
-                                        activeWeek
-                                    }
+                                    val diff = trackerStartEpoch - startWeekMondayEpoch
+                                    (diff / 7).toInt() + 1
                                 }
                             }
 
@@ -272,15 +291,18 @@ fun HomeScreen(
                                 )
                             }
                             
-                            IconButton(onClick = { 
-                                if (weekNumber < maxAllowedWeek) {
-                                    trackerStartEpoch += 7 
-                                } else {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("Not yet time for this week")
+                            IconButton(
+                                onClick = { 
+                                    if (weekNumber < maxAllowedWeek) {
+                                        trackerStartEpoch += 7 
+                                    } else {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Not yet time for this week")
+                                        }
                                     }
-                                }
-                            }) {
+                                },
+                                enabled = weekNumber < maxAllowedWeek
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.ChevronRight, 
                                     contentDescription = "Next Week",

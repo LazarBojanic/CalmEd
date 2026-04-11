@@ -1,10 +1,6 @@
 package com.calmed.calmedtics.util
 
-import platform.Foundation.NSCalendar
-import platform.Foundation.NSCalendarUnitDay
-import platform.Foundation.NSCalendarUnitMonth
-import platform.Foundation.NSCalendarUnitYear
-import platform.Foundation.NSDate
+import platform.Foundation.*
 
 actual fun currentYmd(): Ymd {
 	val now = NSDate()

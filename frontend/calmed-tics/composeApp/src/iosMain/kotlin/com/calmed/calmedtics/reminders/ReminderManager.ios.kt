@@ -1,11 +1,14 @@
 package com.calmed.calmedtics.reminders
 
 import calmedtics.composeApp.BuildConfig
+import com.calmed.calmedtics.settings.AppSettings
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import platform.Foundation.NSDateComponents
 import platform.Foundation.NSLog
 import platform.UserNotifications.*
 
-actual class ReminderManager actual constructor() {
+actual class ReminderManager actual constructor() : KoinComponent {
 
     private val center = UNUserNotificationCenter.currentNotificationCenter()
 
@@ -29,7 +32,7 @@ actual class ReminderManager actual constructor() {
                 body = "Should arrive after 20 seconds"
             )
         } else {
-            val appSettings = org.koin.core.context.GlobalContext.get().get<com.calmed.calmedtics.settings.AppSettings>()
+            val appSettings: AppSettings = get()
             val morningTime = appSettings.getMorningReminderTime().split(":")
             val eveningTime = appSettings.getEveningReminderTime().split(":")
 
