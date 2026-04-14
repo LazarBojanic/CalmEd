@@ -45,12 +45,12 @@ class UserExerciseProgressRepository : IUserExerciseProgressRepository {
 		UserExerciseProgressEntity.findById(id)?.let { it.delete(); true } ?: false
 	}
 
-	override suspend fun deleteByCriteria(userId: UUID, exerciseId: UUID, session: ExerciseSession, day: LocalDate): Boolean = withTransaction {
+	override suspend fun deleteByCriteria(userId: UUID, week: Int, day: Int, session: ExerciseSession): Boolean = withTransaction {
 		val found = UserExerciseProgressEntity.find {
 			(UserExerciseProgressTable.userId eq userId) and
-					(UserExerciseProgressTable.programExerciseId eq exerciseId) and
-					(UserExerciseProgressTable.session eq session) and
-					(UserExerciseProgressTable.day eq day)
+					(UserExerciseProgressTable.week eq week) and
+					(UserExerciseProgressTable.day eq day) and
+					(UserExerciseProgressTable.exerciseSession eq session)
 		}
 		if (found.empty()) false
 		else {
@@ -59,22 +59,19 @@ class UserExerciseProgressRepository : IUserExerciseProgressRepository {
 		}
 	}
 
-	override suspend fun findByCriteria(userId: UUID, exerciseId: UUID, session: ExerciseSession, day: LocalDate): UserExerciseProgress? = withTransaction {
+	override suspend fun findByCriteria(userId: UUID, week: Int, day: Int, session: ExerciseSession): UserExerciseProgress? = withTransaction {
 		UserExerciseProgressEntity.find {
 			(UserExerciseProgressTable.userId eq userId) and
-					(UserExerciseProgressTable.programExerciseId eq exerciseId) and
-					(UserExerciseProgressTable.session eq session) and
-					(UserExerciseProgressTable.day eq day)
+					(UserExerciseProgressTable.week eq week) and
+					(UserExerciseProgressTable.day eq day) and
+					(UserExerciseProgressTable.exerciseSession eq session)
 		}.firstOrNull()?.toRaw()
 	}
 
-	override suspend fun findAllByUserIdAndMonth(userId: UUID, year: Int, month: Int): List<UserExerciseProgress> = withTransaction {
-		val start = LocalDate.of(year, month, 1)
-		val end = start.plusMonths(1).minusDays(1)
+	override suspend fun findAllByUserIdAndWeek(userId: UUID, week: Int): List<UserExerciseProgress> = withTransaction {
 		UserExerciseProgressEntity.find {
 			(UserExerciseProgressTable.userId eq userId) and
-					(UserExerciseProgressTable.day greaterEq start) and
-					(UserExerciseProgressTable.day lessEq end)
+					(UserExerciseProgressTable.week eq week)
 		}.map { it.toRaw() }
 	}
 }

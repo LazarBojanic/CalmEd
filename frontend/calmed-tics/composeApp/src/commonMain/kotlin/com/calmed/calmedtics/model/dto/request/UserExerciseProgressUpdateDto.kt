@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserExerciseProgressUpdateDto(
-    val exerciseId: String,
+    val week: Int,
+    val day: Int,
     val session: ExerciseSession,
-    val date: String, // YYYY-MM-DD
     val completed: Boolean
 )

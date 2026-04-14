@@ -42,7 +42,7 @@ fun Route.userExerciseProgressRoutes() {
 				}
 				val id = UUID.fromString(idParam)
 				when (val res = service.getById(id)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
@@ -56,7 +56,7 @@ fun Route.userExerciseProgressRoutes() {
 				}
 				val userId = UUID.fromString(userIdParam)
 				when (val res = service.getAllByUserId(userId)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig) })
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto() })
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}

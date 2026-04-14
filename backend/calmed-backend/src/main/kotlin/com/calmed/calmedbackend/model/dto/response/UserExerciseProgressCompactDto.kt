@@ -7,8 +7,8 @@ import java.time.LocalDate
 
 @Serializable
 data class UserExerciseProgressCompactDto(
-    val exerciseId: String,
+    val week: Int,
+    val day: Int,
     val session: ExerciseSession,
-    val date: String,
     val completed: Boolean = true
 )

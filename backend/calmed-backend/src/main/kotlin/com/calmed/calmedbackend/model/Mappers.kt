@@ -468,10 +468,10 @@ fun UserExerciseProgressEntity.toRaw(): UserExerciseProgress {
 	return UserExerciseProgress(
 		id = this.id.value,
 		userId = this.userId,
-		programExerciseId = this.programExerciseId,
-		session = this.session,
-		completedAt = this.completedAt,
+		week = this.week,
 		day = this.day,
+		exerciseSession = this.exerciseSession,
+		completedAt = this.completedAt,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -479,10 +479,10 @@ fun UserExerciseProgressEntity.toRaw(): UserExerciseProgress {
 
 fun UserExerciseProgressEntity.setFrom(d: UserExerciseProgress, mapMode: MapMode) {
 	userId = d.userId
-	programExerciseId = d.programExerciseId
-	session = d.session
-	completedAt = d.completedAt
+	week = d.week
 	day = d.day
+	exerciseSession = d.exerciseSession
+	completedAt = d.completedAt
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
@@ -494,26 +494,27 @@ fun UserExerciseProgressEntity.setFrom(d: UserExerciseProgress, mapMode: MapMode
 	}
 }
 
-fun UserExerciseProgress.join(user: UserJoined, programExercise: ProgramExerciseJoined): UserExerciseProgressJoined {
+fun UserExerciseProgress.join(user: UserJoined): UserExerciseProgressJoined {
 	return UserExerciseProgressJoined(
 		id = this.id,
 		user = user,
-		programExercise = programExercise,
-		session = this.session,
-		completedAt = this.completedAt,
+		week = this.week,
 		day = this.day,
+		exerciseSession = this.exerciseSession,
+		completedAt = this.completedAt,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
 }
 
-fun UserExerciseProgressJoined.toDto(muxConfig: MuxConfig): UserExerciseProgressDto {
+fun UserExerciseProgressJoined.toDto(): UserExerciseProgressDto {
 	return UserExerciseProgressDto(
 		id = this.id,
 		user = this.user.toDto(),
-		programExercise = this.programExercise.toDto(muxConfig),
-		session = this.session,
+		week = this.week,
 		day = this.day,
+		exerciseSession = this.exerciseSession,
+		completedAt = this.completedAt,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)

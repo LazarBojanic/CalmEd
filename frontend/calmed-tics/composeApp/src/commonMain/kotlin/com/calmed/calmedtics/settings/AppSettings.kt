@@ -44,15 +44,11 @@ class AppSettings(
     fun setRemindersEnabled(value: Boolean) {
         settings.putBoolean(KEY_REMINDERS_ENABLED, value)
     }
-    fun getAppLanguage(): String? =
-        settings.getStringOrNull(KEY_APP_LANGUAGE)
+    fun getAppLanguage(): String =
+        settings.getString(KEY_APP_LANGUAGE, "en")
 
-    fun setAppLanguage(value: String?) {
-        if (value == null) {
-            settings.remove(KEY_APP_LANGUAGE)
-        } else {
-            settings.putString(KEY_APP_LANGUAGE, value)
-        }
+    fun setAppLanguage(value: String) {
+        settings.putString(KEY_APP_LANGUAGE, value)
     }
     fun getMorningReminderTime(): String = settings.getString(KEY_MORNING_REMINDER_TIME, "08:00")
     fun setMorningReminderTime(value: String) = settings.putString(KEY_MORNING_REMINDER_TIME, value)

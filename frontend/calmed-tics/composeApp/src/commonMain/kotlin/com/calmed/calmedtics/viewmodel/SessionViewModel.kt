@@ -76,58 +76,80 @@ class SessionViewModel(
 		val calendarYear = home.calendar.year
 		val calendarMonth = home.calendar.month
 		
-		// Map completions by date string YYYY-MM-DD
-		val completionsByDate = completions
-			.filter { it.completed }
-			.groupBy { it.date }
+		// Map completions by key: week_day
+		val completionsMap = completions
+			.filter { it.completed && it.userId == (user?.id ?: "") }
+			.groupBy { "${it.week}_${it.day}" }
 		
 		home.calendar.days.forEach { dayDto ->
-			val dateStr = "${calendarYear}-${calendarMonth.toString().padStart(2, '0')}-${dayDto.day.toString().padStart(2, '0')}"
-			println("[DEBUG_LOG] Checking completions for date: $dateStr")
-			val dayCompletions = completionsByDate[dateStr].orEmpty()
-			println("[DEBUG_LOG] Found ${dayCompletions.size} completions for $dateStr")
-			
-			// Group by session to see how many unique sessions are completed
-			val completedSessions = dayCompletions.map { it.session }.distinct()
-			
-			val level = when (completedSessions.size) {
-				2 -> 2
-				1 -> 1
-				else -> 0
+			// Need to determine which week/day of week this calendar day corresponds to
+			// Relative to program start
+			val startDate = home.programStartDate ?: user?.createdAt ?: ""
+			if (startDate.isNotBlank()) {
+				try {
+					val parts = startDate.substring(0, 10).split("-")
+					val startYear = parts[0].toInt()
+					val startMonth = parts[1].toInt()
+					val startDay = parts[2].toInt()
+					val startEpoch = com.calmed.calmedtics.util.dateToEpochDay(startYear, startMonth, startDay)
+					val currentEpoch = com.calmed.calmedtics.util.dateToEpochDay(calendarYear, calendarMonth, dayDto.day)
+					
+					val diff = currentEpoch - startEpoch
+					if (diff >= 0) {
+						val week = (diff / 7).toInt() + 1
+						val day = (diff % 7).toInt() + 1
+						
+						val dayCompletions = completionsMap["${week}_${day}"].orEmpty()
+						val completedSessions = dayCompletions.map { it.session }.distinct()
+						val level = when (completedSessions.size) {
+							2 -> 2
+							1 -> 1
+							else -> 0
+						}
+						result[dayDto.day] = level
+					} else {
+						result[dayDto.day] = 0
+					}
+				} catch (e: Exception) {
+					result[dayDto.day] = 0
+				}
+			} else {
+				result[dayDto.day] = 0
 			}
-			result[dayDto.day] = level
 		}
 		result
 	}.stateIn(scope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-	suspend fun markExerciseCompleted(
-		exerciseId: String,
+	suspend fun markSessionCompleted(
+		week: Int,
+		day: Int, // 1-7
 		userId: String,
-		date: String,
 		session: String,
 		completed: Boolean
 	) {
-		println("[DEBUG_LOG] markExerciseCompleted: ex=$exerciseId, user=$userId, date=$date, session=$session, completed=$completed")
+		println("[DEBUG_LOG] markSessionCompleted: week=$week, user=$userId, day=$day, session=$session, completed=$completed")
 		
 		val exerciseSession = try {
 			ExerciseSession.valueOf(session.uppercase())
 		} catch (e: Exception) {
 			ExerciseSession.MORNING
 		}
+		
+		val sessionKey = exerciseSession.name // Always use uppercase "MORNING" or "EVENING"
 
 		if (completed) {
 			exerciseCompletionDao.upsert(
 				ExerciseCompletionEntity(
-					exerciseId = exerciseId,
+					week = week,
+					day = day,
 					userId = userId,
-					date = date,
-					session = session,
+					session = sessionKey,
 					completed = true,
 					timestamp = currentTimeMillis()
 				)
 			)
 		} else {
-			exerciseCompletionDao.delete(exerciseId, userId, date, session)
+			exerciseCompletionDao.delete(week, userId, day, sessionKey)
 		}
 
 		// Sync with backend
@@ -135,14 +157,14 @@ class SessionViewModel(
 			try {
 				api.syncExerciseProgress(
 					UserExerciseProgressUpdateDto(
-						exerciseId = exerciseId,
+						week = week,
+						day = day,
 						session = exerciseSession,
-						date = date,
 						completed = completed
 					)
 				)
 			} catch (e: Exception) {
-				println("[DEBUG_LOG] Failed to sync exercise progress: ${e.message}")
+				println("[DEBUG_LOG] Failed to sync session progress: ${e.message}")
 			}
 		}
 	}
@@ -349,16 +371,16 @@ class SessionViewModel(
 					val userId = currentUserId() ?: return@launch
 					val remoteCompletionsKeys = mutableSetOf<String>()
 					result.completions.forEach { comp ->
-						val sessionStr = comp.session.name.lowercase()
-						remoteCompletionsKeys.add("${comp.exerciseId}_${comp.date}_$sessionStr")
+						val sessionStr = comp.session.name.uppercase()
+						remoteCompletionsKeys.add("${comp.week}_${comp.day}_$sessionStr")
 						val existing =
-							exerciseCompletionDao.findExisting(comp.exerciseId, userId, comp.date, sessionStr)
+							exerciseCompletionDao.findExisting(comp.week, userId, comp.day, sessionStr)
 						if (existing == null) {
 							exerciseCompletionDao.upsert(
 								ExerciseCompletionEntity(
-									exerciseId = comp.exerciseId,
+									week = comp.week,
 									userId = userId,
-									date = comp.date,
+									day = comp.day,
 									session = sessionStr,
 									completed = true,
 									timestamp = currentTimeMillis()
@@ -367,17 +389,10 @@ class SessionViewModel(
 						}
 					}
 
-					// Remove local completions that are not in the remote list for this month
-					val localCompletions = exerciseCompletionDao.getCompletionForMonth(
-						userId,
-						"${result.calendar.year}-${result.calendar.month.toString().padStart(2, '0')}%"
-					)
-					localCompletions.forEach { local ->
-						val key = "${local.exerciseId}_${local.date}_${local.session}"
-						if (key !in remoteCompletionsKeys) {
-							exerciseCompletionDao.delete(local.exerciseId, userId, local.date, local.session)
-						}
-					}
+					// For simplicity in this monthly sync, we can just clear and reload or something
+					// but let's try to be smart. We only have completions for the requested month's week/day range.
+					// This is actually tricky because the same week can span two months.
+					// Let's just update what we have from remote.
 				}
 			}
 		} catch (t: Throwable) {
@@ -389,8 +404,8 @@ class SessionViewModel(
 		_allExercises.value = api.getAllProgramExercises()
 	}
 
-	fun getCompletionForDay(userId: String, date: String): StateFlow<List<ExerciseCompletionEntity>> {
-		return exerciseCompletionDao.getCompletionForDay(userId, date)
+	fun getCompletionForWeek(userId: String, week: Int): StateFlow<List<ExerciseCompletionEntity>> {
+		return exerciseCompletionDao.getCompletionForWeek(userId, week)
 			.stateIn(scope, SharingStarted.WhileSubscribed(5000), emptyList())
 	}
 

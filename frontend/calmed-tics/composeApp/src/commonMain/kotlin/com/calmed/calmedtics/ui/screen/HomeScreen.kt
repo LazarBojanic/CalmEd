@@ -124,8 +124,6 @@ fun HomeScreen(
         }
     }
 
-    // Days since the start of the week relative to startWeekday
-    // (todayDayOfWeek - startWeekday + 7) % 7
     val todayDayOfWeek = ((todayEpoch + 3) % 7).toInt() // Current weekday (0=Mon, ..., 6=Sun)
     val daysSinceWeekStart = (todayDayOfWeek - startWeekday + 7) % 7
     
@@ -139,17 +137,6 @@ fun HomeScreen(
     val selectedTrackerYmd = remember(selectedTrackerDateEpoch) { epochDayToYmd(selectedTrackerDateEpoch) }
     val selectedDateStr = "${selectedTrackerYmd.year}-${selectedTrackerYmd.month.toString().padStart(2, '0')}-${selectedTrackerYmd.day.toString().padStart(2, '0')}"
 
-    val completions = remember(allCompletions, selectedDateStr, userId) {
-        allCompletions.filter { it.userId == userId && it.date == selectedDateStr }
-    }
-
-    LaunchedEffect(Unit) {
-        sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
-        sessionViewModel.loadAllExercises()
-    }
-
-    // displayWeek should use the activeWeek from home
-    // but constrained by activeWeek for safety (though tracker is now constrained)
     val displayWeek = remember(trackerStartEpoch, home?.programStartDate, user?.createdAt, startWeekday, activeWeek) {
         val startDate = home?.programStartDate ?: user?.createdAt ?: ""
         if (startDate.isBlank()) {
@@ -170,17 +157,25 @@ fun HomeScreen(
         }
     }
 
+    val selectedDayInWeek = remember(selectedTrackerDateEpoch, trackerStartEpoch) {
+        ((selectedTrackerDateEpoch - trackerStartEpoch).toInt() + 1).coerceIn(1, 7)
+    }
+
+    val completions = remember(allCompletions, selectedDayInWeek, userId, displayWeek) {
+        allCompletions.filter { it.userId == userId && it.day == selectedDayInWeek && it.week == displayWeek }
+    }
+
+    LaunchedEffect(Unit) {
+        sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
+        sessionViewModel.loadAllExercises()
+    }
+
     val weekExercises = remember(allExercises, displayWeek) {
         allExercises.filter { it.weekNumber == displayWeek }.sortedBy { it.orderInWeek ?: Int.MAX_VALUE }
     }
-    val displayExercises = if (weekExercises.isNotEmpty()) weekExercises else home?.upNext.orEmpty()
+    val displayExercises = weekExercises.ifEmpty { home?.upNext.orEmpty() }
     val selectedExercise = remember(displayExercises, selectedExerciseId) {
-        val id = selectedExerciseId
-        if (id.isNullOrBlank()) {
-            displayExercises.firstOrNull()
-        } else {
-            displayExercises.firstOrNull { it.id == id } ?: displayExercises.firstOrNull()
-        }
+        displayExercises.find { it.id == selectedExerciseId } ?: displayExercises.firstOrNull()
     }
     val selectedVideoUrl = remember(selectedExercise, contentLanguage) { selectedExercise?.getVideoURL(contentLanguage) }
     val selectedTitle = remember(selectedExercise, contentLanguage) { selectedExercise?.getTitle(contentLanguage) }
@@ -270,18 +265,9 @@ fun HomeScreen(
                             
                             val maxAllowedWeek = home?.currentWeek ?: 1
                             
-                            val weekNumber = remember(trackerStartEpoch, startWeekMondayEpoch) {
-                                if (startWeekMondayEpoch == 0L) {
-                                    activeWeek
-                                } else {
-                                    val diff = trackerStartEpoch - startWeekMondayEpoch
-                                    (diff / 7).toInt() + 1
-                                }
-                            }
-
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
-                                    text = "Week $weekNumber",
+                                    text = "Week $displayWeek",
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -294,7 +280,7 @@ fun HomeScreen(
                             
                             IconButton(
                                 onClick = { 
-                                    if (weekNumber < maxAllowedWeek) {
+                                    if (displayWeek < 8) {
                                         trackerStartEpoch += 7 
                                     } else {
                                         scope.launch {
@@ -302,12 +288,12 @@ fun HomeScreen(
                                         }
                                     }
                                 },
-                                enabled = weekNumber < maxAllowedWeek
+                                enabled = displayWeek < 8
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.ChevronRight, 
                                     contentDescription = "Next Week",
-                                    tint = if (weekNumber < maxAllowedWeek) LocalContentColor.current else Color.Gray
+                                    tint = if (displayWeek < 8) LocalContentColor.current else Color.Gray
                                 )
                             }
                         }
@@ -325,7 +311,8 @@ fun HomeScreen(
                                 val isToday = currentEpoch == todayEpoch
                                 
                                 val dateStr = "${currentYmd.year}-${currentYmd.month.toString().padStart(2, '0')}-${currentYmd.day.toString().padStart(2, '0')}"
-                                val dayCompletions = allCompletions.filter { it.userId == userId && it.date == dateStr }
+                                val currentDayInWeek = i + 1
+                                val dayCompletions = allCompletions.filter { it.userId == userId && it.day == currentDayInWeek && it.week == displayWeek }
                                 val completedSessionsCount = dayCompletions.map { it.session }.distinct().size
                                 
                                 val statusColor = when (completedSessionsCount) {
@@ -383,6 +370,41 @@ fun HomeScreen(
             }
 
             item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val morningCompleted = completions.any { it.session == "MORNING" }
+                    val eveningCompleted = completions.any { it.session == "EVENING" }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = morningCompleted,
+                            onCheckedChange = { checked ->
+                                scope.launch {
+                                    sessionViewModel.markSessionCompleted(displayWeek, selectedDayInWeek, userId, "MORNING", checked)
+                                }
+                            }
+                        )
+                        Text("Morning", style = MaterialTheme.typography.bodyMedium)
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = eveningCompleted,
+                            onCheckedChange = { checked ->
+                                scope.launch {
+                                    sessionViewModel.markSessionCompleted(displayWeek, selectedDayInWeek, userId, "EVENING", checked)
+                                }
+                            }
+                        )
+                        Text("Evening", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+
+            item {
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -424,9 +446,6 @@ fun HomeScreen(
                 val isWeek0 = ex.weekNumber == 0
                 val isMorning = ex.orderInWeek == 1
                 val isEvening = ex.orderInWeek == 2
-                val sessionType = if (isMorning) "morning" else if (isEvening) "evening" else "morning" // default
-                
-                val isCompleted = completions.any { comp -> comp.exerciseId == ex.id && comp.session == sessionType }
                 
                 val displayTitle = if (!isWeek0) {
                     val suffix = if (isMorning) " (Morning)" else if (isEvening) " (Evening)" else ""
@@ -482,28 +501,6 @@ fun HomeScreen(
                                     modifier = Modifier.weight(1f),
                                     style = if (isSelected) MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold) else MaterialTheme.typography.bodyLarge
                                 )
-                            }
-
-                            if (!isWeek0) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
-                                    horizontalArrangement = Arrangement.Start,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Checkbox(
-                                            checked = isCompleted,
-                                            onCheckedChange = { checked ->
-                                                scope.launch {
-                                                    sessionViewModel.markExerciseCompleted(ex.id, userId, selectedDateStr, sessionType, checked)
-                                                }
-                                            }
-                                        )
-                                        Text(if (isMorning) "Morning" else if (isEvening) "Evening" else "Done", style = MaterialTheme.typography.bodySmall)
-                                    }
-                                }
                             }
                         }
                     }

@@ -14,13 +14,11 @@ data class UserExerciseProgress (
 	val id: UUID,
 	@Serializable(with = UUIDSerializer::class)
 	val userId: UUID,
-	@Serializable(with = UUIDSerializer::class)
-	val programExerciseId: UUID,
-	val session: ExerciseSession?,
+	val week: Int,
+	val day: Int,
+	val exerciseSession: ExerciseSession,
 	@Serializable(with = InstantSerializer::class)
 	val completedAt: Instant?,
-	@Serializable(with = LocalDateSerializer::class)
-	val day: LocalDate?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)

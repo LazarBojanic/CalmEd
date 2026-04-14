@@ -17,14 +17,14 @@ import java.util.UUID
 
 object UserExerciseProgressTable : UUIDTable("user_exercise_progress") {
 	val userId = javaUUID("user_id").references(UserTable.id)
-	val programExerciseId = javaUUID("program_exercise_id").references(ProgramExerciseTable.id)
-	val session = enumeration("session", ExerciseSession::class).nullable()
+	val week = integer("week")
+	val day = integer("day") // 1 through 7
+	val exerciseSession = enumeration("exercise_session", ExerciseSession::class)
 	val completedAt = timestamp("completed_at").nullable()
-	val day = date("day").nullable()
 	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
 
 	init {
-		uniqueIndex(userId, programExerciseId, day, session)
+		uniqueIndex(userId, week, day, exerciseSession)
 	}
 }

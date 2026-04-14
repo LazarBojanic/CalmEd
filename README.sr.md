@@ -12,7 +12,7 @@
 
 ### Podešavanje
 - {backend_root_dir}: CalmEd/backend/calmed-backend
-- {frontend_root_dir}: CalmEd/frontend/calmed-frontend-tourettes
+- {frontend_root_dir}: CalmEd/frontend/calmed-tics
 - Otvoriti oba projekta posebno u Intellij-u.
 - Na bekendu, obavezno usmerite konfiguraciju pokretanja EngineMain-a ka .env fajlu ({backend_root_dir}/src/resources/.env). EngineMain -> Edit Configurations -> Environment Variables
 - U pgAdmin-u, kreirajte bazu podataka "calmed". Ili preko psql komandne linije: createdb -U postgres -h localhost calmed (password: postgres).

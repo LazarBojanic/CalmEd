@@ -8,14 +8,14 @@ import androidx.room.PrimaryKey
 data class ExerciseCompletionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    @ColumnInfo(name = "exerciseId")
-    val exerciseId: String,
+    @ColumnInfo(name = "week")
+    val week: Int,
+    @ColumnInfo(name = "day")
+    val day: Int, // 1-7
     @ColumnInfo(name = "userId")
     val userId: String,
-    @ColumnInfo(name = "date")
-    val date: String, // YYYY-MM-DD
     @ColumnInfo(name = "session")
-    val session: String, // "morning" or "evening"
+    val session: String, // "MORNING" or "EVENING"
     @ColumnInfo(name = "completed")
     val completed: Boolean,
     @ColumnInfo(name = "timestamp")

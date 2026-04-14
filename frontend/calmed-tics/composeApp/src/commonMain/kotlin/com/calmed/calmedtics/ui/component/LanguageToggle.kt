@@ -22,14 +22,13 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun LanguageToggle(
-    selectedLanguage: String?, // "en", "es", or null for system
-    onLanguageSelected: (String?) -> Unit,
+    selectedLanguage: String,
+    onLanguageSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val languages = listOf(
         LanguageOption("en", "🇺🇸", "EN"),
-        LanguageOption("es", "🇪🇸", "ES"),
-        LanguageOption(null, "🌐", "AUTO")
+        LanguageOption("es", "🇪🇸", "ES")
     )
 
     Row(
@@ -80,7 +79,7 @@ fun LanguageToggle(
 }
 
 private data class LanguageOption(
-    val code: String?,
+    val code: String,
     val flagEmoji: String,
     val label: String
 )

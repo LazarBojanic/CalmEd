@@ -70,7 +70,6 @@ fun ExercisesScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-
         Column(modifier = Modifier.padding(padding)) {
             LazyColumn(modifier = Modifier.weight(1f)) {
                 grouped.forEach { (week, weekItems) ->
@@ -85,7 +84,7 @@ fun ExercisesScreen(
 
                     items(weekItems) { ex ->
                         val locked = week > currentWeek
-                        val lockedMessage = stringResource(Res.string.exercise_locked_message)
+                        val lockedMessage = "its not yet time for this exercise"
 
                         Column(
                             modifier = Modifier
@@ -101,7 +100,9 @@ fun ExercisesScreen(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         if (locked) {
-                                            selectedLockedExercise = ex
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(lockedMessage)
+                                            }
                                         } else {
                                             onExerciseClick(ex)
                                         }
@@ -155,26 +156,5 @@ fun ExercisesScreen(
                 }
             }
         }
-    }
-
-    selectedLockedExercise?.let { ex ->
-        AlertDialog(
-            onDismissRequest = { selectedLockedExercise = null },
-            title = { Text(text = ex.getTitle(language)) },
-            text = { Text(text = stringResource(Res.string.exercise_locked_dialog_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    selectedLockedExercise = null
-                    onExerciseClick(ex)
-                }) {
-                    Text(text = stringResource(Res.string.i_am_sure))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { selectedLockedExercise = null }) {
-                    Text(text = stringResource(Res.string.cancel))
-                }
-            }
-        )
     }
 }

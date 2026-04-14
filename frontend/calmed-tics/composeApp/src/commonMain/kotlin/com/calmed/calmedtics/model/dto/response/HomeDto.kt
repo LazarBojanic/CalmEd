@@ -16,9 +16,9 @@ data class HomeDto(
 
 @Serializable
 data class UserExerciseProgressCompactDto(
-    val exerciseId: String,
+    val week: Int,
+    val day: Int,
     val session: com.calmed.calmedtics.model.raw.ExerciseSession,
-    val date: String,
     val completed: Boolean = true
 )
 

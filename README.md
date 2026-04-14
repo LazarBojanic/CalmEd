@@ -12,7 +12,7 @@
 
 ### Setup
 - {backend_root_dir}: CalmEd/backend/calmed-backend
-- {frontend_root_dir}: CalmEd/frontend/calmed-frontend-tourettes
+- {frontend_root_dir}: CalmEd/frontend/calmed-tics
 - Open each project separately in IntelliJ.
 - On the backend, make sure to point the EngineMain run configuration to the .env file ({backend_root_dir}/src/resources/.env). EngineMain -> Edit Configurations -> Environment Variables
 - In pgAdmin, create a database "calmed". Or through the psql command line: createdb -U postgres -h localhost calmed (password: postgres).

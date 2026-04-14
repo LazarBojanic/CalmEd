@@ -86,7 +86,6 @@ import com.calmed.calmedtics.tics_frequency
 import com.calmed.calmedtics.tics_motor
 import com.calmed.calmedtics.tics_type
 import com.calmed.calmedtics.tics_type_title
-import com.calmed.calmedtics.use_system_language
 import com.calmed.calmedtics.username
 import com.calmed.calmedtics.yes
 import org.jetbrains.compose.resources.stringResource

@@ -15,10 +15,10 @@ import java.util.UUID
 class UserExerciseProgressEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	companion object : UUIDEntityClass<UserExerciseProgressEntity>(UserExerciseProgressTable)
 	var userId by UserExerciseProgressTable.userId
-	var programExerciseId by UserExerciseProgressTable.programExerciseId
-	var session by UserExerciseProgressTable.session
-	var completedAt by UserExerciseProgressTable.completedAt
+	var week by UserExerciseProgressTable.week
 	var day by UserExerciseProgressTable.day
+	var exerciseSession by UserExerciseProgressTable.exerciseSession
+	var completedAt by UserExerciseProgressTable.completedAt
 	var createdAt by UserExerciseProgressTable.createdAt
 	var updatedAt by UserExerciseProgressTable.updatedAt
 }
