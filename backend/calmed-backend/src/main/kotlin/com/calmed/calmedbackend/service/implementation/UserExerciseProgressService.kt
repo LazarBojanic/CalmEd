@@ -68,7 +68,6 @@ class UserExerciseProgressService(
 		
 		for (week in 1..maxWeek) {
 			for (session in listOf(com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession.MORNING, com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession.EVENING)) {
-				// For each day (1 to 7)
 				for (day in 1..7) {
 					val existing = repository.findByCriteria(userId, week, day, session)
 					if (existing == null) {
@@ -114,7 +113,6 @@ class UserExerciseProgressService(
 			)
 			repository.update(updated) ?: return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to update progress record.")
 		} else {
-			// If it doesn't exist, create it
 			val progress = UserExerciseProgress(
 				id = UUID.randomUUID(),
 				userId = userId,

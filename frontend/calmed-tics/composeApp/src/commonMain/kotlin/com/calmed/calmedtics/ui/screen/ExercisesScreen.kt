@@ -37,7 +37,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
-import com.calmed.calmedtics.exercise_locked_message
+import com.calmed.calmedtics.its_not_yet_time
 import com.calmed.calmedtics.locked
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.ui.component.ThumbnailImage
@@ -84,7 +84,7 @@ fun ExercisesScreen(
 
                     items(weekItems) { ex ->
                         val locked = week > currentWeek
-                        val lockedMessage = "its not yet time for this exercise"
+                        val lockedMessage = stringResource(Res.string.its_not_yet_time)
 
                         Column(
                             modifier = Modifier

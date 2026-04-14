@@ -76,14 +76,11 @@ class SessionViewModel(
 		val calendarYear = home.calendar.year
 		val calendarMonth = home.calendar.month
 		
-		// Map completions by key: week_day
 		val completionsMap = completions
 			.filter { it.completed && it.userId == (user?.id ?: "") }
 			.groupBy { "${it.week}_${it.day}" }
 		
 		home.calendar.days.forEach { dayDto ->
-			// Need to determine which week/day of week this calendar day corresponds to
-			// Relative to program start
 			val startDate = home.programStartDate ?: user?.createdAt ?: ""
 			if (startDate.isNotBlank()) {
 				try {
@@ -388,11 +385,6 @@ class SessionViewModel(
 							)
 						}
 					}
-
-					// For simplicity in this monthly sync, we can just clear and reload or something
-					// but let's try to be smart. We only have completions for the requested month's week/day range.
-					// This is actually tricky because the same week can span two months.
-					// Let's just update what we have from remote.
 				}
 			}
 		} catch (t: Throwable) {

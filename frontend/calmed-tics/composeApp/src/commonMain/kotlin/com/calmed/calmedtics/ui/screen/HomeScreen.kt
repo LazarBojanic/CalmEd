@@ -75,6 +75,7 @@ import com.calmed.calmedtics.exercise_locked_message
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -102,10 +103,8 @@ fun HomeScreen(
 
     val userId = user?.id ?: ""
     
-    // Weekly Tracker State
     val todayEpoch = remember(ymd) { dateToEpochDay(ymd.year, ymd.month, ymd.day) }
-    
-    // Program start weekday calculation (0=Mon, ..., 6=Sun)
+
     val startWeekday = remember(home?.programStartDate, user?.createdAt) {
         val startDate = home?.programStartDate ?: user?.createdAt ?: ""
         if (startDate.isNotBlank()) {
@@ -115,16 +114,16 @@ fun HomeScreen(
                 val startMonth = parts[1].toInt()
                 val startDay = parts[2].toInt()
                 val startEpoch = dateToEpochDay(startYear, startMonth, startDay)
-                ((startEpoch + 3) % 7).toInt() // 0=Mon, ..., 6=Sun
+                ((startEpoch + 3) % 7).toInt()
             } catch (e: Exception) {
-                0 // Default to Monday
+                0
             }
         } else {
-            0 // Default to Monday
+            0
         }
     }
 
-    val todayDayOfWeek = ((todayEpoch + 3) % 7).toInt() // Current weekday (0=Mon, ..., 6=Sun)
+    val todayDayOfWeek = ((todayEpoch + 3) % 7).toInt()
     val daysSinceWeekStart = (todayDayOfWeek - startWeekday + 7) % 7
     
     val activeWeek = home?.currentWeek ?: 1
@@ -312,13 +311,27 @@ fun HomeScreen(
                                 
                                 val dateStr = "${currentYmd.year}-${currentYmd.month.toString().padStart(2, '0')}-${currentYmd.day.toString().padStart(2, '0')}"
                                 val currentDayInWeek = i + 1
-                                val dayCompletions = allCompletions.filter { it.userId == userId && it.day == currentDayInWeek && it.week == displayWeek }
-                                val completedSessionsCount = dayCompletions.map { it.session }.distinct().size
+                                val dayCompletions = allCompletions.filter { it.userId == userId && it.day == currentDayInWeek && it.week == displayWeek && it.completed }
+                                val morningCompleted = dayCompletions.any { it.session.equals("MORNING", ignoreCase = true) }
+                                val eveningCompleted = dayCompletions.any { it.session.equals("EVENING", ignoreCase = true) }
                                 
-                                val statusColor = when (completedSessionsCount) {
-                                    2 -> Color.Green
-                                    1 -> Color.Yellow
-                                    else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                val statusColor = Color.Green
+                                
+                                val circleBackground = when {
+                                    morningCompleted && eveningCompleted -> statusColor
+                                    morningCompleted -> Brush.horizontalGradient(
+                                        0.0f to statusColor,
+                                        0.5f to statusColor,
+                                        0.5f to Color.Transparent,
+                                        1.0f to Color.Transparent
+                                    )
+                                    eveningCompleted -> Brush.horizontalGradient(
+                                        0.0f to Color.Transparent,
+                                        0.5f to Color.Transparent,
+                                        0.5f to statusColor,
+                                        1.0f to statusColor
+                                    )
+                                    else -> Color.Transparent
                                 }
 
                                 Column(
@@ -336,13 +349,26 @@ fun HomeScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(32.dp)
-                                            .background(
-                                                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent,
-                                                CircleShape
+                                            .then(
+                                                if (isSelected) {
+                                                    Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                                } else {
+                                                    Modifier
+                                                }
+                                            )
+                                            .padding(if (isSelected) 2.dp else 0.dp)
+                                            .then(
+                                                if (circleBackground is Brush) {
+                                                    Modifier.background(circleBackground, CircleShape)
+                                                } else if (circleBackground is Color) {
+                                                    Modifier.background(circleBackground, CircleShape)
+                                                } else {
+                                                    Modifier
+                                                }
                                             )
                                             .border(
                                                 width = if (isToday) 2.dp else 1.dp,
-                                                color = if (isToday) MaterialTheme.colorScheme.primary else statusColor,
+                                                color = if (isToday) MaterialTheme.colorScheme.secondary else statusColor.copy(alpha = 0.3f),
                                                 shape = CircleShape
                                             ),
                                         contentAlignment = Alignment.Center
@@ -350,16 +376,8 @@ fun HomeScreen(
                                         Text(
                                             text = currentYmd.day.toString(),
                                             style = MaterialTheme.typography.bodySmall,
+                                            color = if (morningCompleted && eveningCompleted) Color.White else MaterialTheme.colorScheme.onSurface,
                                             fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                        
-                                        // Small dot for completion if not selected (or just use the border color)
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.BottomCenter)
-                                                .padding(bottom = 2.dp)
-                                                .size(4.dp)
-                                                .background(statusColor, CircleShape)
                                         )
                                     }
                                 }

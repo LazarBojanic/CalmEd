@@ -142,4 +142,5 @@
     <string name="use_system_language">Usar idioma del sistema</string>
     <string name="language_english">Inglés</string>
     <string name="language_spanish">Español</string>
+    <string name="its_not_yet_time">Aún no es hora de este ejercicio</string>
 </resources>
