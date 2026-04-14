@@ -1,17 +1,22 @@
 package com.calmed.calmedtics.ui.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -21,12 +26,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
-import com.calmed.calmedtics.age_label
 import com.calmed.calmedtics.age_title
 import com.calmed.calmedtics.finish
 import com.calmed.calmedtics.follow_progress_question
@@ -42,24 +49,35 @@ import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TickFrequency
 import com.calmed.calmedtics.model.raw.TickType
 import com.calmed.calmedtics.next
-import com.calmed.calmedtics.onboarding_title
 import com.calmed.calmedtics.personalize_experience
-import com.calmed.calmedtics.preferred_name_label
 import com.calmed.calmedtics.preferred_name_title
 import com.calmed.calmedtics.skip
 import com.calmed.calmedtics.start
-import com.calmed.calmedtics.stress_value
 import com.calmed.calmedtics.tics_both
 import com.calmed.calmedtics.tics_frequency_title
 import com.calmed.calmedtics.tics_motor
 import com.calmed.calmedtics.tics_type_title
 import com.calmed.calmedtics.tics_vocal
 import com.calmed.calmedtics.ui.component.PrimaryButton
-import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.TextField
 import com.calmed.calmedtics.welcome_user
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.shadow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SentimentSatisfiedAlt
+import androidx.compose.material.icons.outlined.SentimentVeryDissatisfied
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingScreen(
 	user: UserJoined,
@@ -72,14 +90,10 @@ fun OnboardingScreen(
 	val age = remember { mutableIntStateOf(userInfo.age ?: 18) }
 	val stress = remember { mutableIntStateOf(userInfo.stressLevel ?: 5) }
 	val tickType = remember { mutableStateOf(userInfo.tickType ?: TickType.BOTH) }
-	val tickFrequency = remember { mutableStateOf(userInfo.tickFrequency ?: TickFrequency.MODERATE) }
+	val tickFrequency =
+		remember { mutableStateOf(userInfo.tickFrequency ?: TickFrequency.MODERATE) }
 	val goal = remember { mutableStateOf(userInfo.goal ?: "") }
 	val followProgress = remember { mutableStateOf(userInfo.followProgress ?: true) }
-	val ageText = remember { mutableStateOf(age.intValue.toString()) }
-
-	LaunchedEffect(age.intValue) {
-		ageText.value = age.intValue.toString()
-	}
 
 	fun buildUpdate(): UserInfoTicsUpdateDto {
 		return UserInfoTicsUpdateDto(
@@ -104,10 +118,18 @@ fun OnboardingScreen(
 		Surface(
 			modifier = modifier.fillMaxWidth(),
 			shape = MaterialTheme.shapes.medium,
-			color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+			color = if (selected) {
+				MaterialTheme.colorScheme.primaryContainer
+			} else {
+				MaterialTheme.colorScheme.surface
+			},
 			border = BorderStroke(
 				width = 1.dp,
-				color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+				color = if (selected) {
+					MaterialTheme.colorScheme.primary
+				} else {
+					MaterialTheme.colorScheme.outline
+				}
 			)
 		) {
 			Row(
@@ -128,136 +150,1534 @@ fun OnboardingScreen(
 		}
 	}
 
-	ScreenScaffold(
-		title = stringResource(Res.string.onboarding_title),
-		onBack = if (step.intValue > 0) ({ step.intValue -= 1 }) else null
-	) {
-		Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-			TextButton(onClick = onSkip) {
-				Text(stringResource(Res.string.skip))
-			}
-		}
-
-		Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-			when (step.intValue) {
-				0 -> {
-					Text(stringResource(Res.string.welcome_user, user.username), style = MaterialTheme.typography.headlineSmall)
-					Text(stringResource(Res.string.personalize_experience))
-					PrimaryButton(text = stringResource(Res.string.start), onClick = { step.intValue = 1 })
-				}
-
-				1 -> {
-					Text(stringResource(Res.string.preferred_name_title), style = MaterialTheme.typography.titleLarge)
-					TextField(
-						value = preferredName.value,
-						onValueChange = { preferredName.value = it },
-						label = stringResource(Res.string.preferred_name_label),
-						singleLine = true
-					)
-					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 2 })
-				}
-
-				2 -> {
-					Text(
-						stringResource(Res.string.age_title), style = MaterialTheme.typography.titleLarge)
-					TextField(
-						value = ageText.value,
-						onValueChange = { raw ->
-							val digitsOnly = raw.filter { it.isDigit() }
-							ageText.value = digitsOnly
-							val parsed = digitsOnly.toIntOrNull()
-							if (parsed != null) {
-								age.intValue = parsed.coerceIn(5, 80)
+	Box(modifier = Modifier.fillMaxSize()) {
+		when (step.intValue) {
+			0 -> {
+				Column(
+					modifier = Modifier
+						.fillMaxSize()
+						.background(
+							brush = Brush.verticalGradient(
+								colors = listOf(
+									Color(0xFF7B7DE5),
+									Color(0xFFE5C8E8)
+								)
+							)
+						)
+						.padding(24.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					verticalArrangement = Arrangement.SpaceBetween
+				) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.End
+						) {
+							Surface(
+								shape = MaterialTheme.shapes.large,
+								color = Color.White.copy(alpha = 0.28f)
+							) {
+								TextButton(onClick = onSkip) {
+									Text(
+										text = stringResource(Res.string.skip),
+										color = Color.White
+									)
+								}
 							}
-						},
-						label = stringResource(Res.string.age_label),
-						singleLine = true
-					)
-					Slider(
-						value = age.intValue.toFloat(),
-						onValueChange = { age.intValue = it.toInt().coerceIn(5, 80) },
-						valueRange = 5f..80f,
-						steps = 74
-					)
-					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 3 })
-				}
+						}
 
-				3 -> {
-					Text(stringResource(Res.string.stress_value, stress.intValue), style = MaterialTheme.typography.titleLarge)
-					Text(stringResource(Res.string.stress_value, stress.intValue))
-					Slider(
-						value = stress.intValue.toFloat(),
-						onValueChange = { stress.intValue = it.toInt() },
-						valueRange = 0f..10f,
-						steps = 9
-					)
-					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 4 })
-				}
+						Spacer(modifier = Modifier.height(48.dp))
 
-				4 -> {
-					Text(stringResource(Res.string.tics_type_title), style = MaterialTheme.typography.titleLarge)
+						Text(
+							text = stringResource(Res.string.welcome_user, user.username),
+							style = MaterialTheme.typography.headlineMedium.copy(
+								color = Color.White
+							)
+						)
 
-					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-						RadioOptionRow(
-							text = stringResource(Res.string.tics_motor),
-							selected = tickType.value == TickType.MOTOR,
-							onClick = { tickType.value = TickType.MOTOR }
+						Spacer(modifier = Modifier.height(16.dp))
+
+						Text(
+							text = stringResource(Res.string.personalize_experience),
+							style = MaterialTheme.typography.bodyLarge.copy(
+								color = Color.White.copy(alpha = 0.9f)
+							)
 						)
-						RadioOptionRow(
-							text = stringResource(Res.string.tics_vocal),
-							selected = tickType.value == TickType.VOCAL,
-							onClick = { tickType.value = TickType.VOCAL }
-						)
-						RadioOptionRow(
-							text = stringResource(Res.string.tics_both),
-							selected = tickType.value == TickType.BOTH,
-							onClick = { tickType.value = TickType.BOTH }
-						)
+
+						Spacer(modifier = Modifier.height(48.dp))
+
+						Surface(
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.22f)
+						) {
+							Text(
+								text = "We’ll ask a few quick questions to personalize your experience.",
+								modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
+								style = MaterialTheme.typography.bodyMedium.copy(
+									color = Color.White
+								)
+							)
+						}
 					}
 
-					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 5 })
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+						Row(
+							horizontalArrangement = Arrangement.spacedBy(8.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							repeat(5) { index ->
+								Surface(
+									modifier = Modifier
+										.width(if (index == 0) 18.dp else 8.dp)
+										.height(8.dp),
+									shape = MaterialTheme.shapes.large,
+									color = if (index == 0) {
+										Color(0xFF2F327D)
+									} else {
+										Color.White.copy(alpha = 0.5f)
+									}
+								) {}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(24.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.28f)
+						) {
+							TextButton(
+								onClick = { step.intValue = 1 },
+								modifier = Modifier.fillMaxWidth()
+							) {
+								Text(
+									text = stringResource(Res.string.start),
+									style = MaterialTheme.typography.titleMedium,
+									color = Color.White
+								)
+							}
+						}
+					}
 				}
+			}
 
-				5 -> {
-					Text(stringResource(Res.string.tics_frequency_title), style = MaterialTheme.typography.titleLarge)
+			1 -> {
+				Column(
+					modifier = Modifier
+						.fillMaxSize()
+						.background(
+							brush = Brush.verticalGradient(
+								colors = listOf(
+									Color(0xFF7B7DE5),
+									Color(0xFFE5C8E8)
+								)
+							)
+						)
+						.padding(24.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					verticalArrangement = Arrangement.SpaceBetween
+				) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.SpaceBetween,
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							TextButton(
+								onClick = { step.intValue = 0 }
+							) {
+								Text(
+									text = "Back",
+									color = Color.White
+								)
+							}
 
-					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-						RadioOptionRow(
-							text = stringResource(Res.string.frequency_rare),
-							selected = tickFrequency.value == TickFrequency.RARE,
-							onClick = { tickFrequency.value = TickFrequency.RARE }
+							Surface(
+								shape = MaterialTheme.shapes.large,
+								color = Color.White.copy(alpha = 0.28f)
+							) {
+								TextButton(onClick = onSkip) {
+									Text(
+										text = stringResource(Res.string.skip),
+										color = Color.White
+									)
+								}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(48.dp))
+
+						Text(
+							text = stringResource(Res.string.preferred_name_title),
+							style = MaterialTheme.typography.headlineMedium.copy(
+								color = Color.White
+							)
 						)
-						RadioOptionRow(
-							text = stringResource(Res.string.frequency_moderate),
-							selected = tickFrequency.value == TickFrequency.MODERATE,
-							onClick = { tickFrequency.value = TickFrequency.MODERATE }
+
+						Spacer(modifier = Modifier.height(12.dp))
+
+						Text(
+							text = "Choose the name you’d like us to use in the app.",
+							style = MaterialTheme.typography.bodyLarge.copy(
+								color = Color.White.copy(alpha = 0.9f)
+							)
 						)
-						RadioOptionRow(
-							text = stringResource(Res.string.frequency_daily),
-							selected = tickFrequency.value == TickFrequency.DAILY,
-							onClick = { tickFrequency.value = TickFrequency.DAILY }
-						)
+
+						Spacer(modifier = Modifier.height(40.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.22f)
+						) {
+							Column(
+								modifier = Modifier.padding(20.dp)
+							) {
+
+
+								TextField(
+									value = preferredName.value,
+									onValueChange = { preferredName.value = it },
+									label = "",
+									singleLine = true
+								)
+							}
+						}
 					}
 
-					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 6 })
-				}
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+						Row(
+							horizontalArrangement = Arrangement.spacedBy(8.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							repeat(5) { index ->
+								Surface(
+									modifier = Modifier
+										.width(if (index == 1) 18.dp else 8.dp)
+										.height(8.dp),
+									shape = MaterialTheme.shapes.large,
+									color = if (index == 1) {
+										Color(0xFF2F327D)
+									} else {
+										Color.White.copy(alpha = 0.5f)
+									}
+								) {}
+							}
+						}
 
-				6 -> {
-					Text(stringResource(Res.string.goal_title), style = MaterialTheme.typography.titleLarge)
-					TextField(
-						value = goal.value,
-						onValueChange = { goal.value = it },
-						label = stringResource(Res.string.goal_label),
-						singleLine = false
-					)
-					PrimaryButton(text = stringResource(Res.string.next), onClick = { step.intValue = 7 })
-				}
+						Spacer(modifier = Modifier.height(24.dp))
 
-				7 -> {
-					Text(stringResource(Res.string.follow_progress_title), style = MaterialTheme.typography.titleLarge)
-					Text(stringResource(Res.string.follow_progress_question))
-					Switch(checked = followProgress.value, onCheckedChange = { followProgress.value = it })
-					PrimaryButton(text = stringResource(Res.string.finish), onClick = { onFinished(buildUpdate()) })
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.28f)
+						) {
+							TextButton(
+								onClick = { step.intValue = 2 },
+								modifier = Modifier.fillMaxWidth()
+							) {
+								Text(
+									text = stringResource(Res.string.next),
+									style = MaterialTheme.typography.titleMedium,
+									color = Color.White
+								)
+							}
+						}
+					}
+				}
+			}
+
+			2 -> {
+				Column(
+					modifier = Modifier
+						.fillMaxSize()
+						.background(
+							brush = Brush.verticalGradient(
+								colors = listOf(
+									Color(0xFF7B7DE5),
+									Color(0xFFE5C6E8)
+								)
+							)
+						)
+						.padding(24.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					verticalArrangement = Arrangement.SpaceBetween
+				) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.SpaceBetween,
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							TextButton(
+								onClick = { step.intValue = 1 }
+							) {
+								Text(
+									text = "Back",
+									color = Color.White
+								)
+							}
+
+							Surface(
+								shape = MaterialTheme.shapes.large,
+								color = Color.White.copy(alpha = 0.28f)
+							) {
+								TextButton(
+									onClick = { step.intValue = 3 }
+								) {
+									Text(
+										text = stringResource(Res.string.next),
+										color = Color.White
+									)
+								}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(24.dp))
+
+						Text(
+							text = stringResource(Res.string.age_title),
+							style = MaterialTheme.typography.titleLarge.copy(
+								color = Color(0xFF2F327D)
+							)
+						)
+
+						Spacer(modifier = Modifier.height(40.dp))
+
+						Box(
+							modifier = Modifier.height(180.dp),
+							contentAlignment = Alignment.Center
+						) {
+							val ages = (5..80).toList()
+							val initialIndex = (age.intValue - 6).coerceIn(0, ages.lastIndex)
+							val listState = rememberLazyListState(
+								initialFirstVisibleItemIndex = initialIndex
+							)
+
+							LaunchedEffect(listState) {
+								snapshotFlow { listState.firstVisibleItemIndex }
+									.collect { index ->
+										val middleIndex = (index + 1).coerceIn(0, ages.lastIndex)
+										age.intValue = ages[middleIndex]
+									}
+							}
+
+							Surface(
+								modifier = Modifier
+									.fillMaxWidth(0.45f)
+									.height(64.dp),
+								shape = MaterialTheme.shapes.large,
+								color = Color.White.copy(alpha = 0.35f)
+							) {}
+
+							LazyColumn(
+								state = listState,
+								modifier = Modifier.height(180.dp),
+								horizontalAlignment = Alignment.CenterHorizontally
+							) {
+								items(ages.size) { index ->
+									val value = ages[index]
+									val selected = value == age.intValue
+
+									Box(
+										modifier = Modifier.height(60.dp),
+										contentAlignment = Alignment.Center
+									) {
+										Text(
+											text = value.toString(),
+											style = if (selected) {
+												MaterialTheme.typography.displayLarge.copy(
+													color = Color(0xFF2F327D)
+												)
+											} else {
+												MaterialTheme.typography.headlineMedium.copy(
+													color = Color(0xFF8C8FEF)
+												)
+											}
+										)
+									}
+								}
+							}
+						}
+					}
+
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+						Row(
+							horizontalArrangement = Arrangement.spacedBy(8.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							repeat(5) { index ->
+								Surface(
+									modifier = Modifier
+										.width(if (index == 1) 18.dp else 8.dp)
+										.height(8.dp),
+									shape = MaterialTheme.shapes.large,
+									color = if (index == 1) {
+										Color(0xFF2F327D)
+									} else {
+										Color.White.copy(alpha = 0.5f)
+									}
+								) {}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(24.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.22f)
+						) {
+							Text(
+								text = "This information helps us tailor the app experience for you.",
+								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+								style = MaterialTheme.typography.bodyMedium.copy(
+									color = Color.White
+								)
+							)
+						}
+					}
+				}
+			}
+
+			3 -> {
+				Column(
+					modifier = Modifier
+						.fillMaxSize()
+						.background(
+							brush = Brush.verticalGradient(
+								colors = listOf(
+									Color(0xFF7B7DE5),
+									Color(0xFFE5C8E8)
+								)
+							)
+						)
+						.padding(24.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					verticalArrangement = Arrangement.SpaceBetween
+				) {
+
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.SpaceBetween,
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							TextButton(onClick = { step.intValue = 2 }) {
+								Text("Back", color = Color.White)
+							}
+
+							Surface(
+								shape = MaterialTheme.shapes.large,
+								color = Color.White.copy(alpha = 0.28f)
+							) {
+								TextButton(onClick = { step.intValue = 4 }) {
+									Text(
+										text = stringResource(Res.string.next),
+										color = Color.White
+									)
+								}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(48.dp))
+
+						Text(
+							text = "What is your average\nlevel of stress?",
+							style = MaterialTheme.typography.headlineMedium.copy(
+								color = Color(0xFF2F327D)
+							)
+						)
+
+						Spacer(modifier = Modifier.height(56.dp))
+
+						Column(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalAlignment = Alignment.CenterHorizontally
+						) {
+
+							Row(
+								modifier = Modifier.fillMaxWidth(),
+								horizontalArrangement = Arrangement.SpaceBetween,
+								verticalAlignment = Alignment.CenterVertically
+							) {
+								Icon(
+									imageVector = Icons.Outlined.SentimentSatisfiedAlt,
+									contentDescription = null,
+									tint = Color(0xFF8C8FEF).copy(alpha = 0.85f),
+									modifier = Modifier.size(28.dp)
+								)
+
+								Icon(
+									imageVector = Icons.Outlined.SentimentVeryDissatisfied,
+									contentDescription = null,
+									tint = Color(0xFF8C8FEF).copy(alpha = 0.85f),
+									modifier = Modifier.size(28.dp)
+								)
+							}
+
+							Spacer(modifier = Modifier.height(14.dp))
+
+							Box(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(horizontal = 6.dp)
+							) {
+								Box(
+									modifier = Modifier
+										.fillMaxWidth()
+										.height(4.dp)
+										.align(Alignment.Center)
+										.background(
+											color = Color.White.copy(alpha = 0.75f),
+											shape = CircleShape
+										)
+								)
+
+								Row(
+									modifier = Modifier.fillMaxWidth(),
+									horizontalArrangement = Arrangement.SpaceBetween,
+									verticalAlignment = Alignment.CenterVertically
+								) {
+									(0..10).forEach { value ->
+										val selected = stress.intValue == value
+
+										Box(
+											modifier = Modifier
+												.size(if (selected) 22.dp else 14.dp)
+												.shadow(
+													elevation = if (selected) 12.dp else 0.dp,
+													shape = CircleShape,
+													ambientColor = Color(0xFF8D83FF),
+													spotColor = Color(0xFF8D83FF)
+												)
+												.background(
+													color = if (selected) Color.White else Color(
+														0xFFE8E4FF
+													),
+													shape = CircleShape
+												)
+												.border(
+													width = if (selected) 4.dp else 2.dp,
+													color = Color(0xFF7E78E8),
+													shape = CircleShape
+												)
+												.clickable { stress.intValue = value }
+										)
+									}
+								}
+							}
+
+							Spacer(modifier = Modifier.height(12.dp))
+
+							Row(
+								modifier = Modifier.fillMaxWidth(),
+								horizontalArrangement = Arrangement.SpaceBetween
+							) {
+								(0..10).forEach { value ->
+									Text(
+										text = value.toString(),
+										style = MaterialTheme.typography.bodySmall.copy(
+											color = Color(0xFF2F327D)
+										)
+									)
+								}
+							}
+						}
+					}
+
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							horizontalArrangement = Arrangement.spacedBy(8.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							repeat(5) { index ->
+								Surface(
+									modifier = Modifier
+										.width(if (index == 2) 18.dp else 8.dp)
+										.height(8.dp),
+									shape = MaterialTheme.shapes.large,
+									color = if (index == 2) {
+										Color(0xFF2F327D)
+									} else {
+										Color.White.copy(alpha = 0.5f)
+									}
+								) {}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(24.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.22f)
+						) {
+							Text(
+								text = "This information helps us tailor the app experience for you.",
+								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+								style = MaterialTheme.typography.bodyMedium.copy(
+									color = Color.White
+								)
+							)
+						}
+					}
+				}
+			}
+
+			4 -> {
+				Column(
+					modifier = Modifier
+						.fillMaxSize()
+						.background(
+							brush = Brush.verticalGradient(
+								colors = listOf(
+									Color(0xFF7B7DE5),
+									Color(0xFFE5C8E8)
+								)
+							)
+						)
+						.padding(24.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					verticalArrangement = Arrangement.SpaceBetween
+				) {
+
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.SpaceBetween,
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							TextButton(onClick = { step.intValue = 3 }) {
+								Text("Back", color = Color.White)
+							}
+
+							Surface(
+								shape = MaterialTheme.shapes.large,
+								color = Color.White.copy(alpha = 0.28f)
+							) {
+								TextButton(onClick = { step.intValue = 5 }) {
+									Text(
+										text = stringResource(Res.string.next),
+										color = Color.White
+									)
+								}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(40.dp))
+
+						Text(
+							text = stringResource(Res.string.tics_type_title),
+							style = MaterialTheme.typography.headlineMedium.copy(
+								color = Color(0xFF2F327D)
+							)
+						)
+
+						Spacer(modifier = Modifier.height(32.dp))
+
+						Column(
+							modifier = Modifier.fillMaxWidth(),
+							verticalArrangement = Arrangement.spacedBy(14.dp)
+						) {
+							Surface(
+								modifier = Modifier
+									.fillMaxWidth()
+									.clickable { tickType.value = TickType.MOTOR },
+								shape = MaterialTheme.shapes.extraLarge,
+								color = if (tickType.value == TickType.MOTOR) {
+									Color.White.copy(alpha = 0.30f)
+								} else {
+									Color.White.copy(alpha = 0.14f)
+								},
+								border = BorderStroke(
+									width = if (tickType.value == TickType.MOTOR) 2.dp else 1.dp,
+									color = if (tickType.value == TickType.MOTOR) {
+										Color.White.copy(alpha = 0.95f)
+									} else {
+										Color.White.copy(alpha = 0.35f)
+									}
+								)
+							) {
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(horizontal = 18.dp, vertical = 18.dp),
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.SpaceBetween
+								) {
+									Column {
+										Text(
+											text = stringResource(Res.string.tics_motor),
+											style = MaterialTheme.typography.titleMedium.copy(
+												color = Color.White
+											)
+										)
+										Spacer(modifier = Modifier.height(4.dp))
+										Text(
+											text = "Body movement tics",
+											style = MaterialTheme.typography.bodyMedium.copy(
+												color = Color.White.copy(alpha = 0.8f)
+											)
+										)
+									}
+
+									Box(
+										modifier = Modifier
+											.size(24.dp)
+											.background(
+												color = if (tickType.value == TickType.MOTOR) {
+													Color.White
+												} else {
+													Color.Transparent
+												},
+												shape = CircleShape
+											)
+											.border(
+												width = 2.dp,
+												color = Color.White,
+												shape = CircleShape
+											)
+									)
+								}
+							}
+
+							Surface(
+								modifier = Modifier
+									.fillMaxWidth()
+									.clickable { tickType.value = TickType.VOCAL },
+								shape = MaterialTheme.shapes.extraLarge,
+								color = if (tickType.value == TickType.VOCAL) {
+									Color.White.copy(alpha = 0.30f)
+								} else {
+									Color.White.copy(alpha = 0.14f)
+								},
+								border = BorderStroke(
+									width = if (tickType.value == TickType.VOCAL) 2.dp else 1.dp,
+									color = if (tickType.value == TickType.VOCAL) {
+										Color.White.copy(alpha = 0.95f)
+									} else {
+										Color.White.copy(alpha = 0.35f)
+									}
+								)
+							) {
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(horizontal = 18.dp, vertical = 18.dp),
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.SpaceBetween
+								) {
+									Column {
+										Text(
+											text = stringResource(Res.string.tics_vocal),
+											style = MaterialTheme.typography.titleMedium.copy(
+												color = Color.White
+											)
+										)
+										Spacer(modifier = Modifier.height(4.dp))
+										Text(
+											text = "Sounds or vocal tics",
+											style = MaterialTheme.typography.bodyMedium.copy(
+												color = Color.White.copy(alpha = 0.8f)
+											)
+										)
+									}
+
+									Box(
+										modifier = Modifier
+											.size(24.dp)
+											.background(
+												color = if (tickType.value == TickType.VOCAL) {
+													Color.White
+												} else {
+													Color.Transparent
+												},
+												shape = CircleShape
+											)
+											.border(
+												width = 2.dp,
+												color = Color.White,
+												shape = CircleShape
+											)
+									)
+								}
+							}
+
+							Surface(
+								modifier = Modifier
+									.fillMaxWidth()
+									.clickable { tickType.value = TickType.BOTH },
+								shape = MaterialTheme.shapes.extraLarge,
+								color = if (tickType.value == TickType.BOTH) {
+									Color.White.copy(alpha = 0.30f)
+								} else {
+									Color.White.copy(alpha = 0.14f)
+								},
+								border = BorderStroke(
+									width = if (tickType.value == TickType.BOTH) 2.dp else 1.dp,
+									color = if (tickType.value == TickType.BOTH) {
+										Color.White.copy(alpha = 0.95f)
+									} else {
+										Color.White.copy(alpha = 0.35f)
+									}
+								)
+							) {
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(horizontal = 18.dp, vertical = 18.dp),
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.SpaceBetween
+								) {
+									Column {
+										Text(
+											text = stringResource(Res.string.tics_both),
+											style = MaterialTheme.typography.titleMedium.copy(
+												color = Color.White
+											)
+										)
+										Spacer(modifier = Modifier.height(4.dp))
+										Text(
+											text = "Both motor and vocal tics",
+											style = MaterialTheme.typography.bodyMedium.copy(
+												color = Color.White.copy(alpha = 0.8f)
+											)
+										)
+									}
+
+									Box(
+										modifier = Modifier
+											.size(24.dp)
+											.background(
+												color = if (tickType.value == TickType.BOTH) {
+													Color.White
+												} else {
+													Color.Transparent
+												},
+												shape = CircleShape
+											)
+											.border(
+												width = 2.dp,
+												color = Color.White,
+												shape = CircleShape
+											)
+									)
+								}
+							}
+						}
+					}
+
+
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							horizontalArrangement = Arrangement.spacedBy(8.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							repeat(5) { index ->
+								Surface(
+									modifier = Modifier
+										.width(if (index == 3) 18.dp else 8.dp)
+										.height(8.dp),
+									shape = MaterialTheme.shapes.large,
+									color = if (index == 3) {
+										Color(0xFF2F327D)
+									} else {
+										Color.White.copy(alpha = 0.5f)
+									}
+								) {}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(24.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.22f)
+						) {
+							Text(
+								text = "This information helps us tailor the app experience for you.",
+								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+								style = MaterialTheme.typography.bodyMedium.copy(
+									color = Color.White
+								)
+							)
+						}
+					}
+				}
+			}
+
+			5 -> {
+				Column(
+					modifier = Modifier
+						.fillMaxSize()
+						.background(
+							brush = Brush.verticalGradient(
+								colors = listOf(
+									Color(0xFF7B7DE5),
+									Color(0xFFE5C8E8)
+								)
+							)
+						)
+						.padding(24.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					verticalArrangement = Arrangement.SpaceBetween
+				) {
+
+					// TOP
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.SpaceBetween,
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							TextButton(onClick = { step.intValue = 4 }) {
+								Text("Back", color = Color.White)
+							}
+
+							Surface(
+								shape = MaterialTheme.shapes.large,
+								color = Color.White.copy(alpha = 0.28f)
+							) {
+								TextButton(onClick = { step.intValue = 6 }) {
+									Text(
+										text = stringResource(Res.string.next),
+										color = Color.White
+									)
+								}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(40.dp))
+
+						Text(
+							text = stringResource(Res.string.tics_frequency_title),
+							style = MaterialTheme.typography.headlineMedium.copy(
+								color = Color(0xFF2F327D)
+							)
+						)
+
+						Spacer(modifier = Modifier.height(16.dp))
+
+						Text(
+							text = "How often do your tics usually occur?",
+							style = MaterialTheme.typography.bodyLarge.copy(
+								color = Color.White.copy(alpha = 0.9f)
+							)
+						)
+
+						Spacer(modifier = Modifier.height(32.dp))
+
+						Column(
+							modifier = Modifier.fillMaxWidth(),
+							verticalArrangement = Arrangement.spacedBy(14.dp)
+						) {
+							Surface(
+								modifier = Modifier
+									.fillMaxWidth()
+									.clickable { tickFrequency.value = TickFrequency.RARE },
+								shape = MaterialTheme.shapes.extraLarge,
+								color = if (tickFrequency.value == TickFrequency.RARE) {
+									Color.White.copy(alpha = 0.30f)
+								} else {
+									Color.White.copy(alpha = 0.14f)
+								},
+								border = BorderStroke(
+									width = if (tickFrequency.value == TickFrequency.RARE) 2.dp else 1.dp,
+									color = if (tickFrequency.value == TickFrequency.RARE) {
+										Color.White.copy(alpha = 0.95f)
+									} else {
+										Color.White.copy(alpha = 0.35f)
+									}
+								)
+							) {
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(horizontal = 18.dp, vertical = 18.dp),
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.SpaceBetween
+								) {
+									Column {
+										Text(
+											text = stringResource(Res.string.frequency_rare),
+											style = MaterialTheme.typography.titleMedium.copy(
+												color = Color.White
+											)
+										)
+										Spacer(modifier = Modifier.height(4.dp))
+										Text(
+											text = "They happen only occasionally",
+											style = MaterialTheme.typography.bodyMedium.copy(
+												color = Color.White.copy(alpha = 0.8f)
+											)
+										)
+									}
+
+									Box(
+										modifier = Modifier
+											.size(24.dp)
+											.background(
+												color = if (tickFrequency.value == TickFrequency.RARE) {
+													Color.White
+												} else {
+													Color.Transparent
+												},
+												shape = CircleShape
+											)
+											.border(
+												width = 2.dp,
+												color = Color.White,
+												shape = CircleShape
+											)
+									)
+								}
+							}
+
+							Surface(
+								modifier = Modifier
+									.fillMaxWidth()
+									.clickable { tickFrequency.value = TickFrequency.MODERATE },
+								shape = MaterialTheme.shapes.extraLarge,
+								color = if (tickFrequency.value == TickFrequency.MODERATE) {
+									Color.White.copy(alpha = 0.30f)
+								} else {
+									Color.White.copy(alpha = 0.14f)
+								},
+								border = BorderStroke(
+									width = if (tickFrequency.value == TickFrequency.MODERATE) 2.dp else 1.dp,
+									color = if (tickFrequency.value == TickFrequency.MODERATE) {
+										Color.White.copy(alpha = 0.95f)
+									} else {
+										Color.White.copy(alpha = 0.35f)
+									}
+								)
+							) {
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(horizontal = 18.dp, vertical = 18.dp),
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.SpaceBetween
+								) {
+									Column {
+										Text(
+											text = stringResource(Res.string.frequency_moderate),
+											style = MaterialTheme.typography.titleMedium.copy(
+												color = Color.White
+											)
+										)
+										Spacer(modifier = Modifier.height(4.dp))
+										Text(
+											text = "They happen from time to time",
+											style = MaterialTheme.typography.bodyMedium.copy(
+												color = Color.White.copy(alpha = 0.8f)
+											)
+										)
+									}
+
+									Box(
+										modifier = Modifier
+											.size(24.dp)
+											.background(
+												color = if (tickFrequency.value == TickFrequency.MODERATE) {
+													Color.White
+												} else {
+													Color.Transparent
+												},
+												shape = CircleShape
+											)
+											.border(
+												width = 2.dp,
+												color = Color.White,
+												shape = CircleShape
+											)
+									)
+								}
+							}
+
+							Surface(
+								modifier = Modifier
+									.fillMaxWidth()
+									.clickable { tickFrequency.value = TickFrequency.DAILY },
+								shape = MaterialTheme.shapes.extraLarge,
+								color = if (tickFrequency.value == TickFrequency.DAILY) {
+									Color.White.copy(alpha = 0.30f)
+								} else {
+									Color.White.copy(alpha = 0.14f)
+								},
+								border = BorderStroke(
+									width = if (tickFrequency.value == TickFrequency.DAILY) 2.dp else 1.dp,
+									color = if (tickFrequency.value == TickFrequency.DAILY) {
+										Color.White.copy(alpha = 0.95f)
+									} else {
+										Color.White.copy(alpha = 0.35f)
+									}
+								)
+							) {
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(horizontal = 18.dp, vertical = 18.dp),
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.SpaceBetween
+								) {
+									Column {
+										Text(
+											text = stringResource(Res.string.frequency_daily),
+											style = MaterialTheme.typography.titleMedium.copy(
+												color = Color.White
+											)
+										)
+										Spacer(modifier = Modifier.height(4.dp))
+										Text(
+											text = "They are present every day",
+											style = MaterialTheme.typography.bodyMedium.copy(
+												color = Color.White.copy(alpha = 0.8f)
+											)
+										)
+									}
+
+									Box(
+										modifier = Modifier
+											.size(24.dp)
+											.background(
+												color = if (tickFrequency.value == TickFrequency.DAILY) {
+													Color.White
+												} else {
+													Color.Transparent
+												},
+												shape = CircleShape
+											)
+											.border(
+												width = 2.dp,
+												color = Color.White,
+												shape = CircleShape
+											)
+									)
+								}
+							}
+						}
+					}
+
+					// BOTTOM
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							horizontalArrangement = Arrangement.spacedBy(8.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							repeat(5) { index ->
+								Surface(
+									modifier = Modifier
+										.width(if (index == 4) 18.dp else 8.dp)
+										.height(8.dp),
+									shape = MaterialTheme.shapes.large,
+									color = if (index == 4) {
+										Color(0xFF2F327D)
+									} else {
+										Color.White.copy(alpha = 0.5f)
+									}
+								) {}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(24.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.22f)
+						) {
+							Text(
+								text = "This information helps us tailor the app experience for you.",
+								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+								style = MaterialTheme.typography.bodyMedium.copy(
+									color = Color.White
+								)
+							)
+						}
+					}
+				}
+			}
+
+			6 -> {
+				Column(
+					modifier = Modifier
+						.fillMaxSize()
+						.background(
+							brush = Brush.verticalGradient(
+								colors = listOf(
+									Color(0xFF7B7DE5),
+									Color(0xFFE5C8E8)
+								)
+							)
+						)
+						.padding(24.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					verticalArrangement = Arrangement.SpaceBetween
+				) {
+
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.SpaceBetween,
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							TextButton(onClick = { step.intValue = 5 }) {
+								Text("Back", color = Color.White)
+							}
+
+							Surface(
+								shape = MaterialTheme.shapes.large,
+								color = Color.White.copy(alpha = 0.28f)
+							) {
+								TextButton(onClick = { step.intValue = 7 }) {
+									Text(
+										text = stringResource(Res.string.next),
+										color = Color.White
+									)
+								}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(40.dp))
+
+						Text(
+							text = stringResource(Res.string.goal_title),
+							style = MaterialTheme.typography.headlineMedium.copy(
+								color = Color(0xFF2F327D)
+							)
+						)
+
+						Spacer(modifier = Modifier.height(16.dp))
+
+						Text(
+							text = "What would you like to improve or achieve?",
+							style = MaterialTheme.typography.bodyLarge.copy(
+								color = Color.White.copy(alpha = 0.9f)
+							)
+						)
+
+						Spacer(modifier = Modifier.height(32.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.18f),
+							border = BorderStroke(
+								width = 1.dp,
+								color = Color.White.copy(alpha = 0.35f)
+							)
+						) {
+							Column(
+								modifier = Modifier.padding(18.dp)
+							) {
+								Text(
+									text = "Your goal",
+									style = MaterialTheme.typography.labelLarge.copy(
+										color = Color.White.copy(alpha = 0.8f)
+									)
+								)
+
+								Spacer(modifier = Modifier.height(10.dp))
+
+								TextField(
+									value = goal.value,
+									onValueChange = { goal.value = it },
+									label = "",
+									singleLine = false,
+									modifier = Modifier.height(180.dp)
+								)
+							}
+						}
+
+						Spacer(modifier = Modifier.height(16.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.12f)
+						) {
+							Text(
+								text = "Example: I want to better understand my tics and track how often they happen.",
+								modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+								style = MaterialTheme.typography.bodyMedium.copy(
+									color = Color.White.copy(alpha = 0.75f)
+								)
+							)
+						}
+					}
+
+
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							horizontalArrangement = Arrangement.spacedBy(8.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							repeat(5) { index ->
+								Surface(
+									modifier = Modifier
+										.width(if (index == 4) 18.dp else 8.dp)
+										.height(8.dp),
+									shape = MaterialTheme.shapes.large,
+									color = if (index == 4) {
+										Color(0xFF2F327D)
+									} else {
+										Color.White.copy(alpha = 0.5f)
+									}
+								) {}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(24.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.22f)
+						) {
+							Text(
+								text = "This information helps us tailor the app experience for you.",
+								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+								style = MaterialTheme.typography.bodyMedium.copy(
+									color = Color.White
+								)
+							)
+						}
+					}
+				}
+			}
+
+			7 -> {
+				Column(
+					modifier = Modifier
+						.fillMaxSize()
+						.background(
+							brush = Brush.verticalGradient(
+								colors = listOf(
+									Color(0xFF7B7DE5),
+									Color(0xFFE5C8E8)
+								)
+							)
+						)
+						.padding(24.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					verticalArrangement = Arrangement.SpaceBetween
+				) {
+
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.SpaceBetween,
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							TextButton(onClick = { step.intValue = 6 }) {
+								Text("Back", color = Color.White)
+							}
+
+							TextButton(onClick = onSkip) {
+								Text(
+									text = stringResource(Res.string.skip),
+									color = Color.White
+								)
+							}
+						}
+
+						Spacer(modifier = Modifier.height(40.dp))
+
+						Text(
+							text = stringResource(Res.string.follow_progress_title),
+							style = MaterialTheme.typography.headlineMedium.copy(
+								color = Color(0xFF2F327D)
+							)
+						)
+
+						Spacer(modifier = Modifier.height(16.dp))
+
+						Text(
+							text = stringResource(Res.string.follow_progress_question),
+							style = MaterialTheme.typography.bodyLarge.copy(
+								color = Color.White.copy(alpha = 0.9f)
+							)
+						)
+
+						Spacer(modifier = Modifier.height(32.dp))
+
+						Surface(
+							modifier = Modifier
+								.fillMaxWidth()
+								.clickable {
+									followProgress.value = !followProgress.value
+								},
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.20f),
+							border = BorderStroke(
+								width = if (followProgress.value) 2.dp else 1.dp,
+								color = if (followProgress.value) {
+									Color.White
+								} else {
+									Color.White.copy(alpha = 0.35f)
+								}
+							)
+						) {
+							Row(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(horizontal = 18.dp, vertical = 20.dp),
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.SpaceBetween
+							) {
+
+								Column {
+									Text(
+										text = "Track my progress",
+										style = MaterialTheme.typography.titleMedium.copy(
+											color = Color.White
+										)
+									)
+
+									Spacer(modifier = Modifier.height(4.dp))
+
+									Text(
+										text = "We’ll show insights and improvements over time",
+										style = MaterialTheme.typography.bodyMedium.copy(
+											color = Color.White.copy(alpha = 0.75f)
+										)
+									)
+								}
+
+								Box(
+									modifier = Modifier
+										.size(26.dp)
+										.background(
+											color = if (followProgress.value) Color.White else Color.Transparent,
+											shape = CircleShape
+										)
+										.border(
+											width = 2.dp,
+											color = Color.White,
+											shape = CircleShape
+										)
+								)
+							}
+						}
+
+						Spacer(modifier = Modifier.height(20.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.12f)
+						) {
+							Text(
+								text = "You can change this later in settings.",
+								modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+								style = MaterialTheme.typography.bodySmall.copy(
+									color = Color.White.copy(alpha = 0.7f)
+								)
+							)
+						}
+					}
+
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+
+						Row(
+							horizontalArrangement = Arrangement.spacedBy(8.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							repeat(5) { index ->
+								Surface(
+									modifier = Modifier
+										.width(if (index == 4) 18.dp else 8.dp)
+										.height(8.dp),
+									shape = MaterialTheme.shapes.large,
+									color = if (index == 4) {
+										Color(0xFF2F327D)
+									} else {
+										Color.White.copy(alpha = 0.5f)
+									}
+								) {}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(24.dp))
+
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = MaterialTheme.shapes.extraLarge,
+							color = Color.White.copy(alpha = 0.28f)
+						) {
+							TextButton(
+								onClick = { onFinished(buildUpdate()) },
+								modifier = Modifier.fillMaxWidth()
+							) {
+								Text(
+									text = stringResource(Res.string.finish),
+									style = MaterialTheme.typography.titleMedium,
+									color = Color.White
+								)
+							}
+						}
+					}
 				}
 			}
 		}
