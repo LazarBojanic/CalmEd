@@ -142,5 +142,6 @@
     <string name="use_system_language">Usar idioma del sistema</string>
     <string name="language_english">Inglés</string>
     <string name="language_spanish">Español</string>
-    <string name="its_not_yet_time">Aún no es hora de este ejercicio</string>
+    <string name="its_not_yet_time">Todavía no es el momento para este ejercicio.</string>
+    <string name="its_not_yet_time_week">Todavía no es el momento de esta semana.</string>
 </resources>

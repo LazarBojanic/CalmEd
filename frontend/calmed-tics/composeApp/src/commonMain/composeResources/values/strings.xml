@@ -142,5 +142,6 @@
     <string name="use_system_language">Use system language</string>
     <string name="language_english">English</string>
     <string name="language_spanish">Spanish</string>
-    <string name="its_not_yet_time">It is not yet time for this exercise</string>
+    <string name="its_not_yet_time">It's not yet time for this exercise.</string>
+    <string name="its_not_yet_time_week">It's not yet time for this week.</string>
 </resources>

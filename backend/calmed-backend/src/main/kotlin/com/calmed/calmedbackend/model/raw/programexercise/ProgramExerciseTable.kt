@@ -12,7 +12,8 @@ import java.util.UUID
 
 object ProgramExerciseTable : UUIDTable("program_exercise") {
 	val weekNumber = integer("week_number")
-	val title = varchar("title", 100)
+	val title = text("title")
+	val titleEs = text("title_es").nullable()
 	val description = text("description").nullable()
 	val playbackId = text("playback_id").nullable()
 	val playbackIdEs = text("playback_id_es").nullable()
@@ -21,5 +22,4 @@ object ProgramExerciseTable : UUIDTable("program_exercise") {
 	val orderInWeek = integer("order_in_week").nullable()
 	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
-	val titleEs = varchar(name = "title_es", length = 100).nullable()
 }

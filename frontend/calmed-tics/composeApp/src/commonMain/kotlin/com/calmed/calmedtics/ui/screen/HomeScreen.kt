@@ -71,6 +71,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import com.calmed.calmedtics.exercise_locked_message
+import com.calmed.calmedtics.its_not_yet_time_week
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -277,22 +278,23 @@ fun HomeScreen(
                                 )
                             }
                             
+                            val itsNotYetTimeMessage = stringResource(Res.string.its_not_yet_time_week)
                             IconButton(
                                 onClick = { 
-                                    if (displayWeek < 8) {
+                                    if (displayWeek < (home?.currentWeek ?: 1)) {
                                         trackerStartEpoch += 7 
                                     } else {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("Not yet time for this week")
+                                            snackbarHostState.showSnackbar(itsNotYetTimeMessage)
                                         }
                                     }
                                 },
-                                enabled = displayWeek < 8
+                                enabled = true
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.ChevronRight, 
                                     contentDescription = "Next Week",
-                                    tint = if (displayWeek < 8) LocalContentColor.current else Color.Gray
+                                    tint = if (displayWeek < (home?.currentWeek ?: 1)) LocalContentColor.current else Color.Gray
                                 )
                             }
                         }
