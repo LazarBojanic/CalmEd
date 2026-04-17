@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import com.calmed.calmedtics.localization.AppLocaleProvider
 import com.calmed.calmedtics.localization.customAppLocale
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 
 object Routes {
     const val Splash = "splash"
@@ -78,6 +79,8 @@ fun App() {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     var fullscreenVideoUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    var fullscreenExercises by remember { mutableStateOf<List<ProgramExerciseDto>?>(null) }
+    var fullscreenIndex by remember { mutableStateOf(0) }
     var welcomeHandledUserId by rememberSaveable { mutableStateOf<String?>(null) }
     var courseOverviewHandledUserId by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -93,6 +96,7 @@ fun App() {
     val userInfo by sessionViewModel.userInfo.collectAsState()
     val sessionLoading by sessionViewModel.loading.collectAsState()
     val sessionError by sessionViewModel.error.collectAsState()
+    val currentLanguage = appSettings.getAppLanguage()
 
     LaunchedEffect(Unit) {
         customAppLocale = appSettings.getAppLanguage()
@@ -105,7 +109,8 @@ fun App() {
         val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser.id)
         val shouldShowWelcomeVideo = showWelcomeVideo && welcomeHandledUserId != remoteUser.id
         val showCourseOverview = appSettings.getShowCourseOverview(remoteUser.id)
-        val shouldShowCourseOverview = showCourseOverview && courseOverviewHandledUserId != remoteUser.id
+        val shouldShowCourseOverview =
+            showCourseOverview && courseOverviewHandledUserId != remoteUser.id
         return when {
             shouldShowWelcomeVideo -> Routes.WelcomeVideo
             shouldShowCourseOverview -> Routes.CourseOverview
@@ -118,6 +123,18 @@ fun App() {
     fun openFullscreen(url: String) {
         if (url.isBlank()) return
         fullscreenVideoUrl = url
+        navController.navigate(Routes.FullscreenVideo) {
+            launchSingleTop = true
+        }
+    }
+
+    fun openFullscreenFromList(
+        exercises: List<ProgramExerciseDto>,
+        startIndex: Int,
+    ) {
+        fullscreenExercises = exercises
+        fullscreenIndex = startIndex
+
         navController.navigate(Routes.FullscreenVideo) {
             launchSingleTop = true
         }
@@ -440,8 +457,9 @@ fun App() {
 
 
                 composable(Routes.FullscreenVideo) {
-                    val activeVideoUrl = fullscreenVideoUrl
-                    if (activeVideoUrl.isNullOrBlank()) {
+                    val exercises = fullscreenExercises
+
+                    if (exercises == null || exercises.isEmpty()) {
                         LaunchedEffect(Unit) {
                             navController.popBackStack()
                         }
@@ -449,35 +467,40 @@ fun App() {
                     }
 
                     FullscreenVideoScreen(
-                        hlsUrl = activeVideoUrl,
+                        exercises = exercises,
+                        startIndex = fullscreenIndex,
+                        language = currentLanguage,
                         onBack = {
                             navController.popBackStack()
                         }
                     )
                 }
-
-
-                composable(Routes.Main) {
-                    MainScreen(
-                        onLogoutToLogin = {
-                            welcomeHandledUserId = null
-                            navController.navigate(Routes.Login) {
-                                popUpTo(Routes.Main) { inclusive = true }
-                                launchSingleTop = true
+                    composable(Routes.Main) {
+                        MainScreen(
+                            onLogoutToLogin = {
+                                welcomeHandledUserId = null
+                                navController.navigate(Routes.Login) {
+                                    popUpTo(Routes.Main) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onOpenFullscreen = { url ->
+                                openFullscreen(url)
+                            },
+                            onOpenFullscreenFromList = { exercises, startIndex ->
+                                openFullscreenFromList(exercises, startIndex)
                             }
-                        },
-                        onOpenFullscreen = { url -> openFullscreen(url) }
-                    )
-                }
+                        )
+                    }
 
 
-                composable(Routes.Home) {
-                    HomeScreen(
-                        sessionViewModel = koinInject(),
-                        onOpenFullscreen = { url -> openFullscreen(url) }
-                    )
+                    composable(Routes.Home) {
+                        HomeScreen(
+                            sessionViewModel = koinInject(),
+                            onOpenFullscreen = { url -> openFullscreen(url) }
+                        )
+                    }
                 }
             }
         }
     }
-}

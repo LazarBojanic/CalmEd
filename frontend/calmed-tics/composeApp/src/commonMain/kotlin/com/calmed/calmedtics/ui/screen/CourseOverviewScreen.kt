@@ -127,6 +127,7 @@ fun CourseOverviewScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(16f / 9f),
+                                isPlaying = true,
                                 onFullscreenToggle = { onOpenFullscreen(url) }
                             )
                         } else {

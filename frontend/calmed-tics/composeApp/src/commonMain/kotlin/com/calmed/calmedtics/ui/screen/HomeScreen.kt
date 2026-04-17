@@ -445,6 +445,7 @@ fun HomeScreen(
                                 VideoPlayer(
                                     hlsUrl = url,
                                     modifier = Modifier.fillMaxSize(),
+                                    isPlaying = true,
                                     onFullscreenToggle = { onOpenFullscreen(url) }
                                 )
                             }

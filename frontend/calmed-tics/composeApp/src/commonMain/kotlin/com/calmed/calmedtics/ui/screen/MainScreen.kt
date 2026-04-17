@@ -22,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -32,6 +31,7 @@ import com.calmed.calmedtics.localization.LocalAppLocale
 import com.calmed.calmedtics.localization.customAppLocale
 import com.calmed.calmedtics.localization.resolveContentLanguage
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.onboarding_error
 import com.calmed.calmedtics.onboarding_title
 import com.calmed.calmedtics.retry
@@ -44,9 +44,9 @@ import com.calmed.calmedtics.tab_home
 import com.calmed.calmedtics.tab_profile
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
-import com.calmed.calmedtics.viewmodel.SessionViewModel
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.util.getVideoURL
+import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -57,6 +57,7 @@ private enum class MainTab { Home, Exercises, Profile, HelpSupport }
 fun MainScreen(
 	onLogoutToLogin: () -> Unit,
 	onOpenFullscreen: (String) -> Unit,
+	onOpenFullscreenFromList: (List<ProgramExerciseDto>, Int) -> Unit,
 	sessionViewModel: SessionViewModel = koinInject(),
 	authService: IAuthService = koinInject()
 ) {
@@ -73,7 +74,6 @@ fun MainScreen(
 	val allExercises by sessionViewModel.allExercises.collectAsState()
 
 	val selectedTab = remember { mutableStateOf(MainTab.Home) }
-	val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
 	val appSettings = koinInject<AppSettings>()
 	val uiLocaleTag = LocalAppLocale.current
 	val contentLanguage = remember(customAppLocale, uiLocaleTag) {
@@ -109,10 +109,12 @@ fun MainScreen(
 		}
 
 		if (ui == null) {
-			ScreenScaffold(title = stringResource(Res.string.onboarding_title)){
+			ScreenScaffold(title = stringResource(Res.string.onboarding_title)) {
 				Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 					Text(stringResource(Res.string.onboarding_error))
-					if (error != null) Text(stringResource(Res.string.error_prefix, error ?: ""))
+					if (error != null) {
+						Text(stringResource(Res.string.error_prefix, error ?: ""))
+					}
 					PrimaryButton(
 						text = stringResource(Res.string.retry),
 						onClick = { scope.launch { sessionViewModel.loadSession() } }
@@ -152,7 +154,7 @@ fun MainScreen(
 				NavigationBarItem(
 					selected = selectedTab.value == MainTab.Exercises,
 					onClick = { selectedTab.value = MainTab.Exercises },
-					icon = { Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.tab_exercises))},
+					icon = { Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.tab_exercises)) },
 					label = { Text(stringResource(Res.string.tab_exercises)) }
 				)
 				NavigationBarItem(
@@ -179,6 +181,7 @@ fun MainScreen(
 						selectedTab.value = MainTab.HelpSupport
 					}
 				)
+
 				MainTab.HelpSupport -> HelpSupportScreen(
 					onBack = {
 						selectedTab.value = MainTab.Profile
@@ -195,15 +198,16 @@ fun MainScreen(
 						}
 					}
 				)
+
 				MainTab.Exercises -> {
 					ExercisesScreen(
 						currentWeek = home?.currentWeek ?: 1,
 						exercises = allExercises,
 						language = contentLanguage,
 						onExerciseClick = { ex ->
-							val url = ex.getVideoURL(contentLanguage)
-							if (!url.isNullOrBlank()) {
-								onOpenFullscreen(url)
+							val index = allExercises.indexOf(ex)
+							if (index != -1) {
+								onOpenFullscreenFromList(allExercises, index)
 							}
 						}
 					)
