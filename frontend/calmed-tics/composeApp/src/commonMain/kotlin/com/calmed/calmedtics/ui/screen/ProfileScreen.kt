@@ -2,14 +2,48 @@ package com.calmed.calmedtics.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,7 +56,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
@@ -37,7 +74,6 @@ import com.calmed.calmedtics.edit_profile
 import com.calmed.calmedtics.email
 import com.calmed.calmedtics.error_prefix
 import com.calmed.calmedtics.follow_progress
-import com.calmed.calmedtics.follow_progress_title
 import com.calmed.calmedtics.following_progress
 import com.calmed.calmedtics.frequency_daily
 import com.calmed.calmedtics.frequency_moderate
@@ -45,9 +81,7 @@ import com.calmed.calmedtics.frequency_rare
 import com.calmed.calmedtics.goal
 import com.calmed.calmedtics.goal_label
 import com.calmed.calmedtics.help_support
-import com.calmed.calmedtics.language_english
 import com.calmed.calmedtics.language_settings
-import com.calmed.calmedtics.language_spanish
 import com.calmed.calmedtics.loading
 import com.calmed.calmedtics.localization.customAppLocale
 import com.calmed.calmedtics.logout
@@ -56,26 +90,17 @@ import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TickFrequency
 import com.calmed.calmedtics.model.raw.TickType
+import com.calmed.calmedtics.morning_evening
 import com.calmed.calmedtics.morning_reminder_label
 import com.calmed.calmedtics.evening_reminder_label
-import com.calmed.calmedtics.morning_evening
 import com.calmed.calmedtics.no
 import com.calmed.calmedtics.personal_details
 import com.calmed.calmedtics.preferred_name
 import com.calmed.calmedtics.privacy_policy
 import com.calmed.calmedtics.profile_error
-import com.calmed.calmedtics.profile_title
 import com.calmed.calmedtics.reminders
-import com.calmed.calmedtics.save
-import com.calmed.calmedtics.ui.component.LanguageToggle
-import com.calmed.calmedtics.ui.component.PrimaryButton
-import com.calmed.calmedtics.ui.component.ScreenScaffold
-import com.calmed.calmedtics.ui.component.TextField
-import com.calmed.calmedtics.viewmodel.SessionViewModel
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
-import com.calmed.calmedtics.reminders.ReminderManager
 import com.calmed.calmedtics.retry
+import com.calmed.calmedtics.save
 import com.calmed.calmedtics.saving
 import com.calmed.calmedtics.stress_level
 import com.calmed.calmedtics.stress_value
@@ -85,10 +110,17 @@ import com.calmed.calmedtics.tics_both
 import com.calmed.calmedtics.tics_frequency
 import com.calmed.calmedtics.tics_motor
 import com.calmed.calmedtics.tics_type
-import com.calmed.calmedtics.tics_type_title
+import com.calmed.calmedtics.tics_vocal
+import com.calmed.calmedtics.ui.component.LanguageToggle
+import com.calmed.calmedtics.ui.component.PrimaryButton
+import com.calmed.calmedtics.ui.component.TextField
 import com.calmed.calmedtics.username
 import com.calmed.calmedtics.yes
+import com.calmed.calmedtics.viewmodel.SessionViewModel
+import com.calmed.calmedtics.reminders.ReminderManager
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
 fun ProfileScreen(
@@ -100,8 +132,10 @@ fun ProfileScreen(
 	sessionViewModel: SessionViewModel = koinInject()
 ) {
 	val scope = rememberCoroutineScope()
+	val reminderManager = remember { ReminderManager() }
+
 	var remindersEnabled by remember { mutableStateOf(appSettings.isRemindersEnabled()) }
-	val reminderManager = ReminderManager()
+
 	val loading by sessionViewModel.loading.collectAsState()
 	val error by sessionViewModel.error.collectAsState()
 
@@ -120,6 +154,7 @@ fun ProfileScreen(
 			reminderManager.enableMorningAndEvening()
 		}
 	}
+
 	LaunchedEffect(userInfo?.id) {
 		preferredName.value = userInfo?.preferredName ?: ""
 		age.intValue = userInfo?.age ?: 18
@@ -148,45 +183,26 @@ fun ProfileScreen(
 		)
 	}
 
-	@Composable
-	fun RadioOptionRow(
-		text: String,
-		selected: Boolean,
-		onClick: () -> Unit,
-		modifier: Modifier = Modifier
-	) {
-		Surface(
-			modifier = modifier.fillMaxWidth(),
-			shape = MaterialTheme.shapes.medium,
-			color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-			border = BorderStroke(
-				width = 1.dp,
-				color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-			)
-		) {
-			Row(
-				modifier = Modifier
-					.fillMaxWidth()
-					.selectable(
-						selected = selected,
-						onClick = onClick,
-						role = androidx.compose.ui.semantics.Role.RadioButton
+	Box(
+		modifier = Modifier
+			.fillMaxSize()
+			.background(
+				brush = Brush.verticalGradient(
+					colors = listOf(
+						Color(0xFF7B7DE5),
+						Color(0xFFE5C8E8)
 					)
-					.padding(horizontal = 12.dp, vertical = 12.dp),
-				verticalAlignment = Alignment.CenterVertically
-			) {
-				RadioButton(selected = selected, onClick = null)
-				Spacer(Modifier.width(10.dp))
-				Text(text = text, style = MaterialTheme.typography.bodyLarge)
-			}
-		}
-	}
-
-	ScreenScaffold(title = stringResource(Res.string.profile_title)){
+				)
+			)
+	) {
 		LazyColumn(
-			modifier = Modifier.fillMaxWidth(),
+			modifier = Modifier
+				.fillMaxSize()
+				.statusBarsPadding()
+				.navigationBarsPadding()
+				.padding(horizontal = 16.dp),
 			verticalArrangement = Arrangement.spacedBy(16.dp),
-			contentPadding = PaddingValues(bottom = 24.dp)
+			contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
 		) {
 			item {
 				ProfileHeader(user, userInfo)
@@ -195,12 +211,24 @@ fun ProfileScreen(
 			if (user != null && userInfo == null) {
 				item {
 					InfoSection(title = stringResource(Res.string.personal_details)) {
-						Text(stringResource(Res.string.profile_error))
+						Text(
+							text = stringResource(Res.string.profile_error),
+							color = Color.White
+						)
+
 						if (error != null) {
-							Text(stringResource(Res.string.error_prefix, error ?: ""))
+							Text(
+								text = stringResource(Res.string.error_prefix, error ?: ""),
+								color = Color.White.copy(alpha = 0.85f)
+							)
 						}
+
 						PrimaryButton(
-							text = if (loading) stringResource(Res.string.loading) else stringResource(Res.string.retry),
+							text = if (loading) {
+								stringResource(Res.string.loading)
+							} else {
+								stringResource(Res.string.retry)
+							},
 							enabled = !loading,
 							onClick = { scope.launch { sessionViewModel.loadSession() } }
 						)
@@ -226,7 +254,11 @@ fun ProfileScreen(
 								singleLine = true
 							)
 
-							Text(stringResource(Res.string.age))
+							Text(
+								text = stringResource(Res.string.age),
+								color = Color.White
+							)
+
 							TextField(
 								value = ageText.value,
 								onValueChange = { raw ->
@@ -237,61 +269,84 @@ fun ProfileScreen(
 										age.intValue = parsed.coerceIn(5, 80)
 									}
 								},
-								label = stringResource(Res.string.age),
+								label = "",
 								singleLine = true
 							)
+
 							Slider(
 								value = age.intValue.toFloat(),
 								onValueChange = { age.intValue = it.toInt().coerceIn(5, 80) },
 								valueRange = 5f..80f,
-								steps = 74
+								steps = 74,
+								colors = SliderDefaults.colors(
+									thumbColor = Color.White,
+									activeTrackColor = Color.White,
+									inactiveTrackColor = Color.White.copy(alpha = 0.45f)
+								)
 							)
 
-							Text(stringResource(Res.string.stress_value, stress.intValue))
+							Text(
+								text = stringResource(Res.string.stress_value, stress.intValue),
+								color = Color.White
+							)
+
 							Slider(
 								value = stress.intValue.toFloat(),
 								onValueChange = { stress.intValue = it.toInt() },
 								valueRange = 0f..10f,
-								steps = 9
+								steps = 9,
+								colors = SliderDefaults.colors(
+									thumbColor = Color.White,
+									activeTrackColor = Color.White,
+									inactiveTrackColor = Color.White.copy(alpha = 0.45f)
+								)
 							)
 						}
 					}
 
 					item {
 						InfoSection(title = stringResource(Res.string.edit_condition_info)) {
-							Text( stringResource(Res.string.tics_type))
+							Text(
+								text = stringResource(Res.string.tics_type),
+								color = Color.White
+							)
+
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 								RadioOptionRow(
-									text =  stringResource(Res.string.tics_motor),
+									text = stringResource(Res.string.tics_motor),
 									selected = tickType.value == TickType.MOTOR,
 									onClick = { tickType.value = TickType.MOTOR }
 								)
 								RadioOptionRow(
-									text =  stringResource(Res.string.tics_motor),
+									text = stringResource(Res.string.tics_vocal),
 									selected = tickType.value == TickType.VOCAL,
 									onClick = { tickType.value = TickType.VOCAL }
 								)
 								RadioOptionRow(
-									text =  stringResource(Res.string.tics_both),
+									text = stringResource(Res.string.tics_both),
 									selected = tickType.value == TickType.BOTH,
 									onClick = { tickType.value = TickType.BOTH }
 								)
 							}
 
-							Text( stringResource(Res.string.tics_frequency))
+							Text(
+								text = stringResource(Res.string.tics_frequency),
+								color = Color.White
+							)
+
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 								RadioOptionRow(
-									text =  stringResource(Res.string.frequency_rare),
+									text = stringResource(Res.string.frequency_rare),
 									selected = tickFrequency.value == TickFrequency.RARE,
 									onClick = { tickFrequency.value = TickFrequency.RARE }
 								)
 								RadioOptionRow(
-									text =  stringResource(Res.string.frequency_moderate),
+									text = stringResource(Res.string.frequency_moderate),
 									selected = tickFrequency.value == TickFrequency.MODERATE,
 									onClick = { tickFrequency.value = TickFrequency.MODERATE }
 								)
 								RadioOptionRow(
-									text =  stringResource(Res.string.frequency_daily),
+									text = stringResource(Res.string.frequency_daily),
 									selected = tickFrequency.value == TickFrequency.DAILY,
 									onClick = { tickFrequency.value = TickFrequency.DAILY }
 								)
@@ -300,27 +355,46 @@ fun ProfileScreen(
 							TextField(
 								value = goal.value,
 								onValueChange = { goal.value = it },
-								label =  stringResource(Res.string.goal_label),
+								label = stringResource(Res.string.goal_label),
 								singleLine = false
 							)
 
-							Row(
+							Surface(
 								modifier = Modifier.fillMaxWidth(),
-								verticalAlignment = Alignment.CenterVertically
-							) {
-								Text( stringResource(Res.string.follow_progress))
-								Spacer(modifier = Modifier.width(12.dp))
-								Switch(
-									checked = followProgress.value,
-									onCheckedChange = { followProgress.value = it }
+								shape = RoundedCornerShape(20.dp),
+								color = Color.White.copy(alpha = 0.14f),
+								border = BorderStroke(
+									width = 1.dp,
+									color = Color.White.copy(alpha = 0.30f)
 								)
+							) {
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(horizontal = 16.dp, vertical = 16.dp),
+									verticalAlignment = Alignment.CenterVertically
+								) {
+									Text(
+										text = stringResource(Res.string.follow_progress),
+										color = Color.White
+									)
+									Spacer(modifier = Modifier.weight(1f))
+									Switch(
+										checked = followProgress.value,
+										onCheckedChange = { followProgress.value = it }
+									)
+								}
 							}
 						}
 					}
 
 					item {
 						PrimaryButton(
-							text = if (loading)  stringResource(Res.string.saving) else  stringResource(Res.string.save),
+							text = if (loading) {
+								stringResource(Res.string.saving)
+							} else {
+								stringResource(Res.string.save)
+							},
 							enabled = !loading,
 							onClick = {
 								val u = user
@@ -335,13 +409,12 @@ fun ProfileScreen(
 							}
 						)
 					}
+
 					item {
 						PrimaryButton(
-							text =  stringResource(Res.string.cancel),
+							text = stringResource(Res.string.cancel),
 							enabled = !loading,
-							onClick = {
-								isEditing = false
-							}
+							onClick = { isEditing = false }
 						)
 					}
 				}
@@ -349,21 +422,37 @@ fun ProfileScreen(
 
 			if (user != null) {
 				item {
-					InfoSection(title =  stringResource(Res.string.account_info)) {
-						InfoRow(icon = Icons.Default.Email, label =  stringResource(Res.string.email), value = user.email)
-						InfoRow(icon = Icons.Default.Person, label =  stringResource(Res.string.username), value = user.username)
+					InfoSection(title = stringResource(Res.string.account_info)) {
+						InfoRow(
+							icon = Icons.Default.Email,
+							label = stringResource(Res.string.email),
+							value = user.email
+						)
+						InfoRow(
+							icon = Icons.Default.Person,
+							label = stringResource(Res.string.username),
+							value = user.username
+						)
 					}
 				}
 			}
 
 			if (userInfo != null) {
 				item {
-					InfoSection(title =  stringResource(Res.string.personal_details)) {
+					InfoSection(title = stringResource(Res.string.personal_details)) {
 						userInfo.age?.let {
-							InfoRow(icon = Icons.Default.DateRange, label =  stringResource(Res.string.age), value = it.toString())
+							InfoRow(
+								icon = Icons.Default.DateRange,
+								label = stringResource(Res.string.age),
+								value = it.toString()
+							)
 						}
 						userInfo.stressLevel?.let {
-							InfoRow(icon = Icons.Default.Warning, label =  stringResource(Res.string.stress_level), value = "$it/10")
+							InfoRow(
+								icon = Icons.Default.Warning,
+								label = stringResource(Res.string.stress_level),
+								value = "$it/10"
+							)
 						}
 					}
 				}
@@ -371,24 +460,41 @@ fun ProfileScreen(
 				item {
 					InfoSection(title = stringResource(Res.string.condition_info)) {
 						userInfo.tickType?.let {
-							InfoRow(icon = Icons.Default.Info, label = stringResource(Res.string.tics_type), value = it.name)
+							InfoRow(
+								icon = Icons.Default.Info,
+								label = stringResource(Res.string.tics_type),
+								value = it.name
+							)
 						}
 						userInfo.tickFrequency?.let {
-							InfoRow(icon = Icons.Default.Refresh, label = stringResource(Res.string.tics_frequency), value = it.name)
+							InfoRow(
+								icon = Icons.Default.Refresh,
+								label = stringResource(Res.string.tics_frequency),
+								value = it.name
+							)
 						}
 						userInfo.goal?.let {
-							InfoRow(icon = Icons.Default.Star, label = stringResource(Res.string.goal), value = it)
+							InfoRow(
+								icon = Icons.Default.Star,
+								label = stringResource(Res.string.goal),
+								value = it
+							)
 						}
 						userInfo.followProgress?.let {
 							InfoRow(
 								icon = Icons.Default.CheckCircle,
 								label = stringResource(Res.string.following_progress),
-								value = if (it) stringResource(Res.string.yes) else stringResource(Res.string.no)
+								value = if (it) {
+									stringResource(Res.string.yes)
+								} else {
+									stringResource(Res.string.no)
+								}
 							)
 						}
 					}
 				}
 			}
+
 			item {
 				InfoSection(title = stringResource(Res.string.support)) {
 					SettingsRow(
@@ -408,45 +514,69 @@ fun ProfileScreen(
 					)
 				}
 			}
+
 			item {
 				InfoSection(title = stringResource(Res.string.reminders)) {
 					var morningTime by remember { mutableStateOf(appSettings.getMorningReminderTime()) }
 					var eveningTime by remember { mutableStateOf(appSettings.getEveningReminderTime()) }
 
-					Row(
+					Surface(
 						modifier = Modifier.fillMaxWidth(),
-						verticalAlignment = Alignment.CenterVertically
-					) {
-						Text(stringResource(Res.string.morning_evening))
-						Spacer(Modifier.weight(1f))
-						Switch(
-							checked = remindersEnabled,
-							onCheckedChange = { enabled ->
-								remindersEnabled = enabled
-								appSettings.setRemindersEnabled(enabled)
-
-								if (enabled) reminderManager.enableMorningAndEvening()
-								else reminderManager.disableMorningAndEvening()
-							}
+						shape = RoundedCornerShape(20.dp),
+						color = Color.White.copy(alpha = 0.14f),
+						border = BorderStroke(
+							width = 1.dp,
+							color = Color.White.copy(alpha = 0.30f)
 						)
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 16.dp, vertical = 16.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							Text(
+								text = stringResource(Res.string.morning_evening),
+								color = Color.White
+							)
+							Spacer(Modifier.weight(1f))
+							Switch(
+								checked = remindersEnabled,
+								onCheckedChange = { enabled ->
+									remindersEnabled = enabled
+									appSettings.setRemindersEnabled(enabled)
+
+									if (enabled) {
+										reminderManager.enableMorningAndEvening()
+									} else {
+										reminderManager.disableMorningAndEvening()
+									}
+								}
+							)
+						}
 					}
 
 					if (remindersEnabled) {
 						Spacer(modifier = Modifier.height(8.dp))
+
 						TextField(
 							value = morningTime,
 							onValueChange = { morningTime = it },
 							label = stringResource(Res.string.morning_reminder_label),
 							singleLine = true
 						)
+
 						Spacer(modifier = Modifier.height(8.dp))
+
 						TextField(
 							value = eveningTime,
 							onValueChange = { eveningTime = it },
 							label = stringResource(Res.string.evening_reminder_label),
 							singleLine = true
 						)
+
 						Spacer(modifier = Modifier.height(8.dp))
+
 						PrimaryButton(
 							text = stringResource(Res.string.save),
 							onClick = {
@@ -457,6 +587,9 @@ fun ProfileScreen(
 						)
 					}
 				}
+			}
+
+			item {
 				InfoSection(title = stringResource(Res.string.language_settings)) {
 					var currentLanguage by remember { mutableStateOf(appSettings.getAppLanguage()) }
 
@@ -471,7 +604,6 @@ fun ProfileScreen(
 					)
 				}
 			}
-
 
 			item {
 				Spacer(modifier = Modifier.height(8.dp))
@@ -490,47 +622,120 @@ fun ProfileScreen(
 }
 
 @Composable
+private fun RadioOptionRow(
+	text: String,
+	selected: Boolean,
+	onClick: () -> Unit,
+	modifier: Modifier = Modifier
+) {
+	Surface(
+		modifier = modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(20.dp),
+		color = if (selected) {
+			Color.White.copy(alpha = 0.28f)
+		} else {
+			Color.White.copy(alpha = 0.14f)
+		},
+		border = BorderStroke(
+			width = if (selected) 2.dp else 1.dp,
+			color = if (selected) {
+				Color.White.copy(alpha = 0.95f)
+			} else {
+				Color.White.copy(alpha = 0.30f)
+			}
+		)
+	) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.selectable(
+					selected = selected,
+					onClick = onClick,
+					role = Role.RadioButton
+				)
+				.padding(horizontal = 16.dp, vertical = 16.dp),
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			Box(
+				modifier = Modifier
+					.size(22.dp)
+					.background(
+						color = if (selected) Color.White else Color.Transparent,
+						shape = CircleShape
+					)
+					.border(
+						width = 2.dp,
+						color = Color.White,
+						shape = CircleShape
+					)
+			)
+
+			Spacer(Modifier.width(12.dp))
+
+			Text(
+				text = text,
+				style = MaterialTheme.typography.bodyLarge,
+				color = Color.White
+			)
+		}
+	}
+}
+
+@Composable
 fun ProfileHeader(user: UserJoined?, userInfo: UserInfoTicsJoined?) {
 	val displayName = userInfo?.preferredName
 		?: user?.username
 		?: stringResource(Res.string.default_user)
+
 	val email = user?.email ?: ""
 
-	Column(
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(vertical = 24.dp),
-		horizontalAlignment = Alignment.CenterHorizontally
-	) {
-		Box(
-			modifier = Modifier
-				.size(100.dp)
-				.clip(CircleShape)
-				.background(MaterialTheme.colorScheme.primaryContainer),
-			contentAlignment = Alignment.Center
-		) {
-			Icon(
-				imageVector = Icons.Default.Person,
-				contentDescription = null,
-				modifier = Modifier.size(64.dp),
-				tint = MaterialTheme.colorScheme.onPrimaryContainer
-			)
-		}
-
-		Spacer(modifier = Modifier.height(16.dp))
-
-		Text(
-			text = displayName,
-			style = MaterialTheme.typography.headlineMedium,
-			fontWeight = FontWeight.Bold
+	Surface(
+		modifier = Modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(28.dp),
+		color = Color.White.copy(alpha = 0.18f),
+		border = BorderStroke(
+			1.dp,
+			Color.White.copy(alpha = 0.28f)
 		)
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 20.dp, vertical = 28.dp),
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			Box(
+				modifier = Modifier
+					.size(96.dp)
+					.clip(CircleShape)
+					.background(Color.White.copy(alpha = 0.22f)),
+				contentAlignment = Alignment.Center
+			) {
+				Icon(
+					imageVector = Icons.Default.Person,
+					contentDescription = null,
+					modifier = Modifier.size(52.dp),
+					tint = Color.White
+				)
+			}
 
-		if (email.isNotEmpty()) {
+			Spacer(modifier = Modifier.height(16.dp))
+
 			Text(
-				text = email,
-				style = MaterialTheme.typography.bodyLarge,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
+				text = displayName,
+				style = MaterialTheme.typography.headlineSmall,
+				fontWeight = FontWeight.Bold,
+				color = Color.White
 			)
+
+			if (email.isNotEmpty()) {
+				Spacer(modifier = Modifier.height(4.dp))
+				Text(
+					text = email,
+					style = MaterialTheme.typography.bodyMedium,
+					color = Color.White.copy(alpha = 0.82f)
+				)
+			}
 		}
 	}
 }
@@ -542,19 +747,22 @@ fun InfoSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 			text = title,
 			style = MaterialTheme.typography.titleMedium,
 			fontWeight = FontWeight.SemiBold,
-			color = MaterialTheme.colorScheme.primary,
-			modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+			color = Color.White,
+			modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
 		)
-		Card(
+
+		Surface(
 			modifier = Modifier.fillMaxWidth(),
-			shape = RoundedCornerShape(12.dp),
-			colors = CardDefaults.cardColors(
-				containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+			shape = RoundedCornerShape(24.dp),
+			color = Color.White.copy(alpha = 0.16f),
+			border = BorderStroke(
+				1.dp,
+				Color.White.copy(alpha = 0.24f)
 			)
 		) {
 			Column(
-				modifier = Modifier.padding(16.dp),
-				verticalArrangement = Arrangement.spacedBy(12.dp)
+				modifier = Modifier.padding(18.dp),
+				verticalArrangement = Arrangement.spacedBy(14.dp)
 			) {
 				content()
 			}
@@ -566,30 +774,44 @@ fun InfoSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 fun InfoRow(icon: ImageVector, label: String, value: String) {
 	Row(
 		modifier = Modifier.fillMaxWidth(),
-		verticalAlignment = Alignment.CenterVertically
+		verticalAlignment = Alignment.Top
 	) {
-		Icon(
-			imageVector = icon,
-			contentDescription = null,
-			modifier = Modifier.size(20.dp),
-			tint = MaterialTheme.colorScheme.onSurfaceVariant
-		)
+		Box(
+			modifier = Modifier
+				.size(36.dp)
+				.clip(CircleShape)
+				.background(Color.White.copy(alpha = 0.16f)),
+			contentAlignment = Alignment.Center
+		) {
+			Icon(
+				imageVector = icon,
+				contentDescription = null,
+				modifier = Modifier.size(18.dp),
+				tint = Color.White
+			)
+		}
+
 		Spacer(modifier = Modifier.width(12.dp))
+
 		Column {
 			Text(
 				text = label,
 				style = MaterialTheme.typography.labelMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
+				color = Color.White.copy(alpha = 0.72f)
 			)
+
+			Spacer(modifier = Modifier.height(2.dp))
+
 			Text(
 				text = value,
 				style = MaterialTheme.typography.bodyLarge,
-				fontWeight = FontWeight.Medium
+				fontWeight = FontWeight.Medium,
+				color = Color.White
 			)
 		}
 	}
-
 }
+
 @Composable
 fun SettingsRow(
 	icon: ImageVector,
@@ -598,31 +820,44 @@ fun SettingsRow(
 ) {
 	Surface(
 		onClick = onClick,
-		color = androidx.compose.ui.graphics.Color.Transparent
+		color = Color.Transparent
 	) {
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(vertical = 4.dp),
+				.padding(vertical = 6.dp),
 			verticalAlignment = Alignment.CenterVertically
 		) {
-			Icon(
-				imageVector = icon,
-				contentDescription = null,
-				modifier = Modifier.size(20.dp),
-				tint = MaterialTheme.colorScheme.onSurfaceVariant
-			)
+			Box(
+				modifier = Modifier
+					.size(36.dp)
+					.clip(CircleShape)
+					.background(Color.White.copy(alpha = 0.16f)),
+				contentAlignment = Alignment.Center
+			) {
+				Icon(
+					imageVector = icon,
+					contentDescription = null,
+					modifier = Modifier.size(18.dp),
+					tint = Color.White
+				)
+			}
+
 			Spacer(modifier = Modifier.width(12.dp))
+
 			Text(
 				text = label,
 				style = MaterialTheme.typography.bodyLarge,
-				fontWeight = FontWeight.Medium
+				fontWeight = FontWeight.Medium,
+				color = Color.White
 			)
+
 			Spacer(modifier = Modifier.weight(1f))
+
 			Icon(
 				imageVector = Icons.Default.KeyboardArrowRight,
 				contentDescription = null,
-				tint = MaterialTheme.colorScheme.onSurfaceVariant
+				tint = Color.White.copy(alpha = 0.75f)
 			)
 		}
 	}
