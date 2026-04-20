@@ -121,8 +121,8 @@
     <string name="terms">Terms of Service</string>
     <string name="reminders">Exercise Reminders</string>
     <string name="morning_evening">Morning &amp; Evening reminders</string>
-    <string name="morning_reminder_label">Exercise 1 (Morning) (HH:mm)</string>
-    <string name="evening_reminder_label">Exercise 2 (Evening) (HH:mm)</string>
+    <string name="morning_reminder_label">Morning Reminder</string>
+    <string name="evening_reminder_label">Evening Reminder</string>
     <string name="logout">Logout</string>
     <string name="default_user">User</string>
     <string name="condition_info">Condition Info</string>

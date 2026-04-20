@@ -114,6 +114,7 @@ import com.calmed.calmedtics.tics_vocal
 import com.calmed.calmedtics.ui.component.LanguageToggle
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.TextField
+import com.calmed.calmedtics.ui.component.TimeSlider
 import com.calmed.calmedtics.username
 import com.calmed.calmedtics.yes
 import com.calmed.calmedtics.viewmodel.SessionViewModel
@@ -559,29 +560,24 @@ fun ProfileScreen(
 					if (remindersEnabled) {
 						Spacer(modifier = Modifier.height(8.dp))
 
-						TextField(
-							value = morningTime,
-							onValueChange = { morningTime = it },
+						TimeSlider(
 							label = stringResource(Res.string.morning_reminder_label),
-							singleLine = true
+							initialTime = morningTime,
+							onTimeSelected = {
+								morningTime = it
+								appSettings.setMorningReminderTime(it)
+								reminderManager.enableMorningAndEvening()
+							}
 						)
 
 						Spacer(modifier = Modifier.height(8.dp))
 
-						TextField(
-							value = eveningTime,
-							onValueChange = { eveningTime = it },
+						TimeSlider(
 							label = stringResource(Res.string.evening_reminder_label),
-							singleLine = true
-						)
-
-						Spacer(modifier = Modifier.height(8.dp))
-
-						PrimaryButton(
-							text = stringResource(Res.string.save),
-							onClick = {
-								appSettings.setMorningReminderTime(morningTime)
-								appSettings.setEveningReminderTime(eveningTime)
+							initialTime = eveningTime,
+							onTimeSelected = {
+								eveningTime = it
+								appSettings.setEveningReminderTime(it)
 								reminderManager.enableMorningAndEvening()
 							}
 						)

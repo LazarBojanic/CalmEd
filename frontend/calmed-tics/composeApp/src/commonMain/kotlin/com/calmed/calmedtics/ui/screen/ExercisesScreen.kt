@@ -135,15 +135,7 @@ fun ExercisesScreen(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val isWeek0 = ex.weekNumber == 0
-                                val isMorning = ex.orderInWeek == 1
-                                val isEvening = ex.orderInWeek == 2
-                                val displayTitle = if (!isWeek0) {
-                                    val suffix = if (isMorning) " (Morning)" else if (isEvening) " (Evening)" else ""
-                                    ex.getTitle(language) + suffix
-                                } else {
-                                    ex.getTitle(language)
-                                }
+                                val displayTitle = ex.getTitle(language)
 
                                 Text(
                                     text = displayTitle,

@@ -464,16 +464,7 @@ fun HomeScreen(
             listItems(displayExercises) { ex ->
                 val isSelected = ex.id == selectedExercise?.id
                 
-                val isWeek0 = ex.weekNumber == 0
-                val isMorning = ex.orderInWeek == 1
-                val isEvening = ex.orderInWeek == 2
-                
-                val displayTitle = if (!isWeek0) {
-                    val suffix = if (isMorning) " (Morning)" else if (isEvening) " (Evening)" else ""
-                    ex.getTitle(contentLanguage) + suffix
-                } else {
-                    ex.getTitle(contentLanguage)
-                }
+                val displayTitle = ex.getTitle(contentLanguage)
 
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Card(

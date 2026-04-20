@@ -100,20 +100,7 @@ fun FullscreenVideoScreen(
     val remainingMs = (durationMs - currentPositionMs).coerceAtLeast(0L)
 
     val displayTitle = remember(currentExercise, language) {
-        val isWeek0 = currentExercise.weekNumber == 0
-        val isMorning = currentExercise.orderInWeek == 1
-        val isEvening = currentExercise.orderInWeek == 2
-
-        if (!isWeek0) {
-            val suffix = when {
-                isMorning -> " (Morning)"
-                isEvening -> " (Evening)"
-                else -> ""
-            }
-            currentExercise.getTitle(language) + suffix
-        } else {
-            currentExercise.getTitle(language)
-        }
+        currentExercise.getTitle(language)
     }
 
     LaunchedEffect(currentIndex) {

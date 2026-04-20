@@ -121,8 +121,8 @@
     <string name="terms">Términos de servicio</string>
     <string name="reminders">Recordatorios de ejercicios</string>
     <string name="morning_evening">Recordatorios de mañana y noche</string>
-    <string name="morning_reminder_label">Ejercicio 1 (Mañana) (HH:mm)</string>
-    <string name="evening_reminder_label">Ejercicio 2 (Noche) (HH:mm)</string>
+    <string name="morning_reminder_label">Recordatorio matutino</string>
+    <string name="evening_reminder_label">Recordatorio vespertino</string>
     <string name="logout">Cerrar sesión</string>
     <string name="default_user">Usuario</string>
     <string name="condition_info">Información de la condición</string>
