@@ -145,4 +145,42 @@
     <string name="its_not_yet_time">It's not yet time for this exercise.</string>
     <string name="its_not_yet_time_week">It's not yet time for this week.</string>
     <string name="edit">Edit</string>
+
+    <!-- Welcome Video Screen -->
+    <string name="osshr_method_title">About the OSSHR method</string>
+    <string name="osshr_method_description_1">OSSHR is an educational method that the Stošljević family has been developing since 1953. Over this long period, our method has helped more than 100,000 children and adults.</string>
+    <string name="osshr_method_description_2">OSSHR means that the professional applying the method is not limited to predefined procedures when working with children and parents, but is open to using all acquired knowledge in line with the individual needs of the child and family. Although the system itself is open, it is firmly based on scientific theories and facts from both medical and non-medical disciplines related to psychophysiological disorders in a broader sense. The method involves working with children and their parents.</string>
+    <string name="osshr_method_description_3">The goal of the method is to help each child reach their maximum potential in thinking, emotions, social development, motor skills, and speech, while also transferring the specialist's knowledge to parents and guardians so they can support the child's daily development.</string>
+
+    <!-- Course Overview Screen -->
+    <string name="course_overview_description_1">This short video gives you a quick introduction to the structure of the course and what you can expect as you move through the program.</string>
+    <string name="course_overview_description_2">You can watch it now to get familiar with the app flow, learning materials, and the way the content is organized.</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_questions_intro">We'll ask a few quick questions to personalize your experience.</string>
+    <string name="preferred_name_description">Choose the name you'd like us to use in the app.</string>
+    <string name="tailor_app_experience">This information helps us tailor the app experience for you.</string>
+    <string name="stress_level_question">What is your average level of stress?</string>
+    <string name="tics_motor_description">Body movement tics</string>
+    <string name="tics_vocal_description">Sounds or vocal tics</string>
+    <string name="tics_both_description">Both motor and vocal tics</string>
+    <string name="tics_frequency_question">How often do your tics usually occur?</string>
+    <string name="tics_frequency_rare_description">They happen only occasionally</string>
+    <string name="tics_frequency_moderate_description">They happen from time to time</string>
+    <string name="tics_frequency_daily_description">They are present every day</string>
+    <string name="goal_question">What would you like to improve or achieve?</string>
+    <string name="goal_input_label">Your goal</string>
+    <string name="goal_example">Example: I want to better understand my tics and track how often they happen.</string>
+    <string name="track_progress_option">Track my progress</string>
+    <string name="track_progress_description">We'll show insights and improvements over time</string>
+    <string name="can_change_later">You can change this later in settings.</string>
+
+    <!-- Home Screen -->
+    <string name="hello_user">Hello, %1$s</string>
+    <string name="week_number">Week %1$d</string>
+    <string name="previous_week">Previous Week</string>
+
+    <!-- Fullscreen Video Screen -->
+    <string name="no_exercises_available">No exercises available</string>
+    <string name="exercise_counter">Exercise %1$d/%2$d</string>
 </resources>

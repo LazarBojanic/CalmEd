@@ -11,6 +11,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.calmed.calmedtics.Res
 import com.calmed.calmedtics.cancel
+import com.calmed.calmedtics.edit
 import com.calmed.calmedtics.edit_profile
 import com.calmed.calmedtics.reminders
 import com.calmed.calmedtics.save

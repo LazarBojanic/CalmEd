@@ -35,13 +35,17 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
 import com.calmed.calmedtics.age_title
+import com.calmed.calmedtics.back
+import com.calmed.calmedtics.can_change_later
 import com.calmed.calmedtics.finish
 import com.calmed.calmedtics.follow_progress_question
 import com.calmed.calmedtics.follow_progress_title
 import com.calmed.calmedtics.frequency_daily
 import com.calmed.calmedtics.frequency_moderate
 import com.calmed.calmedtics.frequency_rare
-import com.calmed.calmedtics.goal_label
+import com.calmed.calmedtics.goal_example
+import com.calmed.calmedtics.goal_input_label
+import com.calmed.calmedtics.goal_question
 import com.calmed.calmedtics.goal_title
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
@@ -49,15 +53,28 @@ import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TickFrequency
 import com.calmed.calmedtics.model.raw.TickType
 import com.calmed.calmedtics.next
+import com.calmed.calmedtics.onboarding_questions_intro
 import com.calmed.calmedtics.personalize_experience
+import com.calmed.calmedtics.preferred_name_description
 import com.calmed.calmedtics.preferred_name_title
 import com.calmed.calmedtics.skip
 import com.calmed.calmedtics.start
+import com.calmed.calmedtics.tailor_app_experience
 import com.calmed.calmedtics.tics_both
+import com.calmed.calmedtics.tics_both_description
+import com.calmed.calmedtics.tics_frequency_daily_description
+import com.calmed.calmedtics.tics_frequency_moderate_description
+import com.calmed.calmedtics.stress_level_question
+import com.calmed.calmedtics.tics_frequency_question
+import com.calmed.calmedtics.tics_frequency_rare_description
 import com.calmed.calmedtics.tics_frequency_title
 import com.calmed.calmedtics.tics_motor
+import com.calmed.calmedtics.tics_motor_description
 import com.calmed.calmedtics.tics_type_title
 import com.calmed.calmedtics.tics_vocal
+import com.calmed.calmedtics.tics_vocal_description
+import com.calmed.calmedtics.track_progress_description
+import com.calmed.calmedtics.track_progress_option
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.TextField
 import com.calmed.calmedtics.welcome_user
@@ -214,7 +231,7 @@ fun OnboardingScreen(
 							color = Color.White.copy(alpha = 0.22f)
 						) {
 							Text(
-								text = "We’ll ask a few quick questions to personalize your experience.",
+								text = stringResource(Res.string.onboarding_questions_intro),
 								modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
 								style = MaterialTheme.typography.bodyMedium.copy(
 									color = Color.White
@@ -327,7 +344,7 @@ fun OnboardingScreen(
 						Spacer(modifier = Modifier.height(12.dp))
 
 						Text(
-							text = "Choose the name you’d like us to use in the app.",
+							text = stringResource(Res.string.preferred_name_description),
 							style = MaterialTheme.typography.bodyLarge.copy(
 								color = Color.White.copy(alpha = 0.9f)
 							)
@@ -429,7 +446,7 @@ fun OnboardingScreen(
 								onClick = { step.intValue = 1 }
 							) {
 								Text(
-									text = "Back",
+									text = stringResource(Res.string.back),
 									color = Color.White
 								)
 							}
@@ -548,7 +565,7 @@ fun OnboardingScreen(
 							color = Color.White.copy(alpha = 0.22f)
 						) {
 							Text(
-								text = "This information helps us tailor the app experience for you.",
+								text = stringResource(Res.string.tailor_app_experience),
 								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
 								style = MaterialTheme.typography.bodyMedium.copy(
 									color = Color.White
@@ -587,7 +604,10 @@ fun OnboardingScreen(
 							verticalAlignment = Alignment.CenterVertically
 						) {
 							TextButton(onClick = { step.intValue = 2 }) {
-								Text("Back", color = Color.White)
+								Text(
+									text = stringResource(Res.string.back),
+									color = Color.White
+								)
 							}
 
 							Surface(
@@ -606,7 +626,7 @@ fun OnboardingScreen(
 						Spacer(modifier = Modifier.height(48.dp))
 
 						Text(
-							text = "What is your average\nlevel of stress?",
+							text = stringResource(Res.string.stress_level_question),
 							style = MaterialTheme.typography.headlineMedium.copy(
 								color = Color(0xFF2F327D)
 							)
@@ -741,7 +761,7 @@ fun OnboardingScreen(
 							color = Color.White.copy(alpha = 0.22f)
 						) {
 							Text(
-								text = "This information helps us tailor the app experience for you.",
+								text = stringResource(Res.string.tailor_app_experience),
 								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
 								style = MaterialTheme.typography.bodyMedium.copy(
 									color = Color.White
@@ -780,7 +800,10 @@ fun OnboardingScreen(
 							verticalAlignment = Alignment.CenterVertically
 						) {
 							TextButton(onClick = { step.intValue = 3 }) {
-								Text("Back", color = Color.White)
+								Text(
+									text = stringResource(Res.string.back),
+									color = Color.White
+								)
 							}
 
 							Surface(
@@ -846,7 +869,7 @@ fun OnboardingScreen(
 										)
 										Spacer(modifier = Modifier.height(4.dp))
 										Text(
-											text = "Body movement tics",
+											text = stringResource(Res.string.tics_motor_description),
 											style = MaterialTheme.typography.bodyMedium.copy(
 												color = Color.White.copy(alpha = 0.8f)
 											)
@@ -908,7 +931,7 @@ fun OnboardingScreen(
 										)
 										Spacer(modifier = Modifier.height(4.dp))
 										Text(
-											text = "Sounds or vocal tics",
+											text = stringResource(Res.string.tics_vocal_description),
 											style = MaterialTheme.typography.bodyMedium.copy(
 												color = Color.White.copy(alpha = 0.8f)
 											)
@@ -970,7 +993,7 @@ fun OnboardingScreen(
 										)
 										Spacer(modifier = Modifier.height(4.dp))
 										Text(
-											text = "Both motor and vocal tics",
+											text = stringResource(Res.string.tics_both_description),
 											style = MaterialTheme.typography.bodyMedium.copy(
 												color = Color.White.copy(alpha = 0.8f)
 											)
@@ -1032,7 +1055,7 @@ fun OnboardingScreen(
 							color = Color.White.copy(alpha = 0.22f)
 						) {
 							Text(
-								text = "This information helps us tailor the app experience for you.",
+								text = stringResource(Res.string.tailor_app_experience),
 								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
 								style = MaterialTheme.typography.bodyMedium.copy(
 									color = Color.White
@@ -1072,7 +1095,10 @@ fun OnboardingScreen(
 							verticalAlignment = Alignment.CenterVertically
 						) {
 							TextButton(onClick = { step.intValue = 4 }) {
-								Text("Back", color = Color.White)
+								Text(
+									text = stringResource(Res.string.back),
+									color = Color.White
+								)
 							}
 
 							Surface(
@@ -1100,7 +1126,7 @@ fun OnboardingScreen(
 						Spacer(modifier = Modifier.height(16.dp))
 
 						Text(
-							text = "How often do your tics usually occur?",
+							text = stringResource(Res.string.tics_frequency_question),
 							style = MaterialTheme.typography.bodyLarge.copy(
 								color = Color.White.copy(alpha = 0.9f)
 							)
@@ -1147,7 +1173,7 @@ fun OnboardingScreen(
 										)
 										Spacer(modifier = Modifier.height(4.dp))
 										Text(
-											text = "They happen only occasionally",
+											text = stringResource(Res.string.tics_frequency_rare_description),
 											style = MaterialTheme.typography.bodyMedium.copy(
 												color = Color.White.copy(alpha = 0.8f)
 											)
@@ -1209,7 +1235,7 @@ fun OnboardingScreen(
 										)
 										Spacer(modifier = Modifier.height(4.dp))
 										Text(
-											text = "They happen from time to time",
+											text = stringResource(Res.string.tics_frequency_moderate_description),
 											style = MaterialTheme.typography.bodyMedium.copy(
 												color = Color.White.copy(alpha = 0.8f)
 											)
@@ -1271,7 +1297,7 @@ fun OnboardingScreen(
 										)
 										Spacer(modifier = Modifier.height(4.dp))
 										Text(
-											text = "They are present every day",
+											text = stringResource(Res.string.tics_frequency_daily_description),
 											style = MaterialTheme.typography.bodyMedium.copy(
 												color = Color.White.copy(alpha = 0.8f)
 											)
@@ -1333,7 +1359,7 @@ fun OnboardingScreen(
 							color = Color.White.copy(alpha = 0.22f)
 						) {
 							Text(
-								text = "This information helps us tailor the app experience for you.",
+								text = stringResource(Res.string.tailor_app_experience),
 								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
 								style = MaterialTheme.typography.bodyMedium.copy(
 									color = Color.White
@@ -1372,7 +1398,10 @@ fun OnboardingScreen(
 							verticalAlignment = Alignment.CenterVertically
 						) {
 							TextButton(onClick = { step.intValue = 5 }) {
-								Text("Back", color = Color.White)
+								Text(
+									text = stringResource(Res.string.back),
+									color = Color.White
+								)
 							}
 
 							Surface(
@@ -1400,7 +1429,7 @@ fun OnboardingScreen(
 						Spacer(modifier = Modifier.height(16.dp))
 
 						Text(
-							text = "What would you like to improve or achieve?",
+							text = stringResource(Res.string.goal_question),
 							style = MaterialTheme.typography.bodyLarge.copy(
 								color = Color.White.copy(alpha = 0.9f)
 							)
@@ -1421,7 +1450,7 @@ fun OnboardingScreen(
 								modifier = Modifier.padding(18.dp)
 							) {
 								Text(
-									text = "Your goal",
+									text = stringResource(Res.string.goal_input_label),
 									style = MaterialTheme.typography.labelLarge.copy(
 										color = Color.White.copy(alpha = 0.8f)
 									)
@@ -1447,7 +1476,7 @@ fun OnboardingScreen(
 							color = Color.White.copy(alpha = 0.12f)
 						) {
 							Text(
-								text = "Example: I want to better understand my tics and track how often they happen.",
+								text = stringResource(Res.string.goal_example),
 								modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
 								style = MaterialTheme.typography.bodyMedium.copy(
 									color = Color.White.copy(alpha = 0.75f)
@@ -1489,7 +1518,7 @@ fun OnboardingScreen(
 							color = Color.White.copy(alpha = 0.22f)
 						) {
 							Text(
-								text = "This information helps us tailor the app experience for you.",
+								text = stringResource(Res.string.tailor_app_experience),
 								modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
 								style = MaterialTheme.typography.bodyMedium.copy(
 									color = Color.White
@@ -1528,7 +1557,10 @@ fun OnboardingScreen(
 							verticalAlignment = Alignment.CenterVertically
 						) {
 							TextButton(onClick = { step.intValue = 6 }) {
-								Text("Back", color = Color.White)
+								Text(
+									text = stringResource(Res.string.back),
+									color = Color.White
+								)
 							}
 
 							TextButton(onClick = onSkip) {
@@ -1586,7 +1618,7 @@ fun OnboardingScreen(
 
 								Column {
 									Text(
-										text = "Track my progress",
+										text = stringResource(Res.string.track_progress_option),
 										style = MaterialTheme.typography.titleMedium.copy(
 											color = Color.White
 										)
@@ -1595,7 +1627,7 @@ fun OnboardingScreen(
 									Spacer(modifier = Modifier.height(4.dp))
 
 									Text(
-										text = "We’ll show insights and improvements over time",
+										text = stringResource(Res.string.track_progress_description),
 										style = MaterialTheme.typography.bodyMedium.copy(
 											color = Color.White.copy(alpha = 0.75f)
 										)
@@ -1626,7 +1658,7 @@ fun OnboardingScreen(
 							color = Color.White.copy(alpha = 0.12f)
 						) {
 							Text(
-								text = "You can change this later in settings.",
+								text = stringResource(Res.string.can_change_later),
 								modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
 								style = MaterialTheme.typography.bodySmall.copy(
 									color = Color.White.copy(alpha = 0.7f)

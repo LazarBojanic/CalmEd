@@ -31,6 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
 import com.calmed.calmedtics.`continue`
+import com.calmed.calmedtics.course_overview_description_1
+import com.calmed.calmedtics.course_overview_description_2
 import com.calmed.calmedtics.dont_show_again
 import com.calmed.calmedtics.error_video_failed
 import com.calmed.calmedtics.error_video_no_source
@@ -170,7 +172,7 @@ fun CourseOverviewScreen(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = "This short video gives you a quick introduction to the structure of the course and what you can expect as you move through the program.",
+                            text = stringResource(Res.string.course_overview_description_1),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = Color.White.copy(alpha = 0.92f)
                             )
@@ -179,7 +181,7 @@ fun CourseOverviewScreen(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = "You can watch it now to get familiar with the app flow, learning materials, and the way the content is organized.",
+                            text = stringResource(Res.string.course_overview_description_2),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = Color.White.copy(alpha = 0.86f)
                             )
