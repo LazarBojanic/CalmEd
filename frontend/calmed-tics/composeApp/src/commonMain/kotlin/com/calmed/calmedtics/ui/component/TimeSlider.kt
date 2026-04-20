@@ -63,7 +63,7 @@ fun TimeSlider(
                     )
                 }
                 Text(
-                    text = stringResource(Res.string.edit_profile),
+                    text = stringResource(Res.string.edit),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
