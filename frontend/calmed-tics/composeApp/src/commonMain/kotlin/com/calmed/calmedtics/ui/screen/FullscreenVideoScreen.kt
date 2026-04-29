@@ -50,6 +50,8 @@ import androidx.compose.ui.unit.sp
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.ui.component.VideoPlayerWithState
 import com.calmed.calmedtics.util.getTitle
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 private val ScreenTop = Color(0xFFC7BCFF)
 private val ScreenBottom = Color(0xFFE8E1F6)
@@ -74,6 +76,7 @@ fun FullscreenVideoScreen(
 
     var currentPositionMs by remember { mutableLongStateOf(0L) }
     var durationMs by remember { mutableLongStateOf(0L) }
+    var showExerciseInfo by remember { mutableStateOf(false) }
 
     if (exercises.isEmpty()) {
         Box(
@@ -189,11 +192,11 @@ fun FullscreenVideoScreen(
                                 .padding(top = 10.dp, end = 6.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ){
-                            OverlayIcon(Icons.Default.Fullscreen)
-                            OverlayIcon(Icons.Default.Cast)
-                            OverlayIcon(Icons.Default.Settings)
-                            OverlayIcon(Icons.Default.MusicNote)
-                            OverlayIcon(Icons.Default.Info)
+                            OverlayIcon(Icons.Default.Fullscreen, onClick = { })
+                            OverlayIcon(Icons.Default.Cast, onClick = { })
+                            OverlayIcon(Icons.Default.Settings, onClick = { })
+                            OverlayIcon(Icons.Default.MusicNote, onClick = { })
+                            OverlayIcon(Icons.Default.Info, onClick = { showExerciseInfo = true })
                         }
                     }
 
@@ -266,6 +269,22 @@ fun FullscreenVideoScreen(
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
+            if (showExerciseInfo) {
+                AlertDialog(
+                    onDismissRequest = { showExerciseInfo = false },
+                    confirmButton = {
+                        TextButton(onClick = { showExerciseInfo = false }) {
+                            Text("Close")
+                        }
+                    },
+                    title = {
+                        Text(displayTitle)
+                    },
+                    text = {
+                        Text("About this exercise")
+                    }
+                )
+            }
         }
     }
 }
@@ -355,13 +374,16 @@ private fun formatTimeFromMillis(milliseconds: Long): String {
 }
 
 @Composable
-private fun OverlayIcon(icon: ImageVector) {
-    Box(
+private fun OverlayIcon(
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    IconButton(
+        onClick = onClick,
         modifier = Modifier
             .size(28.dp)
             .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.35f)),
-        contentAlignment = Alignment.Center
+            .background(Color.White.copy(alpha = 0.25f))
     ) {
         Icon(
             imageVector = icon,
