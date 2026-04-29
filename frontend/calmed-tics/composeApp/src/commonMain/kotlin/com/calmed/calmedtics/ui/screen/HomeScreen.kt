@@ -46,8 +46,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
 import com.calmed.calmedtics.calendar_loading
+import com.calmed.calmedtics.default_user
+import com.calmed.calmedtics.hello_user
 import com.calmed.calmedtics.home_title
 import com.calmed.calmedtics.home_welcome
+import com.calmed.calmedtics.previous_week
+import com.calmed.calmedtics.week_number
 import com.calmed.calmedtics.no_image
 import com.calmed.calmedtics.select_video
 import com.calmed.calmedtics.ui.component.ScreenScaffold
@@ -198,7 +202,7 @@ fun HomeScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Hello, ${user?.username ?: "User"}",
+                            text = stringResource(Res.string.hello_user, user?.username ?: stringResource(Res.string.default_user)),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -254,8 +258,8 @@ fun HomeScreen(
                                 enabled = trackerStartEpoch - 7 >= startWeekMondayEpoch
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.ChevronLeft, 
-                                    contentDescription = "Previous Week",
+                                    imageVector = Icons.Default.ChevronLeft,
+                                    contentDescription = stringResource(Res.string.previous_week),
                                     tint = if (trackerStartEpoch - 7 >= startWeekMondayEpoch) LocalContentColor.current else Color.Gray
                                 )
                             }
@@ -267,7 +271,7 @@ fun HomeScreen(
                             
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
-                                    text = "Week $displayWeek",
+                                    text = stringResource(Res.string.week_number, displayWeek),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -464,16 +468,7 @@ fun HomeScreen(
             listItems(displayExercises) { ex ->
                 val isSelected = ex.id == selectedExercise?.id
                 
-                val isWeek0 = ex.weekNumber == 0
-                val isMorning = ex.orderInWeek == 1
-                val isEvening = ex.orderInWeek == 2
-                
-                val displayTitle = if (!isWeek0) {
-                    val suffix = if (isMorning) " (Morning)" else if (isEvening) " (Evening)" else ""
-                    ex.getTitle(contentLanguage) + suffix
-                } else {
-                    ex.getTitle(contentLanguage)
-                }
+                val displayTitle = ex.getTitle(contentLanguage)
 
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Card(

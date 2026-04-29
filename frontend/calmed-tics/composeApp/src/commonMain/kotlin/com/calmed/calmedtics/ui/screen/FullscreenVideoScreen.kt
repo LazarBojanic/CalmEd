@@ -47,11 +47,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.calmed.calmedtics.Res
+import com.calmed.calmedtics.exercise_counter
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.no_exercises_available
 import com.calmed.calmedtics.ui.component.VideoPlayerWithState
 import com.calmed.calmedtics.util.getTitle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import org.jetbrains.compose.resources.stringResource
 
 private val ScreenTop = Color(0xFFC7BCFF)
 private val ScreenBottom = Color(0xFFE8E1F6)
@@ -90,7 +94,7 @@ fun FullscreenVideoScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "No exercises available",
+                text = stringResource(Res.string.no_exercises_available),
                 color = Color.White,
                 fontSize = 18.sp
             )
@@ -103,20 +107,7 @@ fun FullscreenVideoScreen(
     val remainingMs = (durationMs - currentPositionMs).coerceAtLeast(0L)
 
     val displayTitle = remember(currentExercise, language) {
-        val isWeek0 = currentExercise.weekNumber == 0
-        val isMorning = currentExercise.orderInWeek == 1
-        val isEvening = currentExercise.orderInWeek == 2
-
-        if (!isWeek0) {
-            val suffix = when {
-                isMorning -> " (Morning)"
-                isEvening -> " (Evening)"
-                else -> ""
-            }
-            currentExercise.getTitle(language) + suffix
-        } else {
-            currentExercise.getTitle(language)
-        }
+        currentExercise.getTitle(language)
     }
 
     LaunchedEffect(currentIndex) {
@@ -263,7 +254,7 @@ fun FullscreenVideoScreen(
             Spacer(modifier = Modifier.height(22.dp))
 
             Text(
-                text = "Exercise ${currentIndex + 1}/${exercises.size}",
+                text = stringResource(Res.string.exercise_counter, currentIndex + 1, exercises.size),
                 color = Color(0xFF4A5BFF),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,

@@ -35,6 +35,10 @@ import com.calmed.calmedtics.dont_show_again
 import com.calmed.calmedtics.error_video_failed
 import com.calmed.calmedtics.error_video_no_source
 import com.calmed.calmedtics.loading_video
+import com.calmed.calmedtics.osshr_method_description_1
+import com.calmed.calmedtics.osshr_method_description_2
+import com.calmed.calmedtics.osshr_method_description_3
+import com.calmed.calmedtics.osshr_method_title
 import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.skip
@@ -169,7 +173,7 @@ fun WelcomeVideoScreen(
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Text(
-                            text = "About the OSSHR method",
+                            text = stringResource(Res.string.osshr_method_title),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = Color.White
                             )
@@ -178,7 +182,7 @@ fun WelcomeVideoScreen(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = "OSSHR is an educational method that the Stošljević family has been developing since 1953. Over this long period, our method has helped more than 100,000 children and adults.",
+                            text = stringResource(Res.string.osshr_method_description_1),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = Color.White.copy(alpha = 0.92f)
                             )
@@ -187,7 +191,7 @@ fun WelcomeVideoScreen(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = "OSSHR means that the professional applying the method is not limited to predefined procedures when working with children and parents, but is open to using all acquired knowledge in line with the individual needs of the child and family. Although the system itself is open, it is firmly based on scientific theories and facts from both medical and non-medical disciplines related to psychophysiological disorders in a broader sense. The method involves working with children and their parents.",
+                            text = stringResource(Res.string.osshr_method_description_2),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = Color.White.copy(alpha = 0.86f)
                             )
@@ -196,7 +200,7 @@ fun WelcomeVideoScreen(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = "The goal of the method is to help each child reach their maximum potential in thinking, emotions, social development, motor skills, and speech, while also transferring the specialist’s knowledge to parents and guardians so they can support the child’s daily development.",
+                            text = stringResource(Res.string.osshr_method_description_3),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = Color.White.copy(alpha = 0.86f)
                             )

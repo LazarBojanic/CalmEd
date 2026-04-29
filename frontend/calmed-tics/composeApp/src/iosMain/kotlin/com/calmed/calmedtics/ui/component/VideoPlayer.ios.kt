@@ -62,6 +62,7 @@ actual fun VideoPlayer(
     hlsUrl: String,
     modifier: Modifier,
     isFullscreen: Boolean,
+    isPlaying: Boolean,
     onFullscreenToggle: (() -> Unit)?
 ) {
     val player = remember { AVPlayer() }
@@ -100,7 +101,9 @@ actual fun VideoPlayer(
 
         val item = AVPlayerItem(uRL = nsUrl)
         player.replaceCurrentItemWithPlayerItem(item)
-        player.play()
+        if (isPlaying) {
+            player.play()
+        }
 
         val endToken = NSNotificationCenter.defaultCenter.addObserverForName(
             name = AVPlayerItemDidPlayToEndTimeNotification,
@@ -110,6 +113,14 @@ actual fun VideoPlayer(
             player.pause()
         }
         tokens.add(endToken)
+    }
+
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) {
+            player.play()
+        } else {
+            player.pause()
+        }
     }
 
     DisposableEffect(Unit) {
@@ -203,6 +214,18 @@ actual fun VideoPlayer(
             }
         }
     }
+}
+
+@Composable
+actual fun VideoPlayerWithState(
+    hlsUrl: String,
+    modifier: Modifier,
+    isPlaying: Boolean,
+    onPositionChanged: (Long) -> Unit,
+    onDurationChanged: (Long) -> Unit
+) {
+    // TODO: Implementation for iOS
+    Box(modifier = modifier.background(Color.Black))
 }
 
 @Composable
