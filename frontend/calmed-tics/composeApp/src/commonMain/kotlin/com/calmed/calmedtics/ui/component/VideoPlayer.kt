@@ -18,5 +18,6 @@ expect fun VideoPlayerWithState(
     modifier: Modifier = Modifier,
     isPlaying: Boolean,
     onPositionChanged: (Long) -> Unit,
-    onDurationChanged: (Long) -> Unit
+    onDurationChanged: (Long) -> Unit,
+    restartTrigger: Int = 0
 )

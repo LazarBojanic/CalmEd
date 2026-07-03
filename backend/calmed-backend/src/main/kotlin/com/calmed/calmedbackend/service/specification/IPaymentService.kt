@@ -8,6 +8,8 @@ import com.calmed.calmedbackend.model.dto.response.CheckoutSessionResponseDto
 import com.calmed.calmedbackend.model.dto.response.PaymentStatusDto
 import com.calmed.calmedbackend.model.raw.user.PaymentType
 import java.util.UUID
+import com.calmed.calmedbackend.model.dto.request.CapturePayPalOrderDto
+import com.calmed.calmedbackend.model.dto.response.PayPalOrderResponseDto
 
 interface IPaymentService {
     suspend fun paymentStatus(userId: UUID): AppResult<PaymentStatusDto>
@@ -17,4 +19,6 @@ interface IPaymentService {
     suspend fun verifyApplePurchase(userId: UUID, dto: VerifyAppleReceiptDto): AppResult<PaymentStatusDto>
     suspend fun verifyGooglePurchase(userId: UUID, dto: VerifyGoogleReceiptDto): AppResult<PaymentStatusDto>
     suspend fun verifyStripeSession(userId: UUID, sessionId: String): AppResult<PaymentStatusDto>
+    suspend fun createPayPalOrder(userId: UUID): AppResult<PayPalOrderResponseDto>
+    suspend fun capturePayPalOrder(userId: UUID, dto: CapturePayPalOrderDto): AppResult<PaymentStatusDto>
 }

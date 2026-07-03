@@ -66,3 +66,9 @@ stripe:
     merchant_display_name: ${STRIPE_MERCHANT_DISPLAY_NAME:CalmEd}
     merchant_country_code: ${STRIPE_MERCHANT_COUNTRY_CODE:RS}
     apple_merchant_id: ${STRIPE_APPLE_MERCHANT_ID:placeholder}
+paypal:
+    client_id: ${PAYPAL_CLIENT_ID:placeholder}
+    client_secret: ${PAYPAL_CLIENT_SECRET:placeholder}
+    base_url: ${PAYPAL_BASE_URL:https://api-m.sandbox.paypal.com}
+    amount: ${PAYPAL_AMOUNT:10.00}
+    currency: ${PAYPAL_CURRENCY:USD}

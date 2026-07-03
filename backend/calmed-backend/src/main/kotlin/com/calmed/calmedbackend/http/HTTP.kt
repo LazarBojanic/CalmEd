@@ -35,6 +35,7 @@ fun Application.configureHTTP() {
 		allowHost("calm-ed.org", listOf("https"))
 		allowHost("calm-ed.net", listOf("https"))
 		allowHost("calm-ed.edu", listOf("https"))
+		allowHost("mediumseagreen-goat-237667.hostingersite.com", schemes = listOf("https"))
 
 		if(ktorConfig.development){
 			allowHost("localhost:3000", listOf("http"))

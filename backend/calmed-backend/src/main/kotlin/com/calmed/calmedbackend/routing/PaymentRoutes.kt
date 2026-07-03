@@ -19,6 +19,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 import java.util.UUID
+import com.calmed.calmedbackend.model.dto.request.CapturePayPalOrderDto
 
 fun Route.paymentRoutes() {
     val paymentService by inject<IPaymentService>()
@@ -69,6 +70,34 @@ fun Route.paymentRoutes() {
                 val userId = UUID.fromString(jwt.subject)
                 val dto = call.receive<CreateCheckoutSessionDto>()
                 when (val res = paymentService.createCheckoutSession(userId, dto)) {
+                    is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
+                    is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+                }
+            }
+            post("/paypal/create-order") {
+                val jwt = call.principal<JWTPrincipal>() ?: throw BusinessException(
+                    HttpStatusCode.Unauthorized,
+                    "Invalid authentication"
+                )
+
+                val userId = UUID.fromString(jwt.subject)
+
+                when (val res = paymentService.createPayPalOrder(userId)) {
+                    is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
+                    is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+                }
+            }
+
+            post("/paypal/capture-order") {
+                val jwt = call.principal<JWTPrincipal>() ?: throw BusinessException(
+                    HttpStatusCode.Unauthorized,
+                    "Invalid authentication"
+                )
+
+                val userId = UUID.fromString(jwt.subject)
+                val dto = call.receive<CapturePayPalOrderDto>()
+
+                when (val res = paymentService.capturePayPalOrder(userId, dto)) {
                     is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
                     is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
                 }

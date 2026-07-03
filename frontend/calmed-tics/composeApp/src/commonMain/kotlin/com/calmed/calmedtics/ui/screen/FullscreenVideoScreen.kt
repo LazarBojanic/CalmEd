@@ -56,6 +56,7 @@ import com.calmed.calmedtics.util.getTitle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.material3.Switch
 
 private val ScreenTop = Color(0xFFC7BCFF)
 private val ScreenBottom = Color(0xFFE8E1F6)
@@ -81,6 +82,11 @@ fun FullscreenVideoScreen(
     var currentPositionMs by remember { mutableLongStateOf(0L) }
     var durationMs by remember { mutableLongStateOf(0L) }
     var showExerciseInfo by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
+    var autoPlayNext by remember { mutableStateOf(false) }
+    var keepScreenAwake by remember { mutableStateOf(false) }
+    var repeatCurrentExercise by remember { mutableStateOf(false) }
+    var restartTrigger by remember { mutableStateOf(0) }
 
     if (exercises.isEmpty()) {
         Box(
@@ -103,6 +109,7 @@ fun FullscreenVideoScreen(
     }
 
     val currentExercise = exercises[currentIndex]
+    println("DESCRIPTION: ${currentExercise.description}")
     val currentUrl = currentExercise.videoURL ?: ""
     val remainingMs = (durationMs - currentPositionMs).coerceAtLeast(0L)
 
@@ -155,8 +162,26 @@ fun FullscreenVideoScreen(
                                 hlsUrl = currentUrl,
                                 modifier = Modifier.fillMaxSize(),
                                 isPlaying = isPlaying,
-                                onPositionChanged = { currentPositionMs = it },
-                                onDurationChanged = { durationMs = it }
+                                onPositionChanged = { position ->
+                                    currentPositionMs = position
+
+                                    if (
+                                        durationMs > 0L &&
+                                        position >= durationMs - 500L
+                                    ) {
+                                        if (repeatCurrentExercise) {
+                                            restartTrigger++
+                                        } else if (
+                                            autoPlayNext &&
+                                            currentIndex < exercises.lastIndex
+                                        ) {
+                                            currentIndex++
+                                        }
+                                    }
+                                },
+                                onDurationChanged = { durationMs = it },
+                                restartTrigger = restartTrigger
+
                             )
                         }
 
@@ -185,7 +210,7 @@ fun FullscreenVideoScreen(
                         ){
                             OverlayIcon(Icons.Default.Fullscreen, onClick = { })
                             OverlayIcon(Icons.Default.Cast, onClick = { })
-                            OverlayIcon(Icons.Default.Settings, onClick = { })
+                            OverlayIcon(Icons.Default.Settings, onClick = { showSettings = true })
                             OverlayIcon(Icons.Default.MusicNote, onClick = { })
                             OverlayIcon(Icons.Default.Info, onClick = { showExerciseInfo = true })
                         }
@@ -272,7 +297,67 @@ fun FullscreenVideoScreen(
                         Text(displayTitle)
                     },
                     text = {
-                        Text("About this exercise")
+                        Text(
+                            currentExercise.description
+                                ?: "No description available"
+                        )
+                    }
+                )
+            }
+            if (showSettings) {
+                AlertDialog(
+                    onDismissRequest = { showSettings = false },
+                    confirmButton = {
+                        TextButton(
+                            onClick = { showSettings = false }
+                        ) {
+                            Text("Close")
+                        }
+                    },
+                    title = {
+                        Text("Settings")
+                    },
+                    text = {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Auto-play next exercise")
+                                Switch(
+                                    checked = autoPlayNext,
+                                    onCheckedChange = { autoPlayNext = it }
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Keep screen awake")
+                                Switch(
+                                    checked = keepScreenAwake,
+                                    onCheckedChange = { keepScreenAwake = it }
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Repeat current exercise")
+                                Switch(
+                                    checked = repeatCurrentExercise,
+                                    onCheckedChange = { repeatCurrentExercise = it }
+                                )
+                            }
+                        }
                     }
                 )
             }

@@ -91,7 +91,9 @@ actual fun VideoPlayerWithState(
     modifier: Modifier,
     isPlaying: Boolean,
     onPositionChanged: (Long) -> Unit,
-    onDurationChanged: (Long) -> Unit
+    onDurationChanged: (Long) -> Unit,
+    restartTrigger: Int
+
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -141,6 +143,12 @@ actual fun VideoPlayerWithState(
             player.play()
         } else {
             player.pause()
+        }
+    }
+    LaunchedEffect(restartTrigger) {
+        if (restartTrigger > 0) {
+            player.seekTo(0L)
+            player.play()
         }
     }
 
