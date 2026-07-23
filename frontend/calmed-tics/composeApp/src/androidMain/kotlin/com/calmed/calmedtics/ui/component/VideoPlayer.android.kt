@@ -90,6 +90,7 @@ actual fun VideoPlayerWithState(
     hlsUrl: String,
     modifier: Modifier,
     isPlaying: Boolean,
+    isMuted: Boolean,
     onPositionChanged: (Long) -> Unit,
     onDurationChanged: (Long) -> Unit,
     restartTrigger: Int
@@ -144,6 +145,9 @@ actual fun VideoPlayerWithState(
         } else {
             player.pause()
         }
+    }
+    LaunchedEffect(isMuted, player) {
+        player.volume = if (isMuted) 0f else 1f
     }
     LaunchedEffect(restartTrigger) {
         if (restartTrigger > 0) {

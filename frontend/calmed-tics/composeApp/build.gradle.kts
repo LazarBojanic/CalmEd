@@ -129,6 +129,7 @@ kotlin {
 			implementation(libs.androidxCredentialsPlayServicesAuth)
 			implementation(libs.googleAndroidLibrariesIdentityGoogleId)
 			implementation(libs.googleAndroidGmsPlayServicesAuth)
+			implementation(libs.googlePlayServicesCastFramework)
 
 			implementation(libs.kotlinxCoroutinesAndroid)
 

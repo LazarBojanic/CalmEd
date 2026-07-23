@@ -1,6 +1,7 @@
 package com.calmed.calmedtics.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.Fullscreen
@@ -26,6 +29,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -57,6 +62,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.material3.Switch
+import com.calmed.calmedtics.ui.component.CastButton
+import com.calmed.calmedtics.ui.component.KeepScreenAwake
 
 private val ScreenTop = Color(0xFFC7BCFF)
 private val ScreenBottom = Color(0xFFE8E1F6)
@@ -87,6 +94,9 @@ fun FullscreenVideoScreen(
     var keepScreenAwake by remember { mutableStateOf(false) }
     var repeatCurrentExercise by remember { mutableStateOf(false) }
     var restartTrigger by remember { mutableStateOf(0) }
+    var isMuted by remember { mutableStateOf(false) }
+    var showVideoControls by remember { mutableStateOf(true) }
+    KeepScreenAwake(enabled = keepScreenAwake)
 
     if (exercises.isEmpty()) {
         Box(
@@ -156,12 +166,18 @@ fun FullscreenVideoScreen(
                             .height(300.dp)
                             .clip(RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
                             .background(Color.White)
+                            .clickable {
+                                if (!showVideoControls) {
+                                    showVideoControls = true
+                                }
+                            }
                     ) {
                         key(currentUrl) {
                             VideoPlayerWithState(
                                 hlsUrl = currentUrl,
                                 modifier = Modifier.fillMaxSize(),
                                 isPlaying = isPlaying,
+                                isMuted = isMuted,
                                 onPositionChanged = { position ->
                                     currentPositionMs = position
 
@@ -185,33 +201,49 @@ fun FullscreenVideoScreen(
                             )
                         }
 
-                        Box(
+                        IconButton(
+                            onClick = onBack,
                             modifier = Modifier
                                 .align(Alignment.TopStart)
-                                .padding(start = 6.dp, top = 6.dp) // bliže ivici
+                                .padding(start = 6.dp, top = 6.dp)
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.35f)), // malo jače
-                            contentAlignment = Alignment.Center
+                                .background(Color.White.copy(alpha = 0.35f))
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
-                                contentDescription = null,
+                                contentDescription = "Back",
                                 tint = Color.White,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
-
+                        if (showVideoControls) {
                         Column(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(top = 10.dp, end = 6.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ){
-                            OverlayIcon(Icons.Default.Fullscreen, onClick = { })
-                            OverlayIcon(Icons.Default.Cast, onClick = { })
+                            OverlayIcon(
+                                Icons.Default.Fullscreen,
+                                onClick = {
+                                    showVideoControls = false
+                                }
+                            )
+                            CastButton(
+                                modifier = Modifier.size(28.dp)
+                            )
                             OverlayIcon(Icons.Default.Settings, onClick = { showSettings = true })
-                            OverlayIcon(Icons.Default.MusicNote, onClick = { })
+                            OverlayIcon(
+                                icon = if (isMuted) {
+                                    Icons.AutoMirrored.Filled.VolumeOff
+                                } else {
+                                    Icons.AutoMirrored.Filled.VolumeUp
+                                },
+                                onClick = {
+                                    isMuted = !isMuted
+                                }
+                            )
                             OverlayIcon(Icons.Default.Info, onClick = { showExerciseInfo = true })
                         }
                     }
@@ -244,6 +276,7 @@ fun FullscreenVideoScreen(
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
+                        }
                         }
                     }
                 }

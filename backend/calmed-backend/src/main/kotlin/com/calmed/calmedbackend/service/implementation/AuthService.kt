@@ -106,9 +106,22 @@ class AuthService(private val userService: IUserService,
 				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google email not verified")
 			}
 
+			if (info.aud.isNullOrBlank()) {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing audience")
+			}
+
+			val allowedAudiences = listOfNotNull(
+				googleOAuthConfig.webClientId,
+				googleOAuthConfig.iosClientId,
+				googleOAuthConfig.androidClientId
+			)
+
+			if (!allowedAudiences.contains(info.aud)) {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token audience")
+			}
+
 			AppResult.Success(info)
-		}
-		catch (e: Exception) {
+		} catch (e: Exception) {
 			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token: ${e.message}")
 		}
 	}

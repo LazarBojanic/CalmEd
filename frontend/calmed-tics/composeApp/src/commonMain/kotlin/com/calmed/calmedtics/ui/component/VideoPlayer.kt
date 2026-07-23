@@ -17,7 +17,9 @@ expect fun VideoPlayerWithState(
     hlsUrl: String,
     modifier: Modifier = Modifier,
     isPlaying: Boolean,
+    isMuted: Boolean,
     onPositionChanged: (Long) -> Unit,
     onDurationChanged: (Long) -> Unit,
-    restartTrigger: Int = 0
+    restartTrigger: Int = 0,
+
 )

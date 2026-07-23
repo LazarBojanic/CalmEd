@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -73,7 +74,7 @@ fun MainScreen(
 	val home by sessionViewModel.home.collectAsState()
 	val allExercises by sessionViewModel.allExercises.collectAsState()
 
-	val selectedTab = remember { mutableStateOf(MainTab.Home) }
+	val selectedTab = rememberSaveable { mutableStateOf(MainTab.Home) }
 	val appSettings = koinInject<AppSettings>()
 	val uiLocaleTag = LocalAppLocale.current
 	val contentLanguage = remember(customAppLocale, uiLocaleTag) {

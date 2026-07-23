@@ -16,8 +16,9 @@ import com.calmed.calmedtics.billing.provideBillingService
 import com.calmed.calmedtics.notifications.setNotificationPermissionRequester
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import androidx.fragment.app.FragmentActivity
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 	private val authViewModel: AuthViewModel by inject()
 	companion object {
 		var appleSignInStarter: (() -> Unit)? = null

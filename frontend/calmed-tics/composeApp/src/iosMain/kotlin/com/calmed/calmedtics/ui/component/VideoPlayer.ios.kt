@@ -221,8 +221,10 @@ actual fun VideoPlayerWithState(
     hlsUrl: String,
     modifier: Modifier,
     isPlaying: Boolean,
+    isMuted: Boolean,
     onPositionChanged: (Long) -> Unit,
-    onDurationChanged: (Long) -> Unit
+    onDurationChanged: (Long) -> Unit,
+    restartTrigger: Int
 ) {
     // TODO: Implementation for iOS
     Box(modifier = modifier.background(Color.Black))

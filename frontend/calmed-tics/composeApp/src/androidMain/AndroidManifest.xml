@@ -20,6 +20,7 @@
 		<activity
 			android:exported="true"
 			android:name=".MainActivity"
+			android:theme="@style/CalmEdCastButtonTheme"
 			android:launchMode="singleTask"
 			android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|density">
 			<intent-filter>
@@ -37,6 +38,9 @@
 					android:host="apple" />
 			</intent-filter>
 		</activity>
+		<meta-data
+			android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+			android:value="com.calmed.calmedtics.cast.CastOptionsProvider" />
 		<receiver
 			android:name=".notifications.ExerciseReminderReceiver"
 			android:exported="false" />
