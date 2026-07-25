@@ -16,6 +16,7 @@ data class ProgramExerciseDto(
 	val videoURL: String?,
 	val videoURLEs: String?,
 	val thumbnailURL: String?,
+	val durationSeconds: Int?,
 	val visibility: String,
 	val orderInWeek: Int?,
 	val createdAt: String,

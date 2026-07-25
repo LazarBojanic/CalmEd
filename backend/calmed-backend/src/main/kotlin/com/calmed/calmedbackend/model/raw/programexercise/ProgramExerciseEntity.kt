@@ -14,6 +14,7 @@ class ProgramExerciseEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var playbackId by ProgramExerciseTable.playbackId
 	var playbackIdEs by ProgramExerciseTable.playbackIdEs
 	var thumbnailURL by ProgramExerciseTable.thumbnailURL
+	var durationSeconds by ProgramExerciseTable.durationSeconds
 	var visibility by ProgramExerciseTable.visibility
 	var orderInWeek by ProgramExerciseTable.orderInWeek
 	var createdAt by ProgramExerciseTable.createdAt

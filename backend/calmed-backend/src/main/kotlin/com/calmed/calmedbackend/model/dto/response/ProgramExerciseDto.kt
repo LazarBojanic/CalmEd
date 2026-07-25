@@ -20,10 +20,12 @@ data class ProgramExerciseDto(
 	val videoURL: String?,
 	val videoURLEs: String?,
 	val thumbnailURL: String?,
+	val durationSeconds: Int?,
 	val visibility: Visibility,
 	val orderInWeek: Int?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
 	val updatedAt: Instant
+
 )

@@ -17,6 +17,7 @@ data class ProgramExercise(
 	val playbackId: String?,
 	val playbackIdEs: String?,
 	val thumbnailURL: String?,
+	val durationSeconds: Int?= null,
 	val visibility: Visibility,
 	val orderInWeek: Int?,
 	@Serializable(with = InstantSerializer::class)

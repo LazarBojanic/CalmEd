@@ -23,6 +23,7 @@ import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
 import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTicsEntity
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExercise
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseEntity
+import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseTable.durationSeconds
 import com.calmed.calmedbackend.model.raw.programexercise.Visibility
 import com.calmed.calmedbackend.model.raw.userprogram.UserProgram
 import com.calmed.calmedbackend.model.raw.userprogram.UserProgramEntity
@@ -289,6 +290,7 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 		playbackId = this.playbackId,
 		playbackIdEs = this.playbackIdEs,
 		thumbnailURL = this.thumbnailURL,
+		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,
@@ -327,6 +329,7 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 		playbackId = this.playbackId,
 		playbackIdEs = this.playbackIdEs,
 		thumbnailURL = this.thumbnailURL,
+		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,
@@ -401,6 +404,7 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 		videoURL = videoURL,
 		videoURLEs = videoURLEs,
 		thumbnailURL = thumbnailURL,
+		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
 		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,
