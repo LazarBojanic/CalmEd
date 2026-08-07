@@ -307,6 +307,27 @@ class SessionViewModel(
 			_loading.value = false
 		}
 	}
+	suspend fun uploadProfileImage(imageBytes: ByteArray): Boolean {
+		_error.value = null
+		_loading.value = true
+
+		return try {
+			val updatedUser = api.uploadProfileImage(
+				imageBytes = imageBytes,
+				fileName = "profile.jpg"
+			)
+
+			cacheUserDto(updatedUser)
+
+			true
+		} catch (t: Throwable) {
+			_error.value = t.message ?: "Profile image upload failed."
+			false
+		} finally {
+			_loading.value = false
+		}
+	}
+
 
 	suspend fun completeOnboarding(update: UserInfoTicsUpdateDto): Boolean {
 		_error.value = null

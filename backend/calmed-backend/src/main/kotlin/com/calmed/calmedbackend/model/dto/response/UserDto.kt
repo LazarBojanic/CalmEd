@@ -15,6 +15,7 @@ data class UserDto(
 	val id: UUID,
 	val email: String,
 	val username: String,
+	val profileImageUrl: String?,
 	val isEmailVerified: Boolean,
 	val isOnboarded: Boolean,
 	val isPaid: Boolean,

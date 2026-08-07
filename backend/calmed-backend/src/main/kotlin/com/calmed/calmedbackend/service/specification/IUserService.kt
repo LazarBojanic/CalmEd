@@ -22,4 +22,8 @@ interface IUserService {
 		appleOriginalTransactionId: String? = null,
 		googleOrderId: String? = null
 	): AppResult<UserJoined>
+	suspend fun updateProfileImage(
+		userId: UUID,
+		profileImageUrl: String
+	): AppResult<UserJoined>
 }

@@ -32,6 +32,10 @@ interface IAppApi {
     suspend fun ping(): String
 
     suspend fun getUser(id: String): UserDto?
+    suspend fun uploadProfileImage(
+        imageBytes: ByteArray,
+        fileName: String = "profile.jpg"
+    ): UserDto
     suspend fun setOnboarded(id: String, dto: SetIsOnboardedDto): UserDto?
     suspend fun syncExerciseProgress(dto: UserExerciseProgressUpdateDto): Boolean
 

@@ -12,6 +12,7 @@ data class UserEntity(
 	val email: String,
 	@ColumnInfo(name = "username")
 	val username: String,
+	val profileImageUrl: String? = null,
 	@ColumnInfo(name = "is_email_verified")
 	val isEmailVerified: Boolean,
 	@ColumnInfo(name = "is_onboarded")

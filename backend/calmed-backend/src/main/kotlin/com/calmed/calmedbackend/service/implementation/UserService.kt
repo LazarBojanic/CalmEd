@@ -100,4 +100,35 @@ class UserService(
 			AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
 		}
 	}
+
+	override suspend fun updateProfileImage(
+		userId: UUID,
+		profileImageUrl: String
+	): AppResult<UserJoined> {
+
+		val user = userRepository.findById(userId)
+
+		if (user == null) {
+			return AppResult.Failure(
+				HttpStatusCode.NotFound,
+				"User not found."
+			)
+		}
+
+		val updatedUser = user.copy(
+			profileImageUrl = profileImageUrl,
+			updatedAt = Instant.now()
+		)
+
+		val updated = userRepository.update(updatedUser)
+
+		return if (updated != null) {
+			AppResult.Success(updated.join())
+		} else {
+			AppResult.Failure(
+				HttpStatusCode.BadRequest,
+				"Failed to update profile image."
+			)
+		}
+	}
 }

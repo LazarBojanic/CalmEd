@@ -41,6 +41,7 @@ fun UserEntity.toRaw(): User {
 		id = this.id.value,
 		email = this.email,
 		username = this.username,
+		profileImageUrl = this.profileImageUrl,
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
 		isPaid = this.isPaid,
@@ -83,6 +84,7 @@ fun User.join(): UserJoined {
 		id = this.id,
 		email = this.email,
 		username = this.username,
+		profileImageUrl = this.profileImageUrl,
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
 		isPaid = this.isPaid,
@@ -137,6 +139,7 @@ fun RefreshTokenJoined.toRaw(): RefreshToken {
 fun UserEntity.setFrom(d: User, mapMode: MapMode) {
 	email = d.email
 	username = d.username
+	profileImageUrl = d.profileImageUrl
 	isEmailVerified = d.isEmailVerified
 	isOnboarded = d.isOnboarded
 	isPaid = d.isPaid
@@ -197,6 +200,7 @@ fun UserJoined.toDto(): UserDto {
 		id = this.id,
 		email = this.email,
 		username = this.username,
+		profileImageUrl = this.profileImageUrl,
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
 		isPaid = this.isPaid,

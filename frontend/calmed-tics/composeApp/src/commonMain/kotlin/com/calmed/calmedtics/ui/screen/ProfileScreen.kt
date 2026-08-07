@@ -10,12 +10,10 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -122,6 +120,10 @@ import com.calmed.calmedtics.reminders.ReminderManager
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import com.calmed.calmedtics.util.createImagePicker
+import androidx.compose.foundation.Image
+import com.calmed.calmedtics.util.decodeImage
+import com.calmed.calmedtics.ui.component.ThumbnailImage
 
 @Composable
 fun ProfileScreen(
@@ -141,6 +143,15 @@ fun ProfileScreen(
 	val error by sessionViewModel.error.collectAsState()
 
 	var isEditing by remember { mutableStateOf(false) }
+	val imagePicker = remember { createImagePicker() }
+
+	var profileImageBytes by remember {
+		mutableStateOf<ByteArray?>(null)
+	}
+	val profileImageBitmap =
+		remember(profileImageBytes) {
+			profileImageBytes?.let { decodeImage(it) }
+		}
 	val preferredName = remember { mutableStateOf(userInfo?.preferredName ?: "") }
 	val age = remember { mutableIntStateOf(userInfo?.age ?: 18) }
 	val stress = remember { mutableIntStateOf(userInfo?.stressLevel ?: 5) }
@@ -248,6 +259,78 @@ fun ProfileScreen(
 				} else {
 					item {
 						InfoSection(title = stringResource(Res.string.edit_personal_details)) {
+							Column(
+								modifier = Modifier.fillMaxWidth(),
+								horizontalAlignment = Alignment.CenterHorizontally
+							) {
+								val profileImageUrl =
+									user?.profileImageUrl?.let { url ->
+										if (url.startsWith("http")) {
+											url
+										} else {
+											"https://api.calm-ed.com$url"
+										}
+									}
+
+								Box(
+									modifier = Modifier
+										.size(96.dp)
+										.clip(CircleShape)
+										.background(Color.White.copy(alpha = 0.22f)),
+									contentAlignment = Alignment.Center
+								) {
+									if (profileImageBitmap != null) {
+										Image(
+											bitmap = profileImageBitmap,
+											contentDescription = "Selected profile photo",
+											modifier = Modifier
+												.fillMaxSize()
+												.clip(CircleShape)
+										)
+									} else {
+										Icon(
+											imageVector = Icons.Default.Person,
+											contentDescription = null,
+											modifier = Modifier.size(52.dp),
+											tint = Color.White
+										)
+									}
+								}
+
+								Spacer(
+									modifier = Modifier.height(10.dp)
+								)
+
+								Surface(
+									onClick = {
+										imagePicker.pickImage { bytes ->
+											if (bytes != null) {
+												profileImageBytes = bytes
+											}
+										}
+									},
+									shape = RoundedCornerShape(16.dp),
+									color = Color.White.copy(alpha = 0.18f),
+									border = BorderStroke(
+										1.dp,
+										Color.White.copy(alpha = 0.35f)
+									)
+								) {
+									Text(
+										text = "Choose profile photo",
+										modifier = Modifier.padding(
+											horizontal = 16.dp,
+											vertical = 10.dp
+										),
+										color = Color.White,
+										fontWeight = FontWeight.Medium
+									)
+								}
+							}
+
+							Spacer(
+								modifier = Modifier.height(8.dp)
+							)
 							TextField(
 								value = preferredName.value,
 								onValueChange = { preferredName.value = it },
@@ -399,10 +482,26 @@ fun ProfileScreen(
 							enabled = !loading,
 							onClick = {
 								val u = user
+
 								if (u != null) {
 									scope.launch {
-										val ok = sessionViewModel.updateProfileUserInfoTics(buildUpdate(u))
-										if (ok) {
+
+										val profileOk =
+											sessionViewModel.updateProfileUserInfoTics(
+												buildUpdate(u)
+											)
+
+										if (!profileOk) {
+											return@launch
+										}
+
+										val imageOk =
+											profileImageBytes?.let { bytes ->
+												sessionViewModel.uploadProfileImage(bytes)
+											} ?: true
+
+										if (imageOk) {
+											profileImageBytes = null
 											isEditing = false
 										}
 									}
@@ -678,12 +777,24 @@ private fun RadioOptionRow(
 }
 
 @Composable
-fun ProfileHeader(user: UserJoined?, userInfo: UserInfoTicsJoined?) {
+fun ProfileHeader(
+	user: UserJoined?,
+	userInfo: UserInfoTicsJoined?
+) {
 	val displayName = userInfo?.preferredName
 		?: user?.username
 		?: stringResource(Res.string.default_user)
 
 	val email = user?.email ?: ""
+
+	val profileImageUrl =
+		user?.profileImageUrl?.let { url ->
+			if (url.startsWith("http")) {
+				url
+			} else {
+				"https://api.calm-ed.com$url"
+			}
+		}
 
 	Surface(
 		modifier = Modifier.fillMaxWidth(),
@@ -697,25 +808,47 @@ fun ProfileHeader(user: UserJoined?, userInfo: UserInfoTicsJoined?) {
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(horizontal = 20.dp, vertical = 28.dp),
+				.padding(
+					horizontal = 20.dp,
+					vertical = 28.dp
+				),
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
+
 			Box(
 				modifier = Modifier
 					.size(96.dp)
 					.clip(CircleShape)
-					.background(Color.White.copy(alpha = 0.22f)),
+					.background(
+						Color.White.copy(alpha = 0.22f)
+					),
 				contentAlignment = Alignment.Center
 			) {
-				Icon(
-					imageVector = Icons.Default.Person,
-					contentDescription = null,
-					modifier = Modifier.size(52.dp),
-					tint = Color.White
-				)
+
+				if (!profileImageUrl.isNullOrBlank()) {
+
+					ThumbnailImage(
+						url = profileImageUrl,
+						contentDescription = "Profile photo",
+						modifier = Modifier
+							.fillMaxSize()
+							.clip(CircleShape)
+					)
+
+				} else {
+
+					Icon(
+						imageVector = Icons.Default.Person,
+						contentDescription = null,
+						modifier = Modifier.size(52.dp),
+						tint = Color.White
+					)
+				}
 			}
 
-			Spacer(modifier = Modifier.height(16.dp))
+			Spacer(
+				modifier = Modifier.height(16.dp)
+			)
 
 			Text(
 				text = displayName,
@@ -725,7 +858,10 @@ fun ProfileHeader(user: UserJoined?, userInfo: UserInfoTicsJoined?) {
 			)
 
 			if (email.isNotEmpty()) {
-				Spacer(modifier = Modifier.height(4.dp))
+				Spacer(
+					modifier = Modifier.height(4.dp)
+				)
+
 				Text(
 					text = email,
 					style = MaterialTheme.typography.bodyMedium,
@@ -735,7 +871,6 @@ fun ProfileHeader(user: UserJoined?, userInfo: UserInfoTicsJoined?) {
 		}
 	}
 }
-
 @Composable
 fun InfoSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 	Column(modifier = Modifier.fillMaxWidth()) {

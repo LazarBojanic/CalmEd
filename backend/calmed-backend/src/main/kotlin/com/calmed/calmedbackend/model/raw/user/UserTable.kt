@@ -9,6 +9,8 @@ import java.time.Instant
 object UserTable : UUIDTable(name = "user") {
 	val email = varchar("email", 255).uniqueIndex()
 	val username = varchar("username", 255).uniqueIndex()
+	val profileImageUrl =
+		varchar("profile_image_url", 500).nullable()
 	val isEmailVerified = bool("is_email_verified").default(false)
 	val isOnboarded = bool("is_onboarded").default(false)
 	val isPaid = bool("is_paid").default(false)

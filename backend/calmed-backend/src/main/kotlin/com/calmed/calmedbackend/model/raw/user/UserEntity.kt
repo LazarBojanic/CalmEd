@@ -11,6 +11,7 @@ class UserEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	companion object : UUIDEntityClass<UserEntity>(UserTable)
 	var email by UserTable.email
 	var username by UserTable.username
+	var profileImageUrl by UserTable.profileImageUrl
 	var isEmailVerified by UserTable.isEmailVerified
 	var isOnboarded by UserTable.isOnboarded
 	var isPaid by UserTable.isPaid

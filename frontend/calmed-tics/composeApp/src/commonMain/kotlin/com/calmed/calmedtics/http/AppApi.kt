@@ -33,6 +33,11 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.first
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 
 class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStore: ITokenDataStore
 ) : IAppApi {
@@ -114,6 +119,33 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 			HttpStatusCode.OK -> resp.body<UserDto>()
 			else -> null
 		}
+	}
+	override suspend fun uploadProfileImage(
+		imageBytes: ByteArray,
+		fileName: String
+	): UserDto {
+		return client.post("/user/profile-image") {
+			setBody(
+				MultiPartFormDataContent(
+					formData {
+						append(
+							key = "file",
+							value = imageBytes,
+							headers = Headers.build {
+								append(
+									HttpHeaders.ContentType,
+									ContentType.Image.JPEG.toString()
+								)
+								append(
+									HttpHeaders.ContentDisposition,
+									"filename=\"$fileName\""
+								)
+							}
+						)
+					}
+				)
+			)
+		}.body()
 	}
 
 	override suspend fun setOnboarded(id: String, dto: SetIsOnboardedDto): UserDto? {

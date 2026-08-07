@@ -17,6 +17,7 @@ import com.calmed.calmedtics.notifications.setNotificationPermissionRequester
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import androidx.fragment.app.FragmentActivity
+import com.calmed.calmedtics.util.setImagePickerActivityProvider
 
 class MainActivity : FragmentActivity() {
 	private val authViewModel: AuthViewModel by inject()
@@ -41,6 +42,7 @@ class MainActivity : FragmentActivity() {
 		Log.d("APPLE_AUTH", "onCreate intent=$intent")
 		handleDeepLink(intent)
 		setGoogleAuthActivityProvider { this }
+		setImagePickerActivityProvider { this }
 		setNotificationPermissionRequester { permission ->
 			notificationPermissionLauncher.launch(permission)
 		}
