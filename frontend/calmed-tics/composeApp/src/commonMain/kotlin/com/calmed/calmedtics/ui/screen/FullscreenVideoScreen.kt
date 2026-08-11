@@ -57,7 +57,6 @@ import com.calmed.calmedtics.exercise_counter
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.no_exercises_available
 import com.calmed.calmedtics.ui.component.VideoPlayerWithState
-import com.calmed.calmedtics.util.getTitle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import org.jetbrains.compose.resources.stringResource
@@ -76,7 +75,6 @@ private val SoftWhite = Color(0xFFF4EFFB)
 fun FullscreenVideoScreen(
     exercises: List<ProgramExerciseDto>,
     startIndex: Int,
-    language: String,
     onBack: () -> Unit
 ) {
     var currentIndex by remember {
@@ -123,8 +121,8 @@ fun FullscreenVideoScreen(
     val currentUrl = currentExercise.videoURL ?: ""
     val remainingMs = (durationMs - currentPositionMs).coerceAtLeast(0L)
 
-    val displayTitle = remember(currentExercise, language) {
-        currentExercise.getTitle(language)
+    val displayTitle = remember(currentExercise) {
+        currentExercise.title
     }
 
     LaunchedEffect(currentIndex) {

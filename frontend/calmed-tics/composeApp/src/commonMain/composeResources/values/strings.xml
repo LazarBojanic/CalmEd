@@ -138,10 +138,6 @@
     <string name="error_video_failed">Failed to load the video.</string>
     <string name="dont_show_again">Don't show again</string>
     <string name="continue">Continue</string>
-    <string name="language_settings">Language</string>
-    <string name="use_system_language">Use system language</string>
-    <string name="language_english">English</string>
-    <string name="language_spanish">Spanish</string>
     <string name="its_not_yet_time">It's not yet time for this exercise.</string>
     <string name="its_not_yet_time_week">It's not yet time for this week.</string>
     <string name="edit">Edit</string>
@@ -183,4 +179,6 @@
     <!-- Fullscreen Video Screen -->
     <string name="no_exercises_available">No exercises available</string>
     <string name="exercise_counter">Exercise %1$d/%2$d</string>
+    <string name="confirm_over_eighteen">I confirm I am over 18 years old.</string>
+    <string name="res_continue">Continue</string>
 </resources>

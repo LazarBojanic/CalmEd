@@ -6,16 +6,19 @@ data class StripeConfig(
     val secretKey: String,
     val publishableKey: String,
     val webhookSecret: String,
-    val amountCents: Long,
+    val amount: String,
     val currency: String
 ) {
+    val amountCents: Long
+        get() = (amount.toDouble() * 100).toLong()
+
     companion object {
         fun from(config: ApplicationConfig): StripeConfig {
             return StripeConfig(
                 secretKey = config.property("stripe.secret_key").getString(),
                 publishableKey = config.property("stripe.publishable_key").getString(),
                 webhookSecret = config.property("stripe.webhook_secret").getString(),
-                amountCents = config.property("stripe.amount_cents").getString().toLong(),
+                amount = config.property("stripe.amount").getString(),
                 currency = config.property("stripe.currency").getString()
             )
         }

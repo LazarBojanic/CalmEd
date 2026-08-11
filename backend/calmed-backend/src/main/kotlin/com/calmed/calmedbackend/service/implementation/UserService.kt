@@ -3,8 +3,10 @@ package com.calmed.calmedbackend.service.implementation
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.join
 import com.calmed.calmedbackend.model.joined.UserJoined
+import com.calmed.calmedbackend.model.raw.payment.Payment
 import com.calmed.calmedbackend.model.raw.user.PaymentType
 import com.calmed.calmedbackend.model.raw.user.User
+import com.calmed.calmedbackend.repository.specification.IPaymentRepository
 import com.calmed.calmedbackend.repository.specification.IUserRepository
 import com.calmed.calmedbackend.service.specification.IUserService
 import io.ktor.http.HttpStatusCode
@@ -12,7 +14,8 @@ import java.time.Instant
 import java.util.UUID
 
 class UserService(
-	private val userRepository: IUserRepository
+	private val userRepository: IUserRepository,
+	private val paymentRepository: IPaymentRepository
 ) : IUserService {
 
 	override suspend fun getAll(): AppResult<List<UserJoined>> {
@@ -81,19 +84,21 @@ class UserService(
 	override suspend fun setPaymentStatus(
 		id: UUID,
 		isPaid: Boolean,
-		paymentType: PaymentType?,
-		stripeCustomerId: String?,
-		appleOriginalTransactionId: String?,
-		googleOrderId: String?
+		stripeCustomerId: String?
 	): AppResult<UserJoined> {
-		val updated = userRepository.setPaymentStatus(
-			id,
-			isPaid,
-			paymentType,
-			stripeCustomerId,
-			appleOriginalTransactionId,
-			googleOrderId
+		val user = userRepository.findById(id)
+		if (user == null) {
+			return AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
+		}
+
+		// Update user's isPaid status and stripeCustomerId if provided
+		val updatedUser = user.copy(
+			isPaid = isPaid,
+			stripeCustomerId = stripeCustomerId ?: user.stripeCustomerId,
+			updatedAt = Instant.now()
 		)
+		val updated = userRepository.update(updatedUser)
+
 		return if (updated != null) {
 			AppResult.Success(updated.join())
 		} else {

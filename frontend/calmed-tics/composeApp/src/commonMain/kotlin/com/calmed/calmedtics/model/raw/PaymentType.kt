@@ -6,5 +6,8 @@ import kotlinx.serialization.Serializable
 enum class PaymentType {
     CARD,
     GOOGLE,
-    APPLE
+    APPLE,
+    PAYPAL,
+    STRIPE,
+    SKIP
 }

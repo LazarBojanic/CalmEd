@@ -4,5 +4,7 @@ enum class PaymentType {
     CARD,
     GOOGLE,
     APPLE,
-    PAYPAL
+    PAYPAL,
+    STRIPE,
+    SKIP
 }

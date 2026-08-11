@@ -3,7 +3,6 @@ package com.calmed.calmedbackend.model.dto.response
 import com.calmed.calmedbackend.util.UUIDSerializer
 import com.calmed.calmedbackend.util.InstantSerializer
 import com.calmed.calmedbackend.util.LocalDateSerializer
-import com.calmed.calmedbackend.model.raw.user.PaymentType
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.LocalDate
@@ -19,10 +18,7 @@ data class UserDto(
 	val isEmailVerified: Boolean,
 	val isOnboarded: Boolean,
 	val isPaid: Boolean,
-	val paymentType: PaymentType?,
 	val stripeCustomerId: String?,
-	val appleOriginalTransactionId: String?,
-	val googleOrderId: String?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)

@@ -43,13 +43,8 @@ import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.skip
 import com.calmed.calmedtics.ui.component.VideoPlayer
-import com.calmed.calmedtics.util.getTitle
-import com.calmed.calmedtics.util.getVideoURL
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
-import com.calmed.calmedtics.localization.LocalAppLocale
-import com.calmed.calmedtics.localization.customAppLocale
-import com.calmed.calmedtics.localization.resolveContentLanguage
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 @Composable
@@ -70,15 +65,13 @@ fun WelcomeVideoScreen(
     val errorNoSource = stringResource(Res.string.error_video_no_source)
     val errorFailed = stringResource(Res.string.error_video_failed)
     val loadingVideo = stringResource(Res.string.loading_video)
-    val uiLocaleTag = LocalAppLocale.current
 
-    LaunchedEffect(customAppLocale, uiLocaleTag) {
+    LaunchedEffect(Unit) {
         error = null
         try {
-            val lang = resolveContentLanguage(customAppLocale, uiLocaleTag)
             val welcomeVideo = appApi.getWelcomeVideo()
-            videoUrl = welcomeVideo?.getVideoURL(lang)
-            title = welcomeVideo?.getTitle(lang)
+            videoUrl = welcomeVideo?.videoURL
+            title = welcomeVideo?.title
             if (videoUrl == null) {
                 error = errorNoSource
             }

@@ -1,6 +1,6 @@
 [versions]
 #libraries
-agp = "8.13.2"
+agp = "9.1.1"
 androidCompileSdk = "36"
 androidMinSdk = "24"
 androidTargetSdk = "36"

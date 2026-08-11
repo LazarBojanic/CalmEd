@@ -13,10 +13,8 @@ import java.util.UUID
 object ProgramExerciseTable : UUIDTable("program_exercise") {
 	val weekNumber = integer("week_number")
 	val title = text("title")
-	val titleEs = text("title_es").nullable()
 	val description = text("description").nullable()
 	val playbackId = text("playback_id").nullable()
-	val playbackIdEs = text("playback_id_es").nullable()
 	val thumbnailURL = text("thumbnail_url").nullable()
 	val durationSeconds = integer(name = "duration_seconds").nullable()
 	val visibility = enumeration("visibility", Visibility::class).default(Visibility.SIGNED)

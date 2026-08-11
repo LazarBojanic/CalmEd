@@ -481,8 +481,8 @@ fun OnboardingScreen(
 							modifier = Modifier.height(180.dp),
 							contentAlignment = Alignment.Center
 						) {
-							val ages = (5..80).toList()
-							val initialIndex = (age.intValue - 6).coerceIn(0, ages.lastIndex)
+       val ages = (18..125).toList()
+       val initialIndex = (age.intValue - 18).coerceIn(0, ages.lastIndex)
 							val listState = rememberLazyListState(
 								initialFirstVisibleItemIndex = initialIndex
 							)

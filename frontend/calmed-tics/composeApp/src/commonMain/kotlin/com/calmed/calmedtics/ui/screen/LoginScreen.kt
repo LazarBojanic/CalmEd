@@ -23,7 +23,6 @@ import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.SecondaryButton
 import com.calmed.calmedtics.ui.component.TextField
-import com.calmed.calmedtics.ui.component.LanguageToggle
 import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
@@ -40,7 +39,6 @@ import com.calmed.calmedtics.login_button
 import com.calmed.calmedtics.login_title
 import com.calmed.calmedtics.password_label
 import com.calmed.calmedtics.use_offline_mode
-import com.calmed.calmedtics.localization.customAppLocale
 
 @Composable
 fun LoginScreen(
@@ -83,7 +81,6 @@ fun LoginScreen(
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
     val appSettings: AppSettings = koinInject()
-    var currentLanguage by remember { mutableStateOf(appSettings.getAppLanguage()) }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -93,16 +90,6 @@ fun LoginScreen(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-            LanguageToggle(
-                selectedLanguage = currentLanguage,
-                onLanguageSelected = { lang ->
-                    currentLanguage = lang
-                    appSettings.setAppLanguage(lang)
-                    customAppLocale = lang
-                },
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
 
             if (error != null) {
                 Text(error!!, color = MaterialTheme.colorScheme.error)

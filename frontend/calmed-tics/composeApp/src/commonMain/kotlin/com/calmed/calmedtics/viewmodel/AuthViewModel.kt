@@ -41,12 +41,12 @@ class AuthViewModel(
         }
     }
 
-    suspend fun register(email: String, username: String, password: String, confirmPassword: String): Boolean {
+    suspend fun register(email: String, username: String, password: String, confirmPassword: String, confirmOverEighteen: Boolean): Boolean {
         _error.value = null
         _info.value = null
         _loading.value = true
         return try {
-            val success = authService.register(email, username, password, confirmPassword)
+            val success = authService.register(email, username, password, confirmPassword, confirmOverEighteen)
             if (success) {
                 _info.value = "Registration successful! Please check your email to verify your account before logging in."
                 true

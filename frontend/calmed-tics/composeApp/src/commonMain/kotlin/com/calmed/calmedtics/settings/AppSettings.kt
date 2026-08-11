@@ -9,7 +9,6 @@ class AppSettings(
         private const val KEY_SHOW_WELCOME_VIDEO = "showWelcomeVideo"
         private const val KEY_SHOW_COURSE_OVERVIEW = "showCourseOverview"
         private const val KEY_REMINDERS_ENABLED = "reminders_enabled"
-        private const val KEY_APP_LANGUAGE = "app_language"
         private const val KEY_MORNING_REMINDER_TIME = "morning_reminder_time"
         private const val KEY_EVENING_REMINDER_TIME = "evening_reminder_time"
     }
@@ -43,12 +42,6 @@ class AppSettings(
 
     fun setRemindersEnabled(value: Boolean) {
         settings.putBoolean(KEY_REMINDERS_ENABLED, value)
-    }
-    fun getAppLanguage(): String =
-        settings.getString(KEY_APP_LANGUAGE, "en")
-
-    fun setAppLanguage(value: String) {
-        settings.putString(KEY_APP_LANGUAGE, value)
     }
     fun getMorningReminderTime(): String = settings.getString(KEY_MORNING_REMINDER_TIME, "08:00")
     fun setMorningReminderTime(value: String) = settings.putString(KEY_MORNING_REMINDER_TIME, value)

@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
-import com.calmed.calmedtics.`continue`
 import com.calmed.calmedtics.course_overview_description_1
 import com.calmed.calmedtics.course_overview_description_2
 import com.calmed.calmedtics.dont_show_again
@@ -41,14 +40,10 @@ import com.calmed.calmedtics.loading_video
 import com.calmed.calmedtics.skip
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.settings.AppSettings
-import com.calmed.calmedtics.util.getTitle
-import com.calmed.calmedtics.util.getVideoURL
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
-import com.calmed.calmedtics.localization.LocalAppLocale
-import com.calmed.calmedtics.localization.customAppLocale
-import com.calmed.calmedtics.localization.resolveContentLanguage
 import androidx.compose.foundation.BorderStroke
+import com.calmed.calmedtics.res_continue
 
 @Composable
 fun CourseOverviewScreen(
@@ -67,15 +62,13 @@ fun CourseOverviewScreen(
     val errorNoSource = stringResource(Res.string.error_video_no_source)
     val errorFailed = stringResource(Res.string.error_video_failed)
     val loadingVideo = stringResource(Res.string.loading_video)
-    val uiLocaleTag = LocalAppLocale.current
 
-    LaunchedEffect(customAppLocale, uiLocaleTag) {
+    LaunchedEffect(Unit) {
         error = null
         try {
-            val lang = resolveContentLanguage(customAppLocale, uiLocaleTag)
             val video = appApi.getCourseOverviewVideo()
-            videoUrl = video?.getVideoURL(lang)
-            title = video?.getTitle(lang)
+            videoUrl = video?.videoURL
+            title = video?.title
             if (videoUrl == null) {
                 error = errorNoSource
             }
@@ -269,7 +262,7 @@ fun CourseOverviewScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = stringResource(Res.string.`continue`),
+                            text = stringResource(Res.string.res_continue),
                             style = MaterialTheme.typography.titleMedium,
                             color = Color.White
                         )

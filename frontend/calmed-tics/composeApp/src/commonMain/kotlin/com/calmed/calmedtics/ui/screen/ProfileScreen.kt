@@ -1,56 +1,18 @@
 package com.calmed.calmedtics.ui.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Help
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,70 +22,23 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.calmed.calmedtics.Res
-import com.calmed.calmedtics.account_info
-import com.calmed.calmedtics.age
-import com.calmed.calmedtics.cancel
-import com.calmed.calmedtics.condition_info
-import com.calmed.calmedtics.default_user
-import com.calmed.calmedtics.edit_condition_info
-import com.calmed.calmedtics.edit_personal_details
-import com.calmed.calmedtics.edit_profile
-import com.calmed.calmedtics.email
-import com.calmed.calmedtics.error_prefix
-import com.calmed.calmedtics.follow_progress
-import com.calmed.calmedtics.following_progress
-import com.calmed.calmedtics.frequency_daily
-import com.calmed.calmedtics.frequency_moderate
-import com.calmed.calmedtics.frequency_rare
-import com.calmed.calmedtics.goal
-import com.calmed.calmedtics.goal_label
-import com.calmed.calmedtics.help_support
-import com.calmed.calmedtics.language_settings
-import com.calmed.calmedtics.loading
-import com.calmed.calmedtics.localization.customAppLocale
-import com.calmed.calmedtics.logout
+import com.calmed.calmedtics.*
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TickFrequency
 import com.calmed.calmedtics.model.raw.TickType
-import com.calmed.calmedtics.morning_evening
-import com.calmed.calmedtics.morning_reminder_label
-import com.calmed.calmedtics.evening_reminder_label
-import com.calmed.calmedtics.no
-import com.calmed.calmedtics.personal_details
-import com.calmed.calmedtics.preferred_name
-import com.calmed.calmedtics.privacy_policy
-import com.calmed.calmedtics.profile_error
-import com.calmed.calmedtics.reminders
-import com.calmed.calmedtics.retry
-import com.calmed.calmedtics.save
-import com.calmed.calmedtics.saving
-import com.calmed.calmedtics.stress_level
-import com.calmed.calmedtics.stress_value
-import com.calmed.calmedtics.support
-import com.calmed.calmedtics.terms
-import com.calmed.calmedtics.tics_both
-import com.calmed.calmedtics.tics_frequency
-import com.calmed.calmedtics.tics_motor
-import com.calmed.calmedtics.tics_type
-import com.calmed.calmedtics.tics_vocal
-import com.calmed.calmedtics.ui.component.LanguageToggle
+import com.calmed.calmedtics.reminders.ReminderManager
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.TextField
+import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.ui.component.TimeSlider
-import com.calmed.calmedtics.username
-import com.calmed.calmedtics.yes
+import com.calmed.calmedtics.util.createImagePicker
+import com.calmed.calmedtics.util.decodeImage
 import com.calmed.calmedtics.viewmodel.SessionViewModel
-import com.calmed.calmedtics.reminders.ReminderManager
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
-import com.calmed.calmedtics.util.createImagePicker
-import androidx.compose.foundation.Image
-import com.calmed.calmedtics.util.decodeImage
-import com.calmed.calmedtics.ui.component.ThumbnailImage
 
 @Composable
 fun ProfileScreen(
@@ -346,11 +261,15 @@ fun ProfileScreen(
 							TextField(
 								value = ageText.value,
 								onValueChange = { raw ->
-									val digitsOnly = raw.filter { it.isDigit() }
+									val digitsOnly = raw.take(3).filter { it.isDigit() }
 									ageText.value = digitsOnly
 									val parsed = digitsOnly.toIntOrNull()
 									if (parsed != null) {
-										age.intValue = parsed.coerceIn(5, 80)
+										val coerced = parsed.coerceIn(18, 125)
+										age.intValue = coerced
+										if (parsed > 125 || (digitsOnly.length >= 2 && parsed < 18) || (digitsOnly.length == 1 && parsed == 0)) {
+											ageText.value = coerced.toString()
+										}
 									}
 								},
 								label = "",
@@ -359,9 +278,9 @@ fun ProfileScreen(
 
 							Slider(
 								value = age.intValue.toFloat(),
-								onValueChange = { age.intValue = it.toInt().coerceIn(5, 80) },
-								valueRange = 5f..80f,
-								steps = 74,
+								onValueChange = { age.intValue = it.toInt().coerceIn(18, 125) },
+								valueRange = 18f..125f,
+								steps = 62,
 								colors = SliderDefaults.colors(
 									thumbColor = Color.White,
 									activeTrackColor = Color.White,
@@ -681,22 +600,6 @@ fun ProfileScreen(
 							}
 						)
 					}
-				}
-			}
-
-			item {
-				InfoSection(title = stringResource(Res.string.language_settings)) {
-					var currentLanguage by remember { mutableStateOf(appSettings.getAppLanguage()) }
-
-					LanguageToggle(
-						selectedLanguage = currentLanguage,
-						onLanguageSelected = { lang ->
-							currentLanguage = lang
-							customAppLocale = lang
-							appSettings.setAppLanguage(lang)
-						},
-						modifier = Modifier.padding(top = 8.dp)
-					)
 				}
 			}
 

@@ -8,7 +8,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
-var customAppLocale by mutableStateOf<String?>(null)
+var customAppLocale: String? = "en"
 
 expect object LocalAppLocale {
     val current: String
@@ -21,10 +21,8 @@ expect object LocalAppLocale {
 @Composable
 fun AppLocaleProvider(content: @Composable () -> Unit) {
     CompositionLocalProvider(
-        LocalAppLocale provides customAppLocale
+        LocalAppLocale provides "en"
     ) {
-        key(customAppLocale) {
-            content()
-        }
+        content()
     }
 }

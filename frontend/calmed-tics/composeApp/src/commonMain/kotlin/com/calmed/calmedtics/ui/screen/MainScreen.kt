@@ -28,9 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
 import com.calmed.calmedtics.error_prefix
-import com.calmed.calmedtics.localization.LocalAppLocale
-import com.calmed.calmedtics.localization.customAppLocale
-import com.calmed.calmedtics.localization.resolveContentLanguage
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.onboarding_error
@@ -46,7 +43,6 @@ import com.calmed.calmedtics.tab_profile
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.util.currentYmd
-import com.calmed.calmedtics.util.getVideoURL
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -76,12 +72,8 @@ fun MainScreen(
 
 	val selectedTab = rememberSaveable { mutableStateOf(MainTab.Home) }
 	val appSettings = koinInject<AppSettings>()
-	val uiLocaleTag = LocalAppLocale.current
-	val contentLanguage = remember(customAppLocale, uiLocaleTag) {
-		resolveContentLanguage(customAppLocale, uiLocaleTag)
-	}
 
-	LaunchedEffect(token?.access, customAppLocale) {
+	LaunchedEffect(token?.access) {
 		val access = token?.access
 		if (!access.isNullOrBlank()) {
 			val ymd = currentYmd()
@@ -204,7 +196,6 @@ fun MainScreen(
 					ExercisesScreen(
 						currentWeek = home?.currentWeek ?: 1,
 						exercises = allExercises,
-						language = contentLanguage,
 						onExerciseClick = { ex ->
 							val index = allExercises.indexOf(ex)
 							if (index != -1) {

@@ -1,15 +1,10 @@
 package com.calmed.calmedbackend.service.specification
 
 import com.calmed.calmedbackend.model.AppResult
-import com.calmed.calmedbackend.model.dto.request.CreateCheckoutSessionDto
-import com.calmed.calmedbackend.model.dto.request.VerifyAppleReceiptDto
-import com.calmed.calmedbackend.model.dto.request.VerifyGoogleReceiptDto
-import com.calmed.calmedbackend.model.dto.response.CheckoutSessionResponseDto
-import com.calmed.calmedbackend.model.dto.response.PaymentStatusDto
-import com.calmed.calmedbackend.model.raw.user.PaymentType
+import com.calmed.calmedbackend.model.dto.request.*
+import com.calmed.calmedbackend.model.dto.response.*
+import com.calmed.calmedbackend.model.raw.payment.Payment
 import java.util.UUID
-import com.calmed.calmedbackend.model.dto.request.CapturePayPalOrderDto
-import com.calmed.calmedbackend.model.dto.response.PayPalOrderResponseDto
 
 interface IPaymentService {
     suspend fun paymentStatus(userId: UUID): AppResult<PaymentStatusDto>
@@ -21,4 +16,9 @@ interface IPaymentService {
     suspend fun verifyStripeSession(userId: UUID, sessionId: String): AppResult<PaymentStatusDto>
     suspend fun createPayPalOrder(userId: UUID): AppResult<PayPalOrderResponseDto>
     suspend fun capturePayPalOrder(userId: UUID, dto: CapturePayPalOrderDto): AppResult<PaymentStatusDto>
+    
+    // CRUD for internal use if needed
+    suspend fun getAll(): AppResult<List<Payment>>
+    suspend fun getById(id: UUID): AppResult<Payment>
+    suspend fun getByUserId(userId: UUID): AppResult<List<Payment>>
 }

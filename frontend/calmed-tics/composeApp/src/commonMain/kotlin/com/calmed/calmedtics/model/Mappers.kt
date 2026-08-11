@@ -16,7 +16,6 @@ fun UserDto.toEntity(): UserEntity {
 		isEmailVerified = isEmailVerified,
 		isOnboarded = isOnboarded,
 		isPaid = isPaid,
-		paymentType = paymentType,
 		stripeCustomerId = stripeCustomerId,
 		createdAt = createdAt,
 		updatedAt = updatedAt
@@ -39,6 +38,21 @@ fun UserInfoTicsDto.toEntity(): UserInfoTicsEntity {
 	)
 }
 
+fun UserDto.toJoined(): UserJoined {
+	return UserJoined(
+		id = id,
+		email = email,
+		username = username,
+		profileImageUrl = profileImageUrl,
+		isEmailVerified = isEmailVerified,
+		isOnboarded = isOnboarded,
+		isPaid = isPaid,
+		stripeCustomerId = stripeCustomerId,
+		createdAt = createdAt,
+		updatedAt = updatedAt
+	)
+}
+
 fun UserEntity.toJoined(): UserJoined {
 	return UserJoined(
 		id = id,
@@ -48,7 +62,6 @@ fun UserEntity.toJoined(): UserJoined {
 		isEmailVerified = isEmailVerified,
 		isOnboarded = isOnboarded,
 		isPaid = isPaid,
-		paymentType = paymentType,
 		stripeCustomerId = stripeCustomerId,
 		createdAt = createdAt,
 		updatedAt = updatedAt

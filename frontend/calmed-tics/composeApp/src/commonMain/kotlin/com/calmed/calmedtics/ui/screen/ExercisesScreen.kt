@@ -42,7 +42,6 @@ import com.calmed.calmedtics.locked
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import androidx.compose.ui.draw.clip
-import com.calmed.calmedtics.util.getTitle
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import com.calmed.calmedtics.week_title
@@ -54,8 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 fun ExercisesScreen(
     currentWeek: Int,
     exercises: List<ProgramExerciseDto>,
-    onExerciseClick: (ProgramExerciseDto) -> Unit,
-    language: String
+    onExerciseClick: (ProgramExerciseDto) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -110,7 +108,7 @@ fun ExercisesScreen(
                             ) {
                                 ThumbnailImage(
                                     url = ex.thumbnailURL ?: "",
-                                    contentDescription = ex.getTitle(language),
+                                    contentDescription = ex.title,
                                     modifier = Modifier.fillMaxSize()
                                 )
 
@@ -135,7 +133,7 @@ fun ExercisesScreen(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val displayTitle = ex.getTitle(language)
+                                val displayTitle = ex.title
 
                                 Text(
                                     text = displayTitle,

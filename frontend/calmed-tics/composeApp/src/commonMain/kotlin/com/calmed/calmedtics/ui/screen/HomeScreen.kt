@@ -43,11 +43,6 @@ import com.calmed.calmedtics.select_video
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.util.dateToEpochDay
-import com.calmed.calmedtics.util.getTitle
-import com.calmed.calmedtics.util.getVideoURL
-import com.calmed.calmedtics.localization.LocalAppLocale
-import com.calmed.calmedtics.localization.customAppLocale
-import com.calmed.calmedtics.localization.resolveContentLanguage
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -76,13 +71,10 @@ fun HomeScreen(
 ) {
     val home by sessionViewModel.home.collectAsState(initial = null)
     val user by sessionViewModel.user.collectAsState()
+    val userInfo by sessionViewModel.userInfo.collectAsState()
     val allExercises by sessionViewModel.allExercises.collectAsState()
     val allCompletions by sessionViewModel.allCompletions.collectAsState()
 
-    val uiLocaleTag = LocalAppLocale.current
-    val contentLanguage = remember(customAppLocale, uiLocaleTag) {
-        resolveContentLanguage(customAppLocale, uiLocaleTag)
-    }
     val ymd = currentYmd()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -176,11 +168,10 @@ fun HomeScreen(
         displayExercises.find { it.id == selectedExerciseId } ?: displayExercises.firstOrNull()
     }
     val selectedVideoUrl = remember(
-        selectedExercise,
-        contentLanguage
-    ) { selectedExercise?.getVideoURL(contentLanguage) }
+        selectedExercise
+    ) { selectedExercise?.videoURL }
     val selectedTitle =
-        remember(selectedExercise, contentLanguage) { selectedExercise?.getTitle(contentLanguage) }
+        remember(selectedExercise) { selectedExercise?.title }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -217,8 +208,11 @@ fun HomeScreen(
                     Text(
                         text = stringResource(
                             Res.string.hello_user,
-                            user?.username
-                                ?: stringResource(Res.string.default_user)
+                            if (userInfo?.preferredName.isNullOrBlank()) {
+                                user?.username ?: stringResource(Res.string.default_user)
+                            } else {
+                                userInfo?.preferredName!!
+                            }
                         ),
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
@@ -1117,7 +1111,7 @@ fun HomeScreen(
             listItemsIndexed(displayExercises) { index, exercise ->
 
                 val displayTitle =
-                    exercise.getTitle(contentLanguage)
+                    exercise.title
 
                 val isSelected =
                     exercise.id == selectedExercise?.id

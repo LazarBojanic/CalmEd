@@ -40,7 +40,7 @@ val serviceModule = module {
 			appleConfig = get<AppleConfig>()
 		)
 	}
-	single<IUserService> { UserService(get()) }
+	single<IUserService> { UserService(get(), get()) }
 	single<IAuthCredentialService> { AuthCredentialService(get(), get()) }
 	single<IRefreshTokenService> { RefreshTokenService(get(), get()) }
 	single<IUserInfoTicsService> { UserInfoTicsService(get(), get()) }
@@ -49,6 +49,6 @@ val serviceModule = module {
 	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get()) }
 	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 	single<IHomeService> { HomeService(get(), get(), get(), get(), get()) }
-	single<IPaymentService> { PaymentService(get(), get(), get()) }
+	single<IPaymentService> { PaymentService(get(), get(), get(), get()) }
 
 }

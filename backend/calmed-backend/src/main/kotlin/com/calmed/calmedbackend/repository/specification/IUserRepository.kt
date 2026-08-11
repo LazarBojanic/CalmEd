@@ -11,14 +11,6 @@ interface IUserRepository {
 	suspend fun create(user: User): User?
 	suspend fun update(user: User): User?
 	suspend fun delete(id: UUID): Boolean
-	suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): User?
-	suspend fun setPaymentStatus(
-		id: UUID,
-		isPaid: Boolean,
-		paymentType: PaymentType?,
-		stripeCustomerId: String? = null,
-		appleOriginalTransactionId: String? = null,
-		googleOrderId: String? = null
-	): User?
+ suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): User?
 
 }

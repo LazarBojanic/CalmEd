@@ -17,10 +17,7 @@ interface IUserService {
 	suspend fun setPaymentStatus(
 		id: UUID,
 		isPaid: Boolean,
-		paymentType: PaymentType?,
-		stripeCustomerId: String? = null,
-		appleOriginalTransactionId: String? = null,
-		googleOrderId: String? = null
+		stripeCustomerId: String? = null
 	): AppResult<UserJoined>
 	suspend fun updateProfileImage(
 		userId: UUID,

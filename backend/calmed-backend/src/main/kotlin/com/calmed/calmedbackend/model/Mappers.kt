@@ -17,6 +17,8 @@ import com.calmed.calmedbackend.model.raw.authcredential.AuthCredential
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialEntity
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenEntity
+import com.calmed.calmedbackend.model.raw.payment.Payment
+import com.calmed.calmedbackend.model.raw.payment.PaymentEntity
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
 import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
@@ -45,10 +47,22 @@ fun UserEntity.toRaw(): User {
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
 		isPaid = this.isPaid,
-		paymentType = this.paymentType,
 		stripeCustomerId = this.stripeCustomerId,
+		confirmOverEighteen = false, // Not in entity yet, or check if it should be
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun PaymentEntity.toRaw(): Payment {
+	return Payment(
+		id = this.id.value,
+		userId = this.userId,
+		paymentType = this.paymentType,
 		appleOriginalTransactionId = this.appleOriginalTransactionId,
 		googleOrderId = this.googleOrderId,
+		stripeCustomerId = this.stripeCustomerId,
+		successful = this.successful,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -88,10 +102,8 @@ fun User.join(): UserJoined {
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
 		isPaid = this.isPaid,
-		paymentType = this.paymentType,
 		stripeCustomerId = this.stripeCustomerId,
-		appleOriginalTransactionId = this.appleOriginalTransactionId,
-		googleOrderId = this.googleOrderId,
+		confirmOverEighteen = this.confirmOverEighteen,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -143,10 +155,7 @@ fun UserEntity.setFrom(d: User, mapMode: MapMode) {
 	isEmailVerified = d.isEmailVerified
 	isOnboarded = d.isOnboarded
 	isPaid = d.isPaid
-	paymentType = d.paymentType
 	stripeCustomerId = d.stripeCustomerId
-	appleOriginalTransactionId = d.appleOriginalTransactionId
-	googleOrderId = d.googleOrderId
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
@@ -195,6 +204,24 @@ fun RefreshTokenEntity.setFrom(d: RefreshToken, mapMode: MapMode) {
 
 }
 
+fun PaymentEntity.setFrom(d: Payment, mapMode: MapMode) {
+	userId = d.userId
+	paymentType = d.paymentType
+	appleOriginalTransactionId = d.appleOriginalTransactionId
+	googleOrderId = d.googleOrderId
+	stripeCustomerId = d.stripeCustomerId
+	successful = d.successful
+	when (mapMode) {
+		MapMode.CREATE -> {
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
+		}
+		MapMode.UPDATE -> {
+			updatedAt = d.updatedAt
+		}
+	}
+}
+
 fun UserJoined.toDto(): UserDto {
 	return UserDto(
 		id = this.id,
@@ -204,10 +231,7 @@ fun UserJoined.toDto(): UserDto {
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
 		isPaid = this.isPaid,
-		paymentType = this.paymentType,
 		stripeCustomerId = this.stripeCustomerId,
-		appleOriginalTransactionId = this.appleOriginalTransactionId,
-		googleOrderId = this.googleOrderId,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -289,10 +313,8 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 		id = this.id.value,
 		weekNumber = this.weekNumber,
 		title = this.title,
-		titleEs = this.titleEs,
 		description = this.description,
 		playbackId = this.playbackId,
-		playbackIdEs = this.playbackIdEs,
 		thumbnailURL = this.thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
@@ -305,10 +327,8 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 fun ProgramExerciseEntity.setFrom(d: ProgramExercise, mapMode: MapMode) {
 	weekNumber = d.weekNumber
 	title = d.title
-	titleEs = d.titleEs
 	description = d.description
 	playbackId = d.playbackId
-	playbackIdEs = d.playbackIdEs
 	thumbnailURL = d.thumbnailURL
 	visibility = d.visibility
 	orderInWeek = d.orderInWeek
@@ -328,10 +348,8 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 		id = this.id,
 		weekNumber = this.weekNumber,
 		title = this.title,
-		titleEs = this.titleEs,
 		description = this.description,
 		playbackId = this.playbackId,
-		playbackIdEs = this.playbackIdEs,
 		thumbnailURL = this.thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
@@ -371,20 +389,6 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 				}
 			}
 		}
-
-		if(!this.playbackIdEs.isNullOrBlank()){
-			if(this.visibility == Visibility.SIGNED){
-				val videoTokenEs = MuxTokenGenerator.generatePlaybackToken(
-					this.playbackIdEs,
-					muxConfig.signingKey,
-					muxConfig.privateKey
-				)
-				videoURLEs = "$videoBaseURL${this.playbackIdEs}.m3u8?token=${videoTokenEs}"
-			}
-			else{
-				videoURLEs = "$videoBaseURL${this.playbackIdEs}.m3u8"
-			}
-		}
 	}
 	else {
 		if (!this.playbackId.isNullOrBlank()){
@@ -393,18 +397,13 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 				thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
 			}
 		}
-		if (!this.playbackIdEs.isNullOrBlank()){
-			videoURLEs = "$videoBaseURL${this.playbackIdEs}.m3u8"
-		}
 	}
 	return ProgramExerciseDto(
 		id = this.id,
 		weekNumber = this.weekNumber,
 		title = this.title,
-		titleEs = this.titleEs,
 		description = this.description,
 		playbackId = this.playbackId,
-		playbackIdEs = this.playbackIdEs,
 		videoURL = videoURL,
 		videoURLEs = videoURLEs,
 		thumbnailURL = thumbnailURL,
