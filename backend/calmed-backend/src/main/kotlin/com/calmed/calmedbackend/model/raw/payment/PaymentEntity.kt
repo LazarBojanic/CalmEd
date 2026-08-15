@@ -11,7 +11,6 @@ class PaymentEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var paymentType by PaymentTable.paymentType
 	var appleOriginalTransactionId by PaymentTable.appleOriginalTransactionId
 	var googleOrderId by PaymentTable.googleOrderId
-	var stripeCustomerId by PaymentTable.stripeCustomerId
 	var successful by PaymentTable.successful
 	var createdAt by PaymentTable.createdAt
 	var updatedAt by PaymentTable.updatedAt

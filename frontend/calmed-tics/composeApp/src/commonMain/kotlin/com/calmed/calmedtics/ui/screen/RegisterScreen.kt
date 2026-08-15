@@ -1,9 +1,5 @@
 package com.calmed.calmedtics.ui.screen
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,8 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
 import com.calmed.calmedtics.back_to_login
 import com.calmed.calmedtics.confirm_password
@@ -25,7 +19,7 @@ import com.calmed.calmedtics.register_title
 import com.calmed.calmedtics.ui.component.CheckboxWithLabel
 import com.calmed.calmedtics.ui.component.PasswordTextField
 import com.calmed.calmedtics.ui.component.PrimaryButton
-import com.calmed.calmedtics.ui.component.ScreenScaffold
+import com.calmed.calmedtics.ui.component.AuthScaffold
 import com.calmed.calmedtics.ui.component.SecondaryButton
 import com.calmed.calmedtics.ui.component.TextField
 import com.calmed.calmedtics.username
@@ -52,11 +46,10 @@ fun RegisterScreen(
 	var confirmPassword by remember { mutableStateOf("") }
 	var confirmOverEighteen by remember { mutableStateOf(false) }
 
-	ScreenScaffold(title = stringResource(Res.string.register_title)) {
-		Column(
-			modifier = Modifier.padding(16.dp),
-			verticalArrangement = Arrangement.spacedBy(12.dp)
-		) {
+	AuthScaffold(
+		title = stringResource(Res.string.register_title),
+		onBack = onNavigateLogin,
+	) {
 			if (error != null) {
 				Text(error!!, color = MaterialTheme.colorScheme.error)
 			}
@@ -116,6 +109,5 @@ fun RegisterScreen(
 				onClick = onNavigateLogin,
 				enabled = !loading
 			)
-		}
 	}
 }

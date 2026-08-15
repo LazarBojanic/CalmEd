@@ -21,15 +21,15 @@ object AppleClientSecret {
         val exp = now.plusSeconds(5 * 60)
 
         val claims = JWTClaimsSet.Builder()
-            .issuer(appleConfig.teamId) // iss = Team ID
-            .subject(appleConfig.clientId) // sub = client_id (Service ID)
-            .audience("https://appleid.apple.com") // aud = Apple
+            .issuer(appleConfig.teamId)
+            .subject(appleConfig.clientId)
+            .audience("https://appleid.apple.com")
             .issueTime(Date.from(now))
             .expirationTime(Date.from(exp))
             .build()
 
         val header = JWSHeader.Builder(JWSAlgorithm.ES256)
-            .keyID(appleConfig.keyId) // kid = Key ID
+            .keyID(appleConfig.keyId)
             .build()
 
         val jwt = SignedJWT(header, claims)
@@ -39,7 +39,6 @@ object AppleClientSecret {
     }
 
     private fun loadEcPrivateKey(pem: String): ECPrivateKey {
-        // Apple .p8 je PKCS#8 EC private key
         val clean = pem
             .replace("-----BEGIN PRIVATE KEY-----", "")
             .replace("-----END PRIVATE KEY-----", "")

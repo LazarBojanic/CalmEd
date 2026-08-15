@@ -41,7 +41,8 @@ fun TimeSlider(
         Surface(
             onClick = { showDialog = true },
             shape = MaterialTheme.shapes.medium,
-            color = Color.White.copy(alpha = 0.14f),
+            color = Color.White.copy(alpha = 0.25f),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.15f)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
@@ -55,12 +56,12 @@ fun TimeSlider(
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.White.copy(alpha = 0.7f)
+                        color = Color.Black.copy(alpha = 0.7f)
                     )
                     Text(
                         text = initialTime,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
+                        color = Color.Black
                     )
                 }
                 Text(

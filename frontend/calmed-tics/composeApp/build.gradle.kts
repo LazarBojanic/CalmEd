@@ -1,4 +1,4 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import com.android.build.api.dsl.ApplicationExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
@@ -13,7 +13,7 @@ plugins {
 	alias(libs.plugins.buildConfig)
 }
 dependencies {
-	debugImplementation(compose.uiTooling)
+	debugImplementation(libs.composeUiTooling)
 }
 compose {
 	resources {
@@ -56,7 +56,6 @@ kotlin {
 
 	iosArm64()
 	iosSimulatorArm64()
-	iosX64()
 
 	targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
 		binaries {
@@ -72,13 +71,13 @@ kotlin {
 
 	sourceSets {
 		commonMain.dependencies {
-			implementation(compose.runtime)
-			implementation(compose.foundation)
-			implementation(compose.material3)
-			implementation(compose.materialIconsExtended)
-			implementation(compose.ui)
-			implementation(compose.components.resources)
-			implementation(compose.components.uiToolingPreview)
+			implementation(libs.composeRuntime)
+			implementation(libs.composeFoundation)
+			implementation(libs.composeMaterial3)
+			implementation(libs.composeMaterialIconsExtended)
+			implementation(libs.composeUi)
+			implementation(libs.composeComponentsResources)
+			implementation(libs.composeComponentsUiToolingPreview)
 
 			implementation(libs.kotlinxCoroutinesCore)
 			implementation(libs.kotlinxSerializationJson)
@@ -115,7 +114,7 @@ kotlin {
 
 		}
 		androidMain.dependencies {
-			implementation(compose.preview)
+			implementation(libs.composeUiToolingPreview)
 
 			implementation(libs.androidxActivityCompose)
 
@@ -156,25 +155,10 @@ kotlin {
 			implementation(libs.sqliteBundled)
 			implementation(libs.ktorClientDarwin)
 		}
-		iosArm64Main.dependencies {
-			implementation(libs.kotlinxCoroutinesCoreIosArm64)
-			implementation(libs.koinCoreIosArm64)
-			implementation(libs.roomRuntimeIosArm64)
-		}
-		iosSimulatorArm64Main.dependencies {
-			implementation(libs.kotlinxCoroutinesCoreIosSimulatorArm64)
-			implementation(libs.koinCoreIosSimulatorArm64)
-			implementation(libs.roomRuntimeIosSimulatorArm64)
-		}
-		iosX64Main.dependencies {
-			implementation(libs.kotlinxCoroutinesCoreIosX64)
-			implementation(libs.koinCoreIosX64)
-			implementation(libs.roomRuntimeIosX64)
-		}
 	}
 }
 
-android {
+configure<ApplicationExtension> {
 	namespace = "com.calmed.calmedtics"
 	compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
@@ -213,10 +197,8 @@ dependencies {
 	add("kspAndroid", libs.roomCompiler)
 	add("kspIosArm64", libs.roomCompiler)
 	add("kspIosSimulatorArm64", libs.roomCompiler)
-	add("kspIosX64", libs.roomCompiler)
 
 	add("kspAndroid", libs.koinKspCompiler)
 	add("kspIosArm64", libs.koinKspCompiler)
 	add("kspIosSimulatorArm64", libs.koinKspCompiler)
-	add("kspIosX64", libs.koinKspCompiler)
 }

@@ -16,7 +16,6 @@ data class Payment(
 	val paymentType: PaymentType,
 	val appleOriginalTransactionId: String?,
 	val googleOrderId: String?,
-	val stripeCustomerId: String?,
 	val successful: Boolean,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
@@ -29,7 +28,6 @@ data class Payment(
 			paymentType: PaymentType,
 			appleOriginalTransactionId: String? = null,
 			googleOrderId: String? = null,
-			stripeCustomerId: String? = null,
 			successful: Boolean = false,
 			createdAt: Instant? = null,
 			updatedAt: Instant? = null
@@ -41,7 +39,6 @@ data class Payment(
 				paymentType = paymentType,
 				appleOriginalTransactionId = appleOriginalTransactionId,
 				googleOrderId = googleOrderId,
-				stripeCustomerId = stripeCustomerId,
 				successful = successful,
 				createdAt = createdAt ?: now,
 				updatedAt = updatedAt ?: now

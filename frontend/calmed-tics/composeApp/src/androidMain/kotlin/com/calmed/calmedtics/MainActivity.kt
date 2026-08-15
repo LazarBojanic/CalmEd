@@ -3,7 +3,6 @@ package com.calmed.calmedtics
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import com.calmed.calmedtics.auth.AppleAuthBridge
@@ -36,8 +35,8 @@ class MainActivity : FragmentActivity() {
 		lifecycleScope.launch {
 			val billing = provideBillingService()
 			billing.connect()
-			val exists = billing.loadProduct(BillingProducts.PREMIUM_ONE_TIME)
-			Log.d("BILLING", "Product exists = $exists (id=${BillingProducts.PREMIUM_ONE_TIME})")
+			val exists = billing.loadProduct(BillingProducts.APP_ACCESS)
+			Log.d("BILLING", "Product exists = $exists (id=${BillingProducts.APP_ACCESS})")
 		}
 		Log.d("APPLE_AUTH", "onCreate intent=$intent")
 		handleDeepLink(intent)

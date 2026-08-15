@@ -61,7 +61,6 @@ class AuthCredentialRepository : IAuthCredentialRepository {
 
 	override suspend fun create(authCredential: AuthCredential): AuthCredential? {
 		return withTransaction {
-			// Check if entity already exists
 			if (AuthCredentialEntity.findById(authCredential.id) != null) {
 				null
 			} else {

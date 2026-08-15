@@ -1,8 +1,5 @@
 package com.calmed.calmedtics.ui.screen
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,7 +18,7 @@ import com.calmed.calmedtics.forgot_password_title
 import com.calmed.calmedtics.send_reset_email
 import com.calmed.calmedtics.sending
 import com.calmed.calmedtics.ui.component.PrimaryButton
-import com.calmed.calmedtics.ui.component.ScreenScaffold
+import com.calmed.calmedtics.ui.component.AuthScaffold
 import com.calmed.calmedtics.ui.component.SecondaryButton
 import com.calmed.calmedtics.ui.component.TextField
 import com.calmed.calmedtics.viewmodel.AuthViewModel
@@ -42,12 +39,10 @@ fun ForgotPasswordScreen(
 
     var email by remember { mutableStateOf("") }
 
-    ScreenScaffold(title = stringResource(Res.string.forgot_password_title)) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-
+    AuthScaffold(
+        title = stringResource(Res.string.forgot_password_title),
+        onBack = onNavigateBack,
+    ) {
             if (error != null) {
                 Text(error!!, color = MaterialTheme.colorScheme.error)
             }
@@ -78,7 +73,6 @@ fun ForgotPasswordScreen(
                 onClick = onNavigateBack,
                 enabled = !loading
             )
-        }
     }
 
 

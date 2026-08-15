@@ -4,6 +4,7 @@ import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.config.DatabaseConfig
 import com.calmed.calmedbackend.config.EmailConfig
 import com.calmed.calmedbackend.config.GoogleOAuthConfig
+import com.calmed.calmedbackend.config.GooglePlayConfig
 import com.calmed.calmedbackend.config.JwtConfig
 import com.calmed.calmedbackend.config.KtorConfig
 import com.calmed.calmedbackend.config.MuxConfig
@@ -27,6 +28,7 @@ fun Application.configureFrameworks() {
 			module { single { MuxConfig.from(environment.config) } },
 			module { single { StripeConfig.from(environment.config) } },
 			module { single { PayPalConfig.from(environment.config) } },
+			module { single { GooglePlayConfig.from(environment.config) } },
 			repositoryModule,
 			serviceModule,
 		)

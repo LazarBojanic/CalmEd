@@ -1,53 +1,64 @@
 [versions]
 #libraries
 agp = "9.1.1"
-androidCompileSdk = "36"
+androidCompileSdk = "37"
 androidMinSdk = "24"
-androidTargetSdk = "36"
+androidTargetSdk = "37"
 androidxActivity = "1.13.0"
-androidxAppcompat = "1.7.1"
-androidxCore = "1.18.0"
-androidxLifecycle = "2.10.0"
+androidxAppcompat = "1.8.0"
+androidxCore = "1.19.0"
+androidxLifecycle = "2.11.0"
 androidxNavigation = "2.9.2"
 androidxDatastore = "1.2.1"
-billing = "8.3.0"
-stripeAndroid = "23.1.0"
+billing = "9.1.0"
+stripeAndroid = "23.15.0"
 
-oAuthJavaJwt = "4.5.1"
-squareupOkio = "3.17.0"
+oAuthJavaJwt = "4.6.0"
+squareupOkio = "3.18.1"
 
-kotlinxSerializationJson = "1.10.0"
-kotlinxCoroutines = "1.10.2"
-ktor = "3.4.1"
+kotlinxSerializationJson = "1.11.0"
+kotlinxCoroutines = "1.11.0"
+ktor = "3.5.2"
 
-androidxCredentials = "1.5.0"
+androidxCredentials = "1.6.0"
 googleAndroidLibrariesIdentityGoogleId = "1.2.0"
-googleAndroidGmsPlayServicesAuth = "21.5.1"
+googleAndroidGmsPlayServicesAuth = "21.6.0"
 googlePlayServicesCastFramework = "22.3.1"
 multiplatformSettings = "1.3.0"
 
 
-media3= "1.10.0"
+media3= "1.11.0"
 androidxBrowser = "1.10.0"
 
-kotlinxDatetime = "0.7.1"
-coil = "3.4.0"
+kotlinxDatetime = "0.8.0"
+coil = "3.5.0"
 
 #plugins
-kotlin = "2.3.20"
-composeMultiplatform = "1.10.3"
-composeHotReload = "1.0.0"
+kotlin = "2.4.10"
+composeMultiplatform = "1.11.1"
+composeMaterial3 = "1.11.0-alpha07"
+composeHotReload = "1.2.0"
 
-ksp = "2.3.6"
+ksp = "2.3.11"
 koinAnnotations = "2.3.2-Beta1"
-koin = "4.2.0"
+koin = "4.2.2"
 
 room = "2.8.4"
-sqlite = "2.6.2"
-buildConfig = "6.0.9"
+sqlite = "2.7.0"
+buildConfig = "6.0.10"
 
 
 [libraries]
+composeRuntime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
+composeFoundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+composeMaterial3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMaterial3" }
+composeMaterialIconsExtended = { module = "org.jetbrains.compose.material:material-icons-extended", version = "1.7.3" }
+composeUi = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+composeComponentsResources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
+composeComponentsUiToolingPreview = { module = "org.jetbrains.compose.components:components-ui-tooling-preview", version.ref = "composeMultiplatform" }
+composeUiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
+composeUiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+
 androidxCoreKtx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
 androidxAppcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
 androidxActivityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }

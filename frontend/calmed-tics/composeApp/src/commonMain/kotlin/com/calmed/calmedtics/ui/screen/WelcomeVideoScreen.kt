@@ -26,7 +26,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import com.calmed.calmedtics.theme.appBackgroundGradient
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
@@ -46,6 +46,7 @@ import com.calmed.calmedtics.ui.component.VideoPlayer
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 
 @Composable
 fun WelcomeVideoScreen(
@@ -80,19 +81,15 @@ fun WelcomeVideoScreen(
         }
     }
 
-    Scaffold { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(appBackgroundGradient())
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF7B7DE5),
-                            Color(0xFFE5C8E8)
-                        )
-                    )
-                )
-                .padding(padding)
+                .statusBarsPadding()
                 .navigationBarsPadding()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -114,7 +111,7 @@ fun WelcomeVideoScreen(
                     color = Color.White.copy(alpha = 0.14f),
                     border = androidx.compose.foundation.BorderStroke(
                         1.dp,
-                        Color.White.copy(alpha = 0.25f)
+                        Color.Black.copy(alpha = 0.15f)
                     )
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
@@ -138,7 +135,7 @@ fun WelcomeVideoScreen(
                             ) {
                                 Text(
                                     text = error ?: loadingVideo,
-                                    color = Color.White
+                                    color = Color.Black
                                 )
                             }
                         }
@@ -151,7 +148,7 @@ fun WelcomeVideoScreen(
                     Text(
                         text = title.orEmpty(),
                         style = MaterialTheme.typography.headlineSmall.copy(
-                            color = Color.White
+                            color = Color.Black
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -162,13 +159,17 @@ fun WelcomeVideoScreen(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.extraLarge,
-                    color = Color.White.copy(alpha = 0.16f)
+                    color = Color.White.copy(alpha = 0.16f),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        Color.Black.copy(alpha = 0.12f)
+                    )
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Text(
                             text = stringResource(Res.string.osshr_method_title),
                             style = MaterialTheme.typography.titleMedium.copy(
-                                color = Color.White
+                                color = Color.Black
                             )
                         )
 
@@ -177,7 +178,7 @@ fun WelcomeVideoScreen(
                         Text(
                             text = stringResource(Res.string.osshr_method_description_1),
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color.White.copy(alpha = 0.92f)
+                                color = Color.Black.copy(alpha = 0.85f)
                             )
                         )
 
@@ -186,7 +187,7 @@ fun WelcomeVideoScreen(
                         Text(
                             text = stringResource(Res.string.osshr_method_description_2),
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color.White.copy(alpha = 0.86f)
+                                color = Color.Black.copy(alpha = 0.85f)
                             )
                         )
 
@@ -195,7 +196,7 @@ fun WelcomeVideoScreen(
                         Text(
                             text = stringResource(Res.string.osshr_method_description_3),
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color.White.copy(alpha = 0.86f)
+                                color = Color.Black.copy(alpha = 0.85f)
                             )
                         )
                     }
@@ -212,9 +213,9 @@ fun WelcomeVideoScreen(
                     border = androidx.compose.foundation.BorderStroke(
                         width = if (dontShowAgain) 2.dp else 1.dp,
                         color = if (dontShowAgain) {
-                            Color.White.copy(alpha = 0.95f)
+                            Color.Black
                         } else {
-                            Color.White.copy(alpha = 0.35f)
+                            Color.Black.copy(alpha = 0.25f)
                         }
                     )
                 ) {
@@ -228,7 +229,7 @@ fun WelcomeVideoScreen(
                         Text(
                             text = stringResource(Res.string.dont_show_again),
                             style = MaterialTheme.typography.bodyLarge.copy(
-                                color = Color.White
+                                color = Color.Black
                             )
                         )
 
@@ -236,12 +237,12 @@ fun WelcomeVideoScreen(
                             modifier = Modifier
                                 .size(24.dp)
                                 .background(
-                                    color = if (dontShowAgain) Color.White else Color.Transparent,
+                                    color = if (dontShowAgain) Color.Black else Color.Transparent,
                                     shape = CircleShape
                                 )
                                 .border(
                                     width = 2.dp,
-                                    color = Color.White,
+                                    color = Color.Black,
                                     shape = CircleShape
                                 )
                         )
@@ -258,7 +259,11 @@ fun WelcomeVideoScreen(
                 Surface(
                     modifier = Modifier.weight(1f),
                     shape = MaterialTheme.shapes.extraLarge,
-                    color = Color.White.copy(alpha = 0.18f)
+                    color = Color.White.copy(alpha = 0.18f),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        Color.Black.copy(alpha = 0.25f)
+                    )
                 ) {
                     TextButton(
                         onClick = onSkip,
@@ -266,7 +271,7 @@ fun WelcomeVideoScreen(
                     ) {
                         Text(
                             text = stringResource(Res.string.skip),
-                            color = Color.White
+                            color = Color.Black
                         )
                     }
                 }
@@ -274,7 +279,11 @@ fun WelcomeVideoScreen(
                 Surface(
                     modifier = Modifier.weight(1f),
                     shape = MaterialTheme.shapes.extraLarge,
-                    color = Color.White.copy(alpha = 0.28f)
+                    color = Color.White.copy(alpha = 0.28f),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        Color.Black.copy(alpha = 0.35f)
+                    )
                 ) {
                     TextButton(
                         onClick = { onContinue(dontShowAgain) },
@@ -283,7 +292,7 @@ fun WelcomeVideoScreen(
                         Text(
                             text = stringResource(Res.string.`continue`),
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color.White
+                            color = Color.Black
                         )
                     }
                 }

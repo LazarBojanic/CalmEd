@@ -7,11 +7,15 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 
@@ -24,6 +28,12 @@ fun PasswordTextField(
 	singleLine: Boolean = true,
 	isError: Boolean = false,
 	supportingText: String? = null,
+	shape: Shape = OutlinedTextFieldDefaults.shape,
+	colors: TextFieldColors = OutlinedTextFieldDefaults.colors(
+		focusedContainerColor = Color.White,
+		unfocusedContainerColor = Color.White,
+		errorContainerColor = Color.White,
+	),
 ) {
 	val (showPassword, setShowPassword) = remember { mutableStateOf(false) }
 
@@ -42,6 +52,8 @@ fun PasswordTextField(
 				Icon(imageVector = image, contentDescription = description)
 			}
 		},
+		shape = shape,
+		colors = colors,
 		modifier = Modifier
 			.fillMaxWidth()
 			.then(modifier)

@@ -11,8 +11,8 @@ data class GoogleOAuthConfig(
 		fun from(config: ApplicationConfig): GoogleOAuthConfig {
 			return GoogleOAuthConfig(
 				webClientId = config.property("oauth.google.web_client_id").getString(),
-				iosClientId = config.propertyOrNull("oauth.google.ios_client_id")?.getString(),
-				androidClientId = config.propertyOrNull("oauth.google.android_client_id")?.getString()
+				iosClientId = config.property("oauth.google.ios_client_id").getString(),
+				androidClientId = config.property("oauth.google.android_client_id").getString()
 			)
 		}
 	}

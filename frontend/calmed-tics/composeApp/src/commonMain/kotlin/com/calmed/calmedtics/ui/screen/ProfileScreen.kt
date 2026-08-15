@@ -16,7 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import com.calmed.calmedtics.theme.appBackgroundGradient
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -113,14 +113,7 @@ fun ProfileScreen(
 	Box(
 		modifier = Modifier
 			.fillMaxSize()
-			.background(
-				brush = Brush.verticalGradient(
-					colors = listOf(
-						Color(0xFF7B7DE5),
-						Color(0xFFE5C8E8)
-					)
-				)
-			)
+			.background(appBackgroundGradient())
 	) {
 		LazyColumn(
 			modifier = Modifier
@@ -140,13 +133,13 @@ fun ProfileScreen(
 					InfoSection(title = stringResource(Res.string.personal_details)) {
 						Text(
 							text = stringResource(Res.string.profile_error),
-							color = Color.White
+							color = Color.Black
 						)
 
 						if (error != null) {
 							Text(
 								text = stringResource(Res.string.error_prefix, error ?: ""),
-								color = Color.White.copy(alpha = 0.85f)
+								color = Color.Black.copy(alpha = 0.85f)
 							)
 						}
 
@@ -191,7 +184,8 @@ fun ProfileScreen(
 									modifier = Modifier
 										.size(96.dp)
 										.clip(CircleShape)
-										.background(Color.White.copy(alpha = 0.22f)),
+										.background(Color.White.copy(alpha = 0.35f))
+										.border(1.dp, Color.Black.copy(alpha = 0.15f), CircleShape),
 									contentAlignment = Alignment.Center
 								) {
 									if (profileImageBitmap != null) {
@@ -207,7 +201,7 @@ fun ProfileScreen(
 											imageVector = Icons.Default.Person,
 											contentDescription = null,
 											modifier = Modifier.size(52.dp),
-											tint = Color.White
+											tint = Color.Black
 										)
 									}
 								}
@@ -225,10 +219,10 @@ fun ProfileScreen(
 										}
 									},
 									shape = RoundedCornerShape(16.dp),
-									color = Color.White.copy(alpha = 0.18f),
+									color = Color.White.copy(alpha = 0.28f),
 									border = BorderStroke(
 										1.dp,
-										Color.White.copy(alpha = 0.35f)
+										Color.Black.copy(alpha = 0.25f)
 									)
 								) {
 									Text(
@@ -237,7 +231,7 @@ fun ProfileScreen(
 											horizontal = 16.dp,
 											vertical = 10.dp
 										),
-										color = Color.White,
+										color = Color.Black,
 										fontWeight = FontWeight.Medium
 									)
 								}
@@ -255,7 +249,7 @@ fun ProfileScreen(
 
 							Text(
 								text = stringResource(Res.string.age),
-								color = Color.White
+								color = Color.Black
 							)
 
 							TextField(
@@ -282,15 +276,15 @@ fun ProfileScreen(
 								valueRange = 18f..125f,
 								steps = 62,
 								colors = SliderDefaults.colors(
-									thumbColor = Color.White,
-									activeTrackColor = Color.White,
-									inactiveTrackColor = Color.White.copy(alpha = 0.45f)
+									thumbColor = Color.Black,
+									activeTrackColor = Color.Black,
+									inactiveTrackColor = Color.Black.copy(alpha = 0.25f)
 								)
 							)
 
 							Text(
 								text = stringResource(Res.string.stress_value, stress.intValue),
-								color = Color.White
+								color = Color.Black
 							)
 
 							Slider(
@@ -299,9 +293,9 @@ fun ProfileScreen(
 								valueRange = 0f..10f,
 								steps = 9,
 								colors = SliderDefaults.colors(
-									thumbColor = Color.White,
-									activeTrackColor = Color.White,
-									inactiveTrackColor = Color.White.copy(alpha = 0.45f)
+									thumbColor = Color.Black,
+									activeTrackColor = Color.Black,
+									inactiveTrackColor = Color.Black.copy(alpha = 0.25f)
 								)
 							)
 						}
@@ -311,7 +305,7 @@ fun ProfileScreen(
 						InfoSection(title = stringResource(Res.string.edit_condition_info)) {
 							Text(
 								text = stringResource(Res.string.tics_type),
-								color = Color.White
+								color = Color.Black
 							)
 
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -334,7 +328,7 @@ fun ProfileScreen(
 
 							Text(
 								text = stringResource(Res.string.tics_frequency),
-								color = Color.White
+								color = Color.Black
 							)
 
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -365,10 +359,10 @@ fun ProfileScreen(
 							Surface(
 								modifier = Modifier.fillMaxWidth(),
 								shape = RoundedCornerShape(20.dp),
-								color = Color.White.copy(alpha = 0.14f),
+								color = Color.White.copy(alpha = 0.22f),
 								border = BorderStroke(
 									width = 1.dp,
-									color = Color.White.copy(alpha = 0.30f)
+									color = Color.Black.copy(alpha = 0.15f)
 								)
 							) {
 								Row(
@@ -379,7 +373,7 @@ fun ProfileScreen(
 								) {
 									Text(
 										text = stringResource(Res.string.follow_progress),
-										color = Color.White
+										color = Color.Black
 									)
 									Spacer(modifier = Modifier.weight(1f))
 									Switch(
@@ -542,10 +536,10 @@ fun ProfileScreen(
 					Surface(
 						modifier = Modifier.fillMaxWidth(),
 						shape = RoundedCornerShape(20.dp),
-						color = Color.White.copy(alpha = 0.14f),
+						color = Color.White.copy(alpha = 0.22f),
 						border = BorderStroke(
 							width = 1.dp,
-							color = Color.White.copy(alpha = 0.30f)
+							color = Color.Black.copy(alpha = 0.15f)
 						)
 					) {
 						Row(
@@ -556,7 +550,7 @@ fun ProfileScreen(
 						) {
 							Text(
 								text = stringResource(Res.string.morning_evening),
-								color = Color.White
+								color = Color.Black
 							)
 							Spacer(Modifier.weight(1f))
 							Switch(
@@ -630,16 +624,16 @@ private fun RadioOptionRow(
 		modifier = modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(20.dp),
 		color = if (selected) {
-			Color.White.copy(alpha = 0.28f)
+			Color.White.copy(alpha = 0.30f)
 		} else {
 			Color.White.copy(alpha = 0.14f)
 		},
 		border = BorderStroke(
 			width = if (selected) 2.dp else 1.dp,
 			color = if (selected) {
-				Color.White.copy(alpha = 0.95f)
+				Color.Black
 			} else {
-				Color.White.copy(alpha = 0.30f)
+				Color.Black.copy(alpha = 0.25f)
 			}
 		)
 	) {
@@ -658,12 +652,12 @@ private fun RadioOptionRow(
 				modifier = Modifier
 					.size(22.dp)
 					.background(
-						color = if (selected) Color.White else Color.Transparent,
+						color = if (selected) Color.Black else Color.Transparent,
 						shape = CircleShape
 					)
 					.border(
 						width = 2.dp,
-						color = Color.White,
+						color = Color.Black,
 						shape = CircleShape
 					)
 			)
@@ -673,7 +667,7 @@ private fun RadioOptionRow(
 			Text(
 				text = text,
 				style = MaterialTheme.typography.bodyLarge,
-				color = Color.White
+				color = Color.Black
 			)
 		}
 	}
@@ -702,10 +696,10 @@ fun ProfileHeader(
 	Surface(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(28.dp),
-		color = Color.White.copy(alpha = 0.18f),
+		color = Color.White.copy(alpha = 0.25f),
 		border = BorderStroke(
 			1.dp,
-			Color.White.copy(alpha = 0.28f)
+			Color.Black.copy(alpha = 0.15f)
 		)
 	) {
 		Column(
@@ -723,8 +717,9 @@ fun ProfileHeader(
 					.size(96.dp)
 					.clip(CircleShape)
 					.background(
-						Color.White.copy(alpha = 0.22f)
-					),
+						Color.White.copy(alpha = 0.35f)
+					)
+					.border(1.dp, Color.Black.copy(alpha = 0.15f), CircleShape),
 				contentAlignment = Alignment.Center
 			) {
 
@@ -744,7 +739,7 @@ fun ProfileHeader(
 						imageVector = Icons.Default.Person,
 						contentDescription = null,
 						modifier = Modifier.size(52.dp),
-						tint = Color.White
+						tint = Color.Black
 					)
 				}
 			}
@@ -757,7 +752,7 @@ fun ProfileHeader(
 				text = displayName,
 				style = MaterialTheme.typography.headlineSmall,
 				fontWeight = FontWeight.Bold,
-				color = Color.White
+				color = Color.Black
 			)
 
 			if (email.isNotEmpty()) {
@@ -768,7 +763,7 @@ fun ProfileHeader(
 				Text(
 					text = email,
 					style = MaterialTheme.typography.bodyMedium,
-					color = Color.White.copy(alpha = 0.82f)
+					color = Color.Black.copy(alpha = 0.75f)
 				)
 			}
 		}
@@ -781,17 +776,17 @@ fun InfoSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 			text = title,
 			style = MaterialTheme.typography.titleMedium,
 			fontWeight = FontWeight.SemiBold,
-			color = Color.White,
+			color = Color.Black,
 			modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
 		)
 
 		Surface(
 			modifier = Modifier.fillMaxWidth(),
 			shape = RoundedCornerShape(24.dp),
-			color = Color.White.copy(alpha = 0.16f),
+			color = Color.White.copy(alpha = 0.22f),
 			border = BorderStroke(
 				1.dp,
-				Color.White.copy(alpha = 0.24f)
+				Color.Black.copy(alpha = 0.15f)
 			)
 		) {
 			Column(
@@ -814,14 +809,15 @@ fun InfoRow(icon: ImageVector, label: String, value: String) {
 			modifier = Modifier
 				.size(36.dp)
 				.clip(CircleShape)
-				.background(Color.White.copy(alpha = 0.16f)),
+				.background(Color.White.copy(alpha = 0.35f))
+				.border(1.dp, Color.Black.copy(alpha = 0.15f), CircleShape),
 			contentAlignment = Alignment.Center
 		) {
 			Icon(
 				imageVector = icon,
 				contentDescription = null,
 				modifier = Modifier.size(18.dp),
-				tint = Color.White
+				tint = Color.Black
 			)
 		}
 
@@ -831,7 +827,7 @@ fun InfoRow(icon: ImageVector, label: String, value: String) {
 			Text(
 				text = label,
 				style = MaterialTheme.typography.labelMedium,
-				color = Color.White.copy(alpha = 0.72f)
+				color = Color.Black.copy(alpha = 0.65f)
 			)
 
 			Spacer(modifier = Modifier.height(2.dp))
@@ -840,7 +836,7 @@ fun InfoRow(icon: ImageVector, label: String, value: String) {
 				text = value,
 				style = MaterialTheme.typography.bodyLarge,
 				fontWeight = FontWeight.Medium,
-				color = Color.White
+				color = Color.Black
 			)
 		}
 	}
@@ -866,14 +862,15 @@ fun SettingsRow(
 				modifier = Modifier
 					.size(36.dp)
 					.clip(CircleShape)
-					.background(Color.White.copy(alpha = 0.16f)),
+					.background(Color.White.copy(alpha = 0.35f))
+					.border(1.dp, Color.Black.copy(alpha = 0.15f), CircleShape),
 				contentAlignment = Alignment.Center
 			) {
 				Icon(
 					imageVector = icon,
 					contentDescription = null,
 					modifier = Modifier.size(18.dp),
-					tint = Color.White
+					tint = Color.Black
 				)
 			}
 
@@ -883,7 +880,7 @@ fun SettingsRow(
 				text = label,
 				style = MaterialTheme.typography.bodyLarge,
 				fontWeight = FontWeight.Medium,
-				color = Color.White
+				color = Color.Black
 			)
 
 			Spacer(modifier = Modifier.weight(1f))
@@ -891,7 +888,7 @@ fun SettingsRow(
 			Icon(
 				imageVector = Icons.Default.KeyboardArrowRight,
 				contentDescription = null,
-				tint = Color.White.copy(alpha = 0.75f)
+				tint = Color.Black.copy(alpha = 0.7f)
 			)
 		}
 	}

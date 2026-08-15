@@ -13,11 +13,12 @@ val flyway_database_postgresql_version: String by project
 val junit_version: String by project
 val mockk_version: String by project
 val nimbus_jose_jwt_version: String by project
+val stripe_java_version: String by project
 
 plugins {
-	kotlin("jvm") version "2.3.20"
-	id("io.ktor.plugin") version "3.4.1"
-	id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
+	kotlin("jvm") version "2.4.10"
+	id("io.ktor.plugin") version "3.5.2"
+	id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
 }
 
 group = "com.calmed"
@@ -72,7 +73,7 @@ dependencies {
 	implementation("io.ktor:ktor-client-content-negotiation")
 	implementation("io.ktor:ktor-serialization-kotlinx-json")
 	implementation("com.nimbusds:nimbus-jose-jwt:$nimbus_jose_jwt_version")
-	implementation("com.stripe:stripe-java:24.0.0")
+	implementation("com.stripe:stripe-java:$stripe_java_version")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junit_version")

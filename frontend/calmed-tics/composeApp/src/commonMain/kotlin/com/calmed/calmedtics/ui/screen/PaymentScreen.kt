@@ -50,7 +50,6 @@ import com.calmed.calmedtics.payment_title
 import com.calmed.calmedtics.premium_access
 import com.calmed.calmedtics.processing
 import com.calmed.calmedtics.secure_payment
-import com.calmed.calmedtics.skip_payment
 import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -84,7 +83,7 @@ fun PaymentScreen(
             loading = true
             error = null
             try {
-                billingService.purchase(BillingProducts.PREMIUM_ONE_TIME)
+                billingService.purchase(BillingProducts.APP_ACCESS)
             } catch (t: Throwable) {
                 error = t.message ?: errorInitPayment
                 loading = false
@@ -130,7 +129,9 @@ fun PaymentScreen(
                                         VerifyGoogleReceiptDto(
                                             orderId = result.googleOrderId ?: "",
                                             productId = result.productId,
-                                            purchaseToken = result.googlePurchaseToken ?: ""
+                                            purchaseToken = result.googlePurchaseToken ?: "",
+                                            purchaseData = result.purchaseData ?: "",
+                                            signature = result.signature ?: ""
                                         )
                                     )
                                 }

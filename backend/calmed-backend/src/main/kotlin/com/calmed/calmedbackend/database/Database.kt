@@ -26,11 +26,9 @@ private fun hikariDataSource(databaseConfig: DatabaseConfig): HikariDataSource {
         driverClassName = databaseConfig.databaseDriver
         jdbcUrl = databaseConfig.databaseUrl
 
-        // Credentials handled by Hikari
         username = databaseConfig.databaseUsername
         password = databaseConfig.databasePassword
 
-        // Neon-safe defaults
         maximumPoolSize = 5
         minimumIdle = 1
 

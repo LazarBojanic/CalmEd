@@ -48,7 +48,7 @@ fun UserEntity.toRaw(): User {
 		isOnboarded = this.isOnboarded,
 		isPaid = this.isPaid,
 		stripeCustomerId = this.stripeCustomerId,
-		confirmOverEighteen = false, // Not in entity yet, or check if it should be
+		confirmOverEighteen = false,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -61,7 +61,6 @@ fun PaymentEntity.toRaw(): Payment {
 		paymentType = this.paymentType,
 		appleOriginalTransactionId = this.appleOriginalTransactionId,
 		googleOrderId = this.googleOrderId,
-		stripeCustomerId = this.stripeCustomerId,
 		successful = this.successful,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
@@ -209,7 +208,6 @@ fun PaymentEntity.setFrom(d: Payment, mapMode: MapMode) {
 	paymentType = d.paymentType
 	appleOriginalTransactionId = d.appleOriginalTransactionId
 	googleOrderId = d.googleOrderId
-	stripeCustomerId = d.stripeCustomerId
 	successful = d.successful
 	when (mapMode) {
 		MapMode.CREATE -> {
@@ -305,8 +303,6 @@ fun UserInfoTicsJoined.toDto(): UserInfoTicsDto {
 		updatedAt = this.updatedAt
 	)
 }
-
-// ProgramExercise mappings
 
 fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 	return ProgramExercise(
@@ -415,8 +411,6 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 	)
 }
 
-// UserProgram mappings
-
 fun UserProgramEntity.toRaw(): UserProgram {
  return UserProgram(
 		id = this.id.value,
@@ -468,8 +462,6 @@ fun UserProgramJoined.toDto(): UserProgramDto {
 		updatedAt = this.updatedAt
 	)
 }
-
-// UserExerciseProgress mappings
 
 fun UserExerciseProgressEntity.toRaw(): UserExerciseProgress {
 	return UserExerciseProgress(

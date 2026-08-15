@@ -48,6 +48,7 @@ import com.calmed.calmedtics.week_title
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.text.font.FontWeight
+import com.calmed.calmedtics.theme.appBackgroundGradient
 
 @Composable
 fun ExercisesScreen(
@@ -67,8 +68,8 @@ fun ExercisesScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+    ) {
+        Column(modifier = Modifier.fillMaxSize().background(appBackgroundGradient())) {
             LazyColumn(modifier = Modifier.weight(1f)) {
                 grouped.forEach { (week, weekItems) ->
                     item {

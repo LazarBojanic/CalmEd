@@ -10,6 +10,8 @@ sealed class PurchaseResult {
         val appleTransactionId: String? = null,
         val googleOrderId: String? = null,
         val googlePurchaseToken: String? = null,
+        val purchaseData: String? = null,
+        val signature: String? = null,
         val productId: String
     ) : PurchaseResult()
 

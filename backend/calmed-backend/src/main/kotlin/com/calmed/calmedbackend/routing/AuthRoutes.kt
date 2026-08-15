@@ -117,7 +117,6 @@ fun Route.authRoutes() {
 		}
 	}
 
-	// Apple OAuth callback: receives POST from Apple (form_post) or GET (query). Must return HTML that redirects to calmed://apple
 	route("/auth/apple/callback") {
 		val appleTokenApi by inject<AppleTokenApi>()
 		val appleConfig by inject<AppleConfig>()

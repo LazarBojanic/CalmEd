@@ -16,8 +16,6 @@ interface IPaymentService {
     suspend fun verifyStripeSession(userId: UUID, sessionId: String): AppResult<PaymentStatusDto>
     suspend fun createPayPalOrder(userId: UUID): AppResult<PayPalOrderResponseDto>
     suspend fun capturePayPalOrder(userId: UUID, dto: CapturePayPalOrderDto): AppResult<PaymentStatusDto>
-    
-    // CRUD for internal use if needed
     suspend fun getAll(): AppResult<List<Payment>>
     suspend fun getById(id: UUID): AppResult<Payment>
     suspend fun getByUserId(userId: UUID): AppResult<List<Payment>>

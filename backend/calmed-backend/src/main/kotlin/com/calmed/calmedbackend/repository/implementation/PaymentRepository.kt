@@ -30,6 +30,12 @@ class PaymentRepository : IPaymentRepository {
 		}
 	}
 
+	override suspend fun findByGoogleOrderId(googleOrderId: String): Payment? {
+		return withTransaction {
+			PaymentEntity.find { PaymentTable.googleOrderId eq googleOrderId }.firstOrNull()?.toRaw()
+		}
+	}
+
 	override suspend fun create(payment: Payment): Payment? {
 		return withTransaction {
 			PaymentEntity.new(payment.id) {

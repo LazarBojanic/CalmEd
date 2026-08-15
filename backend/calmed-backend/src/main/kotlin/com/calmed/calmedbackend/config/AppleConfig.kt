@@ -4,10 +4,10 @@ import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.propertyOrNull
 
 data class AppleConfig(
-    val iosBundleId: String, // This is the Bundle ID for iOS
+    val iosBundleId: String,
     val teamId: String,
     val keyId: String,
-    val clientId: String, // This is the Service ID for Web/Android
+    val clientId: String,
     val privateKeyPem: String,
     val redirectURI: String
 ) {

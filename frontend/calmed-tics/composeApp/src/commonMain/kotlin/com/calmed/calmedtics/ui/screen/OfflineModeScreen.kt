@@ -1,5 +1,6 @@
 package com.calmed.calmedtics.ui.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,7 @@ import com.calmed.calmedtics.status_downloaded
 import com.calmed.calmedtics.status_downloading
 import com.calmed.calmedtics.status_failed
 import com.calmed.calmedtics.status_not_downloaded
+import com.calmed.calmedtics.theme.appBackgroundGradient
 import com.calmed.calmedtics.try_online
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
@@ -69,8 +71,8 @@ fun OfflineModeScreen(
 
     ScreenScaffold(title = stringResource(Res.string.offline_title)){
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxWidth().background(appBackgroundGradient()),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),

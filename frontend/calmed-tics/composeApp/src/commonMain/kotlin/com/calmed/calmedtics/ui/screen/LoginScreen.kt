@@ -1,8 +1,6 @@
 package com.calmed.calmedtics.ui.screen
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -15,12 +13,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.ui.component.GoogleSignInButton
 import com.calmed.calmedtics.ui.component.AppleSignInButton
 import com.calmed.calmedtics.ui.component.PasswordTextField
 import com.calmed.calmedtics.ui.component.PrimaryButton
-import com.calmed.calmedtics.ui.component.ScreenScaffold
+import com.calmed.calmedtics.ui.component.AuthScaffold
 import com.calmed.calmedtics.ui.component.SecondaryButton
 import com.calmed.calmedtics.ui.component.TextField
 import com.calmed.calmedtics.settings.AppSettings
@@ -85,12 +82,7 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    ScreenScaffold(title = stringResource(Res.string.login_title)) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-
+    AuthScaffold(title = stringResource(Res.string.login_title)) {
             if (error != null) {
                 Text(error!!, color = MaterialTheme.colorScheme.error)
             }
@@ -99,7 +91,7 @@ fun LoginScreen(
                 value = email,
                 onValueChange = { email = it },
                 label = stringResource(Res.string.email_label),
-                singleLine = true
+                singleLine = true,
             )
 
             PasswordTextField(
@@ -109,7 +101,6 @@ fun LoginScreen(
                 singleLine = true,
                 isError = false,
                 supportingText = null,
-                modifier = Modifier,
             )
 
             PrimaryButton(
@@ -148,11 +139,11 @@ fun LoginScreen(
 
             TextButton(
                 onClick = onNavigateForgotPassword,
-                enabled = !loading
+                enabled = !loading,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(Res.string.forgot_password))
             }
-        }
     }
 
 }

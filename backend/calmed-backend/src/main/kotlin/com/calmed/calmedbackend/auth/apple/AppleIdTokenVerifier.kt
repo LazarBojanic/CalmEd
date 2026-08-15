@@ -20,7 +20,6 @@ class AppleIdTokenVerifier(
     suspend fun verify(idToken: String): AppleClaims {
         val jwt = SignedJWT.parse(idToken)
 
-        // 1) signature verify using Apple's JWKs
         val claims = jwt.jwtClaimsSet
         val kid = jwt.header.keyID ?: error("Missing kid in token header")
 
@@ -42,7 +41,6 @@ class AppleIdTokenVerifier(
 
         require(jwt.verify(verifier)) { "Invalid Apple token signature" }
 
-        // 2) issuer + exp + audience
         require(claims.issuer == "https://appleid.apple.com") { "Invalid issuer: ${claims.issuer}" }
         val exp = claims.expirationTime
         require(exp != null && exp.after(Date())) { "Token expired" }

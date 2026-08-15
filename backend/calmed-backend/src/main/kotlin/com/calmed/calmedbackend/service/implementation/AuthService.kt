@@ -522,7 +522,6 @@ class AuthService(private val userService: IUserService,
 					)
 
 					if (existingApple != null) {
-						// email može biti null -> koristi postojeći user email iz baze
 						val userRes = userService.getById(existingApple.userId)
 						return@withTransaction when (userRes) {
 							is AppResult.Success -> {

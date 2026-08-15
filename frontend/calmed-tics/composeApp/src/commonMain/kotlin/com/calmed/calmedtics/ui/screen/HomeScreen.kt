@@ -40,6 +40,7 @@ import com.calmed.calmedtics.previous_week
 import com.calmed.calmedtics.week_number
 import com.calmed.calmedtics.no_image
 import com.calmed.calmedtics.select_video
+import com.calmed.calmedtics.theme.appBackgroundGradient
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.util.dateToEpochDay
@@ -179,15 +180,7 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFFC8BCFF),
-                            Color(0xFFF2E8F7),
-                            Color(0xFFF8F6FB)
-                        )
-                    )
-                )
+                .background(appBackgroundGradient())
                 .padding(padding),
             contentPadding = PaddingValues(
                 start = 16.dp,
@@ -1093,21 +1086,16 @@ fun HomeScreen(
                     }
                 }
             }
-            /*
-  * OTHER EXERCISES HEADER
-  */
+
             item {
                 Text(
-                    text = "Other exercises",
+                    text = "Exercises this week",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF29216F)
                 )
             }
 
-            /*
-    * EXERCISE LIST
-    */
             listItemsIndexed(displayExercises) { index, exercise ->
 
                 val displayTitle =

@@ -10,7 +10,9 @@ data class VerifyAppleReceiptDto(
 
 @Serializable
 data class VerifyGoogleReceiptDto(
-    val orderId: String,
-    val productId: String,
-    val purchaseToken: String
+    val orderId: String = "",
+    val productId: String = "",
+    val purchaseToken: String = "",
+    val purchaseData: String = "",
+    val signature: String = "",
 )

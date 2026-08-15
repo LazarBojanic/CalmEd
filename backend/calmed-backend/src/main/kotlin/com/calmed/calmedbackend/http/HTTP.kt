@@ -24,7 +24,6 @@ fun Application.configureHTTP() {
 
 		allowCredentials = true
 
-		// Apple OAuth form_post: browser POSTs from Origin https://appleid.apple.com. CORS rejects unknown origins with 403.
 		allowHost("appleid.apple.com", listOf("https"))
 
 		allowHost("api.calm-ed.com", listOf("https"))
@@ -46,6 +45,6 @@ fun Application.configureHTTP() {
 		}
 	}
 	install(DefaultHeaders) {
-		header("X-Engine", "Ktor") // will send this header with each response
+		header("X-Engine", "Ktor")
 	}
 }
