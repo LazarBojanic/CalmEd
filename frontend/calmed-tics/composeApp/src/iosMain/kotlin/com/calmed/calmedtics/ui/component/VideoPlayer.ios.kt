@@ -2,21 +2,7 @@ package com.calmed.calmedtics.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.FullscreenExit
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -25,27 +11,32 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
 import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
-import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.useContents
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
 import platform.AVFAudio.setActive
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
+import platform.AVFoundation.addPeriodicTimeObserverForInterval
+import platform.AVFoundation.currentTime
+import platform.AVFoundation.duration
+import platform.AVFoundation.muted
 import platform.AVFoundation.pause
 import platform.AVFoundation.play
+import platform.AVFoundation.removeTimeObserver
 import platform.AVFoundation.replaceCurrentItemWithPlayerItem
+import platform.AVFoundation.seekToTime
 import platform.AVKit.AVPlayerViewController
+import platform.CoreMedia.CMTimeGetSeconds
+import platform.CoreMedia.CMTimeMakeWithSeconds
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSURL
 import platform.UIKit.NSLayoutAttributeBottom
@@ -55,6 +46,7 @@ import platform.UIKit.NSLayoutAttributeTrailing
 import platform.UIKit.NSLayoutConstraint
 import platform.UIKit.NSLayoutRelationEqual
 import platform.UIKit.UIView
+import platform.darwin.NSEC_PER_SEC
 import platform.darwin.NSObjectProtocol
 
 @OptIn(ExperimentalForeignApi::class)
@@ -64,13 +56,25 @@ actual fun VideoPlayer(
     modifier: Modifier,
     isFullscreen: Boolean,
     isPlaying: Boolean,
-    onFullscreenToggle: (() -> Unit)?
+    isMuted: Boolean,
+    useController: Boolean,
+    onPositionChanged: ((Long) -> Unit)?,
+    onDurationChanged: ((Long) -> Unit)?,
+    onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
+    onFullscreenToggle: ((Boolean) -> Unit)?,
+    onPlaybackEnded: (() -> Unit)?,
+    restartTrigger: Int
 ) {
+    val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
+    val currentOnDurationChanged by rememberUpdatedState(onDurationChanged)
+    val currentOnVideoOrientationChanged by rememberUpdatedState(onVideoOrientationChanged)
+    val currentOnPlaybackEnded by rememberUpdatedState(onPlaybackEnded)
+
     val player = remember { AVPlayer() }
     val controller = remember {
         AVPlayerViewController().apply {
             this.player = player
-            this.showsPlaybackControls = true
+            this.showsPlaybackControls = useController
             this.allowsPictureInPicturePlayback = true
             this.canStartPictureInPictureAutomaticallyFromInline = true
         }
@@ -84,6 +88,14 @@ actual fun VideoPlayer(
         val session = AVAudioSession.sharedInstance()
         session.setCategory(AVAudioSessionCategoryPlayback, error = null)
         session.setActive(true, error = null)
+    }
+
+    LaunchedEffect(useController) {
+        controller.showsPlaybackControls = useController
+    }
+
+    LaunchedEffect(isMuted) {
+        player.muted = isMuted
     }
 
     LaunchedEffect(hlsUrl, downloadState.status) {
@@ -102,6 +114,15 @@ actual fun VideoPlayer(
 
         val item = AVPlayerItem(uRL = nsUrl)
         player.replaceCurrentItemWithPlayerItem(item)
+
+        val size = item.presentationSize
+        size.useContents {
+            if (width > 0.0 && height > 0.0) {
+                val isPortrait = height >= width
+                currentOnVideoOrientationChanged?.invoke(isPortrait)
+            }
+        }
+
         if (isPlaying) {
             player.play()
         }
@@ -111,7 +132,7 @@ actual fun VideoPlayer(
             `object` = item,
             queue = null
         ) {
-            player.pause()
+            currentOnPlaybackEnded?.invoke()
         }
         tokens.add(endToken)
     }
@@ -124,8 +145,38 @@ actual fun VideoPlayer(
         }
     }
 
-    DisposableEffect(Unit) {
+    LaunchedEffect(restartTrigger) {
+        if (restartTrigger > 0) {
+            player.seekToTime(CMTimeMakeWithSeconds(0.0, NSEC_PER_SEC.toInt()))
+            player.play()
+        }
+    }
+
+    DisposableEffect(player) {
+        val interval = CMTimeMakeWithSeconds(0.5, NSEC_PER_SEC.toInt())
+        val timeObserver = player.addPeriodicTimeObserverForInterval(interval, queue = null) { time ->
+            val seconds = CMTimeGetSeconds(time)
+            val posMs = (seconds * 1000.0).toLong()
+            currentOnPositionChanged?.invoke(posMs)
+
+            val currentItem = player.currentItem
+            if (currentItem != null) {
+                val durSec = CMTimeGetSeconds(currentItem.duration)
+                if (!durSec.isNaN() && durSec > 0.0) {
+                    currentOnDurationChanged?.invoke((durSec * 1000.0).toLong())
+                }
+                val presSize = currentItem.presentationSize
+                presSize.useContents {
+                    if (width > 0.0 && height > 0.0) {
+                        val isPortrait = height >= width
+                        currentOnVideoOrientationChanged?.invoke(isPortrait)
+                    }
+                }
+            }
+        }
+
         onDispose {
+            player.removeTimeObserver(timeObserver)
             player.pause()
             player.replaceCurrentItemWithPlayerItem(null)
             controller.player = null
@@ -190,30 +241,6 @@ actual fun VideoPlayer(
                 isNativeAccessibilityEnabled = true
             )
         )
-
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            DownloadButton(
-                status = downloadState.status,
-                onClick = {
-                    if (downloadState.status == VideoDownloadStatus.NotDownloaded || downloadState.status == VideoDownloadStatus.Failed) {
-                        LocalVideoDownloadManager.download(hlsUrl)
-                    }
-                }
-            )
-
-            if (onFullscreenToggle != null) {
-                Spacer(modifier = Modifier.size(8.dp))
-                FullscreenToggleButton(
-                    isFullscreen = isFullscreen,
-                    onClick = onFullscreenToggle
-                )
-            }
-        }
     }
 }
 
@@ -223,73 +250,27 @@ actual fun VideoPlayerWithState(
     modifier: Modifier,
     isPlaying: Boolean,
     isMuted: Boolean,
+    useController: Boolean,
     onPositionChanged: (Long) -> Unit,
     onDurationChanged: (Long) -> Unit,
-    restartTrigger: Int
+    restartTrigger: Int,
+    onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
+    onFullscreenToggle: ((Boolean) -> Unit)?,
+    onPlaybackEnded: (() -> Unit)?,
+    isFullscreen: Boolean
 ) {
-    // TODO: Implementation for iOS
-    Box(modifier = modifier.background(MaterialTheme.colorScheme.surface))
-}
-
-@Composable
-private fun DownloadButton(
-    status: VideoDownloadStatus,
-    onClick: () -> Unit
-) {
-    val isEnabled = status == VideoDownloadStatus.NotDownloaded || status == VideoDownloadStatus.Failed
-
-    IconButton(
-        onClick = onClick,
-        enabled = isEnabled,
-        modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f))
-    ) {
-        when (status) {
-            VideoDownloadStatus.NotDownloaded -> Icon(
-                imageVector = Icons.Default.Download,
-                contentDescription = "Download",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-
-            VideoDownloadStatus.Downloading -> CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                strokeWidth = 2.dp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            VideoDownloadStatus.Downloaded -> Icon(
-                imageVector = Icons.Default.CheckCircle,
-                contentDescription = "Downloaded",
-                tint = MaterialTheme.colorScheme.tertiary
-            )
-
-            VideoDownloadStatus.Failed -> Icon(
-                imageVector = Icons.Default.ErrorOutline,
-                contentDescription = "Download failed",
-                tint = MaterialTheme.colorScheme.error
-            )
-        }
-    }
-}
-
-@Composable
-private fun FullscreenToggleButton(
-    isFullscreen: Boolean,
-    onClick: () -> Unit
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f))
-    ) {
-        Icon(
-            imageVector = if (isFullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
-            contentDescription = if (isFullscreen) "Exit fullscreen" else "Enter fullscreen",
-            tint = MaterialTheme.colorScheme.surface
-        )
-    }
+    VideoPlayer(
+        hlsUrl = hlsUrl,
+        modifier = modifier,
+        isFullscreen = isFullscreen,
+        isPlaying = isPlaying,
+        isMuted = isMuted,
+        useController = useController,
+        onPositionChanged = onPositionChanged,
+        onDurationChanged = onDurationChanged,
+        onVideoOrientationChanged = onVideoOrientationChanged,
+        onFullscreenToggle = onFullscreenToggle,
+        onPlaybackEnded = onPlaybackEnded,
+        restartTrigger = restartTrigger
+    )
 }

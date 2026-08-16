@@ -71,7 +71,7 @@ import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 fun HomeScreen(
     sessionViewModel: SessionViewModel = koinInject(),
     onExerciseClick: (ProgramExerciseDto) -> Unit,
-    onOpenFullscreen: (String) -> Unit = {}
+    onOpenVideo: (String) -> Unit = {}
 ) {
     val home by sessionViewModel.home.collectAsState(initial = null)
     val user by sessionViewModel.user.collectAsState()
@@ -622,11 +622,9 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(190.dp)
-                        .clickable {
-                            val url = selectedVideoUrl
-
-                            if (!url.isNullOrBlank()) {
-                                onOpenFullscreen(url)
+                        .clickable(enabled = selectedExercise != null) {
+                            selectedExercise?.let { exercise ->
+                                onExerciseClick(exercise)
                             }
                         },
                     shape = RoundedCornerShape(24.dp),
@@ -639,11 +637,6 @@ fun HomeScreen(
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize()
-                            .clickable(enabled = selectedExercise != null) {
-                                selectedExercise?.let { exercise ->
-                                    onExerciseClick(exercise)
-                                }
-                            }
                     ) {
                         if (!thumbnailUrl.isNullOrBlank()) {
                             ThumbnailImage(

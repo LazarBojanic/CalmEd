@@ -18,7 +18,7 @@ import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.store.ITokenDataStore
 import com.calmed.calmedtics.theme.AppTheme
 import com.calmed.calmedtics.ui.screen.ForgotPasswordScreen
-import com.calmed.calmedtics.ui.screen.FullscreenVideoScreen
+import com.calmed.calmedtics.ui.screen.VideoScreen
 import com.calmed.calmedtics.ui.screen.HomeScreen
 import com.calmed.calmedtics.ui.screen.LoginScreen
 import com.calmed.calmedtics.ui.screen.MainScreen
@@ -55,7 +55,7 @@ object Routes {
     const val Home = "home"
     const val WelcomeVideo = "welcome-video"
     const val CourseOverview = "course-overview"
-    const val FullscreenVideo = "video/fullscreen"
+    const val Video = "video"
     const val Main = "main"
     const val Onboarding = "onboarding"
     const val Payment = "payment"
@@ -77,9 +77,8 @@ fun App() {
 
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
-    var fullscreenVideoUrl by rememberSaveable { mutableStateOf<String?>(null) }
-    var fullscreenExercises by remember { mutableStateOf<List<ProgramExerciseDto>?>(null) }
-    var fullscreenIndex by remember { mutableStateOf(0) }
+    var videoExercises by remember { mutableStateOf<List<ProgramExerciseDto>?>(null) }
+    var videoIndex by remember { mutableStateOf(0) }
     var welcomeHandledUserId by rememberSaveable { mutableStateOf<String?>(null) }
     var courseOverviewHandledUserId by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -117,22 +116,31 @@ fun App() {
         }
     }
 
-    fun openFullscreen(url: String) {
+    fun openVideo(url: String) {
         if (url.isBlank()) return
-        fullscreenVideoUrl = url
-        navController.navigate(Routes.FullscreenVideo) {
+        videoExercises = listOf(
+            ProgramExerciseDto(
+                id = "",
+                videoURL = url,
+                title = "",
+                description = "",
+                weekNumber = 1
+            )
+        )
+        videoIndex = 0
+        navController.navigate(Routes.Video) {
             launchSingleTop = true
         }
     }
 
-    fun openFullscreenFromList(
+    fun openVideoFromList(
         exercises: List<ProgramExerciseDto>,
         startIndex: Int,
     ) {
-        fullscreenExercises = exercises
-        fullscreenIndex = startIndex
+        videoExercises = exercises
+        videoIndex = startIndex
 
-        navController.navigate(Routes.FullscreenVideo) {
+        navController.navigate(Routes.Video) {
             launchSingleTop = true
         }
     }
@@ -300,7 +308,7 @@ fun App() {
                                 }
                             }
                         },
-                        onOpenFullscreen = { url -> openFullscreen(url) }
+                        onOpenVideo = { url -> openVideo(url) }
                     )
                 }
 
@@ -347,7 +355,7 @@ fun App() {
                                 launchSingleTop = true
                             }
                         },
-                        onOpenFullscreen = { url -> openFullscreen(url) }
+                        onOpenVideo = { url -> openVideo(url) }
                     )
                 }
 
@@ -387,7 +395,7 @@ fun App() {
                                 launchSingleTop = true
                             }
                         },
-                        onOpenFullscreen = { url -> openFullscreen(url) }
+                        onOpenVideo = { url -> openVideo(url) }
                     )
                 }
 
@@ -453,8 +461,8 @@ fun App() {
                 }
 
 
-                composable(Routes.FullscreenVideo) {
-                    val exercises = fullscreenExercises
+                composable(Routes.Video) {
+                    val exercises = videoExercises
 
                     if (exercises == null || exercises.isEmpty()) {
                         LaunchedEffect(Unit) {
@@ -463,9 +471,9 @@ fun App() {
                         return@composable
                     }
 
-                    FullscreenVideoScreen(
+                    VideoScreen(
                         exercises = exercises,
-                        startIndex = fullscreenIndex,
+                        startIndex = videoIndex,
                         onBack = {
                             navController.popBackStack()
                         }
@@ -480,11 +488,11 @@ fun App() {
                                     launchSingleTop = true
                                 }
                             },
-                            onOpenFullscreen = { url ->
-                                openFullscreen(url)
+                            onOpenVideo = { url ->
+                                openVideo(url)
                             },
-                            onOpenFullscreenFromList = { exercises, startIndex ->
-                                openFullscreenFromList(exercises, startIndex)
+                            onOpenVideoFromList = { exercises, startIndex ->
+                                openVideoFromList(exercises, startIndex)
                             }
                         )
                     }
@@ -494,12 +502,16 @@ fun App() {
                         HomeScreen(
                             sessionViewModel = koinInject(),
                             onExerciseClick = { exercise ->
-                                exercise.playbackId?.let { playbackId ->
-                                    openFullscreen(playbackId)
+                                val allExercises = sessionViewModel.allExercises.value
+                                val index = allExercises.indexOfFirst { it.id == exercise.id }
+                                if (index != -1) {
+                                    openVideoFromList(allExercises, index)
+                                } else {
+                                    openVideoFromList(listOf(exercise), 0)
                                 }
                             },
-                            onOpenFullscreen = { url ->
-                                openFullscreen(url)
+                            onOpenVideo = { url ->
+                                openVideo(url)
                             }
                         )
                     }

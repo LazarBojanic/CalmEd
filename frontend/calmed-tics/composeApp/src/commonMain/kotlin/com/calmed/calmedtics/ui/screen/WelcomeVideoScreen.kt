@@ -53,7 +53,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 fun WelcomeVideoScreen(
     onSkip: () -> Unit,
     onContinue: (Boolean) -> Unit,
-    onOpenFullscreen: (String) -> Unit
+    onOpenVideo: (String) -> Unit
 ) {
     val appApi: IAppApi = koinInject()
     val appSettings: AppSettings = koinInject()
@@ -125,7 +125,7 @@ fun WelcomeVideoScreen(
                                     .fillMaxWidth()
                                     .aspectRatio(16f / 9f),
                                 isPlaying = true,
-                                onFullscreenToggle = { onOpenFullscreen(url) }
+                                onFullscreenToggle = { onOpenVideo(url) }
                             )
                         } else {
                             Box(

@@ -54,7 +54,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun OfflineModeScreen(
     onTryOnline: () -> Unit,
-    onOpenFullscreen: (String) -> Unit
+    onOpenVideo: (String) -> Unit
 ) {
     val downloadedUrls by LocalVideoDownloadManager.downloadedUrls.collectAsState()
     val states by LocalVideoDownloadManager.states.collectAsState()
@@ -143,7 +143,7 @@ fun OfflineModeScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onOpenFullscreen(url) },
+                            .clickable { onOpenVideo(url) },
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
@@ -175,7 +175,7 @@ fun OfflineModeScreen(
                                 tint = MaterialTheme.colorScheme.primary
                             )
 
-                            IconButton(onClick = { onOpenFullscreen(url) }) {
+                            IconButton(onClick = { onOpenVideo(url) }) {
                                 Icon(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = stringResource(Res.string.play_offline_video)

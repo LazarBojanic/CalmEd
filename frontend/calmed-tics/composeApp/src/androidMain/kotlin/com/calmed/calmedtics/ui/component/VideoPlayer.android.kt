@@ -13,10 +13,12 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -24,7 +26,6 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
-import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
 import com.calmed.calmedtics.video.download.DownloadUtil
 import kotlinx.coroutines.delay
@@ -38,65 +39,22 @@ actual fun VideoPlayer(
     modifier: Modifier,
     isFullscreen: Boolean,
     isPlaying: Boolean,
-    onFullscreenToggle: (() -> Unit)?
-) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-
-    val cacheDataSourceFactory = remember {
-        DownloadUtil.getPlaybackDataSourceFactory(context)
-    }
-    val player = remember(cacheDataSourceFactory) {
-        buildPlayer(context, cacheDataSourceFactory)
-    }
-
-    val states by LocalVideoDownloadManager.states.collectAsStateCompat()
-    val downloadState = states.stateFor(hlsUrl)
-
-    DisposableEffect(player) {
-        onDispose { player.release() }
-    }
-
-    LaunchedEffect(hlsUrl, downloadState.status) {
-        LocalVideoDownloadManager.refresh(hlsUrl)
-
-        val playbackUrl = LocalVideoDownloadManager.playbackUrl(hlsUrl)
-        val targetUri = Uri.parse(playbackUrl)
-        val currentUri = player.currentMediaItem?.localConfiguration?.uri
-
-        if (currentUri != targetUri) {
-            player.setMediaItem(MediaItem.fromUri(targetUri))
-            player.prepare()
-        }
-    }
-
-    LaunchedEffect(isPlaying, player) {
-        player.playWhenReady = isPlaying
-        if (isPlaying) {
-            player.play()
-        } else {
-            player.pause()
-        }
-    }
-
-    PlayerContent(
-        modifier = modifier,
-        player = player
-    )
-}
-
-@OptIn(UnstableApi::class)
-@Composable
-actual fun VideoPlayerWithState(
-    hlsUrl: String,
-    modifier: Modifier,
-    isPlaying: Boolean,
     isMuted: Boolean,
-    onPositionChanged: (Long) -> Unit,
-    onDurationChanged: (Long) -> Unit,
+    useController: Boolean,
+    onPositionChanged: ((Long) -> Unit)?,
+    onDurationChanged: ((Long) -> Unit)?,
+    onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
+    onFullscreenToggle: ((Boolean) -> Unit)?,
+    onPlaybackEnded: (() -> Unit)?,
     restartTrigger: Int
-
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+
+    val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
+    val currentOnDurationChanged by rememberUpdatedState(onDurationChanged)
+    val currentOnVideoOrientationChanged by rememberUpdatedState(onVideoOrientationChanged)
+    val currentOnFullscreenToggle by rememberUpdatedState(onFullscreenToggle)
+    val currentOnPlaybackEnded by rememberUpdatedState(onPlaybackEnded)
 
     val cacheDataSourceFactory = remember {
         DownloadUtil.getPlaybackDataSourceFactory(context)
@@ -113,7 +71,20 @@ actual fun VideoPlayerWithState(
             override fun onPlaybackStateChanged(playbackState: Int) {
                 val duration = player.duration
                 if (duration > 0) {
-                    onDurationChanged(duration)
+                    currentOnDurationChanged?.invoke(duration)
+                }
+                if (playbackState == Player.STATE_ENDED) {
+                    currentOnPlaybackEnded?.invoke()
+                }
+            }
+
+            override fun onVideoSizeChanged(videoSize: VideoSize) {
+                val isRotated = videoSize.unappliedRotationDegrees == 90 || videoSize.unappliedRotationDegrees == 270
+                val effectiveWidth = if (isRotated) videoSize.height else videoSize.width
+                val effectiveHeight = if (isRotated) videoSize.width else videoSize.height
+                if (effectiveWidth > 0 && effectiveHeight > 0) {
+                    val isPortrait = effectiveHeight >= effectiveWidth
+                    currentOnVideoOrientationChanged?.invoke(isPortrait)
                 }
             }
         }
@@ -146,9 +117,11 @@ actual fun VideoPlayerWithState(
             player.pause()
         }
     }
+
     LaunchedEffect(isMuted, player) {
         player.volume = if (isMuted) 0f else 1f
     }
+
     LaunchedEffect(restartTrigger) {
         if (restartTrigger > 0) {
             player.seekTo(0L)
@@ -162,9 +135,9 @@ actual fun VideoPlayerWithState(
             val position = player.currentPosition
 
             if (duration > 0) {
-                onDurationChanged(duration)
+                currentOnDurationChanged?.invoke(duration)
             }
-            onPositionChanged(position)
+            currentOnPositionChanged?.invoke(position)
 
             delay(500)
         }
@@ -172,7 +145,40 @@ actual fun VideoPlayerWithState(
 
     PlayerContent(
         modifier = modifier,
-        player = player
+        player = player,
+        useController = useController,
+        onFullscreenToggle = currentOnFullscreenToggle
+    )
+}
+
+@Composable
+actual fun VideoPlayerWithState(
+    hlsUrl: String,
+    modifier: Modifier,
+    isPlaying: Boolean,
+    isMuted: Boolean,
+    useController: Boolean,
+    onPositionChanged: (Long) -> Unit,
+    onDurationChanged: (Long) -> Unit,
+    restartTrigger: Int,
+    onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
+    onFullscreenToggle: ((Boolean) -> Unit)?,
+    onPlaybackEnded: (() -> Unit)?,
+    isFullscreen: Boolean
+) {
+    VideoPlayer(
+        hlsUrl = hlsUrl,
+        modifier = modifier,
+        isFullscreen = isFullscreen,
+        isPlaying = isPlaying,
+        isMuted = isMuted,
+        useController = useController,
+        onPositionChanged = onPositionChanged,
+        onDurationChanged = onDurationChanged,
+        onVideoOrientationChanged = onVideoOrientationChanged,
+        onFullscreenToggle = onFullscreenToggle,
+        onPlaybackEnded = onPlaybackEnded,
+        restartTrigger = restartTrigger
     )
 }
 
@@ -180,14 +186,26 @@ actual fun VideoPlayerWithState(
 @Composable
 private fun PlayerContent(
     modifier: Modifier,
-    player: ExoPlayer
+    player: ExoPlayer,
+    useController: Boolean,
+    onFullscreenToggle: ((Boolean) -> Unit)?
 ) {
     Box(modifier = modifier.background(MaterialTheme.colorScheme.surface)) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
-            factory = { ctx -> createPlayerView(ctx, player) },
+            factory = { ctx ->
+                createPlayerView(ctx, player, useController, onFullscreenToggle)
+            },
             update = { playerView ->
                 playerView.player = player
+                playerView.useController = useController
+                if (onFullscreenToggle != null) {
+                    playerView.setFullscreenButtonClickListener { isFullScreen ->
+                        onFullscreenToggle(isFullScreen)
+                    }
+                } else {
+                    playerView.setFullscreenButtonClickListener(null)
+                }
             }
         )
     }
@@ -207,12 +225,27 @@ private fun buildPlayer(
 @OptIn(UnstableApi::class)
 private fun createPlayerView(
     ctx: android.content.Context,
-    player: ExoPlayer
+    player: ExoPlayer,
+    useController: Boolean,
+    onFullscreenToggle: ((Boolean) -> Unit)?
 ): PlayerView {
     return PlayerView(ctx).apply {
         this.player = player
-        useController = false
-        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+        this.useController = useController
+        this.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+        setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
+        setShowFastForwardButton(true)
+        setShowRewindButton(true)
+        setShowNextButton(false)
+        setShowPreviousButton(false)
+        setShowSubtitleButton(true)
+        controllerShowTimeoutMs = 3000
+        controllerHideOnTouch = true
+        if (onFullscreenToggle != null) {
+            setFullscreenButtonClickListener { isFullScreen ->
+                onFullscreenToggle(isFullScreen)
+            }
+        }
     }
 }
 

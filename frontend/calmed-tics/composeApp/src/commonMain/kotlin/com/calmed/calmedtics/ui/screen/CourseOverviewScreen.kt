@@ -50,7 +50,7 @@ import com.calmed.calmedtics.res_continue
 fun CourseOverviewScreen(
     onSkip: () -> Unit,
     onContinue: (Boolean) -> Unit,
-    onOpenFullscreen: (String) -> Unit
+    onOpenVideo: (String) -> Unit
 ) {
     val appApi: IAppApi = koinInject()
     val appSettings: AppSettings = koinInject()
@@ -120,7 +120,7 @@ fun CourseOverviewScreen(
                                     .fillMaxWidth()
                                     .aspectRatio(16f / 9f),
                                 isPlaying = true,
-                                onFullscreenToggle = { onOpenFullscreen(url) }
+                                onFullscreenToggle = { onOpenVideo(url) }
                             )
                         } else {
                             Box(

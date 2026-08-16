@@ -53,8 +53,8 @@ private enum class MainTab { Home, Exercises, Profile, HelpSupport }
 @Composable
 fun MainScreen(
 	onLogoutToLogin: () -> Unit,
-	onOpenFullscreen: (String) -> Unit,
-	onOpenFullscreenFromList: (List<ProgramExerciseDto>, Int) -> Unit,
+	onOpenVideo: (String) -> Unit,
+	onOpenVideoFromList: (List<ProgramExerciseDto>, Int) -> Unit,
 	sessionViewModel: SessionViewModel = koinInject(),
 	authService: IAuthService = koinInject()
 ) {
@@ -164,11 +164,14 @@ fun MainScreen(
 				MainTab.Home -> HomeScreen(
 					sessionViewModel = sessionViewModel,
 					onExerciseClick = { exercise ->
-						exercise.videoURL?.let { videoUrl ->
-							onOpenFullscreen(videoUrl)
+						val index = allExercises.indexOfFirst { it.id == exercise.id }
+						if (index != -1) {
+							onOpenVideoFromList(allExercises, index)
+						} else {
+							onOpenVideoFromList(listOf(exercise), 0)
 						}
 					},
-					onOpenFullscreen = onOpenFullscreen
+					onOpenVideo = onOpenVideo
 				)
 
 				MainTab.Profile -> ProfileScreen(
@@ -202,9 +205,11 @@ fun MainScreen(
 						currentWeek = home?.currentWeek ?: 1,
 						exercises = allExercises,
 						onExerciseClick = { ex ->
-							val index = allExercises.indexOf(ex)
+							val index = allExercises.indexOfFirst { it.id == ex.id }
 							if (index != -1) {
-								onOpenFullscreenFromList(allExercises, index)
+								onOpenVideoFromList(allExercises, index)
+							} else {
+								onOpenVideoFromList(listOf(ex), 0)
 							}
 						}
 					)
