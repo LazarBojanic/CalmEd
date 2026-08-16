@@ -13,8 +13,8 @@
 		android:allowBackup="false"
 		android:fullBackupContent="false"
 		android:label="@string/app_name"
-		android:icon="@drawable/logo"
-		android:roundIcon="@drawable/logo"
+		android:icon="@drawable/calmed_splash_logo"
+		android:roundIcon="@drawable/calmed_splash_logo"
 		android:supportsRtl="true"
 		android:usesCleartextTraffic="true"
 		android:theme="@android:style/Theme.Material.Light.NoActionBar">
