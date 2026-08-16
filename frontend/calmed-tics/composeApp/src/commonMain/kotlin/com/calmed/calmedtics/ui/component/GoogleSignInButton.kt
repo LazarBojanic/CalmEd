@@ -15,7 +15,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
@@ -38,13 +37,13 @@ fun GoogleSignInButton(
 			.padding(horizontal = 16.dp)
 			.then(modifier),
 		colors = ButtonDefaults.outlinedButtonColors(
-			containerColor = Color.White,
-			contentColor = Color(0xFF3C4043),
-			disabledContainerColor = Color.White,
-			disabledContentColor = Color(0xFF3C4043).copy(alpha = 0.38f),
+			containerColor = MaterialTheme.colorScheme.surface,
+			contentColor = MaterialTheme.colorScheme.onSurface,
+			disabledContainerColor = MaterialTheme.colorScheme.surface,
+			disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
 		),
 		border = ButtonDefaults.outlinedButtonBorder.copy(
-			brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFDADCE0))
+			brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outline)
 		),
 		shape = MaterialTheme.shapes.medium,
 		contentPadding = ButtonDefaults.ContentPadding

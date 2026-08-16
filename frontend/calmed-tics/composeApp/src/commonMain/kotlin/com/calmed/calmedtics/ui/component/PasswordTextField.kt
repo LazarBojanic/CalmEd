@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
@@ -14,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -30,9 +30,9 @@ fun PasswordTextField(
 	supportingText: String? = null,
 	shape: Shape = OutlinedTextFieldDefaults.shape,
 	colors: TextFieldColors = OutlinedTextFieldDefaults.colors(
-		focusedContainerColor = Color.White,
-		unfocusedContainerColor = Color.White,
-		errorContainerColor = Color.White,
+		focusedContainerColor = MaterialTheme.colorScheme.surface,
+		unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+		errorContainerColor = MaterialTheme.colorScheme.surface,
 	),
 ) {
 	val (showPassword, setShowPassword) = remember { mutableStateOf(false) }

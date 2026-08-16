@@ -17,9 +17,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Info
@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,11 +64,6 @@ import org.jetbrains.compose.resources.stringResource
 import androidx.compose.material3.Switch
 import com.calmed.calmedtics.ui.component.CastButton
 import com.calmed.calmedtics.ui.component.KeepScreenAwake
-
-private val PanelColor = Color(0xFFD4CBF3)
-private val TitleBarColor = Color(0xFFD0C6FA)
-private val PrimaryPurpleDark = Color(0xFF6C4BD2)
-private val SoftWhite = Color(0xFFF4EFFB)
 
 @Composable
 fun FullscreenVideoScreen(
@@ -103,7 +99,7 @@ fun FullscreenVideoScreen(
         ) {
             Text(
                 text = stringResource(Res.string.no_exercises_available),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 18.sp
             )
         }
@@ -143,7 +139,7 @@ fun FullscreenVideoScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(22.dp))
-                    .background(PanelColor)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth()
@@ -153,7 +149,7 @@ fun FullscreenVideoScreen(
                             .fillMaxWidth()
                             .height(300.dp)
                             .clip(RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
-                            .background(Color.White)
+                            .background(MaterialTheme.colorScheme.surface)
                             .clickable {
                                 if (!showVideoControls) {
                                     showVideoControls = true
@@ -196,12 +192,12 @@ fun FullscreenVideoScreen(
                                 .padding(start = 6.dp, top = 6.dp)
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.35f))
+                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.45f))
                         ) {
                             Icon(
-                                imageVector = Icons.Default.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
-                                tint = Color.White,
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -209,8 +205,8 @@ fun FullscreenVideoScreen(
                         Column(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-                                .padding(top = 10.dp, end = 6.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(24.dp)
                         ){
                             OverlayIcon(
                                 Icons.Default.Fullscreen,
@@ -239,13 +235,13 @@ fun FullscreenVideoScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(TitleBarColor)
+                            .background(MaterialTheme.colorScheme.secondaryContainer)
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = displayTitle,
-                            color = Color(0xFF2B2F7E),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.weight(1f)
@@ -255,12 +251,12 @@ fun FullscreenVideoScreen(
                             modifier = Modifier
                                 .size(18.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF9E92F3)),
+                                .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "?",
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -274,7 +270,7 @@ fun FullscreenVideoScreen(
 
             Text(
                 text = formatTimeFromMillis(remainingMs),
-                color = SoftWhite,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 60.sp,
                 fontWeight = FontWeight.Light,
                 letterSpacing = 1.sp
@@ -301,7 +297,7 @@ fun FullscreenVideoScreen(
 
             Text(
                 text = stringResource(Res.string.exercise_counter, currentIndex + 1, exercises.size),
-                color = Color(0xFF4A5BFF),
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
@@ -400,7 +396,7 @@ private fun PlayerControls(
             .width(210.dp)
             .height(60.dp)
             .clip(RoundedCornerShape(30.dp))
-            .background(Color(0xFFF2ECF7)),
+            .background(MaterialTheme.colorScheme.surfaceVariant),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -408,7 +404,7 @@ private fun PlayerControls(
                 .width(64.dp)
                 .height(60.dp)
                 .clip(RoundedCornerShape(topStart = 30.dp, bottomStart = 30.dp))
-                .background(Color(0xFF9C92F6)),
+                .background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center
         ) {
             IconButton(
@@ -418,7 +414,7 @@ private fun PlayerControls(
                 Icon(
                     imageVector = Icons.Default.SkipPrevious,
                     contentDescription = null,
-                    tint = if (canGoPrevious) PrimaryPurpleDark else Color.White.copy(alpha = 0.45f),
+                    tint = if (canGoPrevious) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.38f),
                     modifier = Modifier.size(30.dp)
                 )
             }
@@ -436,7 +432,7 @@ private fun PlayerControls(
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = null,
-                    tint = PrimaryPurpleDark,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -445,7 +441,9 @@ private fun PlayerControls(
         Box(
             modifier = Modifier
                 .width(64.dp)
-                .height(60.dp),
+                .height(60.dp)
+                .clip(RoundedCornerShape(topEnd = 30.dp, bottomEnd = 30.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center
         ) {
             IconButton(
@@ -455,7 +453,7 @@ private fun PlayerControls(
                 Icon(
                     imageVector = Icons.Default.SkipNext,
                     contentDescription = null,
-                    tint = if (canGoNext) PrimaryPurpleDark else PrimaryPurpleDark.copy(alpha = 0.35f),
+                    tint = if (canGoNext) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.38f),
                     modifier = Modifier.size(30.dp)
                 )
             }
@@ -480,12 +478,12 @@ private fun OverlayIcon(
         modifier = Modifier
             .size(28.dp)
             .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.25f))
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.45f))
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(14.dp)
         )
     }
