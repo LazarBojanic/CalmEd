@@ -493,7 +493,14 @@ fun App() {
                     composable(Routes.Home) {
                         HomeScreen(
                             sessionViewModel = koinInject(),
-                            onOpenFullscreen = { url -> openFullscreen(url) }
+                            onExerciseClick = { exercise ->
+                                exercise.playbackId?.let { playbackId ->
+                                    openFullscreen(playbackId)
+                                }
+                            },
+                            onOpenFullscreen = { url ->
+                                openFullscreen(url)
+                            }
                         )
                     }
                 }

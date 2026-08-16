@@ -64,11 +64,13 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.ui.unit.sp
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.util.epochDayToYmd
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 @Composable
 fun HomeScreen(
     sessionViewModel: SessionViewModel = koinInject(),
+    onExerciseClick: (ProgramExerciseDto) -> Unit,
     onOpenFullscreen: (String) -> Unit = {}
 ) {
     val home by sessionViewModel.home.collectAsState(initial = null)
@@ -76,6 +78,7 @@ fun HomeScreen(
     val userInfo by sessionViewModel.userInfo.collectAsState()
     val allExercises by sessionViewModel.allExercises.collectAsState()
     val allCompletions by sessionViewModel.allCompletions.collectAsState()
+
 
     val ymd = currentYmd()
     val scope = rememberCoroutineScope()
@@ -636,6 +639,11 @@ fun HomeScreen(
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize()
+                            .clickable(enabled = selectedExercise != null) {
+                                selectedExercise?.let { exercise ->
+                                    onExerciseClick(exercise)
+                                }
+                            }
                     ) {
                         if (!thumbnailUrl.isNullOrBlank()) {
                             ThumbnailImage(

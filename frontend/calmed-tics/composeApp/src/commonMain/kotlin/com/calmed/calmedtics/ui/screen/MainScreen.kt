@@ -163,6 +163,11 @@ fun MainScreen(
 			when (selectedTab.value) {
 				MainTab.Home -> HomeScreen(
 					sessionViewModel = sessionViewModel,
+					onExerciseClick = { exercise ->
+						exercise.videoURL?.let { videoUrl ->
+							onOpenFullscreen(videoUrl)
+						}
+					},
 					onOpenFullscreen = onOpenFullscreen
 				)
 
