@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -133,7 +134,7 @@ actual fun VideoPlayer(
         }
     }
 
-    Box(modifier = modifier.background(Color.Black)) {
+    Box(modifier = modifier.background(MaterialTheme.colorScheme.surface)) {
         UIKitView(
             modifier = Modifier.fillMaxSize(),
             factory = {
@@ -227,7 +228,7 @@ actual fun VideoPlayerWithState(
     restartTrigger: Int
 ) {
     // TODO: Implementation for iOS
-    Box(modifier = modifier.background(Color.Black))
+    Box(modifier = modifier.background(MaterialTheme.colorScheme.surface))
 }
 
 @Composable
@@ -243,31 +244,31 @@ private fun DownloadButton(
         modifier = Modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.45f))
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f))
     ) {
         when (status) {
             VideoDownloadStatus.NotDownloaded -> Icon(
                 imageVector = Icons.Default.Download,
                 contentDescription = "Download",
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onSurface
             )
 
             VideoDownloadStatus.Downloading -> CircularProgressIndicator(
                 modifier = Modifier.size(20.dp),
                 strokeWidth = 2.dp,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             VideoDownloadStatus.Downloaded -> Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = "Downloaded",
-                tint = Color(0xFF4CAF50)
+                tint = MaterialTheme.colorScheme.tertiary
             )
 
             VideoDownloadStatus.Failed -> Icon(
                 imageVector = Icons.Default.ErrorOutline,
                 contentDescription = "Download failed",
-                tint = Color(0xFFFF8A80)
+                tint = MaterialTheme.colorScheme.error
             )
         }
     }
@@ -283,12 +284,12 @@ private fun FullscreenToggleButton(
         modifier = Modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.45f))
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f))
     ) {
         Icon(
             imageVector = if (isFullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
             contentDescription = if (isFullscreen) "Exit fullscreen" else "Enter fullscreen",
-            tint = Color.White
+            tint = MaterialTheme.colorScheme.surface
         )
     }
 }

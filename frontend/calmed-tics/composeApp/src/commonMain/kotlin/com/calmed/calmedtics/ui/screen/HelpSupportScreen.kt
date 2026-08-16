@@ -1,5 +1,6 @@
 package com.calmed.calmedtics.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,7 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.calmed.calmedtics.theme.appBackgroundGradient
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
@@ -68,21 +68,21 @@ fun HelpSupportScreen(
                 text = stringResource(Res.string.help_support_heading),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = stringResource(Res.string.help_support_description),
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.Black.copy(alpha = 0.85f)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.15f)),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.35f)
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)
                 )
             ) {
                 Column(
@@ -99,21 +99,21 @@ fun HelpSupportScreen(
                         label = {
                             Text(
                                 text = stringResource(Res.string.subject_label),
-                                color = Color.Black.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                         },
                         singleLine = true,
                         shape = RoundedCornerShape(18.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black,
-                            focusedBorderColor = Color.Black,
-                            unfocusedBorderColor = Color.Black.copy(alpha = 0.35f),
-                            focusedLabelColor = Color.Black,
-                            unfocusedLabelColor = Color.Black.copy(alpha = 0.7f),
-                            cursorColor = Color.Black,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedBorderColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                            focusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            cursorColor = MaterialTheme.colorScheme.onSurface,
+                            focusedContainerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.inverseOnSurface
                         )
                     )
 
@@ -129,20 +129,20 @@ fun HelpSupportScreen(
                         label = {
                             Text(
                                 text = stringResource(Res.string.message_label),
-                                color = Color.Black.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                         },
                         shape = RoundedCornerShape(18.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black,
-                            focusedBorderColor = Color.Black,
-                            unfocusedBorderColor = Color.Black.copy(alpha = 0.35f),
-                            focusedLabelColor = Color.Black,
-                            unfocusedLabelColor = Color.Black.copy(alpha = 0.7f),
-                            cursorColor = Color.Black,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedBorderColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                            focusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            cursorColor = MaterialTheme.colorScheme.onSurface,
+                            focusedContainerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.inverseOnSurface
                         )
                     )
 
@@ -161,7 +161,7 @@ fun HelpSupportScreen(
                         Text(
                             text = stringResource(Res.string.message_success),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold
                         )
                     }

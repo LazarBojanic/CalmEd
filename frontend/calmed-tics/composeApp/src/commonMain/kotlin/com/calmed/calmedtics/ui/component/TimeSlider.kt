@@ -1,11 +1,11 @@
 package com.calmed.calmedtics.ui.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -41,8 +41,8 @@ fun TimeSlider(
         Surface(
             onClick = { showDialog = true },
             shape = MaterialTheme.shapes.medium,
-            color = Color.White.copy(alpha = 0.25f),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.15f)),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
@@ -56,12 +56,12 @@ fun TimeSlider(
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.Black.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = initialTime,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Text(

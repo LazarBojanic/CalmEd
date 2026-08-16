@@ -133,13 +133,13 @@ fun ProfileScreen(
 					InfoSection(title = stringResource(Res.string.personal_details)) {
 						Text(
 							text = stringResource(Res.string.profile_error),
-							color = Color.Black
+							color = MaterialTheme.colorScheme.error
 						)
 
 						if (error != null) {
 							Text(
 								text = stringResource(Res.string.error_prefix, error ?: ""),
-								color = Color.Black.copy(alpha = 0.85f)
+								color = MaterialTheme.colorScheme.onSurfaceVariant
 							)
 						}
 
@@ -184,8 +184,8 @@ fun ProfileScreen(
 									modifier = Modifier
 										.size(96.dp)
 										.clip(CircleShape)
-										.background(Color.White.copy(alpha = 0.35f))
-										.border(1.dp, Color.Black.copy(alpha = 0.15f), CircleShape),
+										.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.35f))
+										.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), CircleShape),
 									contentAlignment = Alignment.Center
 								) {
 									if (profileImageBitmap != null) {
@@ -201,7 +201,7 @@ fun ProfileScreen(
 											imageVector = Icons.Default.Person,
 											contentDescription = null,
 											modifier = Modifier.size(52.dp),
-											tint = Color.Black
+											tint = MaterialTheme.colorScheme.onSurface
 										)
 									}
 								}
@@ -219,10 +219,10 @@ fun ProfileScreen(
 										}
 									},
 									shape = RoundedCornerShape(16.dp),
-									color = Color.White.copy(alpha = 0.28f),
+									color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
 									border = BorderStroke(
 										1.dp,
-										Color.Black.copy(alpha = 0.25f)
+										MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
 									)
 								) {
 									Text(
@@ -231,7 +231,7 @@ fun ProfileScreen(
 											horizontal = 16.dp,
 											vertical = 10.dp
 										),
-										color = Color.Black,
+										color = MaterialTheme.colorScheme.onSurface,
 										fontWeight = FontWeight.Medium
 									)
 								}
@@ -249,7 +249,7 @@ fun ProfileScreen(
 
 							Text(
 								text = stringResource(Res.string.age),
-								color = Color.Black
+								color = MaterialTheme.colorScheme.onSurface
 							)
 
 							TextField(
@@ -275,16 +275,11 @@ fun ProfileScreen(
 								onValueChange = { age.intValue = it.toInt().coerceIn(18, 125) },
 								valueRange = 18f..125f,
 								steps = 62,
-								colors = SliderDefaults.colors(
-									thumbColor = Color.Black,
-									activeTrackColor = Color.Black,
-									inactiveTrackColor = Color.Black.copy(alpha = 0.25f)
-								)
 							)
 
 							Text(
 								text = stringResource(Res.string.stress_value, stress.intValue),
-								color = Color.Black
+								color = MaterialTheme.colorScheme.onSurface
 							)
 
 							Slider(
@@ -292,11 +287,6 @@ fun ProfileScreen(
 								onValueChange = { stress.intValue = it.toInt() },
 								valueRange = 0f..10f,
 								steps = 9,
-								colors = SliderDefaults.colors(
-									thumbColor = Color.Black,
-									activeTrackColor = Color.Black,
-									inactiveTrackColor = Color.Black.copy(alpha = 0.25f)
-								)
 							)
 						}
 					}
@@ -305,7 +295,7 @@ fun ProfileScreen(
 						InfoSection(title = stringResource(Res.string.edit_condition_info)) {
 							Text(
 								text = stringResource(Res.string.tics_type),
-								color = Color.Black
+								color = MaterialTheme.colorScheme.onSurface
 							)
 
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -328,7 +318,7 @@ fun ProfileScreen(
 
 							Text(
 								text = stringResource(Res.string.tics_frequency),
-								color = Color.Black
+								color = MaterialTheme.colorScheme.onSurface
 							)
 
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -359,10 +349,10 @@ fun ProfileScreen(
 							Surface(
 								modifier = Modifier.fillMaxWidth(),
 								shape = RoundedCornerShape(20.dp),
-								color = Color.White.copy(alpha = 0.22f),
+								color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
 								border = BorderStroke(
 									width = 1.dp,
-									color = Color.Black.copy(alpha = 0.15f)
+									color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
 								)
 							) {
 								Row(
@@ -373,7 +363,7 @@ fun ProfileScreen(
 								) {
 									Text(
 										text = stringResource(Res.string.follow_progress),
-										color = Color.Black
+										color = MaterialTheme.colorScheme.onSurface
 									)
 									Spacer(modifier = Modifier.weight(1f))
 									Switch(
@@ -536,10 +526,10 @@ fun ProfileScreen(
 					Surface(
 						modifier = Modifier.fillMaxWidth(),
 						shape = RoundedCornerShape(20.dp),
-						color = Color.White.copy(alpha = 0.22f),
+						color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
 						border = BorderStroke(
 							width = 1.dp,
-							color = Color.Black.copy(alpha = 0.15f)
+							color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
 						)
 					) {
 						Row(
@@ -550,7 +540,7 @@ fun ProfileScreen(
 						) {
 							Text(
 								text = stringResource(Res.string.morning_evening),
-								color = Color.Black
+								color = MaterialTheme.colorScheme.onSurface
 							)
 							Spacer(Modifier.weight(1f))
 							Switch(
@@ -624,16 +614,16 @@ private fun RadioOptionRow(
 		modifier = modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(20.dp),
 		color = if (selected) {
-			Color.White.copy(alpha = 0.30f)
+			MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)
 		} else {
-			Color.White.copy(alpha = 0.14f)
+			MaterialTheme.colorScheme.surface.copy(alpha = 0.25f)
 		},
 		border = BorderStroke(
 			width = if (selected) 2.dp else 1.dp,
 			color = if (selected) {
-				Color.Black
+				MaterialTheme.colorScheme.primary
 			} else {
-				Color.Black.copy(alpha = 0.25f)
+				MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
 			}
 		)
 	) {
@@ -652,12 +642,12 @@ private fun RadioOptionRow(
 				modifier = Modifier
 					.size(22.dp)
 					.background(
-						color = if (selected) Color.Black else Color.Transparent,
+						color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
 						shape = CircleShape
 					)
 					.border(
 						width = 2.dp,
-						color = Color.Black,
+						color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
 						shape = CircleShape
 					)
 			)
@@ -667,7 +657,7 @@ private fun RadioOptionRow(
 			Text(
 				text = text,
 				style = MaterialTheme.typography.bodyLarge,
-				color = Color.Black
+				color = MaterialTheme.colorScheme.onSurface
 			)
 		}
 	}
@@ -696,10 +686,10 @@ fun ProfileHeader(
 	Surface(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(28.dp),
-		color = Color.White.copy(alpha = 0.25f),
+		color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
 		border = BorderStroke(
 			1.dp,
-			Color.Black.copy(alpha = 0.15f)
+			MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
 		)
 	) {
 		Column(
@@ -717,9 +707,9 @@ fun ProfileHeader(
 					.size(96.dp)
 					.clip(CircleShape)
 					.background(
-						Color.White.copy(alpha = 0.35f)
+						MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)
 					)
-					.border(1.dp, Color.Black.copy(alpha = 0.15f), CircleShape),
+					.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), CircleShape),
 				contentAlignment = Alignment.Center
 			) {
 
@@ -739,7 +729,7 @@ fun ProfileHeader(
 						imageVector = Icons.Default.Person,
 						contentDescription = null,
 						modifier = Modifier.size(52.dp),
-						tint = Color.Black
+						tint = MaterialTheme.colorScheme.onSurface
 					)
 				}
 			}
@@ -752,7 +742,7 @@ fun ProfileHeader(
 				text = displayName,
 				style = MaterialTheme.typography.headlineSmall,
 				fontWeight = FontWeight.Bold,
-				color = Color.Black
+				color = MaterialTheme.colorScheme.onSurface
 			)
 
 			if (email.isNotEmpty()) {
@@ -763,7 +753,7 @@ fun ProfileHeader(
 				Text(
 					text = email,
 					style = MaterialTheme.typography.bodyMedium,
-					color = Color.Black.copy(alpha = 0.75f)
+					color = MaterialTheme.colorScheme.onSurfaceVariant
 				)
 			}
 		}
@@ -776,17 +766,17 @@ fun InfoSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 			text = title,
 			style = MaterialTheme.typography.titleMedium,
 			fontWeight = FontWeight.SemiBold,
-			color = Color.Black,
+			color = MaterialTheme.colorScheme.onSurface,
 			modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
 		)
 
 		Surface(
 			modifier = Modifier.fillMaxWidth(),
 			shape = RoundedCornerShape(24.dp),
-			color = Color.White.copy(alpha = 0.22f),
+			color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
 			border = BorderStroke(
 				1.dp,
-				Color.Black.copy(alpha = 0.15f)
+				MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
 			)
 		) {
 			Column(
@@ -809,15 +799,15 @@ fun InfoRow(icon: ImageVector, label: String, value: String) {
 			modifier = Modifier
 				.size(36.dp)
 				.clip(CircleShape)
-				.background(Color.White.copy(alpha = 0.35f))
-				.border(1.dp, Color.Black.copy(alpha = 0.15f), CircleShape),
+				.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.35f))
+				.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), CircleShape),
 			contentAlignment = Alignment.Center
 		) {
 			Icon(
 				imageVector = icon,
 				contentDescription = null,
 				modifier = Modifier.size(18.dp),
-				tint = Color.Black
+				tint = MaterialTheme.colorScheme.onSurface
 			)
 		}
 
@@ -827,7 +817,7 @@ fun InfoRow(icon: ImageVector, label: String, value: String) {
 			Text(
 				text = label,
 				style = MaterialTheme.typography.labelMedium,
-				color = Color.Black.copy(alpha = 0.65f)
+				color = MaterialTheme.colorScheme.onSurfaceVariant
 			)
 
 			Spacer(modifier = Modifier.height(2.dp))
@@ -836,7 +826,7 @@ fun InfoRow(icon: ImageVector, label: String, value: String) {
 				text = value,
 				style = MaterialTheme.typography.bodyLarge,
 				fontWeight = FontWeight.Medium,
-				color = Color.Black
+				color = MaterialTheme.colorScheme.onSurface
 			)
 		}
 	}
@@ -862,15 +852,15 @@ fun SettingsRow(
 				modifier = Modifier
 					.size(36.dp)
 					.clip(CircleShape)
-					.background(Color.White.copy(alpha = 0.35f))
-					.border(1.dp, Color.Black.copy(alpha = 0.15f), CircleShape),
+					.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.35f))
+					.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), CircleShape),
 				contentAlignment = Alignment.Center
 			) {
 				Icon(
 					imageVector = icon,
 					contentDescription = null,
 					modifier = Modifier.size(18.dp),
-					tint = Color.Black
+					tint = MaterialTheme.colorScheme.onSurface
 				)
 			}
 
@@ -880,7 +870,7 @@ fun SettingsRow(
 				text = label,
 				style = MaterialTheme.typography.bodyLarge,
 				fontWeight = FontWeight.Medium,
-				color = Color.Black
+				color = MaterialTheme.colorScheme.onSurface
 			)
 
 			Spacer(modifier = Modifier.weight(1f))
@@ -888,7 +878,7 @@ fun SettingsRow(
 			Icon(
 				imageVector = Icons.Default.KeyboardArrowRight,
 				contentDescription = null,
-				tint = Color.Black.copy(alpha = 0.7f)
+				tint = MaterialTheme.colorScheme.onSurfaceVariant
 			)
 		}
 	}

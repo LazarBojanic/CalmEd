@@ -65,7 +65,7 @@ fun AuthScaffold(
 						Icon(
 							imageVector = Icons.AutoMirrored.Filled.ArrowBack,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSecondary,
+							tint = MaterialTheme.colorScheme.onSurface,
 						)
 					}
 				}

@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
@@ -209,13 +210,13 @@ fun HomeScreen(
                         ),
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF312783)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
                         text = stringResource(Res.string.home_welcome),
                         fontSize = 15.sp,
-                        color = Color(0xFF6F688A)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -268,7 +269,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.White.copy(alpha = 0.88f)
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
                     ),
                     elevation = CardDefaults.cardElevation(
                         defaultElevation = 5.dp
@@ -298,8 +299,8 @@ fun HomeScreen(
                                     .background(
                                         brush = Brush.linearGradient(
                                             colors = listOf(
-                                                Color(0xFFF1E9FF),
-                                                Color(0xFFE6D9FF)
+                                                MaterialTheme.colorScheme.primaryContainer,
+                                                MaterialTheme.colorScheme.secondaryContainer
                                             )
                                         ),
                                         shape = RoundedCornerShape(15.dp)
@@ -309,7 +310,7 @@ fun HomeScreen(
                                 Icon(
                                     imageVector = Icons.Default.DateRange,
                                     contentDescription = null,
-                                    tint = Color(0xFF714AE8),
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(27.dp)
                                 )
                             }
@@ -327,7 +328,7 @@ fun HomeScreen(
                                     ),
                                     fontSize = 19.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF2F236D)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 Text(
@@ -336,7 +337,7 @@ fun HomeScreen(
                                                 "${endYmd.day}.${endYmd.month}.",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF817997)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
@@ -347,7 +348,7 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .size(40.dp)
                                         .background(
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
                                             shape = CircleShape
                                         )
                                         .clickable(
@@ -368,9 +369,9 @@ fun HomeScreen(
                                                 trackerStartEpoch - 7 >=
                                                 startWeekMondayEpoch
                                             ) {
-                                                Color(0xFF6847D8)
+                                                MaterialTheme.colorScheme.primary
                                             } else {
-                                                Color(0xFFC7C1D1)
+                                                MaterialTheme.colorScheme.outlineVariant
                                             },
                                         modifier = Modifier.size(23.dp)
                                     )
@@ -380,7 +381,7 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .size(40.dp)
                                         .background(
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
                                             shape = CircleShape
                                         )
                                         .clickable {
@@ -407,9 +408,9 @@ fun HomeScreen(
                                                 displayWeek <
                                                 (home?.currentWeek ?: 1)
                                             ) {
-                                                Color(0xFF6847D8)
+                                                MaterialTheme.colorScheme.primary
                                             } else {
-                                                Color(0xFFC7C1D1)
+                                                MaterialTheme.colorScheme.outlineVariant
                                             },
                                         modifier = Modifier.size(23.dp)
                                     )
@@ -497,9 +498,9 @@ fun HomeScreen(
                                             },
                                         color =
                                             if (isSelected) {
-                                                Color(0xFF5B39C5)
+                                                MaterialTheme.colorScheme.primary
                                             } else {
-                                                Color(0xFF817A96)
+                                                MaterialTheme.colorScheme.onSurfaceVariant
                                             }
                                     )
 
@@ -513,8 +514,8 @@ fun HomeScreen(
                                                             brush =
                                                                 Brush.linearGradient(
                                                                     colors = listOf(
-                                                                        Color(0xFF8254ED),
-                                                                        Color(0xFF6235DB)
+                                                                        MaterialTheme.colorScheme.primary,
+                                                                        MaterialTheme.colorScheme.secondary
                                                                     )
                                                                 ),
                                                             shape = CircleShape
@@ -524,19 +525,19 @@ fun HomeScreen(
                                                     isToday -> {
                                                         Modifier
                                                             .background(
-                                                                color = Color.White,
+                                                                color = MaterialTheme.colorScheme.surface,
                                                                 shape = CircleShape
                                                             )
                                                             .border(
                                                                 width = 1.5.dp,
-                                                                color = Color(0xFF9270E8),
+                                                                color = MaterialTheme.colorScheme.primary,
                                                                 shape = CircleShape
                                                             )
                                                     }
 
                                                     else -> {
                                                         Modifier.background(
-                                                            color = Color.White,
+                                                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
                                                             shape = CircleShape
                                                         )
                                                     }
@@ -555,9 +556,9 @@ fun HomeScreen(
                                                 },
                                             color =
                                                 if (isSelected) {
-                                                    Color.White
+                                                    MaterialTheme.colorScheme.onPrimary
                                                 } else {
-                                                    Color(0xFF352B62)
+                                                    MaterialTheme.colorScheme.onSurface
                                                 }
                                         )
                                     }
@@ -579,9 +580,9 @@ fun HomeScreen(
                                                 .background(
                                                     color =
                                                         if (morningCompleted) {
-                                                            Color(0xFFFFA51F)
+                                                            MaterialTheme.colorScheme.tertiary
                                                         } else {
-                                                            Color(0xFFD3CFD9)
+                                                            MaterialTheme.colorScheme.outlineVariant
                                                         },
                                                     shape = CircleShape
                                                 )
@@ -593,9 +594,9 @@ fun HomeScreen(
                                                 .background(
                                                     color =
                                                         if (eveningCompleted) {
-                                                            Color(0xFF7955DF)
+                                                            MaterialTheme.colorScheme.primary
                                                         } else {
-                                                            Color(0xFFD3CFD9)
+                                                            MaterialTheme.colorScheme.outlineVariant
                                                         },
                                                     shape = CircleShape
                                                 )
@@ -646,12 +647,12 @@ fun HomeScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color(0xFF7771A7)),
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(Res.string.no_image),
-                                    color = Color.White
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -662,8 +663,8 @@ fun HomeScreen(
                                 .background(
                                     Brush.horizontalGradient(
                                         colors = listOf(
-                                            Color.Black.copy(alpha = 0.68f),
-                                            Color.Black.copy(alpha = 0.30f),
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f),
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.30f),
                                             Color.Transparent
                                         )
                                     )
@@ -686,8 +687,8 @@ fun HomeScreen(
                                     .background(
                                         brush = Brush.horizontalGradient(
                                             colors = listOf(
-                                                Color(0xFF6538E3),
-                                                Color(0xFF8B55ED)
+                                                MaterialTheme.colorScheme.primary,
+                                                MaterialTheme.colorScheme.secondary
                                             )
                                         ),
                                         shape = RoundedCornerShape(9.dp)
@@ -701,7 +702,7 @@ fun HomeScreen(
                                     text = "TODAY'S EXERCISE",
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
 
@@ -710,7 +711,7 @@ fun HomeScreen(
                                 fontSize = 19.sp,
                                 lineHeight = 22.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -728,14 +729,14 @@ fun HomeScreen(
                                     } ?: "--:-- min",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color.White.copy(alpha = 0.90f)
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.90f)
                                 )
 
                                 Box(
                                     modifier = Modifier
                                         .size(4.dp)
                                         .background(
-                                            Color.White.copy(alpha = 0.75f),
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                                             CircleShape
                                         )
                                 )
@@ -744,7 +745,7 @@ fun HomeScreen(
                                     text = "Week $displayWeek",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color.White.copy(alpha = 0.90f)
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.90f)
                                 )
                             }
                         }
@@ -754,7 +755,7 @@ fun HomeScreen(
                                 .align(Alignment.Center)
                                 .size(52.dp)
                                 .background(
-                                    color = Color.White.copy(alpha = 0.96f),
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -763,7 +764,7 @@ fun HomeScreen(
                                 imageVector = Icons.Default.PlayArrow,
                                 contentDescription =
                                     stringResource(Res.string.select_video),
-                                tint = Color(0xFF6D3EE5),
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .size(28.dp)
                                     .padding(start = 2.dp)
@@ -817,7 +818,7 @@ fun HomeScreen(
                             },
                         shape = RoundedCornerShape(18.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFFFFBF3)
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
                         ),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 3.dp
@@ -837,14 +838,15 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .size(40.dp)
                                         .background(
-                                            color = Color(0xFFFFE8B8),
+                                            color = MaterialTheme.colorScheme.tertiaryContainer,
                                             shape = CircleShape
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         text = "☀",
-                                        fontSize = 23.sp
+                                        fontSize = 23.sp,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer
                                     )
                                 }
 
@@ -858,7 +860,7 @@ fun HomeScreen(
                                         text = "Morning",
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF2E285F)
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
 
                                     Row(
@@ -876,9 +878,9 @@ fun HomeScreen(
                                             fontWeight = FontWeight.Medium,
                                             color =
                                                 if (morningCompleted) {
-                                                    Color(0xFF27AE60)
+                                                    MaterialTheme.colorScheme.tertiary
                                                 } else {
-                                                    Color(0xFF817B92)
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
                                                 }
                                         )
 
@@ -888,13 +890,13 @@ fun HomeScreen(
                                                 .then(
                                                     if (morningCompleted) {
                                                         Modifier.background(
-                                                            color = Color(0xFF27AE60),
+                                                            color = MaterialTheme.colorScheme.tertiary,
                                                             shape = CircleShape
                                                         )
                                                     } else {
                                                         Modifier.border(
                                                             width = 1.5.dp,
-                                                            color = Color(0xFF8E879D),
+                                                            color = MaterialTheme.colorScheme.outline,
                                                             shape = CircleShape
                                                         )
                                                     }
@@ -906,7 +908,7 @@ fun HomeScreen(
                                                     text = "✓",
                                                     fontSize = 11.sp,
                                                     fontWeight = FontWeight.Bold,
-                                                    color = Color.White
+                                                    color = MaterialTheme.colorScheme.onTertiary
                                                 )
                                             }
                                         }
@@ -921,7 +923,7 @@ fun HomeScreen(
                                     .fillMaxWidth()
                                     .height(1.dp)
                                     .background(
-                                        Color(0xFFFFE4B2)
+                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                                     )
                             )
 
@@ -936,7 +938,7 @@ fun HomeScreen(
                                     },
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color(0xFF8A7A70)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -960,7 +962,7 @@ fun HomeScreen(
                             },
                         shape = RoundedCornerShape(18.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFF8F5FF)
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
                         ),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 3.dp
@@ -980,7 +982,7 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .size(40.dp)
                                         .background(
-                                            color = Color(0xFFE6DBFF),
+                                            color = MaterialTheme.colorScheme.secondaryContainer,
                                             shape = CircleShape
                                         ),
                                     contentAlignment = Alignment.Center
@@ -988,7 +990,7 @@ fun HomeScreen(
                                     Text(
                                         text = "☾",
                                         fontSize = 23.sp,
-                                        color = Color(0xFF7753D8)
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 }
 
@@ -1002,7 +1004,7 @@ fun HomeScreen(
                                         text = "Evening",
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF2E285F)
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
 
                                     Row(
@@ -1020,9 +1022,9 @@ fun HomeScreen(
                                             fontWeight = FontWeight.Medium,
                                             color =
                                                 if (eveningCompleted) {
-                                                    Color(0xFF7056D9)
+                                                    MaterialTheme.colorScheme.primary
                                                 } else {
-                                                    Color(0xFF817B92)
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
                                                 }
                                         )
 
@@ -1032,13 +1034,13 @@ fun HomeScreen(
                                                 .then(
                                                     if (eveningCompleted) {
                                                         Modifier.background(
-                                                            color = Color(0xFF765AE3),
+                                                            color = MaterialTheme.colorScheme.primary,
                                                             shape = CircleShape
                                                         )
                                                     } else {
                                                         Modifier.border(
                                                             width = 1.5.dp,
-                                                            color = Color(0xFF8E879D),
+                                                            color = MaterialTheme.colorScheme.outline,
                                                             shape = CircleShape
                                                         )
                                                     }
@@ -1050,7 +1052,7 @@ fun HomeScreen(
                                                     text = "✓",
                                                     fontSize = 11.sp,
                                                     fontWeight = FontWeight.Bold,
-                                                    color = Color.White
+                                                    color = MaterialTheme.colorScheme.onPrimary
                                                 )
                                             }
                                         }
@@ -1065,7 +1067,7 @@ fun HomeScreen(
                                     .fillMaxWidth()
                                     .height(1.dp)
                                     .background(
-                                        Color(0xFFE3D9FA)
+                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                                     )
                             )
 
@@ -1080,7 +1082,7 @@ fun HomeScreen(
                                     },
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color(0xFF817A93)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -1092,7 +1094,7 @@ fun HomeScreen(
                     text = "Exercises this week",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF29216F)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -1126,9 +1128,9 @@ fun HomeScreen(
                     colors = CardDefaults.cardColors(
                         containerColor =
                             if (isSelected) {
-                                Color(0xFFF0E9FF)
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
                             } else {
-                                Color.White.copy(alpha = 0.90f)
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
                             }
                     ),
                     elevation = CardDefaults.cardElevation(
@@ -1172,7 +1174,7 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .background(
-                                            Color(0xFFE9E5F2)
+                                            MaterialTheme.colorScheme.surfaceVariant
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -1180,7 +1182,8 @@ fun HomeScreen(
                                         text = stringResource(
                                             Res.string.no_image
                                         ),
-                                        fontSize = 11.sp
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -1201,7 +1204,7 @@ fun HomeScreen(
                                 fontSize = 15.sp,
                                 lineHeight = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF282343),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -1215,7 +1218,7 @@ fun HomeScreen(
                                     "Week ${exercise.weekNumber} · Exercise $exerciseNumber",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color(0xFF817A93),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -1236,13 +1239,13 @@ fun HomeScreen(
                                         .then(
                                             if (isSelected) {
                                                 Modifier.background(
-                                                    color = Color(0xFF7650E8),
+                                                    color = MaterialTheme.colorScheme.primary,
                                                     shape = CircleShape
                                                 )
                                             } else {
                                                 Modifier.border(
                                                     width = 1.5.dp,
-                                                    color = Color(0xFFB5ACC7),
+                                                    color = MaterialTheme.colorScheme.outline,
                                                     shape = CircleShape
                                                 )
                                             }
@@ -1255,7 +1258,7 @@ fun HomeScreen(
                                             modifier = Modifier
                                                 .size(7.dp)
                                                 .background(
-                                                    color = Color.White,
+                                                    color = MaterialTheme.colorScheme.onPrimary,
                                                     shape = CircleShape
                                                 )
                                         )
@@ -1266,7 +1269,7 @@ fun HomeScreen(
                                     text = formattedDuration,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF817A93),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1
                                 )
                             }
@@ -1280,7 +1283,7 @@ fun HomeScreen(
                             imageVector =
                                 Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = Color(0xFF827A9D),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(23.dp)
                         )
                     }
