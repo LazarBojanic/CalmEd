@@ -35,8 +35,8 @@ class MainActivity : FragmentActivity() {
 		lifecycleScope.launch {
 			val billing = provideBillingService()
 			billing.connect()
-			val exists = billing.loadProduct(BillingProducts.APP_ACCESS)
-			Log.d("BILLING", "Product exists = $exists (id=${BillingProducts.APP_ACCESS})")
+			val exists = billing.loadProduct(BillingProducts.TEST_APP_ACCESS)
+			Log.d("BILLING", "Product exists = $exists (id=${BillingProducts.TEST_APP_ACCESS})")
 		}
 		Log.d("APPLE_AUTH", "onCreate intent=$intent")
 		handleDeepLink(intent)

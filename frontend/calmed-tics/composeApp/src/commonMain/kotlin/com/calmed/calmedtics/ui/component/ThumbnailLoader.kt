@@ -15,7 +15,6 @@ fun ThumbnailImage(
 ) {
     if (url.isBlank()) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            // Placeholder
         }
         return
     }

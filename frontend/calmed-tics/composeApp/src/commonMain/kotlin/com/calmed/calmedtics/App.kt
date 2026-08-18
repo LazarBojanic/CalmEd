@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.calmed.calmedtics.auth.getGoogleIdToken
+import com.calmed.calmedtics.billing.provideBillingService
 import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.service.specification.IAuthService
 import com.calmed.calmedtics.settings.AppSettings
@@ -101,7 +102,7 @@ fun App() {
     suspend fun resolveNextAuthenticatedRoute(): String? {
         val remoteUser = sessionViewModel.loadSession() ?: return null
         val isOnboarded = remoteUser.isOnboarded
-        val isPaid = remoteUser.isPaid
+        val isPaid = appApi.getPaymentStatus()?.hasAccess ?: false
         val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser.id)
         val shouldShowWelcomeVideo = showWelcomeVideo && welcomeHandledUserId != remoteUser.id
         val showCourseOverview = appSettings.getShowCourseOverview(remoteUser.id)
@@ -113,6 +114,17 @@ fun App() {
             !isPaid -> Routes.Payment
             !isOnboarded -> Routes.Onboarding
             else -> Routes.Main
+        }
+    }
+
+    fun attemptRestorePurchase() {
+        scope.launch {
+            try {
+                val billing = provideBillingService()
+                billing.restore()
+            } catch (t: Throwable) {
+                println("Restore purchase skipped: ${t.message}")
+            }
         }
     }
 
@@ -190,6 +202,8 @@ fun App() {
                             return@LaunchedEffect
                         }
 
+                        attemptRestorePurchase()
+
                         val nextRoute = resolveNextAuthenticatedRoute()
                         if (nextRoute == null) {
                             navController.navigate(Routes.Login) {
@@ -217,6 +231,7 @@ fun App() {
                         },
 
                         onLoginSuccess = {
+                            attemptRestorePurchase()
                             scope.launch {
                                 val nextRoute = resolveNextAuthenticatedRoute()
                                 if (nextRoute == null) {
@@ -242,6 +257,7 @@ fun App() {
                                     val googleToken = getGoogleIdToken()
                                     val ok = authViewModel.loginWithGoogle(googleToken)
                                     if (ok) {
+                                        attemptRestorePurchase()
                                         val nextRoute = resolveNextAuthenticatedRoute()
                                         if (nextRoute == null) {
                                             navController.navigate(Routes.Login) {
@@ -365,16 +381,12 @@ fun App() {
                     CourseOverviewScreen(
                         onSkip = {
                             courseOverviewHandledUserId = sessionViewModel.user.value?.id
-                            val isPaid = sessionViewModel.user.value?.isPaid == true
-                            val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
-                            val nextRoute = when {
-                                !isPaid -> Routes.Payment
-                                isOnboarded -> Routes.Main
-                                else -> Routes.Onboarding
-                            }
-                            navController.navigate(nextRoute) {
-                                popUpTo(Routes.CourseOverview) { inclusive = true }
-                                launchSingleTop = true
+                            scope.launch {
+                                val nextRoute = resolveNextAuthenticatedRoute() ?: Routes.Payment
+                                navController.navigate(nextRoute) {
+                                    popUpTo(Routes.CourseOverview) { inclusive = true }
+                                    launchSingleTop = true
+                                }
                             }
                         },
                         onContinue = { dontShowAgain ->
@@ -383,16 +395,12 @@ fun App() {
                                 sessionViewModel.user.value?.id,
                                 false
                             )
-                            val isPaid = sessionViewModel.user.value?.isPaid == true
-                            val isOnboarded = sessionViewModel.user.value?.isOnboarded == true
-                            val nextRoute = when {
-                                !isPaid -> Routes.Payment
-                                isOnboarded -> Routes.Main
-                                else -> Routes.Onboarding
-                            }
-                            navController.navigate(nextRoute) {
-                                popUpTo(Routes.CourseOverview) { inclusive = true }
-                                launchSingleTop = true
+                            scope.launch {
+                                val nextRoute = resolveNextAuthenticatedRoute() ?: Routes.Payment
+                                navController.navigate(nextRoute) {
+                                    popUpTo(Routes.CourseOverview) { inclusive = true }
+                                    launchSingleTop = true
+                                }
                             }
                         },
                         onOpenVideo = { url -> openVideo(url) }
@@ -485,6 +493,14 @@ fun App() {
                                 welcomeHandledUserId = null
                                 navController.navigate(Routes.Login) {
                                     popUpTo(Routes.Main) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onAccountDeleted = {
+                                welcomeHandledUserId = null
+                                courseOverviewHandledUserId = null
+                                navController.navigate(Routes.Login) {
+                                    popUpTo(Routes.Splash) { inclusive = true }
                                     launchSingleTop = true
                                 }
                             },

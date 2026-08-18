@@ -3,7 +3,7 @@ package com.calmed.calmedtics.model.raw
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class PaymentType {
+enum class PaymentProvider {
     CARD,
     GOOGLE,
     APPLE,

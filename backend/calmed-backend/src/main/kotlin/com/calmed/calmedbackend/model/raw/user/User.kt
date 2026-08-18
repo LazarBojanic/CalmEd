@@ -17,8 +17,6 @@ data class User(
 	val profileImageUrl: String?,
 	val isEmailVerified: Boolean,
 	val isOnboarded: Boolean,
-	val isPaid: Boolean,
-	val stripeCustomerId: String?,
 	val confirmOverEighteen: Boolean,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
@@ -31,8 +29,6 @@ data class User(
 			username: String,
 			isEmailVerified: Boolean,
 			isOnboarded: Boolean,
-			isPaid: Boolean = false,
-			stripeCustomerId: String? = null,
 			confirmOverEighteen: Boolean = false,
 			createdAt: Instant? = null,
 			updatedAt: Instant? = null,
@@ -47,8 +43,6 @@ data class User(
 				profileImageUrl = null,
 				isEmailVerified = isEmailVerified,
 				isOnboarded = isOnboarded,
-				isPaid = isPaid,
-				stripeCustomerId = stripeCustomerId,
 				confirmOverEighteen = confirmOverEighteen,
 				createdAt = cat,
 				updatedAt = uat
@@ -56,3 +50,4 @@ data class User(
 		}
 	}
 }
+

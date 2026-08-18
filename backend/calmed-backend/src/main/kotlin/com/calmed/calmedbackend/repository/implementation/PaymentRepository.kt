@@ -36,6 +36,24 @@ class PaymentRepository : IPaymentRepository {
 		}
 	}
 
+	override suspend fun findByAppleTransactionId(appleTransactionId: String): Payment? {
+		return withTransaction {
+			PaymentEntity.find { PaymentTable.appleTransactionId eq appleTransactionId }.firstOrNull()?.toRaw()
+		}
+	}
+
+	override suspend fun findByStripeCheckoutSessionId(stripeCheckoutSessionId: String): Payment? {
+		return withTransaction {
+			PaymentEntity.find { PaymentTable.stripeCheckoutSessionId eq stripeCheckoutSessionId }.firstOrNull()?.toRaw()
+		}
+	}
+
+	override suspend fun findByPayPalOrderId(paypalOrderId: String): Payment? {
+		return withTransaction {
+			PaymentEntity.find { PaymentTable.paypalOrderId eq paypalOrderId }.firstOrNull()?.toRaw()
+		}
+	}
+
 	override suspend fun create(payment: Payment): Payment? {
 		return withTransaction {
 			PaymentEntity.new(payment.id) {
@@ -67,4 +85,36 @@ class PaymentRepository : IPaymentRepository {
 			}
 		}
 	}
+
+	override suspend fun deleteByUserId(userId: UUID): Boolean {
+		return withTransaction {
+			val entities = PaymentEntity.find { PaymentTable.userId eq userId }
+			var deleted = false
+			for (e in entities) {
+				e.delete()
+				deleted = true
+			}
+			deleted
+		}
+	}
+
+	override suspend fun anonymizeByUserId(userId: UUID): Boolean {
+		return withTransaction {
+			val entities = PaymentEntity.find { PaymentTable.userId eq userId }
+			var updated = false
+			for (e in entities) {
+				var modified = false
+				if (e.userId != null) {
+					e.userId = null
+					modified = true
+				}
+				if (modified) {
+					e.updatedAt = java.time.Instant.now()
+					updated = true
+				}
+			}
+			updated
+		}
+	}
 }
+

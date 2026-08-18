@@ -84,6 +84,18 @@ class UserInfoTicsRepository : IUserInfoTicsRepository {
 		}
 	}
 
+	override suspend fun deleteByUserId(userId: UUID): Boolean {
+		return withTransaction {
+			val entities = UserInfoTicsEntity.find { UserInfoTicsTable.userId eq userId }
+			var deleted = false
+			for (e in entities) {
+				e.delete()
+				deleted = true
+			}
+			deleted
+		}
+	}
+
 	override suspend fun updateById(id: UUID, dto: UserInfoTicsUpdateDto
 	): UserInfoTics? {
 		return withTransaction {

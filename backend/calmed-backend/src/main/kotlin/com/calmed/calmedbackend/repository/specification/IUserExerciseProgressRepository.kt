@@ -12,6 +12,7 @@ interface IUserExerciseProgressRepository {
 	suspend fun create(progress: UserExerciseProgress): UserExerciseProgress?
 	suspend fun update(progress: UserExerciseProgress): UserExerciseProgress?
 	suspend fun delete(id: UUID): Boolean
+	suspend fun deleteByUserId(userId: UUID): Boolean
 	suspend fun deleteByCriteria(userId: UUID, week: Int, day: Int, session: ExerciseSession): Boolean
 	suspend fun findByCriteria(userId: UUID, week: Int, day: Int, session: ExerciseSession): UserExerciseProgress?
 	suspend fun findAllByUserIdAndWeek(userId: UUID, week: Int): List<UserExerciseProgress>

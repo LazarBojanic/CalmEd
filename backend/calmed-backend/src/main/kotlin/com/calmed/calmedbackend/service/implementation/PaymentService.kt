@@ -8,7 +8,8 @@ import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.*
 import com.calmed.calmedbackend.model.dto.response.*
 import com.calmed.calmedbackend.model.raw.payment.Payment
-import com.calmed.calmedbackend.model.raw.user.PaymentType
+import com.calmed.calmedbackend.model.raw.payment.PaymentProvider
+import com.calmed.calmedbackend.model.raw.payment.PaymentStatus
 import com.calmed.calmedbackend.repository.specification.IPaymentRepository
 import com.calmed.calmedbackend.service.specification.IPaymentService
 import com.calmed.calmedbackend.service.specification.IUserService
@@ -20,6 +21,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.slf4j.LoggerFactory
@@ -27,6 +29,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Instant
 import java.util.Base64
 import java.util.UUID
 
@@ -48,6 +51,26 @@ class PaymentService(
 
     private val paypalJson = Json {
         ignoreUnknownKeys = true
+    }
+
+    private suspend fun userHasActivePayment(userId: UUID): Boolean {
+        val payments = paymentRepository.findByUserId(userId)
+        return payments.any { it.status == PaymentStatus.SUCCESSFUL && it.refundedAt == null }
+    }
+
+    private suspend fun latestActivePaymentProvider(userId: UUID): PaymentProvider? {
+        return paymentRepository
+            .findByUserId(userId)
+            .filter { it.status == PaymentStatus.SUCCESSFUL && it.refundedAt == null }
+            .maxByOrNull { it.createdAt }
+            ?.provider
+    }
+
+    private suspend fun latestPaymentStatus(userId: UUID): PaymentStatus? {
+        return paymentRepository
+            .findByUserId(userId)
+            .maxByOrNull { it.createdAt }
+            ?.status
     }
 
     private fun getPayPalAccessToken(): String {
@@ -81,10 +104,11 @@ class PaymentService(
             val userRes = userService.getById(userId)
             when (userRes) {
                 is AppResult.Success -> {
-                    val user = userRes.data
                     AppResult.Success(
                         PaymentStatusDto(
-                            isPaid = user.isPaid,
+                            hasAccess = userHasActivePayment(userId),
+                            status = latestPaymentStatus(userId),
+                            provider = latestActivePaymentProvider(userId),
                             amount = stripeConfig.amount,
                             currency = stripeConfig.currency
                         )
@@ -135,27 +159,50 @@ class PaymentService(
     override suspend fun handleStripeWebhook(payload: String, sigHeader: String): AppResult<Unit> {
         return try {
             val event = Webhook.constructEvent(payload, sigHeader, stripeConfig.webhookSecret)
-            if (event.type == "checkout.session.completed") {
-                val session = event.dataObjectDeserializer.getObject().get() as Session
-                val userIdStr = session.metadata["userId"]
-                if (userIdStr != null) {
-                    val userId = UUID.fromString(userIdStr)
-                    val isPaid = session.paymentStatus == "paid" || session.status == "complete"
+            val session = event.dataObjectDeserializer.getObject().get() as? Session ?: return AppResult.Success(Unit)
+            val userIdStr = session.metadata["userId"]
 
-                    paymentRepository.create(
-                        Payment.createNew(
-                            userId = userId,
-                            paymentType = PaymentType.STRIPE,
-                            successful = isPaid
-                        )
-                    )
+            when (event.type) {
+                "checkout.session.completed" -> {
+                    if (userIdStr != null) {
+                        val userId = UUID.fromString(userIdStr)
+                        val isPaid = session.paymentStatus == "paid" || session.status == "complete"
+                        val checkoutId = session.id
 
-                    if (isPaid) {
-                        userService.setPaymentStatus(
-                            id = userId,
-                            isPaid = true,
-                            stripeCustomerId = session.customer
-                        )
+                        val existing = checkoutId?.let { paymentRepository.findByStripeCheckoutSessionId(it) }
+                        if (existing != null) {
+                            paymentRepository.update(
+                                existing.copy(
+                                    status = if (isPaid) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING,
+                                    stripePaymentIntentId = existing.stripePaymentIntentId ?: session.paymentIntent,
+                                    updatedAt = Instant.now()
+                                )
+                            )
+                        } else {
+                            paymentRepository.create(
+                                Payment.createNew(
+                                    userId = userId,
+                                    provider = PaymentProvider.STRIPE,
+                                    stripeCheckoutSessionId = checkoutId,
+                                    stripePaymentIntentId = session.paymentIntent,
+                                    status = if (isPaid) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING
+                                )
+                            )
+                        }
+                    }
+                }
+                "checkout.session.expired" -> {
+                    if (userIdStr != null) {
+                        session.id?.let { checkoutId ->
+                            paymentRepository.findByStripeCheckoutSessionId(checkoutId)?.let { existing ->
+                                paymentRepository.update(
+                                    existing.copy(
+                                        status = PaymentStatus.PENDING,
+                                        updatedAt = Instant.now()
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -171,14 +218,9 @@ class PaymentService(
             paymentRepository.create(
                 Payment.createNew(
                     userId = userId,
-                    paymentType = PaymentType.SKIP,
-                    successful = true
+                    provider = PaymentProvider.SKIP,
+                    status = PaymentStatus.SUCCESSFUL
                 )
-            )
-
-            userService.setPaymentStatus(
-                id = userId,
-                isPaid = true
             )
             paymentStatus(userId)
         } catch (e: Exception) {
@@ -187,8 +229,8 @@ class PaymentService(
                 paymentRepository.create(
                     Payment.createNew(
                         userId = userId,
-                        paymentType = PaymentType.SKIP,
-                        successful = false
+                        provider = PaymentProvider.SKIP,
+                        status = PaymentStatus.PENDING
                     )
                 )
             } catch (ignored: Exception) {}
@@ -202,26 +244,47 @@ class PaymentService(
                 paymentRepository.create(
                     Payment.createNew(
                         userId = userId,
-                        paymentType = PaymentType.APPLE,
-                        appleOriginalTransactionId = null,
-                        successful = false
+                        provider = PaymentProvider.APPLE,
+                        status = PaymentStatus.PENDING
                     )
                 )
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Transaction ID cannot be blank")
             }
 
+            val existing = paymentRepository.findByAppleTransactionId(dto.transactionId)
+            if (existing != null && existing.status == PaymentStatus.SUCCESSFUL) {
+                when (existing.userId) {
+                    userId -> {
+                        return paymentStatus(userId)
+                    }
+                    null -> {
+                        logger.info("Re-attributing previously anonymized Apple transaction ${dto.transactionId} to user $userId on restore")
+                        paymentRepository.update(
+                            existing.copy(
+                                userId = userId,
+                                updatedAt = Instant.now()
+                            )
+                        )
+                        return paymentStatus(userId)
+                    }
+                    else -> {
+                        logger.warn("Replay attack detected: Apple transaction ${dto.transactionId} already claimed")
+                        return AppResult.Failure(
+                            HttpStatusCode.Conflict,
+                            "This Apple transaction has already been redeemed by another account"
+                        )
+                    }
+                }
+            }
+
             paymentRepository.create(
                 Payment.createNew(
                     userId = userId,
-                    paymentType = PaymentType.APPLE,
+                    provider = PaymentProvider.APPLE,
+                    appleTransactionId = dto.transactionId,
                     appleOriginalTransactionId = dto.transactionId,
-                    successful = true
+                    status = PaymentStatus.SUCCESSFUL
                 )
-            )
-
-            userService.setPaymentStatus(
-                id = userId,
-                isPaid = true
             )
             paymentStatus(userId)
         } catch (e: Exception) {
@@ -230,9 +293,9 @@ class PaymentService(
                 paymentRepository.create(
                     Payment.createNew(
                         userId = userId,
-                        paymentType = PaymentType.APPLE,
-                        appleOriginalTransactionId = dto.transactionId.takeIf { it.isNotBlank() },
-                        successful = false
+                        provider = PaymentProvider.APPLE,
+                        appleTransactionId = dto.transactionId.takeIf { it.isNotBlank() },
+                        status = PaymentStatus.PENDING
                     )
                 )
             } catch (ignored: Exception) {}
@@ -254,9 +317,8 @@ class PaymentService(
                     paymentRepository.create(
                         Payment.createNew(
                             userId = userId,
-                            paymentType = PaymentType.GOOGLE,
-                            googleOrderId = null,
-                            successful = false
+                            provider = PaymentProvider.GOOGLE,
+                            status = PaymentStatus.PENDING
                         )
                     )
                     return AppResult.Failure(HttpStatusCode.BadRequest, "Invalid Google purchase data JSON format")
@@ -268,9 +330,8 @@ class PaymentService(
                     paymentRepository.create(
                         Payment.createNew(
                             userId = userId,
-                            paymentType = PaymentType.GOOGLE,
-                            googleOrderId = null,
-                            successful = false
+                            provider = PaymentProvider.GOOGLE,
+                            status = PaymentStatus.PENDING
                         )
                     )
                     return AppResult.Failure(HttpStatusCode.BadRequest, "Package name mismatch in purchase data")
@@ -280,12 +341,14 @@ class PaymentService(
                 if (purchaseState != null && purchaseState != 0) {
                     logger.warn("Google purchase is not in PURCHASED state (state=$purchaseState) for user $userId")
                     val orderIdFromData = purchaseJson["orderId"]?.jsonPrimitive?.content ?: extractedOrderId
+                    val tokenFromData = purchaseJson["purchaseToken"]?.jsonPrimitive?.content ?: extractedToken
                     paymentRepository.create(
                         Payment.createNew(
                             userId = userId,
-                            paymentType = PaymentType.GOOGLE,
+                            provider = PaymentProvider.GOOGLE,
                             googleOrderId = orderIdFromData.takeIf { it.isNotBlank() },
-                            successful = false
+                            googlePurchaseToken = tokenFromData.takeIf { it.isNotBlank() },
+                            status = PaymentStatus.PENDING
                         )
                     )
                     return AppResult.Failure(
@@ -309,15 +372,15 @@ class PaymentService(
                 paymentRepository.create(
                     Payment.createNew(
                         userId = userId,
-                        paymentType = PaymentType.GOOGLE,
-                        googleOrderId = null,
-                        successful = false
+                        provider = PaymentProvider.GOOGLE,
+                        status = PaymentStatus.PENDING
                     )
                 )
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Google purchase token or order ID is required")
             }
 
             val finalOrderId = extractedOrderId.ifBlank { extractedToken }
+            val finalToken = extractedToken.ifBlank { extractedOrderId }
 
             val publicKey = googlePlayConfig.publicKey.trim()
             if (publicKey.isNotBlank() && publicKey != "placeholder") {
@@ -326,9 +389,10 @@ class PaymentService(
                     paymentRepository.create(
                         Payment.createNew(
                             userId = userId,
-                            paymentType = PaymentType.GOOGLE,
+                            provider = PaymentProvider.GOOGLE,
                             googleOrderId = finalOrderId.takeIf { it.isNotBlank() },
-                            successful = false
+                            googlePurchaseToken = finalToken.takeIf { it.isNotBlank() },
+                            status = PaymentStatus.PENDING
                         )
                     )
                     return AppResult.Failure(
@@ -348,9 +412,10 @@ class PaymentService(
                     paymentRepository.create(
                         Payment.createNew(
                             userId = userId,
-                            paymentType = PaymentType.GOOGLE,
+                            provider = PaymentProvider.GOOGLE,
                             googleOrderId = finalOrderId.takeIf { it.isNotBlank() },
-                            successful = false
+                            googlePurchaseToken = finalToken.takeIf { it.isNotBlank() },
+                            status = PaymentStatus.PENDING
                         )
                     )
                     return AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google Play purchase signature")
@@ -362,25 +427,36 @@ class PaymentService(
 
             if (finalOrderId.isNotBlank()) {
                 val existingPayment = paymentRepository.findByGoogleOrderId(finalOrderId)
-                if (existingPayment != null && existingPayment.successful) {
-                    if (existingPayment.userId == userId) {
-                        logger.info("Google purchase $finalOrderId was already successfully recorded for user $userId")
-                        userService.setPaymentStatus(id = userId, isPaid = true)
-                        return paymentStatus(userId)
-                    } else {
-                        logger.warn("Replay attack detected: Google order $finalOrderId already claimed by user ${existingPayment.userId}, attempted by $userId")
-                        paymentRepository.create(
-                            Payment.createNew(
-                                userId = userId,
-                                paymentType = PaymentType.GOOGLE,
-                                googleOrderId = null,
-                                successful = false
+                if (existingPayment != null && existingPayment.status == PaymentStatus.SUCCESSFUL) {
+                    when (existingPayment.userId) {
+                        userId -> {
+                            logger.info("Google purchase $finalOrderId was already successfully recorded for user $userId")
+                            return paymentStatus(userId)
+                        }
+                        null -> {
+                            logger.info("Re-attributing previously anonymized Google order $finalOrderId to user $userId on restore")
+                            paymentRepository.update(
+                                existingPayment.copy(
+                                    userId = userId,
+                                    updatedAt = Instant.now()
+                                )
                             )
-                        )
-                        return AppResult.Failure(
-                            HttpStatusCode.Conflict,
-                            "This Google Play order has already been redeemed by another account"
-                        )
+                            return paymentStatus(userId)
+                        }
+                        else -> {
+                            logger.warn("Replay attack detected: Google order $finalOrderId already claimed by user ${existingPayment.userId}, attempted by $userId")
+                            paymentRepository.create(
+                                Payment.createNew(
+                                    userId = userId,
+                                    provider = PaymentProvider.GOOGLE,
+                                    status = PaymentStatus.PENDING
+                                )
+                            )
+                            return AppResult.Failure(
+                                HttpStatusCode.Conflict,
+                                "This Google Play order has already been redeemed by another account"
+                            )
+                        }
                     }
                 }
             }
@@ -388,15 +464,11 @@ class PaymentService(
             paymentRepository.create(
                 Payment.createNew(
                     userId = userId,
-                    paymentType = PaymentType.GOOGLE,
+                    provider = PaymentProvider.GOOGLE,
                     googleOrderId = finalOrderId,
-                    successful = true
+                    googlePurchaseToken = finalToken,
+                    status = PaymentStatus.SUCCESSFUL
                 )
-            )
-
-            userService.setPaymentStatus(
-                id = userId,
-                isPaid = true
             )
 
             paymentStatus(userId)
@@ -407,9 +479,10 @@ class PaymentService(
                 paymentRepository.create(
                     Payment.createNew(
                         userId = userId,
-                        paymentType = PaymentType.GOOGLE,
+                        provider = PaymentProvider.GOOGLE,
                         googleOrderId = orderId.takeIf { it.isNotBlank() },
-                        successful = false
+                        googlePurchaseToken = dto.purchaseToken.takeIf { it.isNotBlank() },
+                        status = PaymentStatus.PENDING
                     )
                 )
             } catch (ignored: Exception) {}
@@ -422,20 +495,28 @@ class PaymentService(
             val session = Session.retrieve(sessionId)
             val isPaid = session.paymentStatus == "paid" || session.status == "complete"
 
-            paymentRepository.create(
-                Payment.createNew(
-                    userId = userId,
-                    paymentType = PaymentType.STRIPE,
-                    successful = isPaid
+            val existing = paymentRepository.findByStripeCheckoutSessionId(sessionId)
+            if (existing != null) {
+                paymentRepository.update(
+                    existing.copy(
+                        status = if (isPaid) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING,
+                        stripePaymentIntentId = existing.stripePaymentIntentId ?: session.paymentIntent,
+                        updatedAt = Instant.now()
+                    )
                 )
-            )
+            } else {
+                paymentRepository.create(
+                    Payment.createNew(
+                        userId = userId,
+                        provider = PaymentProvider.STRIPE,
+                        stripeCheckoutSessionId = sessionId,
+                        stripePaymentIntentId = session.paymentIntent,
+                        status = if (isPaid) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING
+                    )
+                )
+            }
 
             if (isPaid) {
-                userService.setPaymentStatus(
-                    id = userId,
-                    isPaid = true,
-                    stripeCustomerId = session.customer
-                )
                 paymentStatus(userId)
             } else {
                 AppResult.Failure(
@@ -449,8 +530,9 @@ class PaymentService(
                 paymentRepository.create(
                     Payment.createNew(
                         userId = userId,
-                        paymentType = PaymentType.STRIPE,
-                        successful = false
+                        provider = PaymentProvider.STRIPE,
+                        stripeCheckoutSessionId = sessionId,
+                        status = PaymentStatus.PENDING
                     )
                 )
             } catch (ignored: Exception) {}
@@ -513,19 +595,42 @@ class PaymentService(
             val status = json["status"]?.jsonPrimitive?.content
             val successful = status == "COMPLETED"
 
-            paymentRepository.create(
-                Payment.createNew(
-                    userId = userId,
-                    paymentType = PaymentType.PAYPAL,
-                    successful = successful
+            val captureId = json["purchase_units"]
+                ?.jsonArray
+                ?.firstOrNull()
+                ?.jsonObject
+                ?.get("payments")
+                ?.jsonObject
+                ?.get("captures")
+                ?.jsonArray
+                ?.firstOrNull()
+                ?.jsonObject
+                ?.get("id")
+                ?.jsonPrimitive
+                ?.content
+
+            val existing = paymentRepository.findByPayPalOrderId(dto.orderId)
+            if (existing != null) {
+                paymentRepository.update(
+                    existing.copy(
+                        status = if (successful) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING,
+                        paypalCaptureId = captureId ?: existing.paypalCaptureId,
+                        updatedAt = Instant.now()
+                    )
                 )
-            )
+            } else {
+                paymentRepository.create(
+                    Payment.createNew(
+                        userId = userId,
+                        provider = PaymentProvider.PAYPAL,
+                        paypalOrderId = dto.orderId,
+                        paypalCaptureId = captureId,
+                        status = if (successful) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING
+                    )
+                )
+            }
 
             if (successful) {
-                userService.setPaymentStatus(
-                    id = userId,
-                    isPaid = true
-                )
                 paymentStatus(userId)
             } else {
                 AppResult.Failure(
@@ -539,8 +644,9 @@ class PaymentService(
                 paymentRepository.create(
                     Payment.createNew(
                         userId = userId,
-                        paymentType = PaymentType.PAYPAL,
-                        successful = false
+                        provider = PaymentProvider.PAYPAL,
+                        paypalOrderId = dto.orderId,
+                        status = PaymentStatus.PENDING
                     )
                 )
             } catch (ignored: Exception) {}

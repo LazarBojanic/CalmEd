@@ -40,7 +40,7 @@
     <string name="offline_label">Offline</string>
     <string name="you_are_offline">You are offline</string>
     <string name="offline_description">Only videos already downloaded to this device are available.</string>
-    <string name="try_online">Try Online Mode</string>
+    <string name="try_online">Go Online</string>
     <string name="downloaded_videos">Downloaded Videos (%1$d)</string>
     <string name="no_downloads">No downloaded videos found on this device.</string>
     <string name="play_offline_video">Play offline video</string>
@@ -181,4 +181,12 @@
     <string name="exercise_counter">Exercise %1$d/%2$d</string>
     <string name="confirm_over_eighteen">I confirm I am over 18 years old.</string>
     <string name="res_continue">Continue</string>
+    <string name="download_video">Download video</string>
+    <string name="delete_video">Delete download</string>
+    <string name="delete_confirm_title">Delete Downloaded Video</string>
+    <string name="delete_confirm_message">Are you sure you want to remove this video from your offline downloads?</string>
+    <string name="delete">Delete</string>
+    <string name="download_for_offline">Download for offline</string>
+    <string name="offline_available">Available offline</string>
+    <string name="downloading_video">Downloading video…</string>
 </resources>

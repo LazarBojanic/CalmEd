@@ -46,9 +46,7 @@ fun UserEntity.toRaw(): User {
 		profileImageUrl = this.profileImageUrl,
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
-		isPaid = this.isPaid,
-		stripeCustomerId = this.stripeCustomerId,
-		confirmOverEighteen = false,
+		confirmOverEighteen = this.confirmOverEighteen,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -58,10 +56,17 @@ fun PaymentEntity.toRaw(): Payment {
 	return Payment(
 		id = this.id.value,
 		userId = this.userId,
-		paymentType = this.paymentType,
-		appleOriginalTransactionId = this.appleOriginalTransactionId,
+		provider = this.provider,
+		googlePurchaseToken = this.googlePurchaseToken,
 		googleOrderId = this.googleOrderId,
-		successful = this.successful,
+		appleTransactionId = this.appleTransactionId,
+		appleOriginalTransactionId = this.appleOriginalTransactionId,
+		stripePaymentIntentId = this.stripePaymentIntentId,
+		stripeCheckoutSessionId = this.stripeCheckoutSessionId,
+		paypalOrderId = this.paypalOrderId,
+		paypalCaptureId = this.paypalCaptureId,
+		status = this.status,
+		refundedAt = this.refundedAt,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -100,8 +105,6 @@ fun User.join(): UserJoined {
 		profileImageUrl = this.profileImageUrl,
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
-		isPaid = this.isPaid,
-		stripeCustomerId = this.stripeCustomerId,
 		confirmOverEighteen = this.confirmOverEighteen,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
@@ -153,8 +156,7 @@ fun UserEntity.setFrom(d: User, mapMode: MapMode) {
 	profileImageUrl = d.profileImageUrl
 	isEmailVerified = d.isEmailVerified
 	isOnboarded = d.isOnboarded
-	isPaid = d.isPaid
-	stripeCustomerId = d.stripeCustomerId
+	confirmOverEighteen = d.confirmOverEighteen
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
@@ -205,10 +207,17 @@ fun RefreshTokenEntity.setFrom(d: RefreshToken, mapMode: MapMode) {
 
 fun PaymentEntity.setFrom(d: Payment, mapMode: MapMode) {
 	userId = d.userId
-	paymentType = d.paymentType
-	appleOriginalTransactionId = d.appleOriginalTransactionId
+	provider = d.provider
+	googlePurchaseToken = d.googlePurchaseToken
 	googleOrderId = d.googleOrderId
-	successful = d.successful
+	appleTransactionId = d.appleTransactionId
+	appleOriginalTransactionId = d.appleOriginalTransactionId
+	stripePaymentIntentId = d.stripePaymentIntentId
+	stripeCheckoutSessionId = d.stripeCheckoutSessionId
+	paypalOrderId = d.paypalOrderId
+	paypalCaptureId = d.paypalCaptureId
+	status = d.status
+	refundedAt = d.refundedAt
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
@@ -228,8 +237,7 @@ fun UserJoined.toDto(): UserDto {
 		profileImageUrl = this.profileImageUrl,
 		isEmailVerified = this.isEmailVerified,
 		isOnboarded = this.isOnboarded,
-		isPaid = this.isPaid,
-		stripeCustomerId = this.stripeCustomerId,
+		confirmOverEighteen = this.confirmOverEighteen,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)

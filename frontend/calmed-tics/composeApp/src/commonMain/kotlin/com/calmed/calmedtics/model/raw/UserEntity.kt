@@ -17,12 +17,11 @@ data class UserEntity(
 	val isEmailVerified: Boolean,
 	@ColumnInfo(name = "is_onboarded")
 	val isOnboarded: Boolean,
-	@ColumnInfo(name = "is_paid")
-	val isPaid: Boolean,
-	@ColumnInfo(name = "stripe_customer_id")
-	val stripeCustomerId: String?,
+	@ColumnInfo(name = "confirm_over_eighteen")
+	val confirmOverEighteen: Boolean,
 	@ColumnInfo(name = "created_at")
 	val createdAt: String,
 	@ColumnInfo(name = "updated_at")
 	val updatedAt: String
 )
+

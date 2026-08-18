@@ -37,6 +37,7 @@ interface IAppApi {
         fileName: String = "profile.jpg"
     ): UserDto
     suspend fun setOnboarded(id: String, dto: SetIsOnboardedDto): UserDto?
+    suspend fun deleteAccount(id: String): Boolean
     suspend fun syncExerciseProgress(dto: UserExerciseProgressUpdateDto): Boolean
 
     suspend fun getUserInfoTicsByUserId(userId: String): UserInfoTicsDto?
@@ -54,3 +55,4 @@ interface IAppApi {
     suspend fun verifyApplePurchase(dto: VerifyAppleReceiptDto): PaymentStatusDto?
     suspend fun verifyGooglePurchase(dto: VerifyGoogleReceiptDto): PaymentStatusDto?
 }
+

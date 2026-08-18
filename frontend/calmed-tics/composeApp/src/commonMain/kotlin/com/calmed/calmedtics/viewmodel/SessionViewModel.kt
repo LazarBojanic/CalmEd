@@ -149,7 +149,6 @@ class SessionViewModel(
 			exerciseCompletionDao.delete(week, userId, day, sessionKey)
 		}
 
-		// Sync with backend
 		scope.launch {
 			try {
 				api.syncExerciseProgress(
@@ -183,6 +182,7 @@ class SessionViewModel(
 
 	private suspend fun clearLocal() {
 		userInfoDao.clearAll()
+		exerciseCompletionDao.clearAll()
 		userDao.clearAll()
 	}
 
@@ -378,12 +378,37 @@ class SessionViewModel(
 			_loading.value = false
 		}
 	}
+	suspend fun deleteAccount(): Boolean {
+		_error.value = null
+		_loading.value = true
+		return try {
+			val userId = currentUserId()
+			if (userId == null) {
+				_error.value = "Missing user id."
+				false
+			} else {
+				val deleted = api.deleteAccount(userId)
+				if (deleted) {
+					clearLocal()
+					authService.logout()
+					true
+				} else {
+					_error.value = "Failed to delete the account. Please try again."
+					false
+				}
+			}
+		} catch (t: Throwable) {
+			_error.value = t.message ?: "Failed to delete the account."
+			false
+		} finally {
+			_loading.value = false
+		}
+	}
 	suspend fun loadHome(year: Int, month: Int) {
 		try {
 			val result = homeRepository.getHome(year, month)
 			_home.value = result
 
-			// Sync completions to local DB
 			if (result != null) {
 				scope.launch(Dispatchers.IO) {
 					val userId = currentUserId() ?: return@launch

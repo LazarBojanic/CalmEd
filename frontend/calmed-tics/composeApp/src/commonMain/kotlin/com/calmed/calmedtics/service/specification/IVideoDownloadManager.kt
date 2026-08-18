@@ -11,7 +11,8 @@ enum class VideoDownloadStatus {
 
 data class VideoDownloadState(
     val status: VideoDownloadStatus,
-    val progressPercent: Float? = null
+    val progressPercent: Float? = null,
+    val title: String? = null
 )
 
 interface IVideoDownloadManager {
@@ -20,9 +21,8 @@ interface IVideoDownloadManager {
 
     fun refresh(url: String)
     fun refreshDownloaded()
-    fun download(url: String)
+    fun download(url: String, title: String? = null)
     fun remove(url: String)
-    fun playbackUrl(url: String): String
 }
 
 expect object LocalVideoDownloadManager : IVideoDownloadManager {
@@ -31,9 +31,8 @@ expect object LocalVideoDownloadManager : IVideoDownloadManager {
 
     override fun refresh(url: String)
     override fun refreshDownloaded()
-    override fun download(url: String)
+    override fun download(url: String, title: String?)
     override fun remove(url: String)
-    override fun playbackUrl(url: String): String
 }
 
 fun Map<String, VideoDownloadState>.stateFor(url: String): VideoDownloadState {

@@ -39,4 +39,14 @@ class UserProgramRepository : IUserProgramRepository {
 	override suspend fun delete(id: UUID): Boolean = withTransaction {
 		UserProgramEntity.findById(id)?.let { it.delete(); true } ?: false
 	}
+
+	override suspend fun deleteByUserId(userId: UUID): Boolean = withTransaction {
+		val entities = UserProgramEntity.find { UserProgramTable.userId eq userId }
+		var deleted = false
+		for (e in entities) {
+			e.delete()
+			deleted = true
+		}
+		deleted
+	}
 }

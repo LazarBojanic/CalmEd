@@ -14,7 +14,7 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
-import com.calmed.calmedtics.model.raw.PaymentType
+import com.calmed.calmedtics.model.raw.PaymentProvider
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -254,7 +254,7 @@ class AndroidBillingService(
         val productId = purchase.products.firstOrNull() ?: ""
         _purchaseResults.tryEmit(
             PurchaseResult.Success(
-                paymentType = PaymentType.GOOGLE,
+                paymentProvider = PaymentProvider.GOOGLE,
                 googleOrderId = purchase.orderId,
                 googlePurchaseToken = purchase.purchaseToken,
                 purchaseData = purchase.originalJson,

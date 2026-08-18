@@ -9,12 +9,11 @@ import java.time.Instant
 object UserTable : UUIDTable(name = "user") {
 	val email = varchar("email", 255).uniqueIndex()
 	val username = varchar("username", 255).uniqueIndex()
-	val profileImageUrl =
-		varchar("profile_image_url", 500).nullable()
+	val profileImageUrl = varchar("profile_image_url", 500).nullable()
 	val isEmailVerified = bool("is_email_verified").default(false)
 	val isOnboarded = bool("is_onboarded").default(false)
-	val isPaid = bool("is_paid").default(false)
-	val stripeCustomerId = varchar("stripe_customer_id", 255).nullable()
+	val confirmOverEighteen = bool("confirm_over_eighteen").default(false)
 	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
 }
+

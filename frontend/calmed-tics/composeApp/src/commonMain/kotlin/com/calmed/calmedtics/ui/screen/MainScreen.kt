@@ -53,6 +53,7 @@ private enum class MainTab { Home, Exercises, Profile, HelpSupport }
 @Composable
 fun MainScreen(
 	onLogoutToLogin: () -> Unit,
+	onAccountDeleted: () -> Unit = {},
 	onOpenVideo: (String) -> Unit,
 	onOpenVideoFromList: (List<ProgramExerciseDto>, Int) -> Unit,
 	sessionViewModel: SessionViewModel = koinInject(),
@@ -178,6 +179,7 @@ fun MainScreen(
 					user = u,
 					userInfo = ui,
 					onLogout = { onLogoutToLogin() },
+					onAccountDeleted = onAccountDeleted,
 					onHelpSupportClick = {
 						selectedTab.value = MainTab.HelpSupport
 					}

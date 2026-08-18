@@ -200,11 +200,7 @@ fun VideoScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OverlayIconButton(
-                    icon = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Exit Fullscreen",
-                    onClick = { isFullscreen = false }
-                )
+
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -214,11 +210,7 @@ fun VideoScreen(
                         modifier = Modifier.size(32.dp)
                     )
 
-                    OverlayIconButton(
-                        icon = Icons.Default.FullscreenExit,
-                        contentDescription = "Exit Fullscreen",
-                        onClick = { isFullscreen = false }
-                    )
+
                 }
             }
         }
@@ -260,7 +252,7 @@ fun VideoScreen(
                                     isFullscreen = false,
                                     isPlaying = isPlaying,
                                     isMuted = isMuted,
-                                    useController = false,
+                                    useController = true,
                                     onPositionChanged = { position ->
                                         currentPositionMs = position
                                         if (durationMs > 0L && position >= durationMs - 500L) {
@@ -295,11 +287,6 @@ fun VideoScreen(
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                OverlayIconButton(
-                                    icon = Icons.Default.Fullscreen,
-                                    contentDescription = "Fullscreen",
-                                    onClick = { isFullscreen = true }
-                                )
                                 CastButton(
                                     modifier = Modifier.size(32.dp)
                                 )

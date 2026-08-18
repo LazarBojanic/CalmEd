@@ -17,11 +17,10 @@ data class UserJoined(
 	val profileImageUrl: String?,
 	val isEmailVerified: Boolean,
 	val isOnboarded: Boolean,
-	val isPaid: Boolean,
-	val stripeCustomerId: String?,
 	val confirmOverEighteen: Boolean,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
 	val updatedAt: Instant,
 )
+

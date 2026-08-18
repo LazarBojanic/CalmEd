@@ -10,8 +10,8 @@ data class UserJoined(
 	val profileImageUrl: String? = null,
 	val isEmailVerified: Boolean,
 	val isOnboarded: Boolean,
-	val isPaid: Boolean,
-	val stripeCustomerId: String?,
+	val confirmOverEighteen: Boolean,
 	val createdAt: String,
 	val updatedAt: String
 )
+

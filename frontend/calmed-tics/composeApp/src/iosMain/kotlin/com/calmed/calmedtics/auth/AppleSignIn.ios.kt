@@ -20,7 +20,6 @@ actual fun launchAppleSignIn() {
         val provider = ASAuthorizationAppleIDProvider()
         val request = provider.createRequest()
         
-        // Configure the request
         request.setRequestedScopes(
             listOf(
                 ASAuthorizationScopeFullName,
@@ -28,7 +27,6 @@ actual fun launchAppleSignIn() {
             )
         )
         
-        // Get client ID from configuration
         request.nonce = generateNonce()
         
         val controller = ASAuthorizationController(listOf(request))
@@ -62,7 +60,6 @@ private class AppleSignInDelegate : NSObject(),
         try {
             val appleIDCredential = didCompleteWithAuthorization.credential as? ASAuthorizationAppleIDCredential
             if (appleIDCredential != null) {
-                // Get the ID token
                 val identityToken = appleIDCredential.identityToken
                 if (identityToken != null) {
                     val idTokenString = NSString.create(data = identityToken, encoding = NSUTF8StringEncoding).toString()
@@ -73,7 +70,6 @@ private class AppleSignInDelegate : NSObject(),
                     )
                 }
                 
-                // Also provide authorization code if available
                 val authCode = appleIDCredential.authorizationCode
                 if (authCode != null) {
                     val authCodeString = NSString.create(data = authCode, encoding = NSUTF8StringEncoding).toString()

@@ -195,9 +195,6 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
-            /*
-             * HEADER
-             */
             item {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -224,9 +221,6 @@ fun HomeScreen(
                 }
             }
 
-            /*
- * CALENDAR
- */
             item {
                 val startEpoch = remember(
                     home?.programStartDate,
@@ -288,9 +282,6 @@ fun HomeScreen(
                         verticalArrangement = Arrangement.spacedBy(17.dp)
                     ) {
 
-                        /*
-                         * GORNJI DEO KALENDARA
-                         */
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -421,9 +412,6 @@ fun HomeScreen(
                             }
                         }
 
-                        /*
-                         * DANI
-                         */
                         val daysOfWeekFull =
                             listOf("M", "T", "W", "T", "F", "S", "S")
 
@@ -566,10 +554,6 @@ fun HomeScreen(
                                         )
                                     }
 
-                                    /*
-                                     * LEVA TAČKA = MORNING
-                                     * DESNA TAČKA = EVENING
-                                     */
                                     Row(
                                         modifier = Modifier.height(7.dp),
                                         horizontalArrangement =
@@ -612,9 +596,6 @@ fun HomeScreen(
                 }
             }
 
-            /*
- * TODAY'S EXERCISE
- */
             item {
                 val thumbnailUrl = selectedExercise?.thumbnailURL
 
@@ -775,9 +756,6 @@ fun HomeScreen(
                 }
             }
 
-            /*
-        * MORNING / EVENING
-        */
             item {
                 val morningCompleted =
                     completions.any {
@@ -800,9 +778,6 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
 
-                    /*
-                     * MORNING
-                     */
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -944,9 +919,6 @@ fun HomeScreen(
                         }
                     }
 
-                    /*
-                     * EVENING
-                     */
                     Card(
                         modifier = Modifier
                             .weight(1f)

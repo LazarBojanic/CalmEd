@@ -5,6 +5,7 @@ import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.toDto
+import com.calmed.calmedbackend.service.specification.IAccountDeletionService
 import com.calmed.calmedbackend.service.specification.IUserService
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
@@ -16,6 +17,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -26,6 +28,7 @@ import java.util.UUID
 
 fun Route.userRoutes() {
 	val userService by inject<IUserService>()
+	val accountDeletionService by inject<IAccountDeletionService>()
 
 	authenticate("auth-jwt") {
 
@@ -47,7 +50,7 @@ fun Route.userRoutes() {
 				when (res) {
 					is AppResult.Success -> {
 						println(
-							"[DEBUG_LOG] UserRoutes: /me success for userId: $id, isPaid: ${res.data.isPaid}"
+							"[DEBUG_LOG] UserRoutes: /me success for userId: $id, onboarded: ${res.data.isOnboarded}"
 						)
 
 						call.respond(
@@ -246,6 +249,52 @@ fun Route.userRoutes() {
 						call.respond(
 							HttpStatusCode.OK,
 							res.data.toDto()
+						)
+					}
+
+					is AppResult.Failure -> {
+						call.respond(
+							res.httpStatusCode,
+							res.message
+						)
+					}
+				}
+			}
+
+			delete("/{id}") {
+				val idParam = call.parameters["id"]
+
+				if (idParam == null) {
+					throw BusinessException(
+						HttpStatusCode.BadRequest,
+						"Missing id parameter"
+					)
+				}
+
+				val id = UUID.fromString(idParam)
+
+				val jwt = call.principal<JWTPrincipal>()
+					?: throw BusinessException(
+						HttpStatusCode.Unauthorized,
+						"Invalid authentication"
+					)
+
+				val subjectId = UUID.fromString(jwt.subject)
+
+				if (subjectId != id) {
+					throw BusinessException(
+						HttpStatusCode.Forbidden,
+						"Forbidden"
+					)
+				}
+
+				when (val res = accountDeletionService.deleteAccount(id)) {
+					is AppResult.Success -> {
+						call.respond(
+							HttpStatusCode.OK,
+							mapOf(
+								"message" to "Account deleted."
+							)
 						)
 					}
 

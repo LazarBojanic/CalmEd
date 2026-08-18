@@ -6,13 +6,29 @@ class StoreKitManager: ObservableObject {
     @Published var purchasedProductIDs: Set<String> = []
     
     private var transactionListener: Task<Void, Error>? = nil
+    private var restoreObserver: NSObjectProtocol? = nil
     
     init() {
         transactionListener = listenForTransactions()
+        restoreObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("TriggerAppleRestore"),
+                        object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            // Calling AppStore.sync() makes any owned (restored) transactions flow through
+            // Transaction.updates, which listenForTransactions posts back to Kotlin.
+            Task {
+                try? await self.restorePurchases()
+            }
+        }
     }
     
     deinit {
         transactionListener?.cancel()
+        if let restoreObserver = restoreObserver {
+            NotificationCenter.default.removeObserver(restoreObserver)
+        }
     }
     
     func listenForTransactions() -> Task<Void, Error> {
@@ -28,14 +44,14 @@ class StoreKitManager: ObservableObject {
                     await transaction.finish()
                     
                     // Notify Kotlin layer
-                    NotificationCenter.default.post(
-                        name: NSNotification.Name("OnApplePurchaseSuccess"),
-                        object: nil,
-                        userInfo: [
-                            "transactionId": transaction.originalID.description,
-                            "productId": transaction.productID
-                        ]
-                    )
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("OnApplePurchaseSuccess"),
+                    object: nil,
+                    userInfo: [
+                        "transactionId": transaction.originalID.description,
+                        "productId": transaction.productID
+                    ]
+                )
                 } catch {
                     print("Transaction verification failed")
                 }
@@ -84,8 +100,8 @@ class StoreKitManager: ObservableObject {
                         "productId": transaction.productID
                     ]
                 )
-            }
-            
+        }
+
         case .userCancelled:
             DispatchQueue.main.async {
                 NotificationCenter.default.post(
@@ -98,15 +114,16 @@ class StoreKitManager: ObservableObject {
             break
         @unknown default:
             break
-        }
     }
-    
+}
+
     func restorePurchases() async throws {
         try await AppStore.sync()
-    }
+}
 }
 
 enum StoreError: Error {
     case failedVerification
     case productNotFound
 }
+

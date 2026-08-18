@@ -1,6 +1,5 @@
 package com.calmed.calmedbackend.model.raw.user
 
-import com.calmed.calmedbackend.model.toRaw
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.java.UUIDEntity
@@ -14,8 +13,8 @@ class UserEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var profileImageUrl by UserTable.profileImageUrl
 	var isEmailVerified by UserTable.isEmailVerified
 	var isOnboarded by UserTable.isOnboarded
-	var isPaid by UserTable.isPaid
-	var stripeCustomerId by UserTable.stripeCustomerId
+	var confirmOverEighteen by UserTable.confirmOverEighteen
 	var createdAt by UserTable.createdAt
 	var updatedAt by UserTable.updatedAt
 }
+

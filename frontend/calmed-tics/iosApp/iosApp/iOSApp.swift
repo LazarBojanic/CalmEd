@@ -1,5 +1,5 @@
 import SwiftUI
-import ComposeApp
+import CalmEdTics
 import GoogleSignIn
 import UserNotifications
 

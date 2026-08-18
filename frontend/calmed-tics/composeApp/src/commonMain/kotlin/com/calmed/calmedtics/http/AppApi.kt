@@ -24,6 +24,7 @@ import com.calmed.calmedtics.store.ITokenDataStore
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
+import io.ktor.client.request.delete
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
@@ -154,6 +155,11 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 			HttpStatusCode.OK -> resp.body<UserDto>()
 			else -> null
 		}
+	}
+
+	override suspend fun deleteAccount(id: String): Boolean {
+		val resp: HttpResponse = client.delete("/user/$id")
+		return resp.status == HttpStatusCode.OK
 	}
 
 	override suspend fun syncExerciseProgress(dto: UserExerciseProgressUpdateDto): Boolean {

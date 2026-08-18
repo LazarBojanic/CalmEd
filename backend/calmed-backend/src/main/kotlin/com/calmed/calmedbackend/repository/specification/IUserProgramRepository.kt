@@ -10,4 +10,5 @@ interface IUserProgramRepository {
 	suspend fun create(userProgram: UserProgram): UserProgram?
 	suspend fun update(userProgram: UserProgram): UserProgram?
 	suspend fun delete(id: UUID): Boolean
+	suspend fun deleteByUserId(userId: UUID): Boolean
 }

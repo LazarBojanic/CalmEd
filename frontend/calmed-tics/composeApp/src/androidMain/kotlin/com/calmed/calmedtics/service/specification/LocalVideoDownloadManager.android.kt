@@ -5,7 +5,10 @@ import com.calmed.calmedtics.video.download.AndroidVideoDownloadManager
 import kotlinx.coroutines.flow.StateFlow
 
 actual object LocalVideoDownloadManager : IVideoDownloadManager {
-    private val delegate by lazy { AndroidVideoDownloadManager(appContext) }
+
+    private val delegate by lazy {
+        AndroidVideoDownloadManager(appContext)
+    }
 
     actual override val states: StateFlow<Map<String, VideoDownloadState>>
         get() = delegate.states
@@ -21,13 +24,14 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         delegate.refreshDownloaded()
     }
 
-    actual override fun download(url: String) {
-        delegate.download(url)
+    actual override fun download(url: String, title: String?) {
+        delegate.download(url, title)
     }
 
     actual override fun remove(url: String) {
         delegate.remove(url)
     }
 
-    actual override fun playbackUrl(url: String): String = delegate.playbackUrl(url)
+    fun downloadedMediaItem(url: String) =
+        delegate.downloadedMediaItem(url)
 }

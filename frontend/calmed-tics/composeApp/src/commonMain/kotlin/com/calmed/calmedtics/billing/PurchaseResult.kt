@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 sealed class PurchaseResult {
     @Serializable
     data class Success(
-        val paymentType: com.calmed.calmedtics.model.raw.PaymentType,
+        val paymentProvider: com.calmed.calmedtics.model.raw.PaymentProvider,
         val appleTransactionId: String? = null,
         val googleOrderId: String? = null,
         val googlePurchaseToken: String? = null,

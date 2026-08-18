@@ -1,6 +1,5 @@
 package com.calmed.calmedtics.model.dto.response
 
-import com.calmed.calmedtics.model.raw.PaymentType
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,8 +10,8 @@ data class UserDto(
 	val profileImageUrl: String? = null,
 	val isEmailVerified: Boolean,
 	val isOnboarded: Boolean,
-	val isPaid: Boolean,
-	val stripeCustomerId: String?,
+	val confirmOverEighteen: Boolean,
 	val createdAt: String,
 	val updatedAt: String
 )
+

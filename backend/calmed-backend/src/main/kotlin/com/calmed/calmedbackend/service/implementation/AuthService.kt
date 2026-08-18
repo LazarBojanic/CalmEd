@@ -1037,8 +1037,6 @@ class AuthService(private val userService: IUserService,
 												profileImageUrl = user.profileImageUrl,
 												isEmailVerified = true,
 												isOnboarded = user.isOnboarded,
-												isPaid = user.isPaid,
-												stripeCustomerId = user.stripeCustomerId,
 												confirmOverEighteen = user.confirmOverEighteen,
 												createdAt = user.createdAt,
 												updatedAt = Instant.now()

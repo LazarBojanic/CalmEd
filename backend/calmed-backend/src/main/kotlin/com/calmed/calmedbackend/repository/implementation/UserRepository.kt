@@ -2,7 +2,6 @@ package com.calmed.calmedbackend.repository.implementation
 
 import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.MapMode
-import com.calmed.calmedbackend.model.raw.user.PaymentType
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
 import com.calmed.calmedbackend.model.raw.user.UserTable

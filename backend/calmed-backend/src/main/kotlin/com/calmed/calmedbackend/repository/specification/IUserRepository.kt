@@ -1,7 +1,6 @@
 package com.calmed.calmedbackend.repository.specification
 
 import com.calmed.calmedbackend.model.raw.user.User
-import com.calmed.calmedbackend.model.raw.user.PaymentType
 import java.util.UUID
 
 interface IUserRepository {

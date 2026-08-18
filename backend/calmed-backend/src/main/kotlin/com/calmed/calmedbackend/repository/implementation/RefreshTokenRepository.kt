@@ -78,4 +78,19 @@ class RefreshTokenRepository : IRefreshTokenRepository {
 			}
 		}
 	}
+
+	override suspend fun deleteByUserId(userId: UUID): Boolean {
+		return withTransaction {
+			val entities = RefreshTokenEntity.find {
+				RefreshTokenTable.userId eq userId
+			}
+			var deleted = false
+			for (e in entities) {
+				e.delete()
+				deleted = true
+			}
+			deleted
+		}
+	}
 }
+

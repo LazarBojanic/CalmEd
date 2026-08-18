@@ -104,4 +104,18 @@ class AuthCredentialRepository : IAuthCredentialRepository {
 			}
 		}
 	}
+
+	override suspend fun deleteByUserId(userId: UUID): Boolean {
+		return withTransaction {
+			val entities = AuthCredentialEntity.find {
+				AuthCredentialTable.userId eq userId
+			}
+			var deleted = false
+			for (e in entities) {
+				e.delete()
+				deleted = true
+			}
+			deleted
+		}
+	}
 }

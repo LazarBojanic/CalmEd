@@ -18,18 +18,23 @@ class VideoDownloadService : DownloadService(
     R.string.download_channel_name,
     0
 ) {
+
     override fun getDownloadManager(): DownloadManager {
         return DownloadUtil.getDownloadManager(applicationContext)
     }
 
-    override fun getScheduler(): Scheduler? = null
+    override fun getScheduler(): Scheduler? {
+        return null
+    }
 
     override fun getForegroundNotification(
         downloads: MutableList<Download>,
         notMetRequirements: Int
     ): Notification {
-        val notificationHelper = DownloadNotificationHelper(this, NOTIFICATION_CHANNEL_ID)
-        return notificationHelper.buildProgressNotification(
+        return DownloadNotificationHelper(
+            this,
+            NOTIFICATION_CHANNEL_ID
+        ).buildProgressNotification(
             this,
             android.R.drawable.stat_sys_download,
             null,

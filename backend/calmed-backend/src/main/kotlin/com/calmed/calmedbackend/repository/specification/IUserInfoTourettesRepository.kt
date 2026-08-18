@@ -11,6 +11,7 @@ interface IUserInfoTicsRepository {
 	suspend fun create(userInfoTics: UserInfoTics): UserInfoTics?
 	suspend fun update(userInfoTics: UserInfoTics): UserInfoTics?
 	suspend fun delete(id: UUID): Boolean
+	suspend fun deleteByUserId(userId: UUID): Boolean
 	suspend fun updateById(id: UUID, dto: UserInfoTicsUpdateDto): UserInfoTics?
 
 }

@@ -10,4 +10,5 @@ interface IRefreshTokenRepository {
 	suspend fun create(refreshToken: RefreshToken): RefreshToken?
 	suspend fun update(refreshToken: RefreshToken): RefreshToken?
 	suspend fun delete(id: UUID): Boolean
+	suspend fun deleteByUserId(userId: UUID): Boolean
 }

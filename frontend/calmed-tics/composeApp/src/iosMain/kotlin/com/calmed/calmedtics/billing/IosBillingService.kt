@@ -1,6 +1,6 @@
 package com.calmed.calmedtics.billing
 
-import com.calmed.calmedtics.model.raw.PaymentType
+import com.calmed.calmedtics.model.raw.PaymentProvider
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import platform.Foundation.NSNotification
@@ -24,7 +24,7 @@ class IosBillingService : BillingService {
         if (transactionId != null && productId != null) {
             _purchaseResults.tryEmit(
                 PurchaseResult.Success(
-                    paymentType = PaymentType.APPLE,
+                    paymentProvider = PaymentProvider.APPLE,
                     appleTransactionId = transactionId,
                     productId = productId
                 )
@@ -49,7 +49,15 @@ class IosBillingService : BillingService {
             userInfo = mapOf("productId" to productId)
         )
     }
-    override suspend fun restore() {}
+    override suspend fun restore() {
+        // Ask the native StoreKit layer to sync (restore) owned purchases. New/updated
+        // transactions flow back through the "OnApplePurchaseSuccess" notification above.
+        NSNotificationCenter.defaultCenter.postNotificationName(
+            aName = "TriggerAppleRestore",
+            `object` = null,
+            userInfo = null
+        )
+    }
     override fun close() {
         NSNotificationCenter.defaultCenter.removeObserver(notificationObserver)
         NSNotificationCenter.defaultCenter.removeObserver(failureObserver)

@@ -12,6 +12,7 @@ import com.calmed.calmedbackend.service.implementation.UserService
 import com.calmed.calmedbackend.service.implementation.ProgramExerciseService
 import com.calmed.calmedbackend.service.implementation.UserProgramService
 import com.calmed.calmedbackend.service.implementation.UserExerciseProgressService
+import com.calmed.calmedbackend.service.implementation.AccountDeletionService
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
@@ -19,10 +20,10 @@ import com.calmed.calmedbackend.service.specification.IUserInfoTicsService
 import com.calmed.calmedbackend.service.specification.IUserService
 import com.calmed.calmedbackend.service.specification.IHomeService
 import com.calmed.calmedbackend.service.specification.IPaymentService
-
 import com.calmed.calmedbackend.service.specification.IProgramExerciseService
 import com.calmed.calmedbackend.service.specification.IUserProgramService
 import com.calmed.calmedbackend.service.specification.IUserExerciseProgressService
+import com.calmed.calmedbackend.service.specification.IAccountDeletionService
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
@@ -40,7 +41,7 @@ val serviceModule = module {
 			appleConfig = get<AppleConfig>()
 		)
 	}
-	single<IUserService> { UserService(get(), get()) }
+	single<IUserService> { UserService(get()) }
 	single<IAuthCredentialService> { AuthCredentialService(get(), get()) }
 	single<IRefreshTokenService> { RefreshTokenService(get(), get()) }
 	single<IUserInfoTicsService> { UserInfoTicsService(get(), get()) }
@@ -50,5 +51,17 @@ val serviceModule = module {
 	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 	single<IHomeService> { HomeService(get(), get(), get(), get(), get()) }
 	single<IPaymentService> { PaymentService(get(), get(), get(), get(), get()) }
+	single<IAccountDeletionService> {
+		AccountDeletionService(
+			userRepository = get(),
+			refreshTokenRepository = get(),
+			authCredentialRepository = get(),
+			userInfoTicsRepository = get(),
+			userProgramRepository = get(),
+			userExerciseProgressRepository = get(),
+			paymentRepository = get()
+		)
+	}
 
 }
+

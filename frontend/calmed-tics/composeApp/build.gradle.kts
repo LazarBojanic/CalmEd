@@ -60,7 +60,7 @@ kotlin {
 	targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
 		binaries {
 			framework {
-				baseName = "ComposeApp"
+				baseName = "CalmEdTics"
 				isStatic = true
 			}
 		}
@@ -170,8 +170,8 @@ configure<ApplicationExtension> {
 		applicationId = "com.calmed.calmedtics"
 		minSdk = libs.versions.androidMinSdk.get().toInt()
 		targetSdk = libs.versions.androidTargetSdk.get().toInt()
-		versionCode = 1
-		versionName = "1.0"
+		versionCode = 3
+		versionName = "0.0.1"
 	}
 	packaging {
 		resources {

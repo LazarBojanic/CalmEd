@@ -12,6 +12,7 @@ interface IAuthCredentialRepository {
 	suspend fun create(authCredential: AuthCredential): AuthCredential?
 	suspend fun update(authCredential: AuthCredential): AuthCredential?
 	suspend fun delete(id: UUID): Boolean
+	suspend fun deleteByUserId(userId: UUID): Boolean
 	suspend fun findByProviderUserIdAndType(providerUserId: String, type: AuthCredentialType): AuthCredential?
 
 }

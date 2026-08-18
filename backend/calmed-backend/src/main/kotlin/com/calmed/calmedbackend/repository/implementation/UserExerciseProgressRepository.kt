@@ -45,6 +45,16 @@ class UserExerciseProgressRepository : IUserExerciseProgressRepository {
 		UserExerciseProgressEntity.findById(id)?.let { it.delete(); true } ?: false
 	}
 
+	override suspend fun deleteByUserId(userId: UUID): Boolean = withTransaction {
+		val entities = UserExerciseProgressEntity.find { UserExerciseProgressTable.userId eq userId }
+		var deleted = false
+		for (e in entities) {
+			e.delete()
+			deleted = true
+		}
+		deleted
+	}
+
 	override suspend fun deleteByCriteria(userId: UUID, week: Int, day: Int, session: ExerciseSession): Boolean = withTransaction {
 		val found = UserExerciseProgressEntity.find {
 			(UserExerciseProgressTable.userId eq userId) and

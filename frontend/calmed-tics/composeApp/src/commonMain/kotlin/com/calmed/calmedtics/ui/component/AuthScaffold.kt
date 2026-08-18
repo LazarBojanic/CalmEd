@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.calmed.calmedtics.Res
-import com.calmed.calmedtics.calmed_splash_logo
+import com.calmed.calmedtics.logo
 import com.calmed.calmedtics.logo
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import org.jetbrains.compose.resources.painterResource
@@ -75,7 +75,7 @@ fun AuthScaffold(
 			}
 
 			Image(
-				painter = painterResource(Res.drawable.calmed_splash_logo),
+				painter = painterResource(Res.drawable.logo),
 				contentDescription = null,
 				modifier = Modifier.size(96.dp),
 			)

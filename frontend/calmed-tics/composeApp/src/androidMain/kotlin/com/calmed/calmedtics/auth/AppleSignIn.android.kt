@@ -11,7 +11,6 @@ actual fun launchAppleSignIn() {
     val context = appContext
 
     val clientId = BuildConfig.appleWebClientId
-    // Use the exact redirect URI registered with Apple. Using localhost/10.0.2.2 causes redirect_uri mismatch or 403 in mobile flows.
     val redirectUri = BuildConfig.appleCallbackURI
 
     val state = UUID.randomUUID().toString()

@@ -45,6 +45,7 @@ fun ProfileScreen(
 	user: UserJoined?,
 	userInfo: UserInfoTicsJoined?,
 	onLogout: () -> Unit,
+	onAccountDeleted: () -> Unit = {},
 	onHelpSupportClick: () -> Unit = {},
 	appSettings: com.calmed.calmedtics.settings.AppSettings = koinInject(),
 	sessionViewModel: SessionViewModel = koinInject()
@@ -58,6 +59,10 @@ fun ProfileScreen(
 	val error by sessionViewModel.error.collectAsState()
 
 	var isEditing by remember { mutableStateOf(false) }
+	var showDeleteDialog by remember { mutableStateOf(false) }
+	var isDeleting by remember { mutableStateOf(false) }
+	var deleteError by remember { mutableStateOf<String?>(null) }
+	var deleteConfirmText by remember { mutableStateOf("") }
 	val imagePicker = remember { createImagePicker() }
 
 	var profileImageBytes by remember {
@@ -599,7 +604,89 @@ fun ProfileScreen(
 					}
 				)
 			}
+
+			item {
+				InfoSection(title = "Danger zone") {
+					SettingsRow(
+						icon = Icons.Default.Delete,
+						label = "Delete Account",
+						onClick = {
+							deleteError = null
+							deleteConfirmText = ""
+							showDeleteDialog = true
+						}
+					)
+					if (deleteError != null) {
+						Text(
+							text = deleteError ?: "",
+							color = MaterialTheme.colorScheme.error
+						)
+					}
+				}
+			}
 		}
+	}
+
+	if (showDeleteDialog) {
+		AlertDialog(
+			onDismissRequest = { if (!isDeleting) showDeleteDialog = false },
+			title = { Text("Delete Account") },
+			text = {
+				Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+					Text(
+						"This will permanently delete your account and all of your " +
+							"personal data. "
+					)
+					Text(
+						"Purchases made through the App Store or Google Play can be " +
+							"restored if you sign in again with the same account.",
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+					Text(
+						"This action cannot be undone.",
+						fontWeight = FontWeight.Bold,
+						color = MaterialTheme.colorScheme.error
+					)
+					Spacer(modifier = Modifier.height(6.dp))
+					TextField(
+						value = deleteConfirmText,
+						onValueChange = { deleteConfirmText = it },
+						label = "Type DELETE to confirm",
+						singleLine = true
+					)
+				}
+			},
+			confirmButton = {
+				TextButton(
+					enabled = !isDeleting && deleteConfirmText == "DELETE",
+					onClick = {
+						scope.launch {
+							isDeleting = true
+							deleteError = null
+							val ok = sessionViewModel.deleteAccount()
+							isDeleting = false
+							if (ok) {
+								showDeleteDialog = false
+								onAccountDeleted()
+							} else {
+								deleteError = sessionViewModel.error.value ?: "Could not delete the account."
+							}
+						}
+					}
+				) {
+					Text(if (isDeleting) "Deleting..." else "Delete")
+				}
+			},
+			dismissButton = {
+				TextButton(
+					enabled = !isDeleting,
+					onClick = { showDeleteDialog = false }
+				) {
+					Text("Cancel")
+				}
+			}
+		)
 	}
 }
 
