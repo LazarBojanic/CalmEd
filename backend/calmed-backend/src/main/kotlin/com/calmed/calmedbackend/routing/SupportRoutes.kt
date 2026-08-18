@@ -27,7 +27,7 @@ fun Route.supportRoutes() {
                 )
 
                 email.setFrom("calmedapplication@gmail.com")
-                email.addTo("calmedapplication@gmail.com")
+                email.addTo("apps@tagware.com.cy")
 
                 email.subject = "[Support] ${request.subject}"
                 email.setMsg(
