@@ -69,12 +69,25 @@ import org.jetbrains.compose.resources.stringResource
 fun VideoScreen(
     exercises: List<ProgramExerciseDto>,
     startIndex: Int = 0,
+    currentWeek: Int,
     onBack: () -> Unit
 ) {
-    var currentIndex by remember {
-        mutableStateOf(
-            if (exercises.isNotEmpty()) startIndex.coerceIn(0, exercises.lastIndex) else 0
-        )
+    val safeStartIndex = if (exercises.isNotEmpty()) {
+        val requestedIndex = startIndex.coerceIn(0, exercises.lastIndex)
+
+        if (exercises[requestedIndex].weekNumber <= currentWeek) {
+            requestedIndex
+        } else {
+            exercises.indexOfLast {
+                it.weekNumber <= currentWeek
+            }.takeIf { it >= 0 } ?: 0
+        }
+    } else {
+        0
+    }
+
+    var currentIndex by remember(exercises, startIndex, currentWeek) {
+        mutableStateOf(safeStartIndex)
     }
     var isPlaying by remember { mutableStateOf(true) }
     var isMuted by remember { mutableStateOf(false) }
@@ -145,6 +158,9 @@ fun VideoScreen(
     val currentUrl = currentExercise.videoURL ?: ""
     val remainingMs = (durationMs - currentPositionMs).coerceAtLeast(0L)
     val displayTitle = currentExercise.title
+    val canGoNext =
+        currentIndex < exercises.lastIndex &&
+                exercises[currentIndex + 1].weekNumber <= currentWeek
 
     LaunchedEffect(currentIndex) {
         currentPositionMs = 0L
@@ -155,7 +171,7 @@ fun VideoScreen(
     val onPlaybackEndedHandler: () -> Unit = {
         if (repeatCurrentExercise) {
             restartTrigger++
-        } else if (autoPlayNext && currentIndex < exercises.lastIndex) {
+        } else if (autoPlayNext && canGoNext) {
             currentIndex++
         }
     }
@@ -356,7 +372,7 @@ fun VideoScreen(
                 PlayerControls(
                     isPlaying = isPlaying,
                     canGoPrevious = currentIndex > 0,
-                    canGoNext = currentIndex < exercises.lastIndex,
+                    canGoNext = canGoNext,
                     onPrevious = {
                         if (currentIndex > 0) currentIndex--
                     },
@@ -364,7 +380,7 @@ fun VideoScreen(
                         isPlaying = !isPlaying
                     },
                     onNext = {
-                        if (currentIndex < exercises.lastIndex) currentIndex++
+                        if (canGoNext) currentIndex++
                     }
                 )
 

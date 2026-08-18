@@ -165,9 +165,18 @@ fun MainScreen(
 				MainTab.Home -> HomeScreen(
 					sessionViewModel = sessionViewModel,
 					onExerciseClick = { exercise ->
-						val index = allExercises.indexOfFirst { it.id == exercise.id }
+						val currentWeek = home?.currentWeek ?: 1
+
+						val availableExercises = allExercises.filter {
+							it.weekNumber <= currentWeek
+						}
+
+						val index = availableExercises.indexOfFirst {
+							it.id == exercise.id
+						}
+
 						if (index != -1) {
-							onOpenVideoFromList(allExercises, index)
+							onOpenVideoFromList(availableExercises, index)
 						} else {
 							onOpenVideoFromList(listOf(exercise), 0)
 						}
@@ -207,9 +216,18 @@ fun MainScreen(
 						currentWeek = home?.currentWeek ?: 1,
 						exercises = allExercises,
 						onExerciseClick = { ex ->
-							val index = allExercises.indexOfFirst { it.id == ex.id }
+							val currentWeek = home?.currentWeek ?: 1
+
+							val availableExercises = allExercises.filter {
+								it.weekNumber <= currentWeek
+							}
+
+							val index = availableExercises.indexOfFirst {
+								it.id == ex.id
+							}
+
 							if (index != -1) {
-								onOpenVideoFromList(allExercises, index)
+								onOpenVideoFromList(availableExercises, index)
 							} else {
 								onOpenVideoFromList(listOf(ex), 0)
 							}

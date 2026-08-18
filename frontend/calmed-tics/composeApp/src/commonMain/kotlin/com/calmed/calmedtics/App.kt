@@ -488,6 +488,7 @@ fun App() {
                     VideoScreen(
                         exercises = exercises,
                         startIndex = videoIndex,
+                        currentWeek = sessionViewModel.home.value?.currentWeek ?: 1,
                         onBack = {
                             navController.popBackStack()
                         }
@@ -525,9 +526,18 @@ fun App() {
                             sessionViewModel = koinInject(),
                             onExerciseClick = { exercise ->
                                 val allExercises = sessionViewModel.allExercises.value
-                                val index = allExercises.indexOfFirst { it.id == exercise.id }
+                                val currentWeek = sessionViewModel.home.value?.currentWeek ?: 1
+
+                                val availableExercises = allExercises.filter {
+                                    it.weekNumber <= currentWeek
+                                }
+
+                                val index = availableExercises.indexOfFirst {
+                                    it.id == exercise.id
+                                }
+
                                 if (index != -1) {
-                                    openVideoFromList(allExercises, index)
+                                    openVideoFromList(availableExercises, index)
                                 } else {
                                     openVideoFromList(listOf(exercise), 0)
                                 }
