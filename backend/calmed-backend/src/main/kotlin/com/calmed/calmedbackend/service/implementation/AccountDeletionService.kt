@@ -3,25 +3,19 @@ package com.calmed.calmedbackend.service.implementation
 import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.repository.specification.IAuthCredentialRepository
-import com.calmed.calmedbackend.repository.specification.IPaymentRepository
 import com.calmed.calmedbackend.repository.specification.IRefreshTokenRepository
 import com.calmed.calmedbackend.repository.specification.IUserExerciseProgressRepository
 import com.calmed.calmedbackend.repository.specification.IUserInfoTicsRepository
 import com.calmed.calmedbackend.repository.specification.IUserProgramRepository
 import com.calmed.calmedbackend.repository.specification.IUserRepository
+import com.calmed.calmedbackend.repository.specification.IStoreEntitlementRepository
 import com.calmed.calmedbackend.service.specification.IAccountDeletionService
 import io.ktor.http.HttpStatusCode
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.UUID
 
-/**
- * Orchestrates the permanent deletion of a user's account.
- *
- * Depends only on repositories (not services) to avoid a circular dependency
- * with [IUserService] and to keep the entire operation atomic within a single
- * transaction.
- */
+
 class AccountDeletionService(
     private val userRepository: IUserRepository,
     private val refreshTokenRepository: IRefreshTokenRepository,
@@ -29,7 +23,7 @@ class AccountDeletionService(
     private val userInfoTicsRepository: IUserInfoTicsRepository,
     private val userProgramRepository: IUserProgramRepository,
     private val userExerciseProgressRepository: IUserExerciseProgressRepository,
-    private val paymentRepository: IPaymentRepository
+    private val storeEntitlementRepository: IStoreEntitlementRepository
 ) : IAccountDeletionService {
 
     private val logger = LoggerFactory.getLogger(AccountDeletionService::class.java)
@@ -50,8 +44,7 @@ class AccountDeletionService(
                 userProgramRepository.deleteByUserId(userId)
                 userExerciseProgressRepository.deleteByUserId(userId)
 
-
-                paymentRepository.anonymizeByUserId(userId)
+                storeEntitlementRepository.detachByUserId(userId)
 
                 user.profileImageUrl?.let { profileImageUrl ->
                     deleteProfileImageFile(profileImageUrl)

@@ -10,7 +10,10 @@ import com.calmed.calmedbackend.model.dto.response.*
 import com.calmed.calmedbackend.model.raw.payment.Payment
 import com.calmed.calmedbackend.model.raw.payment.PaymentProvider
 import com.calmed.calmedbackend.model.raw.payment.PaymentStatus
+import com.calmed.calmedbackend.model.raw.payment.StoreEntitlement
+import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementProvider
 import com.calmed.calmedbackend.repository.specification.IPaymentRepository
+import com.calmed.calmedbackend.repository.specification.IStoreEntitlementRepository
 import com.calmed.calmedbackend.service.specification.IPaymentService
 import com.calmed.calmedbackend.service.specification.IUserService
 import com.stripe.Stripe
@@ -36,6 +39,7 @@ import java.util.UUID
 class PaymentService(
     private val userService: IUserService,
     private val paymentRepository: IPaymentRepository,
+    private val storeEntitlementRepository: IStoreEntitlementRepository,
     private val stripeConfig: StripeConfig,
     private val paypalConfig: PayPalConfig,
     private val googlePlayConfig: GooglePlayConfig
@@ -54,11 +58,24 @@ class PaymentService(
     }
 
     private suspend fun userHasActivePayment(userId: UUID): Boolean {
+        val storeAccess = storeEntitlementRepository.findByUserId(userId).isNotEmpty()
+        if (storeAccess) return true
+
         val payments = paymentRepository.findByUserId(userId)
         return payments.any { it.status == PaymentStatus.SUCCESSFUL && it.refundedAt == null }
     }
 
     private suspend fun latestActivePaymentProvider(userId: UUID): PaymentProvider? {
+        val entitlements = storeEntitlementRepository.findByUserId(userId)
+        if (entitlements.isNotEmpty()) {
+            return entitlements.first().store.let {
+                when (it) {
+                    StoreEntitlementProvider.GOOGLE -> PaymentProvider.GOOGLE
+                    StoreEntitlementProvider.APPLE -> PaymentProvider.APPLE
+                }
+            }
+        }
+
         return paymentRepository
             .findByUserId(userId)
             .filter { it.status == PaymentStatus.SUCCESSFUL && it.refundedAt == null }
@@ -67,10 +84,41 @@ class PaymentService(
     }
 
     private suspend fun latestPaymentStatus(userId: UUID): PaymentStatus? {
+        val entitlements = storeEntitlementRepository.findByUserId(userId)
+        if (entitlements.isNotEmpty()) return PaymentStatus.SUCCESSFUL
+
         return paymentRepository
             .findByUserId(userId)
             .maxByOrNull { it.createdAt }
             ?.status
+    }
+
+    private suspend fun grantOrRestoreEntitlement(
+        store: StoreEntitlementProvider,
+        storeTransactionId: String,
+        userId: UUID
+    ): EntitlementGrantResult {
+        val existing = storeEntitlementRepository.findByStoreTransactionId(store, storeTransactionId)
+        return when {
+            existing == null -> {
+                storeEntitlementRepository.create(
+                    StoreEntitlement.createNew(
+                        store = store,
+                        storeTransactionId = storeTransactionId,
+                        userId = userId
+                    )
+                )
+                EntitlementGrantResult.GRANTED
+            }
+            existing.userId == null -> {
+                storeEntitlementRepository.update(
+                    existing.copy(userId = userId, updatedAt = Instant.now())
+                )
+                EntitlementGrantResult.RESTORED
+            }
+            existing.userId == userId -> EntitlementGrantResult.GRANTED
+            else -> EntitlementGrantResult.CONFLICT
+        }
     }
 
     private fun getPayPalAccessToken(): String {
@@ -251,41 +299,36 @@ class PaymentService(
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Transaction ID cannot be blank")
             }
 
-            val existing = paymentRepository.findByAppleTransactionId(dto.transactionId)
-            if (existing != null && existing.status == PaymentStatus.SUCCESSFUL) {
-                when (existing.userId) {
-                    userId -> {
-                        return paymentStatus(userId)
-                    }
-                    null -> {
-                        logger.info("Re-attributing previously anonymized Apple transaction ${dto.transactionId} to user $userId on restore")
-                        paymentRepository.update(
-                            existing.copy(
-                                userId = userId,
-                                updatedAt = Instant.now()
-                            )
-                        )
-                        return paymentStatus(userId)
-                    }
-                    else -> {
-                        logger.warn("Replay attack detected: Apple transaction ${dto.transactionId} already claimed")
-                        return AppResult.Failure(
-                            HttpStatusCode.Conflict,
-                            "This Apple transaction has already been redeemed by another account"
-                        )
-                    }
-                }
+
+            val entitlementTransactionId = dto.transactionId
+
+            val grant = grantOrRestoreEntitlement(
+                store = StoreEntitlementProvider.APPLE,
+                storeTransactionId = entitlementTransactionId,
+                userId = userId
+            )
+
+            if (grant == EntitlementGrantResult.CONFLICT) {
+                logger.warn("Replay attack detected: Apple transaction $entitlementTransactionId already claimed by another account")
+                return AppResult.Failure(
+                    HttpStatusCode.Conflict,
+                    "This Apple transaction has already been redeemed by another account"
+                )
             }
 
-            paymentRepository.create(
-                Payment.createNew(
-                    userId = userId,
-                    provider = PaymentProvider.APPLE,
-                    appleTransactionId = dto.transactionId,
-                    appleOriginalTransactionId = dto.transactionId,
-                    status = PaymentStatus.SUCCESSFUL
+            val existingLedger = paymentRepository.findByAppleTransactionId(dto.transactionId)
+            if (existingLedger == null) {
+                paymentRepository.create(
+                    Payment.createNew(
+                        userId = userId,
+                        provider = PaymentProvider.APPLE,
+                        appleTransactionId = dto.transactionId,
+                        appleOriginalTransactionId = dto.transactionId,
+                        status = PaymentStatus.SUCCESSFUL
+                    )
                 )
-            )
+            }
+
             paymentStatus(userId)
         } catch (e: Exception) {
             logger.error("Failed to verify Apple purchase for user $userId: ${e.message}", e)
@@ -425,51 +468,44 @@ class PaymentService(
                 logger.info("Google Play public key not configured or set to placeholder; skipping RSA signature check for user $userId")
             }
 
-            if (finalOrderId.isNotBlank()) {
-                val existingPayment = paymentRepository.findByGoogleOrderId(finalOrderId)
-                if (existingPayment != null && existingPayment.status == PaymentStatus.SUCCESSFUL) {
-                    when (existingPayment.userId) {
-                        userId -> {
-                            logger.info("Google purchase $finalOrderId was already successfully recorded for user $userId")
-                            return paymentStatus(userId)
-                        }
-                        null -> {
-                            logger.info("Re-attributing previously anonymized Google order $finalOrderId to user $userId on restore")
-                            paymentRepository.update(
-                                existingPayment.copy(
-                                    userId = userId,
-                                    updatedAt = Instant.now()
-                                )
-                            )
-                            return paymentStatus(userId)
-                        }
-                        else -> {
-                            logger.warn("Replay attack detected: Google order $finalOrderId already claimed by user ${existingPayment.userId}, attempted by $userId")
-                            paymentRepository.create(
-                                Payment.createNew(
-                                    userId = userId,
-                                    provider = PaymentProvider.GOOGLE,
-                                    status = PaymentStatus.PENDING
-                                )
-                            )
-                            return AppResult.Failure(
-                                HttpStatusCode.Conflict,
-                                "This Google Play order has already been redeemed by another account"
-                            )
-                        }
-                    }
-                }
+            val entitlementTransactionId = finalToken.ifBlank { finalOrderId }
+
+            val grant = grantOrRestoreEntitlement(
+                store = StoreEntitlementProvider.GOOGLE,
+                storeTransactionId = entitlementTransactionId,
+                userId = userId
+            )
+
+            if (grant == EntitlementGrantResult.CONFLICT) {
+                logger.warn(
+                    "Replay attack detected: Google purchase $entitlementTransactionId already claimed by another account, attempted by $userId"
+                )
+                paymentRepository.create(
+                    Payment.createNew(
+                        userId = userId,
+                        provider = PaymentProvider.GOOGLE,
+                        status = PaymentStatus.PENDING
+                    )
+                )
+                return AppResult.Failure(
+                    HttpStatusCode.Conflict,
+                    "This Google Play order has already been redeemed by another account"
+                )
             }
 
-            paymentRepository.create(
-                Payment.createNew(
-                    userId = userId,
-                    provider = PaymentProvider.GOOGLE,
-                    googleOrderId = finalOrderId,
-                    googlePurchaseToken = finalToken,
-                    status = PaymentStatus.SUCCESSFUL
+            val existingLedger = finalOrderId.takeIf { it.isNotBlank() }
+                ?.let { paymentRepository.findByGoogleOrderId(it) }
+            if (existingLedger == null) {
+                paymentRepository.create(
+                    Payment.createNew(
+                        userId = userId,
+                        provider = PaymentProvider.GOOGLE,
+                        googleOrderId = finalOrderId,
+                        googlePurchaseToken = finalToken,
+                        status = PaymentStatus.SUCCESSFUL
+                    )
                 )
-            )
+            }
 
             paymentStatus(userId)
         } catch (e: Exception) {

@@ -29,6 +29,7 @@ import com.calmed.calmedbackend.model.raw.programexercise.Visibility
 import java.time.Instant
 import java.util.UUID
 import com.calmed.calmedbackend.model.raw.payment.PaymentTable
+import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementTable
 
 fun main(args: Array<String>) {
 	io.ktor.server.netty.EngineMain.main(args)
@@ -54,7 +55,8 @@ suspend fun Application.module() {
 		UserProgramTable,
 		ProgramExerciseTable,
 		UserExerciseProgressTable,
-		PaymentTable
+		PaymentTable,
+		StoreEntitlementTable
 	)
 	transaction {
 		if (ktorConfig.development) {

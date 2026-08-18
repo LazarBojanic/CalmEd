@@ -50,6 +50,7 @@ import com.calmed.calmedtics.error_init_payment
 import com.calmed.calmedtics.error_payment_not_confirmed
 import com.calmed.calmedtics.error_payment_verification
 import com.calmed.calmedtics.error_skip_payment
+import com.calmed.calmedtics.logout
 import com.calmed.calmedtics.opening_payment
 import com.calmed.calmedtics.pay_button
 import com.calmed.calmedtics.payment_description
@@ -68,6 +69,7 @@ import org.koin.compose.koinInject
 @Composable
 fun PaymentScreen(
     onPaid: () -> Unit,
+    onLogout: () -> Unit = {},
     sessionViewModel: SessionViewModel = koinInject(),
     api: IAppApi = koinInject(),
     billingService: BillingService = remember { provideBillingService() }
@@ -271,6 +273,17 @@ fun PaymentScreen(
                 },
                 enabled = !loading,
                 onClick = { restorePurchase() }
+            )
+
+            PrimaryButton(
+                text = stringResource(Res.string.logout),
+                enabled = !loading,
+                onClick = {
+                    scope.launch {
+                        sessionViewModel.logout()
+                        onLogout()
+                    }
+                }
             )
 
             if (error != null) {

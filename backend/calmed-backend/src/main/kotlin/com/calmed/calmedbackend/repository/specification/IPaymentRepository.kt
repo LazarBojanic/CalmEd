@@ -15,7 +15,5 @@ interface IPaymentRepository {
 	suspend fun update(payment: Payment): Payment?
 	suspend fun deleteByUserId(userId: UUID): Boolean
 	suspend fun delete(id: UUID): Boolean
-	/** Detach all of a user's payment records from [userId] (null out the FK) while retaining non-PII financial data. */
-	suspend fun anonymizeByUserId(userId: UUID): Boolean
 }
 

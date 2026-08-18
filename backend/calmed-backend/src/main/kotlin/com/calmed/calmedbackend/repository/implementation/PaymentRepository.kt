@@ -98,23 +98,5 @@ class PaymentRepository : IPaymentRepository {
 		}
 	}
 
-	override suspend fun anonymizeByUserId(userId: UUID): Boolean {
-		return withTransaction {
-			val entities = PaymentEntity.find { PaymentTable.userId eq userId }
-			var updated = false
-			for (e in entities) {
-				var modified = false
-				if (e.userId != null) {
-					e.userId = null
-					modified = true
-				}
-				if (modified) {
-					e.updatedAt = java.time.Instant.now()
-					updated = true
-				}
-			}
-			updated
-		}
-	}
 }
 

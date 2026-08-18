@@ -464,6 +464,12 @@ fun App() {
                                     launchSingleTop = true
                                 }
                             }
+                        },
+                        onLogout = {
+                            navController.navigate(Routes.Login) {
+                                popUpTo(Routes.Payment) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         }
                     )
                 }

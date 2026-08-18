@@ -50,7 +50,7 @@ val serviceModule = module {
 	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get()) }
 	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 	single<IHomeService> { HomeService(get(), get(), get(), get(), get()) }
-	single<IPaymentService> { PaymentService(get(), get(), get(), get(), get()) }
+	single<IPaymentService> { PaymentService(get(), get(), get(), get(), get(), get()) }
 	single<IAccountDeletionService> {
 		AccountDeletionService(
 			userRepository = get(),
@@ -59,7 +59,7 @@ val serviceModule = module {
 			userInfoTicsRepository = get(),
 			userProgramRepository = get(),
 			userExerciseProgressRepository = get(),
-			paymentRepository = get()
+			storeEntitlementRepository = get()
 		)
 	}
 

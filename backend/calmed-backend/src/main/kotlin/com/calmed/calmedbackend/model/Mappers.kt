@@ -19,6 +19,8 @@ import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenEntity
 import com.calmed.calmedbackend.model.raw.payment.Payment
 import com.calmed.calmedbackend.model.raw.payment.PaymentEntity
+import com.calmed.calmedbackend.model.raw.payment.StoreEntitlement
+import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementEntity
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
 import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
@@ -218,6 +220,32 @@ fun PaymentEntity.setFrom(d: Payment, mapMode: MapMode) {
 	paypalCaptureId = d.paypalCaptureId
 	status = d.status
 	refundedAt = d.refundedAt
+	when (mapMode) {
+		MapMode.CREATE -> {
+			createdAt = d.createdAt
+			updatedAt = d.updatedAt
+		}
+		MapMode.UPDATE -> {
+			updatedAt = d.updatedAt
+		}
+	}
+}
+
+fun StoreEntitlementEntity.toRaw(): StoreEntitlement {
+	return StoreEntitlement(
+		id = this.id.value,
+		store = this.store,
+		storeTransactionId = this.storeTransactionId,
+		userId = this.userId,
+		createdAt = this.createdAt,
+		updatedAt = this.updatedAt
+	)
+}
+
+fun StoreEntitlementEntity.setFrom(d: StoreEntitlement, mapMode: MapMode) {
+	store = d.store
+	storeTransactionId = d.storeTransactionId
+	userId = d.userId
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt

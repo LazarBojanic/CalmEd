@@ -8,6 +8,7 @@ import com.calmed.calmedbackend.repository.implementation.UserRepository
 import com.calmed.calmedbackend.repository.implementation.ProgramExerciseRepository
 import com.calmed.calmedbackend.repository.implementation.UserProgramRepository
 import com.calmed.calmedbackend.repository.implementation.UserExerciseProgressRepository
+import com.calmed.calmedbackend.repository.implementation.StoreEntitlementRepository
 import com.calmed.calmedbackend.repository.specification.IAuthCredentialRepository
 import com.calmed.calmedbackend.repository.specification.IRefreshTokenRepository
 import com.calmed.calmedbackend.repository.specification.IPaymentRepository
@@ -16,6 +17,7 @@ import com.calmed.calmedbackend.repository.specification.IUserRepository
 import com.calmed.calmedbackend.repository.specification.IProgramExerciseRepository
 import com.calmed.calmedbackend.repository.specification.IUserProgramRepository
 import com.calmed.calmedbackend.repository.specification.IUserExerciseProgressRepository
+import com.calmed.calmedbackend.repository.specification.IStoreEntitlementRepository
 import org.koin.dsl.module
 
 val repositoryModule = module {
@@ -27,6 +29,7 @@ val repositoryModule = module {
 	single<IProgramExerciseRepository> { ProgramExerciseRepository() }
 	single<IUserProgramRepository> { UserProgramRepository() }
 	single<IUserExerciseProgressRepository> { UserExerciseProgressRepository() }
+	single<IStoreEntitlementRepository> { StoreEntitlementRepository() }
 
 
 }
