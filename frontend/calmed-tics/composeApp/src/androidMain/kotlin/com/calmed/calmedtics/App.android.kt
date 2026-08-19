@@ -24,6 +24,7 @@ class AndroidApp : Application() {
 		else{
 			url = "https://api.calm-ed.com"
 		}
+		url = "https://api.calm-ed.com"
 		initKoin(
 			baseUrl = url,
 			androidModule(this)

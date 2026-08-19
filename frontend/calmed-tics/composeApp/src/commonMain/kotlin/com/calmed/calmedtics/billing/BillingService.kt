@@ -6,7 +6,7 @@ interface BillingService {
     val purchaseResults: Flow<PurchaseResult>
     suspend fun connect()
     suspend fun loadProduct(productId: String): Boolean
-    suspend fun purchase(productId: String)
+    suspend fun purchase(productId: String, obfuscatedAccountId: String? = null)
     suspend fun restore()
     fun close()
 }

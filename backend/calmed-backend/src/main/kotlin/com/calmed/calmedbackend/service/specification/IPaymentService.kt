@@ -10,7 +10,6 @@ interface IPaymentService {
     suspend fun paymentStatus(userId: UUID): AppResult<PaymentStatusDto>
     suspend fun createCheckoutSession(userId: UUID, dto: CreateCheckoutSessionDto): AppResult<CheckoutSessionResponseDto>
     suspend fun handleStripeWebhook(payload: String, sigHeader: String): AppResult<Unit>
-    suspend fun skipPayment(userId: UUID): AppResult<PaymentStatusDto>
     suspend fun verifyApplePurchase(userId: UUID, dto: VerifyAppleReceiptDto): AppResult<PaymentStatusDto>
     suspend fun verifyGooglePurchase(userId: UUID, dto: VerifyGoogleReceiptDto): AppResult<PaymentStatusDto>
     suspend fun verifyStripeSession(userId: UUID, sessionId: String): AppResult<PaymentStatusDto>

@@ -143,18 +143,6 @@ fun Route.paymentRoutes() {
                     is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
                 }
             }
-
-            post("/skip-payment") {
-                val jwt = call.principal<JWTPrincipal>() ?: throw BusinessException(
-                    HttpStatusCode.Unauthorized,
-                    "Invalid authentication"
-                )
-                val userId = UUID.fromString(jwt.subject)
-                when (val res = paymentService.skipPayment(userId)) {
-                    is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
-                    is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
-                }
-            }
         }
     }
 }

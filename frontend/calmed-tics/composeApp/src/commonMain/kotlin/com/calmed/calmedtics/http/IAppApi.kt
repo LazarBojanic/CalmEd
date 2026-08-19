@@ -48,7 +48,6 @@ interface IAppApi {
     suspend fun getWelcomeVideo(): ProgramExerciseDto?
     suspend fun getCourseOverviewVideo(): ProgramExerciseDto?
     suspend fun getPaymentStatus(): PaymentStatusDto?
-    suspend fun skipPayment(): PaymentStatusDto?
     suspend fun sendSupportMessage(
         request: SupportMessageRequestDto
     ): SupportMessageResponseDto

@@ -118,8 +118,32 @@ class StoreKitManager: ObservableObject {
 }
 
     func restorePurchases() async throws {
-        try await AppStore.sync()
-}
+        // Ask the App Store to re-sync (shows the Sign In prompt when needed).
+        try? await AppStore.sync()
+
+        // Apple's recommended restore path: current entitlements are automatically available.
+        var found = 0
+        for await result in Transaction.currentEntitlements {
+            guard let transaction = try? self.checkVerified(result) else { continue }
+            found += 1
+            await self.updatePurchasedProducts(transaction)
+            await transaction.finish()
+            NotificationCenter.default.post(
+                name: NSNotification.Name("OnApplePurchaseSuccess"),
+                object: nil,
+                userInfo: [
+                    "transactionId": transaction.originalID.description,
+                    "productId": transaction.productID
+                ]
+            )
+        }
+
+        NotificationCenter.default.post(
+            name: NSNotification.Name("OnAppleRestoreComplete"),
+            object: nil,
+            userInfo: ["count": found]
+        )
+    }
 }
 
 enum StoreError: Error {

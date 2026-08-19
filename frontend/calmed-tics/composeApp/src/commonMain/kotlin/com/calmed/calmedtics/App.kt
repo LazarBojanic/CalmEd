@@ -12,7 +12,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.calmed.calmedtics.auth.getGoogleIdToken
-import com.calmed.calmedtics.billing.provideBillingService
 import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.service.specification.IAuthService
 import com.calmed.calmedtics.settings.AppSettings
@@ -117,17 +116,6 @@ fun App() {
         }
     }
 
-    fun attemptRestorePurchase() {
-        scope.launch {
-            try {
-                val billing = provideBillingService()
-                billing.restore()
-            } catch (t: Throwable) {
-                println("Restore purchase skipped: ${t.message}")
-            }
-        }
-    }
-
     fun openVideo(url: String) {
         if (url.isBlank()) return
         videoExercises = listOf(
@@ -202,8 +190,6 @@ fun App() {
                             return@LaunchedEffect
                         }
 
-                        attemptRestorePurchase()
-
                         val nextRoute = resolveNextAuthenticatedRoute()
                         if (nextRoute == null) {
                             navController.navigate(Routes.Login) {
@@ -231,7 +217,6 @@ fun App() {
                         },
 
                         onLoginSuccess = {
-                            attemptRestorePurchase()
                             scope.launch {
                                 val nextRoute = resolveNextAuthenticatedRoute()
                                 if (nextRoute == null) {
@@ -257,7 +242,6 @@ fun App() {
                                     val googleToken = getGoogleIdToken()
                                     val ok = authViewModel.loginWithGoogle(googleToken)
                                     if (ok) {
-                                        attemptRestorePurchase()
                                         val nextRoute = resolveNextAuthenticatedRoute()
                                         if (nextRoute == null) {
                                             navController.navigate(Routes.Login) {

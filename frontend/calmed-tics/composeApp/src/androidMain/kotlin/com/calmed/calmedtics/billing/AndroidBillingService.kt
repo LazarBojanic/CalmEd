@@ -32,7 +32,7 @@ class AndroidBillingService(
     private val tag = "AndroidBillingService"
 
     private val _purchaseResults = MutableSharedFlow<PurchaseResult>(
-        replay = 0,
+        replay = 1,
         extraBufferCapacity = 64,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
@@ -84,7 +84,7 @@ class AndroidBillingService(
         }
     }
 
-    override suspend fun purchase(productId: String) {
+    override suspend fun purchase(productId: String, obfuscatedAccountId: String?) {
         connect()
 
         val activity = activityProvider()
@@ -119,9 +119,12 @@ class AndroidBillingService(
             productDetailsParamsBuilder.setOfferToken(offerToken)
         }
 
-        val flowParams = BillingFlowParams.newBuilder()
+        val flowParamsBuilder = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(listOf(productDetailsParamsBuilder.build()))
-            .build()
+        if (!obfuscatedAccountId.isNullOrBlank()) {
+            flowParamsBuilder.setObfuscatedAccountId(obfuscatedAccountId)
+        }
+        val flowParams = flowParamsBuilder.build()
 
         val launchResult = billingClient.launchBillingFlow(activity, flowParams)
         if (launchResult.responseCode != BillingClient.BillingResponseCode.OK) {
@@ -138,6 +141,10 @@ class AndroidBillingService(
         val subPurchases = queryOwnedPurchases(BillingClient.ProductType.SUBS)
         val restored = (inAppPurchases + subPurchases).distinctBy { it.purchaseToken }
         Log.d(tag, "Restoring purchases, found ${restored.size} owned purchase(s).")
+        if (restored.isEmpty()) {
+            _purchaseResults.tryEmit(PurchaseResult.NothingToRestore)
+            return
+        }
         restored.forEach(::processPurchase)
     }
 

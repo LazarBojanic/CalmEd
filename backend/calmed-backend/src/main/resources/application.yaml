@@ -68,7 +68,10 @@ stripe:
     apple_merchant_id: ${STRIPE_APPLE_MERCHANT_ID:placeholder}
 google_play:
     package_name: ${GOOGLE_PLAY_PACKAGE_NAME:com.calmed.calmedtics}
-    public_key: ${GOOGLE_PLAY_PUBLIC_KEY:placeholder}
+    service_account_json: ${GOOGLE_PLAY_SERVICE_ACCOUNT_JSON:placeholder}
+payment:
+    product_id: ${PAYMENT_PRODUCT_ID:app_access}
+    dev_fallback_enabled: ${PAYMENT_DEV_FALLBACK_ENABLED:false}
 paypal:
     client_id: ${PAYPAL_CLIENT_ID:placeholder}
     client_secret: ${PAYPAL_CLIENT_SECRET:placeholder}

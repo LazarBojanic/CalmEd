@@ -15,6 +15,11 @@ data class StoreEntitlement(
     val storeTransactionId: String,
     @Serializable(with = UUIDSerializer::class)
     val userId: UUID?,
+    val productId: String? = null,
+    val obfuscatedAccountId: String? = null,
+    val environment: String? = null,
+    @Serializable(with = InstantSerializer::class)
+    val revokedAt: Instant? = null,
     @Serializable(with = InstantSerializer::class)
     val createdAt: Instant,
     @Serializable(with = InstantSerializer::class)
@@ -25,6 +30,10 @@ data class StoreEntitlement(
             store: StoreEntitlementProvider,
             storeTransactionId: String,
             userId: UUID?,
+            productId: String? = null,
+            obfuscatedAccountId: String? = null,
+            environment: String? = null,
+            revokedAt: Instant? = null,
             createdAt: Instant? = null,
             updatedAt: Instant? = null
         ): StoreEntitlement {
@@ -34,6 +43,10 @@ data class StoreEntitlement(
                 store = store,
                 storeTransactionId = storeTransactionId,
                 userId = userId,
+                productId = productId,
+                obfuscatedAccountId = obfuscatedAccountId,
+                environment = environment,
+                revokedAt = revokedAt,
                 createdAt = createdAt ?: now,
                 updatedAt = updatedAt ?: now
             )

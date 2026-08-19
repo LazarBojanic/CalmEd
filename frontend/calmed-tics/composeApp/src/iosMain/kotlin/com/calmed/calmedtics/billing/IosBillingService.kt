@@ -1,15 +1,21 @@
 package com.calmed.calmedtics.billing
 
 import com.calmed.calmedtics.model.raw.PaymentProvider
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import platform.Foundation.NSNotification
 import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSNumber
 import platform.Foundation.NSOperationQueue
 import platform.darwin.NSObject
 
 class IosBillingService : BillingService {
-    private val _purchaseResults = MutableSharedFlow<PurchaseResult>()
+    private val _purchaseResults = MutableSharedFlow<PurchaseResult>(
+        replay = 1,
+        extraBufferCapacity = 64,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     override val purchaseResults = _purchaseResults.asSharedFlow()
 
     private val notificationObserver = NSNotificationCenter.defaultCenter.addObserverForName(
@@ -41,8 +47,19 @@ class IosBillingService : BillingService {
         _purchaseResults.tryEmit(PurchaseResult.Failure(error))
     }
 
+    private val restoreCompleteObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+        name = "OnAppleRestoreComplete",
+        `object` = null,
+        queue = NSOperationQueue.mainQueue
+    ) { notification ->
+        val count = (notification?.userInfo?.get("count") as? NSNumber)?.intValue ?: 0
+        if (count <= 0) {
+            _purchaseResults.tryEmit(PurchaseResult.NothingToRestore)
+        }
+    }
+
     override suspend fun connect() {}
-    override suspend fun purchase(productId: String) {
+    override suspend fun purchase(productId: String, obfuscatedAccountId: String?) {
         NSNotificationCenter.defaultCenter.postNotificationName(
             aName = "TriggerApplePurchase",
             `object` = null,
@@ -61,6 +78,7 @@ class IosBillingService : BillingService {
     override fun close() {
         NSNotificationCenter.defaultCenter.removeObserver(notificationObserver)
         NSNotificationCenter.defaultCenter.removeObserver(failureObserver)
+        NSNotificationCenter.defaultCenter.removeObserver(restoreCompleteObserver)
     }
     override suspend fun loadProduct(productId: String): Boolean = true // Assume loaded for now
 }

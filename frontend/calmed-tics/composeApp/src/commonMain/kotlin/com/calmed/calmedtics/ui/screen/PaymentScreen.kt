@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,10 +47,10 @@ import com.calmed.calmedtics.billing.BillingProducts
 import com.calmed.calmedtics.billing.BillingService
 import com.calmed.calmedtics.billing.PurchaseResult
 import com.calmed.calmedtics.billing.provideBillingService
+import com.calmed.calmedtics.billing.obfuscateAccountId
 import com.calmed.calmedtics.error_init_payment
 import com.calmed.calmedtics.error_payment_not_confirmed
 import com.calmed.calmedtics.error_payment_verification
-import com.calmed.calmedtics.error_skip_payment
 import com.calmed.calmedtics.logout
 import com.calmed.calmedtics.opening_payment
 import com.calmed.calmedtics.pay_button
@@ -82,9 +83,9 @@ fun PaymentScreen(
 
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var info by remember { mutableStateOf<String?>(null) }
     var priceLabel by remember { mutableStateOf("$5.00 (EUR)") }
     val errorInitPayment = stringResource(Res.string.error_init_payment)
-    val errorSkipPayment = stringResource(Res.string.error_skip_payment)
     val errorPaymentNotConfirmed = stringResource(Res.string.error_payment_not_confirmed)
     val errorPaymentVerification = stringResource(Res.string.error_payment_verification)
     fun startNativePayment() {
@@ -93,24 +94,12 @@ fun PaymentScreen(
             loading = true
             error = null
             try {
-                billingService.purchase(BillingProducts.TEST_APP_ACCESS)
+                val accountId = sessionViewModel.user.value?.email
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { obfuscateAccountId(it) }
+                billingService.purchase(BillingProducts.APP_ACCESS, accountId)
             } catch (t: Throwable) {
                 error = t.message ?: errorInitPayment
-                loading = false
-            }
-        }
-    }
-
-    fun skipPayment() {
-        scope.launch {
-            loading = true
-            error = null
-            try {
-                api.skipPayment()
-                if (api.getPaymentStatus()?.hasAccess == true) onPaid() else error = errorSkipPayment
-            } catch (t: Throwable) {
-                error = t.message ?: errorSkipPayment
-            } finally {
                 loading = false
             }
         }
@@ -172,10 +161,26 @@ fun PaymentScreen(
                         error = result.message
                         loading = false
                     }
+                    is PurchaseResult.NothingToRestore -> {
+                        loading = false
+                        info = "No previous purchases found to restore."
+                    }
                 }
             }
         }
         onDispose { job.cancel() }
+    }
+
+    // Auto-restore on first entry so users who re-registered after deleting their account
+    // get their previous purchase back without needing to find the button.
+    LaunchedEffect(Unit) {
+        try {
+            billingService.connect()
+            billingService.restore()
+        } catch (t: Throwable) {
+            // Restore is best-effort here; the manual button remains available.
+            println("Auto-restore skipped: ${t.message}")
+        }
     }
 
     Box(
@@ -259,16 +264,6 @@ fun PaymentScreen(
                 text = if (loading) {
                     stringResource(Res.string.processing)
                 } else {
-                    "Payment Bypass (Dev Only)"
-                },
-                enabled = !loading,
-                onClick = { skipPayment() }
-            )
-
-            PrimaryButton(
-                text = if (loading) {
-                    stringResource(Res.string.processing)
-                } else {
                     "Restore Purchase"
                 },
                 enabled = !loading,
@@ -285,6 +280,15 @@ fun PaymentScreen(
                     }
                 }
             )
+
+            if (info != null) {
+                Text(
+                    text = info!!,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
 
             if (error != null) {
                 Text(

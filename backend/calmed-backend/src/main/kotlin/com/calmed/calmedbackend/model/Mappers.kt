@@ -237,6 +237,10 @@ fun StoreEntitlementEntity.toRaw(): StoreEntitlement {
 		store = this.store,
 		storeTransactionId = this.storeTransactionId,
 		userId = this.userId,
+		productId = this.productId,
+		obfuscatedAccountId = this.obfuscatedAccountId,
+		environment = this.environment,
+		revokedAt = this.revokedAt,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -246,6 +250,10 @@ fun StoreEntitlementEntity.setFrom(d: StoreEntitlement, mapMode: MapMode) {
 	store = d.store
 	storeTransactionId = d.storeTransactionId
 	userId = d.userId
+	productId = d.productId
+	obfuscatedAccountId = d.obfuscatedAccountId
+	environment = d.environment
+	revokedAt = d.revokedAt
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt

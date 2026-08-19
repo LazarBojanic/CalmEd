@@ -17,4 +17,7 @@ sealed class PurchaseResult {
 
     @Serializable
     data class Failure(val message: String) : PurchaseResult()
+
+    @Serializable
+    object NothingToRestore : PurchaseResult()
 }

@@ -5,15 +5,21 @@ import io.ktor.server.config.propertyOrNull
 
 data class GooglePlayConfig(
     val packageName: String,
-    val publicKey: String
+    val serviceAccountJson: String,
+    val productId: String,
+    val devFallbackEnabled: Boolean
 ) {
     companion object {
         fun from(config: ApplicationConfig): GooglePlayConfig {
             val packageName = config.property("google_play.package_name").getString()
-            val publicKey = config.property("google_play.public_key").getString()
+            val serviceAccountJson = config.propertyOrNull("google_play.service_account_json")?.getString() ?: ""
+            val productId = config.propertyOrNull("payment.product_id")?.getString() ?: "app_access"
+            val devFallbackEnabled = config.propertyOrNull("payment.dev_fallback_enabled")?.getString()?.toBoolean() ?: false
             return GooglePlayConfig(
                 packageName = packageName,
-                publicKey = publicKey
+                serviceAccountJson = serviceAccountJson,
+                productId = productId,
+                devFallbackEnabled = devFallbackEnabled
             )
         }
     }

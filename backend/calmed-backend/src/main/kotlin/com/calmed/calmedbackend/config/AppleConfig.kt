@@ -9,7 +9,8 @@ data class AppleConfig(
     val keyId: String,
     val clientId: String,
     val privateKeyPem: String,
-    val redirectURI: String
+    val redirectURI: String,
+    val productId: String
 ) {
     companion object {
         fun from(config: ApplicationConfig): AppleConfig {
@@ -21,13 +22,15 @@ data class AppleConfig(
 
             val privateKeyPem = privateKeyPemRaw.replace("\\n", "\n")
             val redirectURI = config.property("oauth.apple.redirect_uri").getString()
+            val productId = config.propertyOrNull("payment.product_id")?.getString() ?: "app_access"
             return AppleConfig(
                 iosBundleId = iosBundleId,
                 teamId = teamId,
                 keyId = keyId,
                 clientId = clientId,
                 privateKeyPem = privateKeyPem,
-                redirectURI = redirectURI
+                redirectURI = redirectURI,
+                productId = productId
             )
         }
     }

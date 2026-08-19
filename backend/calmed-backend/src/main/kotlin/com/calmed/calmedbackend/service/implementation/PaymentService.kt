@@ -1,6 +1,6 @@
 package com.calmed.calmedbackend.service.implementation
 
-import com.calmed.calmedbackend.auth.google.GooglePlayRsaVerifier
+import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.config.GooglePlayConfig
 import com.calmed.calmedbackend.config.PayPalConfig
 import com.calmed.calmedbackend.config.StripeConfig
@@ -12,6 +12,8 @@ import com.calmed.calmedbackend.model.raw.payment.PaymentProvider
 import com.calmed.calmedbackend.model.raw.payment.PaymentStatus
 import com.calmed.calmedbackend.model.raw.payment.StoreEntitlement
 import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementProvider
+import com.calmed.calmedbackend.payment.apple.AppStoreServerApi
+import com.calmed.calmedbackend.payment.google.GooglePlayDeveloperApi
 import com.calmed.calmedbackend.repository.specification.IPaymentRepository
 import com.calmed.calmedbackend.repository.specification.IStoreEntitlementRepository
 import com.calmed.calmedbackend.service.specification.IPaymentService
@@ -42,7 +44,8 @@ class PaymentService(
     private val storeEntitlementRepository: IStoreEntitlementRepository,
     private val stripeConfig: StripeConfig,
     private val paypalConfig: PayPalConfig,
-    private val googlePlayConfig: GooglePlayConfig
+    private val googlePlayConfig: GooglePlayConfig,
+    private val appleConfig: AppleConfig
 ) : IPaymentService {
 
     private val logger = LoggerFactory.getLogger(PaymentService::class.java)
@@ -57,8 +60,17 @@ class PaymentService(
         ignoreUnknownKeys = true
     }
 
+    private val googlePlayDeveloperApi = GooglePlayDeveloperApi(googlePlayConfig.serviceAccountJson)
+
+    private val appStoreServerApi = AppStoreServerApi(
+        teamId = appleConfig.teamId,
+        keyId = appleConfig.keyId,
+        privateKeyPem = appleConfig.privateKeyPem,
+        bundleId = appleConfig.iosBundleId
+    )
+
     private suspend fun userHasActivePayment(userId: UUID): Boolean {
-        val storeAccess = storeEntitlementRepository.findByUserId(userId).isNotEmpty()
+        val storeAccess = storeEntitlementRepository.findByUserId(userId).any { it.revokedAt == null }
         if (storeAccess) return true
 
         val payments = paymentRepository.findByUserId(userId)
@@ -66,7 +78,7 @@ class PaymentService(
     }
 
     private suspend fun latestActivePaymentProvider(userId: UUID): PaymentProvider? {
-        val entitlements = storeEntitlementRepository.findByUserId(userId)
+        val entitlements = storeEntitlementRepository.findByUserId(userId).filter { it.revokedAt == null }
         if (entitlements.isNotEmpty()) {
             return entitlements.first().store.let {
                 when (it) {
@@ -84,7 +96,7 @@ class PaymentService(
     }
 
     private suspend fun latestPaymentStatus(userId: UUID): PaymentStatus? {
-        val entitlements = storeEntitlementRepository.findByUserId(userId)
+        val entitlements = storeEntitlementRepository.findByUserId(userId).filter { it.revokedAt == null }
         if (entitlements.isNotEmpty()) return PaymentStatus.SUCCESSFUL
 
         return paymentRepository
@@ -96,7 +108,10 @@ class PaymentService(
     private suspend fun grantOrRestoreEntitlement(
         store: StoreEntitlementProvider,
         storeTransactionId: String,
-        userId: UUID
+        userId: UUID,
+        productId: String? = null,
+        obfuscatedAccountId: String? = null,
+        environment: String? = null
     ): EntitlementGrantResult {
         val existing = storeEntitlementRepository.findByStoreTransactionId(store, storeTransactionId)
         return when {
@@ -105,20 +120,75 @@ class PaymentService(
                     StoreEntitlement.createNew(
                         store = store,
                         storeTransactionId = storeTransactionId,
-                        userId = userId
+                        userId = userId,
+                        productId = productId,
+                        obfuscatedAccountId = obfuscatedAccountId,
+                        environment = environment
                     )
                 )
                 EntitlementGrantResult.GRANTED
             }
             existing.userId == null -> {
                 storeEntitlementRepository.update(
-                    existing.copy(userId = userId, updatedAt = Instant.now())
+                    existing.copy(
+                        userId = userId,
+                        productId = productId ?: existing.productId,
+                        obfuscatedAccountId = obfuscatedAccountId ?: existing.obfuscatedAccountId,
+                        environment = environment ?: existing.environment,
+                        revokedAt = null,
+                        updatedAt = Instant.now()
+                    )
                 )
                 EntitlementGrantResult.RESTORED
             }
-            existing.userId == userId -> EntitlementGrantResult.GRANTED
+            existing.userId == userId -> {
+                // Same user re-verifying (e.g. restore): refresh metadata and clear stale revocation.
+                storeEntitlementRepository.update(
+                    existing.copy(
+                        productId = productId ?: existing.productId,
+                        obfuscatedAccountId = obfuscatedAccountId ?: existing.obfuscatedAccountId,
+                        environment = environment ?: existing.environment,
+                        revokedAt = null,
+                        updatedAt = Instant.now()
+                    )
+                )
+                EntitlementGrantResult.GRANTED
+            }
             else -> EntitlementGrantResult.CONFLICT
         }
+    }
+
+    private fun isProductAllowed(productId: String): Boolean {
+        val expected = googlePlayConfig.productId.ifBlank { appleConfig.productId }
+        return expected.isBlank() || productId == expected
+    }
+
+    private suspend fun userEmail(userId: UUID): String? {
+        return when (val res = userService.getById(userId)) {
+            is AppResult.Success -> res.data.email
+            is AppResult.Failure -> null
+        }
+    }
+
+    private fun obfuscateAccountId(identifier: String): String {
+        var hash = 0xcbf29ce484222325UL
+        for (byte in identifier.trim().lowercase().toByteArray(Charsets.UTF_8)) {
+            hash = hash xor (byte.toInt() and 0xFF).toULong()
+            hash = hash * 0x100000001b3UL
+        }
+        return hash.toString(16).padStart(16, '0')
+    }
+
+    private fun looksLikeValidGooglePurchase(purchaseToken: String): Boolean {
+        if (purchaseToken.isBlank()) return false
+        // Static test IDs represent no real purchase and must never grant access.
+        val staticIds = listOf(
+            "android.test.purchased",
+            "android.test.canceled",
+            "android.test.refunded",
+            "android.test.item_unavailable"
+        )
+        return staticIds.none { purchaseToken.contains(it) }
     }
 
     private fun getPayPalAccessToken(): String {
@@ -261,267 +331,196 @@ class PaymentService(
         }
     }
 
-    override suspend fun skipPayment(userId: UUID): AppResult<PaymentStatusDto> {
-        return try {
-            paymentRepository.create(
-                Payment.createNew(
-                    userId = userId,
-                    provider = PaymentProvider.SKIP,
-                    status = PaymentStatus.SUCCESSFUL
-                )
-            )
-            paymentStatus(userId)
-        } catch (e: Exception) {
-            logger.error("Failed to process skip payment for user $userId: ${e.message}", e)
-            try {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.SKIP,
-                        status = PaymentStatus.PENDING
-                    )
-                )
-            } catch (ignored: Exception) {}
-            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to process skip payment: ${e.message}")
-        }
-    }
-
     override suspend fun verifyApplePurchase(userId: UUID, dto: VerifyAppleReceiptDto): AppResult<PaymentStatusDto> {
         return try {
             if (dto.transactionId.isBlank()) {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.APPLE,
-                        status = PaymentStatus.PENDING
-                    )
-                )
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Transaction ID cannot be blank")
             }
+            if (dto.productId.isBlank()) {
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Product ID is required")
+            }
+            if (!isProductAllowed(dto.productId)) {
+                logger.warn("Unexpected Apple product '${dto.productId}' for user $userId")
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Unknown product")
+            }
+            if (!appStoreServerApi.isConfigured()) {
+                logger.error("Apple App Store Server API is not configured; cannot verify transaction ${dto.transactionId}")
+                return AppResult.Failure(HttpStatusCode.ServiceUnavailable, "Apple purchase verification is not configured")
+            }
 
+            val verified = appStoreServerApi.getVerifiedTransaction(dto.transactionId)
+                ?: return AppResult.Failure(HttpStatusCode.PaymentRequired, "Apple transaction could not be verified")
 
-            val entitlementTransactionId = dto.transactionId
+            if (verified.revocationDate != null) {
+                logger.warn("Apple transaction ${verified.transactionId} is revoked; rejecting for user $userId")
+                return AppResult.Failure(HttpStatusCode.PaymentRequired, "This purchase has been refunded or revoked")
+            }
+            if (verified.bundleId.isNotBlank() && appleConfig.iosBundleId.isNotBlank() &&
+                verified.bundleId != appleConfig.iosBundleId
+            ) {
+                logger.warn("Apple transaction bundle mismatch: '${verified.bundleId}' vs '${appleConfig.iosBundleId}'")
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Bundle ID mismatch")
+            }
+
+            // Key on the original transaction id: it stays stable across restores/reinstalls.
+            val entitlementTransactionId = verified.originalTransactionId.ifBlank { verified.transactionId }
+
+            val finalProductId = verified.productId.ifBlank { dto.productId }
+            if (!isProductAllowed(finalProductId)) {
+                logger.warn("Unexpected Apple product '$finalProductId' for user $userId")
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Unknown product")
+            }
 
             val grant = grantOrRestoreEntitlement(
                 store = StoreEntitlementProvider.APPLE,
                 storeTransactionId = entitlementTransactionId,
-                userId = userId
+                userId = userId,
+                productId = finalProductId,
+                environment = verified.environment
             )
-
             if (grant == EntitlementGrantResult.CONFLICT) {
-                logger.warn("Replay attack detected: Apple transaction $entitlementTransactionId already claimed by another account")
-                return AppResult.Failure(
-                    HttpStatusCode.Conflict,
-                    "This Apple transaction has already been redeemed by another account"
-                )
+                logger.warn("Apple transaction $entitlementTransactionId already claimed by another account")
+                return AppResult.Failure(HttpStatusCode.Conflict, "This Apple transaction has already been redeemed by another account")
             }
 
-            val existingLedger = paymentRepository.findByAppleTransactionId(dto.transactionId)
+            val existingLedger = paymentRepository.findByAppleTransactionId(entitlementTransactionId)
             if (existingLedger == null) {
                 paymentRepository.create(
                     Payment.createNew(
                         userId = userId,
                         provider = PaymentProvider.APPLE,
-                        appleTransactionId = dto.transactionId,
-                        appleOriginalTransactionId = dto.transactionId,
+                        appleTransactionId = verified.transactionId,
+                        appleOriginalTransactionId = entitlementTransactionId,
                         status = PaymentStatus.SUCCESSFUL
                     )
                 )
+            } else if (existingLedger.userId == null || existingLedger.userId != userId) {
+                paymentRepository.update(existingLedger.copy(userId = userId, updatedAt = Instant.now()))
             }
 
             paymentStatus(userId)
         } catch (e: Exception) {
             logger.error("Failed to verify Apple purchase for user $userId: ${e.message}", e)
-            try {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.APPLE,
-                        appleTransactionId = dto.transactionId.takeIf { it.isNotBlank() },
-                        status = PaymentStatus.PENDING
-                    )
-                )
-            } catch (ignored: Exception) {}
             AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to verify Apple purchase: ${e.message}")
         }
     }
 
     override suspend fun verifyGooglePurchase(userId: UUID, dto: VerifyGoogleReceiptDto): AppResult<PaymentStatusDto> {
         return try {
-            var extractedOrderId = dto.orderId
-            var extractedProductId = dto.productId
-            var extractedToken = dto.purchaseToken
+            var productId = dto.productId
+            var purchaseToken = dto.purchaseToken
 
+            // Older clients may only send purchaseData; extract fields from it as a fallback.
             if (dto.purchaseData.isNotBlank()) {
-                val purchaseJson = try {
-                    Json.parseToJsonElement(dto.purchaseData).jsonObject
+                val purchaseJson = runCatching { Json.parseToJsonElement(dto.purchaseData).jsonObject }.getOrNull()
+                if (purchaseJson != null) {
+                    if (productId.isBlank()) productId = purchaseJson["productId"]?.jsonPrimitive?.content ?: ""
+                    if (purchaseToken.isBlank()) purchaseToken = purchaseJson["purchaseToken"]?.jsonPrimitive?.content ?: ""
+                }
+            }
+
+            if (purchaseToken.isBlank()) {
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Google purchase token is required")
+            }
+            if (productId.isBlank()) {
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Product ID is required")
+            }
+            if (!isProductAllowed(productId)) {
+                logger.warn("Unexpected Google product '$productId' for user $userId")
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Unknown product")
+            }
+            val apiConfigured = googlePlayDeveloperApi.isConfigured()
+
+            if (!apiConfigured && !googlePlayConfig.devFallbackEnabled) {
+                logger.error("Google Play Developer API is not configured; cannot verify purchase for user $userId")
+                return AppResult.Failure(HttpStatusCode.ServiceUnavailable, "Google purchase verification is not configured")
+            }
+
+            var serverPurchase: GooglePlayDeveloperApi.ProductPurchase? = null
+            if (apiConfigured) {
+                serverPurchase = try {
+                    googlePlayDeveloperApi.validateProductPurchase(
+                        packageName = googlePlayConfig.packageName,
+                        productId = productId,
+                        token = purchaseToken
+                    )
                 } catch (e: Exception) {
-                    logger.warn("Invalid purchaseData JSON received for user $userId: ${dto.purchaseData}")
-                    paymentRepository.create(
-                        Payment.createNew(
-                            userId = userId,
-                            provider = PaymentProvider.GOOGLE,
-                            status = PaymentStatus.PENDING
-                        )
-                    )
-                    return AppResult.Failure(HttpStatusCode.BadRequest, "Invalid Google purchase data JSON format")
-                }
-
-                val packageName = purchaseJson["packageName"]?.jsonPrimitive?.content
-                if (googlePlayConfig.packageName.isNotBlank() && packageName != null && packageName != googlePlayConfig.packageName) {
-                    logger.warn("Package name mismatch in purchaseData: expected '${googlePlayConfig.packageName}', got '$packageName'")
-                    paymentRepository.create(
-                        Payment.createNew(
-                            userId = userId,
-                            provider = PaymentProvider.GOOGLE,
-                            status = PaymentStatus.PENDING
-                        )
-                    )
-                    return AppResult.Failure(HttpStatusCode.BadRequest, "Package name mismatch in purchase data")
-                }
-
-                val purchaseState = purchaseJson["purchaseState"]?.jsonPrimitive?.content?.toIntOrNull()
-                if (purchaseState != null && purchaseState != 0) {
-                    logger.warn("Google purchase is not in PURCHASED state (state=$purchaseState) for user $userId")
-                    val orderIdFromData = purchaseJson["orderId"]?.jsonPrimitive?.content ?: extractedOrderId
-                    val tokenFromData = purchaseJson["purchaseToken"]?.jsonPrimitive?.content ?: extractedToken
-                    paymentRepository.create(
-                        Payment.createNew(
-                            userId = userId,
-                            provider = PaymentProvider.GOOGLE,
-                            googleOrderId = orderIdFromData.takeIf { it.isNotBlank() },
-                            googlePurchaseToken = tokenFromData.takeIf { it.isNotBlank() },
-                            status = PaymentStatus.PENDING
-                        )
-                    )
-                    return AppResult.Failure(
-                        HttpStatusCode.PaymentRequired,
-                        "Google purchase is not in completed/purchased state (state: $purchaseState)"
-                    )
-                }
-
-                if (extractedOrderId.isBlank()) {
-                    extractedOrderId = purchaseJson["orderId"]?.jsonPrimitive?.content ?: ""
-                }
-                if (extractedProductId.isBlank()) {
-                    extractedProductId = purchaseJson["productId"]?.jsonPrimitive?.content ?: ""
-                }
-                if (extractedToken.isBlank()) {
-                    extractedToken = purchaseJson["purchaseToken"]?.jsonPrimitive?.content ?: ""
+                    logger.warn("Google Play Developer API validation failed for user $userId: ${e.message}")
+                    null
                 }
             }
 
-            if (extractedOrderId.isBlank() && extractedToken.isBlank() && dto.purchaseData.isBlank()) {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.GOOGLE,
-                        status = PaymentStatus.PENDING
-                    )
-                )
-                return AppResult.Failure(HttpStatusCode.BadRequest, "Google purchase token or order ID is required")
-            }
+            val orderId: String?
+            val obfuscatedAccountId: String?
+            var environment: String? = null
 
-            val finalOrderId = extractedOrderId.ifBlank { extractedToken }
-            val finalToken = extractedToken.ifBlank { extractedOrderId }
+            when {
+                serverPurchase != null && serverPurchase.purchaseState == 0 -> {
+                    orderId = serverPurchase.orderId ?: dto.orderId
+                    obfuscatedAccountId = serverPurchase.obfuscatedExternalAccountId
 
-            val publicKey = googlePlayConfig.publicKey.trim()
-            if (publicKey.isNotBlank() && publicKey != "placeholder") {
-                if (dto.purchaseData.isBlank() || dto.signature.isBlank()) {
-                    logger.warn("RSA verification required but purchaseData or signature missing for user $userId")
-                    paymentRepository.create(
-                        Payment.createNew(
-                            userId = userId,
-                            provider = PaymentProvider.GOOGLE,
-                            googleOrderId = finalOrderId.takeIf { it.isNotBlank() },
-                            googlePurchaseToken = finalToken.takeIf { it.isNotBlank() },
-                            status = PaymentStatus.PENDING
-                        )
-                    )
-                    return AppResult.Failure(
-                        HttpStatusCode.Unauthorized,
-                        "Google Play purchase data and cryptographic signature are required for verification"
-                    )
+                    // Best-effort account binding. Google reports the obfuscated account id we set at
+                    // purchase time. We store it for audit and warn on mismatch, but never reject here:
+                    // the platform ties billing to the device's Play account, not the app account.
+                    val obfuscated = serverPurchase.obfuscatedExternalAccountId
+                    if (!obfuscated.isNullOrBlank()) {
+                        val expected = userEmail(userId)?.let { obfuscateAccountId(it) }
+                        if (expected != null && expected != obfuscated) {
+                            logger.warn("Google purchase obfuscated account mismatch: expected $expected, got $obfuscated for user $userId")
+                        }
+                    }
                 }
-
-                val isSignatureValid = GooglePlayRsaVerifier.verify(
-                    encodedPublicKey = publicKey,
-                    signedData = dto.purchaseData,
-                    signature = dto.signature
-                )
-
-                if (!isSignatureValid) {
-                    logger.error("Invalid Google Play RSA signature for user $userId (orderId: $finalOrderId)")
-                    paymentRepository.create(
-                        Payment.createNew(
-                            userId = userId,
-                            provider = PaymentProvider.GOOGLE,
-                            googleOrderId = finalOrderId.takeIf { it.isNotBlank() },
-                            googlePurchaseToken = finalToken.takeIf { it.isNotBlank() },
-                            status = PaymentStatus.PENDING
-                        )
-                    )
-                    return AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google Play purchase signature")
+                serverPurchase != null -> {
+                    // The server authoritatively said this purchase is not active (refunded/revoked);
+                    // never fall back in that case.
+                    logger.warn("Google purchase state ${serverPurchase.purchaseState} for user $userId (not purchased)")
+                    return AppResult.Failure(HttpStatusCode.PaymentRequired, "Google purchase is not in a purchased state")
                 }
-                logger.info("Successfully verified Google Play RSA signature for order $finalOrderId")
-            } else {
-                logger.info("Google Play public key not configured or set to placeholder; skipping RSA signature check for user $userId")
+                googlePlayConfig.devFallbackEnabled && looksLikeValidGooglePurchase(purchaseToken) -> {
+                    // DEV-ONLY fallback: a sideloaded/debug build on the emulator cannot be validated by
+                    // the Play Developer API, so accept the ownership claim the device already reported.
+                    logger.warn("DEV-ONLY: granting Google entitlement without Play API validation for user $userId (product '$productId')")
+                    orderId = dto.orderId
+                    obfuscatedAccountId = null
+                    environment = "DEV_LOCAL"
+                }
+                else -> {
+                    return AppResult.Failure(HttpStatusCode.PaymentRequired, "Google purchase could not be verified")
+                }
             }
-
-            val entitlementTransactionId = finalToken.ifBlank { finalOrderId }
 
             val grant = grantOrRestoreEntitlement(
                 store = StoreEntitlementProvider.GOOGLE,
-                storeTransactionId = entitlementTransactionId,
-                userId = userId
+                storeTransactionId = purchaseToken,
+                userId = userId,
+                productId = productId,
+                obfuscatedAccountId = obfuscatedAccountId,
+                environment = environment
             )
-
             if (grant == EntitlementGrantResult.CONFLICT) {
-                logger.warn(
-                    "Replay attack detected: Google purchase $entitlementTransactionId already claimed by another account, attempted by $userId"
-                )
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.GOOGLE,
-                        status = PaymentStatus.PENDING
-                    )
-                )
-                return AppResult.Failure(
-                    HttpStatusCode.Conflict,
-                    "This Google Play order has already been redeemed by another account"
-                )
+                logger.warn("Google purchase $purchaseToken already claimed by another account, attempted by $userId")
+                return AppResult.Failure(HttpStatusCode.Conflict, "This Google Play purchase has already been redeemed by another account")
             }
 
-            val existingLedger = finalOrderId.takeIf { it.isNotBlank() }
-                ?.let { paymentRepository.findByGoogleOrderId(it) }
+            val ledgerKey = orderId.takeIf { it.isNotBlank() } ?: purchaseToken
+            val existingLedger = paymentRepository.findByGoogleOrderId(ledgerKey)
             if (existingLedger == null) {
                 paymentRepository.create(
                     Payment.createNew(
                         userId = userId,
                         provider = PaymentProvider.GOOGLE,
-                        googleOrderId = finalOrderId,
-                        googlePurchaseToken = finalToken,
+                        googleOrderId = orderId,
+                        googlePurchaseToken = purchaseToken,
                         status = PaymentStatus.SUCCESSFUL
                     )
                 )
+            } else if (existingLedger.userId == null || existingLedger.userId != userId) {
+                paymentRepository.update(existingLedger.copy(userId = userId, updatedAt = Instant.now()))
             }
 
             paymentStatus(userId)
         } catch (e: Exception) {
             logger.error("Exception during Google purchase processing for user $userId: ${e.message}", e)
-            val orderId = dto.orderId.ifBlank { dto.purchaseToken }
-            try {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.GOOGLE,
-                        googleOrderId = orderId.takeIf { it.isNotBlank() },
-                        googlePurchaseToken = dto.purchaseToken.takeIf { it.isNotBlank() },
-                        status = PaymentStatus.PENDING
-                    )
-                )
-            } catch (ignored: Exception) {}
             AppResult.Failure(HttpStatusCode.InternalServerError, "Error processing Google purchase: ${e.message}")
         }
     }

@@ -10,6 +10,10 @@ class StoreEntitlementEntity(id: EntityID<UUID>) : UUIDEntity(id) {
     var store by StoreEntitlementTable.store
     var storeTransactionId by StoreEntitlementTable.storeTransactionId
     var userId by StoreEntitlementTable.userId
+    var productId by StoreEntitlementTable.productId
+    var obfuscatedAccountId by StoreEntitlementTable.obfuscatedAccountId
+    var environment by StoreEntitlementTable.environment
+    var revokedAt by StoreEntitlementTable.revokedAt
     var createdAt by StoreEntitlementTable.createdAt
     var updatedAt by StoreEntitlementTable.updatedAt
 }
