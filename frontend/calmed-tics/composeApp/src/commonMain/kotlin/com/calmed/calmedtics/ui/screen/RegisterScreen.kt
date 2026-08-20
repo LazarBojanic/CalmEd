@@ -22,18 +22,24 @@ import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.AuthScaffold
 import com.calmed.calmedtics.ui.component.SecondaryButton
 import com.calmed.calmedtics.ui.component.TextField
-import com.calmed.calmedtics.username
 import com.calmed.calmedtics.username_label
 import com.calmed.calmedtics.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import com.calmed.calmedtics.confirm_over_eighteen
+import androidx.compose.runtime.LaunchedEffect
+import com.calmed.calmedtics.auth.AppleAuthBridge
+import com.calmed.calmedtics.auth.GoogleAuthBridge
+import com.calmed.calmedtics.ui.component.GoogleSignInButton
+import com.calmed.calmedtics.ui.component.AppleSignInButton
 
 @Composable
 fun RegisterScreen(
 	onNavigateLogin: () -> Unit,
 	onRegisterSuccess: () -> Unit,
+	onGoogleSignIn: () -> Unit,
+	onAppleSignIn: () -> Unit,
 	viewModel: AuthViewModel = koinInject()
 ) {
 	val scope = rememberCoroutineScope()
@@ -103,6 +109,15 @@ fun RegisterScreen(
 				},
 				enabled = !loading
 			)
+		GoogleSignInButton(
+			onClick = onGoogleSignIn,
+			enabled = !loading
+		)
+
+		AppleSignInButton(
+			onClick = onAppleSignIn,
+			enabled = !loading
+		)
 
 			SecondaryButton(
 				text = stringResource(Res.string.back_to_login),

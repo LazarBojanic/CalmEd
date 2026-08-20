@@ -320,11 +320,46 @@ fun App() {
                                 launchSingleTop = true
                             }
                         },
+
                         onRegisterSuccess = {
                             navController.navigate(Routes.Login) {
                                 popUpTo(Routes.Register) { inclusive = true }
                                 launchSingleTop = true
                             }
+                        },
+
+                        onGoogleSignIn = {
+                            scope.launch {
+                                try {
+                                    val googleToken = getGoogleIdToken()
+
+                                    val ok = authViewModel.loginWithGoogle(
+                                        googleToken
+                                    )
+
+                                    if (ok) {
+                                        val nextRoute =
+                                            resolveNextAuthenticatedRoute()
+                                                ?: Routes.Login
+
+                                        navController.navigate(nextRoute) {
+                                            popUpTo(Routes.Register) {
+                                                inclusive = true
+                                            }
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                } catch (t: Throwable) {
+                                    println(
+                                        "GoogleSignIn Register failed: ${t.message}"
+                                    )
+                                    t.printStackTrace()
+                                }
+                            }
+                        },
+
+                        onAppleSignIn = {
+                            launchAppleSignIn()
                         }
                     )
                 }
