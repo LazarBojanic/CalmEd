@@ -42,3 +42,10 @@ out/
 ### VS Code ###
 .vscode/
 /.kotlin/sessions/kotlin-compiler-3462971948734195273.salive
+
+*.jks
+*.pem
+*.p8
+*.p12
+*.pass
+*.mobileprovision

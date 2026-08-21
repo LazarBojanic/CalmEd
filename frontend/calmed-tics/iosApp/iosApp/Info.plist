@@ -34,10 +34,10 @@
 		</dict>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.calmed.calmedtics</string>
+			<string>com.tagware.calmedtics</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.calmed.calmedtics</string>
+				<string>com.tagware.calmedtics</string>
 			</array>
 		</dict>
 		<dict>

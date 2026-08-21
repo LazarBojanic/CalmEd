@@ -20,3 +20,7 @@ node_modules/
 composeApp/schemas
 *.jks
 *.pem
+*.p8
+*.p12
+*.pass
+*.mobileprovision

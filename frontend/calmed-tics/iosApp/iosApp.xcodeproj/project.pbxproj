@@ -123,7 +123,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				78290F7E2F521A4F002CDD53 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
-				A19C9E3A10C14C8FAE1121C2 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 38895CFF99B305D5EDBC6B1F /* Products */;
@@ -186,7 +185,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = 7UL39M9GX2;
+				DEVELOPMENT_TEAM = 45DL384985;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
@@ -200,7 +199,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.tagware.calmedtics;;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tagware.calmedtics;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -234,7 +233,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.tagware.calmedtics;;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tagware.calmedtics;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -396,14 +395,6 @@
 				minimumVersion = 9.1.0;
 			};
 		};
-		A19C9E3A10C14C8FAE1121C2 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/stripe/stripe-ios-spm";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 25.8.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -416,11 +407,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 78290F7E2F521A4F002CDD53 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
-		};
-		A19C9E3A10C14C8FAE1121C3 /* StripePaymentSheet */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A19C9E3A10C14C8FAE1121C2 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
-			productName = StripePaymentSheet;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
