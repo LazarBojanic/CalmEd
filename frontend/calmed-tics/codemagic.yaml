@@ -14,8 +14,6 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.tagware.calmedtics
     scripts:
-      - name: "Cocoapods installation"
-        script: "cd $CM_BUILD_DIR/frontend/calmed-tics/iosApp && pod install"
       - name: "Set up code signing settings on Xcode project"
         script: "xcode-project use-profiles --custom-export-options='{\"testFlightInternalTestingOnly\": true}"
       - name: "Increment build number"
