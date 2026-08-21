@@ -7,7 +7,7 @@ workflows:
       app_store_connect: CodemagicAPI
     environment:
       vars:
-        APP_STORE_APPLE_ID: 7UL39M9GX2
+        APP_STORE_APPLE_ID: 6803588201
         XCODE_WORKSPACE: "iosApp.xcworkspace"
         XCODE_SCHEME: "iosApp"
       ios_signing:
