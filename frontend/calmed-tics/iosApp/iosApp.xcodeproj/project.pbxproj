@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F7F2F521A4F002CDD53 /* GoogleSignIn */; };
 		78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F812F521A4F002CDD53 /* GoogleSignInSwift */; };
-		A19C9E3A10C14C8FAE1121C4 /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = A19C9E3A10C14C8FAE1121C3 /* StripePaymentSheet */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,7 +46,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A19C9E3A10C14C8FAE1121C4 /* StripePaymentSheet in Frameworks */,
 				78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */,
 				78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */,
 			);
@@ -183,9 +181,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = 45DL384985;
+				DEVELOPMENT_TEAM = "$(TEAM_ID)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
@@ -217,9 +215,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = "${TEAM_ID}";
+				DEVELOPMENT_TEAM = "$(TEAM_ID)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
