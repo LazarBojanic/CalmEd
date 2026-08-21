@@ -32,6 +32,6 @@ workflows:
           - CalmEd
         expire_build_submitted_for_review: true
         submit_to_app_store: false
-        cancel_previous_submissions: false
-        release_type: AFTER_APPROVAL
-        copyright: 2026 Tagware Ltd
+#        cancel_previous_submissions: false
+#        release_type: AFTER_APPROVAL
+#        copyright: 2026 Tagware Ltd
