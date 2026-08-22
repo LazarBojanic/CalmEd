@@ -17,6 +17,10 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
-composeApp/schemas
+shared/schemas
 *.jks
 *.pem
+*.p8
+*.p12
+*.pass
+*.mobileprovision

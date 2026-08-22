@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F7F2F521A4F002CDD53 /* GoogleSignIn */; };
 		78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 78290F812F521A4F002CDD53 /* GoogleSignInSwift */; };
-		A19C9E3A10C14C8FAE1121C4 /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = A19C9E3A10C14C8FAE1121C3 /* StripePaymentSheet */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,7 +46,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A19C9E3A10C14C8FAE1121C4 /* StripePaymentSheet in Frameworks */,
 				78290F822F521A4F002CDD53 /* GoogleSignInSwift in Frameworks */,
 				78290F802F521A4F002CDD53 /* GoogleSignIn in Frameworks */,
 			);
@@ -123,7 +121,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				78290F7E2F521A4F002CDD53 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
-				A19C9E3A10C14C8FAE1121C2 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 38895CFF99B305D5EDBC6B1F /* Products */;
@@ -146,20 +143,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		5C54CE75BC3F58C73B36529D /* Compile Kotlin */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Compile Kotlin";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode";
-		};
+        5C54CE75BC3F58C73B36529D /* Compile Kotlin */ = {
+            isa = PBXShellScriptBuildPhase;
+            alwaysOutOfDate = 1;
+            buildActionMask = 2147483647;
+            files = (
+            );
+            inputPaths = (
+            );
+            name = "Compile Kotlin";
+            outputPaths = (
+            );
+            runOnlyForDeploymentPostprocessing = 0;
+            shellPath = /bin/sh;
+            shellScript = "set -x\nif [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode --stacktrace --info --console=plain 2>&1";
+        };
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -183,10 +181,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = 7UL39M9GX2;
+				DEVELOPMENT_TEAM = "$(TEAM_ID)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
@@ -200,7 +198,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.tagware.calmedtics;;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tagware.calmedtics;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -217,10 +215,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = "${TEAM_ID}";
+				DEVELOPMENT_TEAM = "$(TEAM_ID)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
@@ -234,7 +231,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.tagware.calmedtics;;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tagware.calmedtics;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -393,15 +390,7 @@
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 9.1.0;
-			};
-		};
-		A19C9E3A10C14C8FAE1121C2 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/stripe/stripe-ios-spm";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 25.8.0;
+				minimumVersion = 9.2.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -416,11 +405,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 78290F7E2F521A4F002CDD53 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
-		};
-		A19C9E3A10C14C8FAE1121C3 /* StripePaymentSheet */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A19C9E3A10C14C8FAE1121C2 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
-			productName = StripePaymentSheet;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

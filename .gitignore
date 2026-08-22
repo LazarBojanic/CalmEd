@@ -1,3 +1,9 @@
 .idea
 .cursor
 .DS_Store
+*.jks
+*.pem
+*.p8
+*.p12
+*.pass
+*.mobileprovision

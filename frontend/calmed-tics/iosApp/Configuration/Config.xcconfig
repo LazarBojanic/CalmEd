@@ -3,7 +3,7 @@ GOOGLE_IOS_CLIENT_ID=641775940647-eghfqd6agf1pb82beq5c7pje4m5k1c2v.apps.googleus
 GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.641775940647-eghfqd6agf1pb82beq5c7pje4m5k1c2v
 
 PRODUCT_NAME=calmedtics
-PRODUCT_BUNDLE_IDENTIFIER =  com.tagware.calmedtics;
+PRODUCT_BUNDLE_IDENTIFIER=com.tagware.calmedtics
 
 CURRENT_PROJECT_VERSION=1
 MARKETING_VERSION=1.0

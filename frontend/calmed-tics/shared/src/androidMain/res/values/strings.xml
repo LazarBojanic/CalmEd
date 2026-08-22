@@ -1,0 +1,12 @@
+<resources>
+ <string name="app_name">CalmEd Tics</string>
+    <string name="download_channel_name">Video Downloads</string>
+    <string name="login_title">Login</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="login_button">Login</string>
+    <string name="logging_in">Logging in...</string>
+    <string name="create_account">Create account</string>
+    <string name="use_offline_mode">Use offline mode</string>
+    <string name="forgot_password">Forgot password?</string>
+</resources>

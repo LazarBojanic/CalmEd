@@ -69,12 +69,11 @@ class ProgramExerciseRepository : IProgramExerciseRepository {
 		}
 	}
 
-	override suspend fun findUpNextByWeek(weekNumber: Int, limit: Int): List<ProgramExercise> {
+	override suspend fun findUpNextByWeek(weekNumber: Int): List<ProgramExercise> {
 		return withTransaction {
 			ProgramExerciseEntity
 				.find { ProgramExerciseTable.weekNumber eq weekNumber }
 				.orderBy(ProgramExerciseTable.orderInWeek to SortOrder.ASC)
-				.limit(limit)
 				.map { it.toRaw() }
 		}
 	}
