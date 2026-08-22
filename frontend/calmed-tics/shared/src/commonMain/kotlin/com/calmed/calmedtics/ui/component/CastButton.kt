@@ -5,5 +5,7 @@ import androidx.compose.ui.Modifier
 
 @Composable
 expect fun CastButton(
+    hlsUrl: String,
+    title: String,
     modifier: Modifier = Modifier
 )

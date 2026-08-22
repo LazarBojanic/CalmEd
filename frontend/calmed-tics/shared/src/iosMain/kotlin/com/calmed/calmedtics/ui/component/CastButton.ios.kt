@@ -6,6 +6,8 @@ import androidx.compose.ui.Modifier
 
 @Composable
 actual fun CastButton(
+    hlsUrl: String,
+    title: String,
     modifier: Modifier
 ) {
     // On iOS, AVPlayerViewController / AVRoutePickerView natively handles AirPlay and casting.

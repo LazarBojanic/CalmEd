@@ -224,8 +224,12 @@ fun VideoScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CastButton(
+                        hlsUrl = currentUrl,
+                        title = displayTitle,
                         modifier = Modifier.size(32.dp)
                     )
+
+
 
 
                 }
@@ -306,6 +310,8 @@ fun VideoScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 CastButton(
+                                    hlsUrl = currentUrl,
+                                    title = displayTitle,
                                     modifier = Modifier.size(32.dp)
                                 )
                                 OverlayIconButton(
