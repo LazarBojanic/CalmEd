@@ -4,13 +4,13 @@ import android.app.Application
 import com.calmed.calmedtics.di.appContext
 import calmedtics.shared.BuildConfig
 import com.calmed.calmedtics.notifications.NotificationChannels
-
+import com.calmed.calmedtics.reminders.androidAppContext
 
 class AndroidApp : Application() {
 	override fun onCreate() {
 		super.onCreate()
 		NotificationChannels.create(this)
-		com.calmed.calmedtics.reminders.androidAppContext = applicationContext
+		androidAppContext = applicationContext
 		appContext = this
 		var url = ""
 		if(BuildConfig.development){
@@ -24,7 +24,6 @@ class AndroidApp : Application() {
 		else{
 			url = "https://api.calm-ed.com"
 		}
-		url = "https://api.calm-ed.com"
 		initKoin(
 			baseUrl = url,
 			androidModule(this)

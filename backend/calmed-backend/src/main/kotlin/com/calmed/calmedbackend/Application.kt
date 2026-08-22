@@ -98,7 +98,7 @@ suspend fun Application.seed() {
 		),
 		// Week 1
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("5a5cd72d-22d7-4c50-bee7-507da87fd162"),
 			weekNumber = 1,
 			title = "Reading the education rules",
 			description = null,
@@ -110,7 +110,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("b7297e5d-15c0-4e86-9808-9ccba4bf2fdf"),
 			weekNumber = 1,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -123,7 +123,7 @@ suspend fun Application.seed() {
 		),
 		// Week 2
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("563d5ed5-fb8b-4161-80db-29327e9925ee"),
 			weekNumber = 2,
 			title = "Reading the education rules with rhythm",
 			description = null,
@@ -135,7 +135,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("a170136a-7734-4530-b472-f1c3ab83344d"),
 			weekNumber = 2,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -147,7 +147,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("83f78f4a-9977-4c48-83a9-efeaba95f4bd"),
 			weekNumber = 2,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -160,7 +160,7 @@ suspend fun Application.seed() {
 		),
 		// Week 3
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("086c9125-c043-4aea-8392-71d6a68b777a"),
 			weekNumber = 3,
 			title = "Reading the education rules",
 			description = null,
@@ -172,7 +172,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("ff475432-138f-47ab-b7e7-fee833cec0e5"),
 			weekNumber = 3,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -184,7 +184,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("391648d1-1694-4917-b7a0-5594f5e099b3"),
 			weekNumber = 3,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -196,7 +196,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("9875a53b-45bb-4846-8135-f670cc3cbe90"),
 			weekNumber = 3,
 			title = "Progressive relaxation",
 			description = null,
@@ -209,7 +209,7 @@ suspend fun Application.seed() {
 		),
 		// Week 4
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("85dce82f-10ec-4c57-a119-14236edc1cfb"),
 			weekNumber = 4,
 			title = "Reading the education rules",
 			description = null,
@@ -221,7 +221,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("bff5f045-6863-4b1e-8416-0290e8670d45"),
 			weekNumber = 4,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -233,7 +233,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("798595b4-2986-4607-b746-41a6e8547b3b"),
 			weekNumber = 4,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -245,7 +245,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("07abc46e-84e2-411f-a473-8cf766cf392e"),
 			weekNumber = 4,
 			title = "Progressive relaxation",
 			description = null,
@@ -258,7 +258,7 @@ suspend fun Application.seed() {
 		),
 		// Week 5
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("9e911c3f-55c0-42ae-a739-4976a0ddd72d"),
 			weekNumber = 5,
 			title = "Reading the education rules with rhythm",
 			description = null,
@@ -270,7 +270,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("eaf7345d-8e74-4a48-9156-34cc904f2a05"),
 			weekNumber = 5,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -282,7 +282,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("800063ef-b31d-446d-860a-6c70faaf665d"),
 			weekNumber = 5,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -294,7 +294,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("0ac1c8f9-4aef-4151-b4b8-fa183f7c6a7a"),
 			weekNumber = 5,
 			title = "Pre-writing exercises",
 			description = null,
@@ -306,7 +306,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("fa711c27-7dd6-4d9c-8998-bd15b11c1039"),
 			weekNumber = 5,
 			title = "Progressive relaxation",
 			description = null,
@@ -319,7 +319,7 @@ suspend fun Application.seed() {
 		),
 		// Week 6
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("056f0279-638e-4eec-98bf-c1520d36643c"),
 			weekNumber = 6,
 			title = "Reading the education rules with rhythm",
 			description = null,
@@ -331,7 +331,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("18f0eb26-41a4-4d8c-8541-b796d7b57070"),
 			weekNumber = 6,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -343,7 +343,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("868e6cbe-a175-4d3e-a4e6-4f505471b410"),
 			weekNumber = 6,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -355,7 +355,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("fa46c85e-7e73-4829-8617-b950f1daa3af"),
 			weekNumber = 6,
 			title = "Pre-writing exercises",
 			description = null,
@@ -367,7 +367,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("bf4c3899-79aa-4d62-b972-65ff4e987460"),
 			weekNumber = 6,
 			title = "Attention exercises in Lazar’s circles",
 			description = null,
@@ -379,7 +379,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("7b4a5cf3-5b89-45d1-bdc1-861228420677"),
 			weekNumber = 6,
 			title = "Progressive relaxation",
 			description = null,
@@ -392,7 +392,7 @@ suspend fun Application.seed() {
 		),
 		// Week 7
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("b863f36d-6b97-4a2a-b03b-801a429bed54"),
 			weekNumber = 7,
 			title = "Reading the education rules with rhythm",
 			description = null,
@@ -404,7 +404,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("44bc4e10-ad4b-48e5-8266-78ff80ada027"),
 			weekNumber = 7,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -416,7 +416,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("222376d2-f60e-44bd-a969-e8eab8e569b5"),
 			weekNumber = 7,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -428,7 +428,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("c3fd9dfc-7964-480e-a72b-cf6704b55406"),
 			weekNumber = 7,
 			title = "Attention exercises in Lazar’s circles",
 			description = null,
@@ -440,7 +440,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("61a35db1-4c4f-461c-9559-683a3f814ca0"),
 			weekNumber = 7,
 			title = "Imagination exercises (writing the letter A; 5x)",
 			description = null,
@@ -452,7 +452,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("5c998c98-4f4a-49b6-ac33-b95f317a100f"),
 			weekNumber = 7,
 			title = "Progressive relaxation",
 			description = null,
@@ -465,7 +465,7 @@ suspend fun Application.seed() {
 		),
 		// Week 8
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("8ab3a126-6952-4367-b90b-723fa9baa1c1"),
 			weekNumber = 8,
 			title = "Reading the education rules with rhythm",
 			description = null,
@@ -477,7 +477,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("fb0407bc-9120-4c17-898c-ac4b7f107b73"),
 			weekNumber = 8,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -489,7 +489,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("7e884aae-5c7d-461a-8739-0d03256a45ed"),
 			weekNumber = 8,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -501,7 +501,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("6a9efd42-9111-420c-ace1-a56dcb0b9fd3"),
 			weekNumber = 8,
 			title = "Attention exercises (counting from number to number)",
 			description = null,
@@ -513,7 +513,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("83b88b2e-67ca-46b1-846b-86b2c9195d50"),
 			weekNumber = 8,
 			title = "Imagination exercises (writing the letter E; 5x)",
 			description = null,
@@ -525,7 +525,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("d7d786f0-dc2d-4297-9dd2-d4aa80b4e449"),
 			weekNumber = 8,
 			title = "Progressive relaxation",
 			description = null,
@@ -538,7 +538,7 @@ suspend fun Application.seed() {
 		),
 		// Week 9
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("66c35ea3-f0c1-43cf-bf21-0f66a5f2b916"),
 			weekNumber = 9,
 			title = "Reading the education rules with rhythm",
 			description = null,
@@ -550,7 +550,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("d6301870-6a9e-41a2-a9a2-acc1da4f23c6"),
 			weekNumber = 9,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -562,7 +562,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("3abb9a4b-ffb0-40e5-879d-b41c44a4f61e"),
 			weekNumber = 9,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -574,7 +574,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("c6a85da3-adeb-4085-a55c-333385e88c95"),
 			weekNumber = 9,
 			title = "Attention exercises (counting from number to number)",
 			description = null,
@@ -586,7 +586,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("c43e095a-4bee-4055-be3b-0066b1fad05e"),
 			weekNumber = 9,
 			title = "Imagination exercises (writing the letter U; 3x3)",
 			description = null,
@@ -598,7 +598,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("f6024b7b-8f8d-45cf-8abc-01a295e0fc79"),
 			weekNumber = 9,
 			title = "Progressive relaxation",
 			description = null,
@@ -611,7 +611,7 @@ suspend fun Application.seed() {
 		),
 		// Week 10
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("ed650106-1cf6-4388-806a-d2cd465debf0"),
 			weekNumber = 10,
 			title = "Reading the education rules with rhythm",
 			description = null,
@@ -623,7 +623,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("6ad82282-8297-4719-8a57-9332dead8dfa"),
 			weekNumber = 10,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -635,7 +635,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("66087278-99a3-4eec-bf92-1b0799cfac26"),
 			weekNumber = 10,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -647,7 +647,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("b0c9d272-119d-4bc9-b1b3-e8cc9d198cbc"),
 			weekNumber = 10,
 			title = "Attention exercises (separating words in text)",
 			description = null,
@@ -659,7 +659,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("6715ceb0-a812-485c-9870-1a3684234843"),
 			weekNumber = 10,
 			title = "Imagination exercises (writing the letter O; 3x3)",
 			description = null,
@@ -671,7 +671,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("2c8c1f96-df65-4644-8dcd-029b3bfc7a27"),
 			weekNumber = 10,
 			title = "Progressive relaxation",
 			description = null,
@@ -684,7 +684,7 @@ suspend fun Application.seed() {
 		),
 		// Week 11
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("3e35111d-b70d-4d9e-9e1b-8d1227d49587"),
 			weekNumber = 11,
 			title = "Reading the education rules with rhythm",
 			description = null,
@@ -696,7 +696,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("bc03202f-ce06-4a63-bead-3384a81fa19e"),
 			weekNumber = 11,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -708,7 +708,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("3a601ba1-a0f6-4bdf-aa22-4d9556710431"),
 			weekNumber = 11,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -720,7 +720,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("6516eee4-e2cd-46da-a64a-c48c900d127c"),
 			weekNumber = 11,
 			title = "Attention exercises (separating words in text)",
 			description = null,
@@ -732,7 +732,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("9d87a996-267f-47b8-9366-bedb81030d4b"),
 			weekNumber = 11,
 			title = "Imagination exercises (writing the letter I; 3x3)",
 			description = null,
@@ -744,7 +744,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("7daf90f0-80c9-42d4-8f57-abf7f880e9e6"),
 			weekNumber = 11,
 			title = "Progressive relaxation",
 			description = null,
@@ -757,7 +757,7 @@ suspend fun Application.seed() {
 		),
 		// Week 12
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("d405634b-fedb-44a2-be71-a67b36ca8c13"),
 			weekNumber = 12,
 			title = "Reading the education rules with rhythm",
 			description = null,
@@ -769,7 +769,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("0408e2ba-f068-4172-855f-44ebf9d56829"),
 			weekNumber = 12,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -781,7 +781,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("a1c939a8-c142-44a9-8ba8-457b13947db3"),
 			weekNumber = 12,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -793,7 +793,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("d3c60162-dacf-488b-9688-5a67a1a5514a"),
 			weekNumber = 12,
 			title = "Progressive relaxation",
 			description = null,
@@ -806,7 +806,7 @@ suspend fun Application.seed() {
 		),
 		// Week 13
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("5d59e18a-0fda-4145-9a0d-6cbf427c1b8e"),
 			weekNumber = 13,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -818,7 +818,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("2f03a707-76b1-4131-9984-a594a72b86e1"),
 			weekNumber = 13,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -830,7 +830,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("55cb973e-d05d-4aae-baa5-861c40c79f1d"),
 			weekNumber = 13,
 			title = "Attention exercises (circling the letter “A” in text)",
 			description = null,
@@ -842,7 +842,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("c08f700c-d274-4604-990c-4441666bc50b"),
 			weekNumber = 13,
 			title = "Hand/finger differentiation and integration exercises (Loop no. 1; 30x)",
 			description = null,
@@ -854,7 +854,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("23c51a42-3c84-4d09-b78c-941c1e2d638a"),
 			weekNumber = 13,
 			title = "Exercises against generalized tics (dynamic balance: marching)",
 			description = null,
@@ -866,7 +866,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("daad8722-c1d8-4159-8e6c-a6a6c3a9fba5"),
 			weekNumber = 13,
 			title = "Progressive relaxation",
 			description = null,
@@ -879,7 +879,7 @@ suspend fun Application.seed() {
 		),
 		// Week 14
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("fc6eb8d5-656b-47b0-9937-888ffdabec39"),
 			weekNumber = 14,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -891,7 +891,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("3ca0f5f2-107c-4710-8a98-ed6276b07a0b"),
 			weekNumber = 14,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -903,7 +903,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("0dfbca32-78d1-4af9-8592-ddba7e1dbe6b"),
 			weekNumber = 14,
 			title = "Attention exercises (circling the letter “E” in text)",
 			description = null,
@@ -915,7 +915,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("96e487c0-437c-482f-8c76-f0c23e68ddb7"),
 			weekNumber = 14,
 			title = "Hand/finger differentiation and integration exercises (Loop no. 2; 30x)",
 			description = null,
@@ -927,7 +927,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("42120df1-d242-4005-a6d2-88d4bc451dca"),
 			weekNumber = 14,
 			title = "Exercises against generalized tics (dynamic balance: marching, heel-to-toe walking)",
 			description = null,
@@ -939,7 +939,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("33895bf5-c896-40f2-9e0c-535ed5da3476"),
 			weekNumber = 14,
 			title = "Progressive relaxation",
 			description = null,
@@ -952,7 +952,7 @@ suspend fun Application.seed() {
 		),
 		// Week 15
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("b49d5e6c-4074-4501-bc18-f83608838621"),
 			weekNumber = 15,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -964,7 +964,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("1d61ef1a-5073-42cb-bf4a-456bdacead91"),
 			weekNumber = 15,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -976,7 +976,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("77edee66-8ab8-4115-ae3c-3f00a25a7011"),
 			weekNumber = 15,
 			title = "Hand/finger differentiation and integration exercises (Loop no. 3; 30x)",
 			description = null,
@@ -988,7 +988,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("8bef5ebc-fcec-4658-8db8-dfdc77c5c6cd"),
 			weekNumber = 15,
 			title = "Exercises against generalized tics (dynamic balance: marching, heel-to-toe walking, and crossing legs)",
 			description = null,
@@ -1000,7 +1000,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("52d82d75-d4b0-4436-8d49-54d227dbf9e4"),
 			weekNumber = 15,
 			title = "Progressive relaxation",
 			description = null,
@@ -1013,7 +1013,7 @@ suspend fun Application.seed() {
 		),
 		// Week 16
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("a21c74b6-dee8-4710-96a2-7e35cbf0ed62"),
 			weekNumber = 16,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1025,7 +1025,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("e9b64ba3-73a9-4260-a597-605d4a805b47"),
 			weekNumber = 16,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1037,7 +1037,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("eaeece3e-b462-4869-b059-222d0ddd37b9"),
 			weekNumber = 16,
 			title = "Hand/finger differentiation and integration exercises (Loop no. 4; 30x)",
 			description = null,
@@ -1049,7 +1049,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("f86738c8-4f9f-4ad5-86cb-a511c810b814"),
 			weekNumber = 16,
 			title = "Exercises against generalized tics (static balance: “scale” pose)",
 			description = null,
@@ -1061,7 +1061,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("6537effa-7ab3-4b0b-a8d6-4b141ef2a64d"),
 			weekNumber = 16,
 			title = "Progressive relaxation",
 			description = null,
@@ -1074,7 +1074,7 @@ suspend fun Application.seed() {
 		),
 		// Week 17
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("e4ef8ef2-f391-4873-858d-650cb58dfc00"),
 			weekNumber = 17,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1086,7 +1086,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("bc3a7d7c-5196-4d56-a5e8-fbc677748319"),
 			weekNumber = 17,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1098,7 +1098,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("6a1dc659-8152-451a-b872-fd1d367ba84a"),
 			weekNumber = 17,
 			title = "Attention exercises (threading a pencil through a circle 10x)",
 			description = null,
@@ -1110,7 +1110,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("e2952116-c462-414b-9fa7-8a308bfcaf51"),
 			weekNumber = 17,
 			title = "Exercises against generalized tics (static balance: “scale” pose, standing on toes up to 10)",
 			description = null,
@@ -1122,7 +1122,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("5cd3e9e4-d485-4121-9142-a2ce0e716188"),
 			weekNumber = 17,
 			title = "Progressive relaxation",
 			description = null,
@@ -1135,7 +1135,7 @@ suspend fun Application.seed() {
 		),
 		// Week 18
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("ef8672b6-71fb-4b47-90db-cc9da2a72007"),
 			weekNumber = 18,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1147,7 +1147,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("d68a5677-7c01-4942-a6f6-c821b2980e38"),
 			weekNumber = 18,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1159,7 +1159,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("8d6b9def-f20b-4c2a-8b2d-b38fe511881a"),
 			weekNumber = 18,
 			title = "Attention exercises (threading a pencil through a circle 10x)",
 			description = null,
@@ -1171,7 +1171,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("73a5a66b-45d0-4e23-8af8-962569b36021"),
 			weekNumber = 18,
 			title = "Exercises against generalized tics (static balance: “scale” pose, standing on toes up to 10, standing on heels up to 10)",
 			description = null,
@@ -1183,7 +1183,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("366584bc-e2e5-448f-9a88-4b6dc2f27c46"),
 			weekNumber = 18,
 			title = "Progressive relaxation",
 			description = null,
@@ -1196,7 +1196,7 @@ suspend fun Application.seed() {
 		),
 		// Week 19
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("f47e20e1-5069-4a04-9c4c-74edae08323a"),
 			weekNumber = 19,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1208,7 +1208,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("c0ef971c-6a89-4f82-8343-927c64c535d1"),
 			weekNumber = 19,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1220,7 +1220,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("7e6e20c1-89ce-47e4-8e73-5aed7e0d91e4"),
 			weekNumber = 19,
 			title = "Exercises against oral-region tics (Matija’s cards)",
 			description = null,
@@ -1232,7 +1232,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("4f35b444-4eda-4ba8-807b-673d5823b540"),
 			weekNumber = 19,
 			title = "“Figure eights” between the fingers",
 			description = null,
@@ -1244,7 +1244,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("4c8305df-2d61-4b77-a9ed-27819aa67690"),
 			weekNumber = 19,
 			title = "Progressive relaxation",
 			description = null,
@@ -1257,7 +1257,7 @@ suspend fun Application.seed() {
 		),
 		// Week 20
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("0c102e16-88b2-42be-9d03-af3a809d776e"),
 			weekNumber = 20,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1269,7 +1269,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("94274f77-99c7-400d-bb1b-3c23588d2c93"),
 			weekNumber = 20,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1281,7 +1281,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("68d3fc81-22e0-44c1-a470-1ba90f08af89"),
 			weekNumber = 20,
 			title = "Exercises against oral-region tics (Matija’s cards)",
 			description = null,
@@ -1293,7 +1293,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("44c60cd4-d6e8-4c5e-90f7-fe4de1d3aa36"),
 			weekNumber = 20,
 			title = "“Figure eights” between the fingers",
 			description = null,
@@ -1305,7 +1305,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("7bc84b4d-bcfa-4b7f-bcb0-707b8547c1f9"),
 			weekNumber = 20,
 			title = "Progressive relaxation",
 			description = null,
@@ -1318,7 +1318,7 @@ suspend fun Application.seed() {
 		),
 		// Week 21
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("5d68b9ff-2a19-4322-9bd6-86fe5b9c73db"),
 			weekNumber = 21,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1330,7 +1330,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("a1f2e249-8f7d-4178-bf53-ea133261cdbe"),
 			weekNumber = 21,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1342,7 +1342,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("4e1b1d9f-94ae-44a4-ad44-70b30310c80e"),
 			weekNumber = 21,
 			title = "Exercises against oral-region tics (Matija’s cards)",
 			description = null,
@@ -1354,7 +1354,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("78c14b68-176d-4d96-8bec-0e99f53d4fe6"),
 			weekNumber = 21,
 			title = "“Piano” exercise",
 			description = null,
@@ -1366,7 +1366,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("fbe0e944-d2a3-419e-ac39-519d0d37774a"),
 			weekNumber = 21,
 			title = "Progressive relaxation",
 			description = null,
@@ -1379,7 +1379,7 @@ suspend fun Application.seed() {
 		),
 		// Week 22
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("b512831d-812f-4eff-8a77-40b9877742c5"),
 			weekNumber = 22,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1391,7 +1391,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("44c63035-897d-4ea4-b697-93b7dc6e98c9"),
 			weekNumber = 22,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1403,7 +1403,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("65dcd9cc-141e-4acd-96b8-8f5a697a147c"),
 			weekNumber = 22,
 			title = "Exercises against oral-region tics (Matija’s cards)",
 			description = null,
@@ -1415,7 +1415,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("e757a4fb-74bb-412e-ad54-fd8e46ed5688"),
 			weekNumber = 22,
 			title = "“Piano” exercise",
 			description = null,
@@ -1427,7 +1427,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("f690121f-d4de-433c-a4ca-d3eca4318e6e"),
 			weekNumber = 22,
 			title = "Progressive relaxation",
 			description = null,
@@ -1440,7 +1440,7 @@ suspend fun Application.seed() {
 		),
 		// Week 23
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("5ea0f5f0-3d15-4ac9-96e8-2988411d765f"),
 			weekNumber = 23,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1452,7 +1452,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("1c4a6391-fbcb-4eb7-a8f7-aa6a0a6425a2"),
 			weekNumber = 23,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1464,7 +1464,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("113ceff6-bbd4-4ab2-8c89-942e1847e266"),
 			weekNumber = 23,
 			title = "Exercises against shoulder-girdle tics (winding yarn)",
 			description = null,
@@ -1476,7 +1476,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("a59815fb-079f-4048-8b38-422302b17312"),
 			weekNumber = 23,
 			title = "Exercises against shoulder-girdle tics (tokens)",
 			description = null,
@@ -1488,7 +1488,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("ff822f98-3105-4482-a625-452d09189fb6"),
 			weekNumber = 23,
 			title = "Progressive relaxation",
 			description = null,
@@ -1501,7 +1501,7 @@ suspend fun Application.seed() {
 		),
 		// Week 24
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("6b3311db-33e8-49bb-9c14-15eca07282c4"),
 			weekNumber = 24,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1513,7 +1513,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("acb5d854-6341-42f9-9514-83cdfa96986d"),
 			weekNumber = 24,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1525,7 +1525,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("01842ef6-7555-438d-b659-6900a0c7e9ff"),
 			weekNumber = 24,
 			title = "Exercises against shoulder-girdle tics (rolling pin)",
 			description = null,
@@ -1537,7 +1537,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("26f3f674-7936-4a3e-b088-37f437ee7c36"),
 			weekNumber = 24,
 			title = "Exercises against shoulder-girdle tics (boxing)",
 			description = null,
@@ -1549,7 +1549,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("9a907e80-9de7-4cb2-a212-0e2ed749998a"),
 			weekNumber = 24,
 			title = "Progressive relaxation",
 			description = null,
@@ -1562,7 +1562,7 @@ suspend fun Application.seed() {
 		),
 		// Week 25
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("da303a18-3465-4f4f-a1dd-5af5fb5c3f34"),
 			weekNumber = 25,
 			title = "Body schema differentiation exercises",
 			description = null,
@@ -1574,7 +1574,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("e51e235d-a8a5-48fd-a552-69660211fd0c"),
 			weekNumber = 25,
 			title = "Exercises against eye-region tics",
 			description = null,
@@ -1586,7 +1586,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("47c787b2-e64c-45b1-8c46-a36fda5b60f1"),
 			weekNumber = 25,
 			title = "Exercise of choice",
 			description = null,
@@ -1598,7 +1598,7 @@ suspend fun Application.seed() {
 			updatedAt = Instant.now()
 		),
 		ProgramExercise(
-			id = UUID.randomUUID(),
+			id = UUID.fromString("736660a3-e940-4ee6-ace8-d397f9a3f3d2"),
 			weekNumber = 25,
 			title = "Progressive relaxation",
 			description = null,

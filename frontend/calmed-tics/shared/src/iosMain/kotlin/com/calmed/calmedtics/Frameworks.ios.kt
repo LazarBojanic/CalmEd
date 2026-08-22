@@ -33,7 +33,6 @@ fun initKoinIos() {
     else{
         url = "https://api.calm-ed.com"
     }
-    url = "https://api.calm-ed.com"
     initKoin(
         baseUrl = url,
         iosModule(),

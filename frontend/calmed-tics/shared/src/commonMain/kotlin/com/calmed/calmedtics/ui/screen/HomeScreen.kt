@@ -152,6 +152,10 @@ fun HomeScreen(
         }
     }
 
+    LaunchedEffect(displayWeek) {
+        selectedExerciseId = null
+    }
+
     val selectedDayInWeek = remember(selectedTrackerDateEpoch, trackerStartEpoch) {
         ((selectedTrackerDateEpoch - trackerStartEpoch).toInt() + 1).coerceIn(1, 7)
     }
@@ -169,7 +173,7 @@ fun HomeScreen(
         allExercises.filter { it.weekNumber == displayWeek }
             .sortedBy { it.orderInWeek ?: Int.MAX_VALUE }
     }
-    val displayExercises = weekExercises.ifEmpty { home?.upNext.orEmpty() }
+    val displayExercises = weekExercises
     val selectedExercise = remember(displayExercises, selectedExerciseId) {
         displayExercises.find { it.id == selectedExerciseId } ?: displayExercises.firstOrNull()
     }
@@ -689,7 +693,7 @@ fun HomeScreen(
                                     )
                             ) {
                                 Text(
-                                    text = "TODAY'S EXERCISE",
+                                    text = "UP NEXT",
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimary
@@ -1077,6 +1081,21 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+            }
+
+            if (displayExercises.isEmpty()) {
+                item {
+                    Text(
+                        text = if (allExercises.isEmpty()) {
+                            "Loading exercises…"
+                        } else {
+                            "No exercises for this week."
+                        },
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
             }
 
             listItemsIndexed(displayExercises) { index, exercise ->

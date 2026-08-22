@@ -87,7 +87,7 @@ class HomeService(
 
         println("HOME DEBUG userId=$userId createdAt=${user.createdAt} startDate=$startDate today=$today currentWeek=$currentWeek")
 
-        val upNextResult = programExerciseService.getUpNextByWeek(currentWeek, 2)
+        val upNextResult = programExerciseService.getUpNextByWeek(currentWeek)
         when(upNextResult){
             is AppResult.Success -> {
                 var upNextDto = mutableListOf<ProgramExerciseDto>()
