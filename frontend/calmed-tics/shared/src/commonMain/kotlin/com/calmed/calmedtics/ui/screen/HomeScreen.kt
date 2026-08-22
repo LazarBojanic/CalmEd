@@ -43,6 +43,7 @@ import calmedtics.shared.generated.resources.no_image
 import calmedtics.shared.generated.resources.select_video
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import com.calmed.calmedtics.ui.component.ThumbnailImage
+import com.calmed.calmedtics.ui.component.VideoDownloadBadge
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.util.dateToEpochDay
 import com.calmed.calmedtics.viewmodel.SessionViewModel
@@ -653,6 +654,13 @@ fun HomeScreen(
                                 )
                         )
 
+                        VideoDownloadBadge(
+                            videoUrl = selectedExercise?.videoURL,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(10.dp)
+                        )
+
                         Column(
                             modifier = Modifier
                                 .align(Alignment.BottomStart)
@@ -1133,32 +1141,41 @@ fun HomeScreen(
                                 defaultElevation = 0.dp
                             )
                         ) {
-                            val thumbnail =
-                                exercise.thumbnailURL
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                val thumbnail =
+                                    exercise.thumbnailURL
 
-                            if (!thumbnail.isNullOrBlank()) {
-                                ThumbnailImage(
-                                    url = thumbnail,
-                                    contentDescription = displayTitle,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            } else {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(
-                                            MaterialTheme.colorScheme.surfaceVariant
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = stringResource(
-                                            Res.string.no_image
-                                        ),
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                if (!thumbnail.isNullOrBlank()) {
+                                    ThumbnailImage(
+                                        url = thumbnail,
+                                        contentDescription = displayTitle,
+                                        modifier = Modifier.fillMaxSize()
                                     )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(
+                                                MaterialTheme.colorScheme.surfaceVariant
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = stringResource(
+                                                Res.string.no_image
+                                            ),
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
+
+                                VideoDownloadBadge(
+                                    videoUrl = exercise.videoURL,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp)
+                                )
                             }
                         }
 

@@ -8,6 +8,7 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.Scheduler
+import androidx.media3.exoplayer.workmanager.WorkManagerScheduler
 import com.calmed.calmedtics.shared.R
 
 @OptIn(UnstableApi::class)
@@ -24,7 +25,7 @@ class VideoDownloadService : DownloadService(
     }
 
     override fun getScheduler(): Scheduler? {
-        return null
+        return WorkManagerScheduler(applicationContext, DOWNLOAD_WORK_NAME)
     }
 
     override fun getForegroundNotification(
@@ -48,5 +49,6 @@ class VideoDownloadService : DownloadService(
         private const val FOREGROUND_NOTIFICATION_ID = 1001
         private const val FOREGROUND_NOTIFICATION_UPDATE_INTERVAL_MS = 1_000L
         private const val NOTIFICATION_CHANNEL_ID = "video_download_channel"
+        private const val DOWNLOAD_WORK_NAME = "calmed_download_restart"
     }
 }

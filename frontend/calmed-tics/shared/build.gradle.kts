@@ -23,7 +23,7 @@ kotlin{
 		minSdk = libs.versions.androidMinSdk.get().toInt()
 
 		compilerOptions {
-			jvmTarget = JvmTarget.JVM_11
+			jvmTarget = JvmTarget.JVM_21
 			freeCompilerArgs = listOf("-Xexpect-actual-classes")
 		}
 		androidResources {

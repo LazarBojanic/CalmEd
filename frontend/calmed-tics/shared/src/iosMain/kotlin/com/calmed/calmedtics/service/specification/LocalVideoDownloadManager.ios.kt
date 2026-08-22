@@ -19,6 +19,7 @@ import platform.Foundation.NSUserDefaults
 import platform.darwin.NSObject
 
 private const val OFFLINE_URL_PREFIX = "offline_video_url::"
+private const val OFFLINE_TITLE_PREFIX = "offline_video_title::"
 private const val DOWNLOAD_SESSION_ID = "com.calmed.calmedtics.video.download"
 
 actual object LocalVideoDownloadManager : IVideoDownloadManager {
@@ -34,13 +35,15 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             assetDownloadTask: AVAssetDownloadTask,
             didFinishDownloadingToURL: NSURL
         ) {
-            val remoteUrl = pendingTaskIds.remove(assetDownloadTask.taskIdentifier.toLong())
+            val remoteKey = pendingTaskIds.remove(assetDownloadTask.taskIdentifier.toLong())
                 ?: assetDownloadTask.URLAsset.URL?.absoluteString
                 ?: return
+            val key = downloadKey(remoteKey)
 
-            defaults.setObject(didFinishDownloadingToURL.absoluteString, forKey = keyFor(remoteUrl))
+            defaults.setObject(didFinishDownloadingToURL.absoluteString, forKey = keyFor(key))
+            val title = defaults.stringForKey(titleKeyFor(key))
             _states.update {
-                it + (remoteUrl to VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f))
+                it + (key to VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f, title = title))
             }
             refreshDownloaded()
         }
@@ -50,10 +53,11 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             task: NSURLSessionTask,
             didCompleteWithError: NSError?
         ) {
-            val remoteUrl = pendingTaskIds.remove(task.taskIdentifier.toLong()) ?: return
+            val remoteKey = pendingTaskIds.remove(task.taskIdentifier.toLong()) ?: return
             if (didCompleteWithError != null) {
+                val key = downloadKey(remoteKey)
                 _states.update {
-                    it + (remoteUrl to VideoDownloadState(VideoDownloadStatus.Failed))
+                    it + (key to VideoDownloadState(VideoDownloadStatus.Failed))
                 }
             }
         }
@@ -81,13 +85,15 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
     }
 
     actual override fun refresh(url: String) {
-        val local = localFileUrl(url)
+        val key = downloadKey(url)
+        val local = localFileUrl(key)
+        val title = defaults.stringForKey(titleKeyFor(key))
         val state = if (local != null) {
-            VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f)
+            VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f, title = title)
         } else {
             VideoDownloadState(VideoDownloadStatus.NotDownloaded)
         }
-        _states.update { it + (url to state) }
+        _states.update { it + (key to state) }
     }
 
     actual override fun refreshDownloaded() {
@@ -103,17 +109,20 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         _downloadedUrls.value = urls
     }
 
-    actual override fun download(url: String) {
+    actual override fun download(url: String, title: String?) {
+        val key = downloadKey(url)
         val remote = NSURL(string = url) ?: run {
-            _states.update { it + (url to VideoDownloadState(VideoDownloadStatus.Failed)) }
+            _states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Failed)) }
             return
         }
-        if (localFileUrl(url) != null) {
+        if (localFileUrl(key) != null) {
             _states.update {
-                it + (url to VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f))
+                it + (key to VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f, title = title))
             }
             return
         }
+
+        title?.let { defaults.setObject(it, forKey = titleKeyFor(key)) }
 
         val asset = AVURLAsset(remote, options = null)
         val task = session.assetDownloadTaskWithURLAsset(
@@ -124,30 +133,34 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         )
 
         if (task == null) {
-            _states.update { it + (url to VideoDownloadState(VideoDownloadStatus.Failed)) }
+            _states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Failed)) }
             return
         }
 
-        pendingTaskIds[task.taskIdentifier.toLong()] = url
-        _states.update { it + (url to VideoDownloadState(VideoDownloadStatus.Downloading, progressPercent = 0f)) }
+        pendingTaskIds[task.taskIdentifier.toLong()] = key
+        _states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Downloading, progressPercent = 0f, title = title)) }
         task.resume()
     }
 
     @OptIn(ExperimentalForeignApi::class)
     actual override fun remove(url: String) {
-        localFileUrl(url)?.let { localUrl ->
+        val key = downloadKey(url)
+        localFileUrl(key)?.let { localUrl ->
             NSFileManager.defaultManager.removeItemAtURL(localUrl, error = null)
         }
-        defaults.removeObjectForKey(keyFor(url))
-        _states.update { it - url }
+        defaults.removeObjectForKey(keyFor(key))
+        defaults.removeObjectForKey(titleKeyFor(key))
+        _states.update { it - key }
         refreshDownloaded()
     }
 
-    actual override fun playbackUrl(url: String): String {
+    fun playbackUrl(url: String): String {
         return localFileUrl(url)?.absoluteString ?: url
     }
 
-    private fun keyFor(url: String): String = OFFLINE_URL_PREFIX + url
+    private fun keyFor(url: String): String = OFFLINE_URL_PREFIX + downloadKey(url)
+
+    private fun titleKeyFor(url: String): String = OFFLINE_TITLE_PREFIX + downloadKey(url)
 
     private fun localFileUrl(url: String): NSURL? {
         val stored = defaults.stringForKey(keyFor(url)) ?: return null

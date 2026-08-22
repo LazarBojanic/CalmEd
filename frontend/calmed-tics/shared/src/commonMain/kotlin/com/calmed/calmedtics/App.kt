@@ -116,13 +116,13 @@ fun App() {
         }
     }
 
-    fun openVideo(url: String) {
+    fun openVideo(url: String, title: String? = null) {
         if (url.isBlank()) return
         videoExercises = listOf(
             ProgramExerciseDto(
                 id = "",
                 videoURL = url,
-                title = "",
+                title = title.orEmpty(),
                 description = "",
                 weekNumber = 1
             )
@@ -308,7 +308,7 @@ fun App() {
                                 }
                             }
                         },
-                        onOpenVideo = { url -> openVideo(url) }
+                        onOpenVideo = { url, title -> openVideo(url, title) }
                     )
                 }
 

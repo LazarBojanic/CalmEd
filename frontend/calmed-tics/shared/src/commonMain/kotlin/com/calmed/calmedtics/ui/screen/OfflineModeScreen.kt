@@ -67,7 +67,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun OfflineModeScreen(
     onTryOnline: () -> Unit,
-    onOpenVideo: (String) -> Unit
+    onOpenVideo: (url: String, title: String?) -> Unit
 ) {
     val downloadedUrls by
     LocalVideoDownloadManager.downloadedUrls.collectAsState()
@@ -232,7 +232,7 @@ fun OfflineModeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            onOpenVideo(url)
+                            onOpenVideo(url, state.title)
                         },
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(

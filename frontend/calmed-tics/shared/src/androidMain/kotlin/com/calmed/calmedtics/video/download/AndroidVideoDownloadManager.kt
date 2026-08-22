@@ -16,6 +16,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.calmed.calmedtics.service.specification.VideoDownloadState
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
+import com.calmed.calmedtics.service.specification.downloadKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -43,10 +44,13 @@ class AndroidVideoDownloadManager(context: Context) {
 
     private val progressHandler = Handler(Looper.getMainLooper())
 
+    private var progressLoopScheduled = false
+
     private val progressRunnable = object : Runnable {
         override fun run() {
+            progressLoopScheduled = false
             refreshCurrentDownloads()
-            progressHandler.postDelayed(this, PROGRESS_UPDATE_INTERVAL_MS)
+            ensureProgressLoop()
         }
     }
 
@@ -80,23 +84,26 @@ class AndroidVideoDownloadManager(context: Context) {
                         recalculateDownloadedUrls(updated)
                         updated
                     }
+
+                    ensureProgressLoop()
                 }
             }
         )
 
-        progressHandler.post(progressRunnable)
+        ensureProgressLoop()
     }
 
     fun refresh(url: String) {
+        val key = downloadKey(url)
         val download = runCatching {
-            manager.downloadIndex.getDownload(downloadId(url))
+            manager.downloadIndex.getDownload(downloadId(key))
         }.getOrNull()
 
         if (download == null) {
             _states.update { current ->
                 val updated =
                     current + (
-                        url to VideoDownloadState(
+                        key to VideoDownloadState(
                             status = VideoDownloadStatus.NotDownloaded
                         )
                         )
@@ -105,15 +112,17 @@ class AndroidVideoDownloadManager(context: Context) {
                 updated
             }
 
+            ensureProgressLoop()
             return
         }
 
-        updateState(download, url)
+        updateState(download, key)
     }
 
     fun download(url: String, title: String? = null) {
+        val key = downloadKey(url)
         val existingDownload = runCatching {
-            manager.downloadIndex.getDownload(downloadId(url))
+            manager.downloadIndex.getDownload(downloadId(key))
         }.getOrNull()
 
         if (
@@ -124,13 +133,13 @@ class AndroidVideoDownloadManager(context: Context) {
         }
 
         if (existingDownload?.state == Download.STATE_COMPLETED) {
-            updateState(existingDownload, url)
+            updateState(existingDownload, key)
             return
         }
 
         _states.update {
             it + (
-                url to VideoDownloadState(
+                key to VideoDownloadState(
                     status = VideoDownloadStatus.Downloading,
                     progressPercent = 0f,
                     title = title
@@ -138,10 +147,12 @@ class AndroidVideoDownloadManager(context: Context) {
                 )
         }
 
+        ensureProgressLoop()
         prepareDownload(url, title)
     }
 
     private fun prepareDownload(url: String, title: String?) {
+        val key = downloadKey(url)
         val mediaItem = MediaItem.fromUri(url.toUri())
 
         val dataSourceFactory =
@@ -160,10 +171,10 @@ class AndroidVideoDownloadManager(context: Context) {
                     tracksInfoAvailable: Boolean
                 ) {
                     try {
-                        val requestData = encodeMetadata(url, title)
+                        val requestData = encodeMetadata(key, title)
 
                         val request = helper.getDownloadRequest(
-                            downloadId(url),
+                            downloadId(key),
                             requestData
                         )
 
@@ -182,12 +193,13 @@ class AndroidVideoDownloadManager(context: Context) {
                     } catch (_: Exception) {
                         _states.update {
                             it + (
-                                url to VideoDownloadState(
+                                key to VideoDownloadState(
                                     status = VideoDownloadStatus.Failed,
                                     title = title
                                 )
                                 )
                         }
+                        ensureProgressLoop()
                     } finally {
                         helper.release()
                     }
@@ -199,12 +211,13 @@ class AndroidVideoDownloadManager(context: Context) {
                 ) {
                     _states.update {
                         it + (
-                            url to VideoDownloadState(
+                            key to VideoDownloadState(
                                 status = VideoDownloadStatus.Failed,
                                 title = title
                             )
                             )
                     }
+                    ensureProgressLoop()
 
                     helper.release()
                 }
@@ -213,18 +226,21 @@ class AndroidVideoDownloadManager(context: Context) {
     }
 
     fun remove(url: String) {
+        val key = downloadKey(url)
         DownloadService.sendRemoveDownload(
             applicationContext,
             VideoDownloadService::class.java,
-            downloadId(url),
+            downloadId(key),
             false
         )
 
         _states.update {
-            val updated = it - url
+            val updated = it - key
             recalculateDownloadedUrls(updated)
             updated
         }
+
+        ensureProgressLoop()
     }
 
     fun playbackUrl(url: String): String = url
@@ -265,7 +281,7 @@ class AndroidVideoDownloadManager(context: Context) {
         download: Download,
         explicitUrl: String? = null
     ) {
-        val url = explicitUrl ?: requestUrl(download.request)
+        val url = downloadKey(explicitUrl ?: requestUrl(download.request))
         val title = requestTitle(download.request)
 
         val progress =
@@ -290,6 +306,8 @@ class AndroidVideoDownloadManager(context: Context) {
             recalculateDownloadedUrls(updated)
             updated
         }
+
+        ensureProgressLoop()
     }
 
     private fun synchronizeWithDownloadIndex() {
@@ -301,7 +319,7 @@ class AndroidVideoDownloadManager(context: Context) {
             linkedMapOf<String, VideoDownloadState>()
 
         downloads.useCursor { download ->
-            val url = requestUrl(download.request)
+            val url = downloadKey(requestUrl(download.request))
             val title = requestTitle(download.request)
 
             refreshed[url] =
@@ -318,16 +336,20 @@ class AndroidVideoDownloadManager(context: Context) {
 
         _states.value = refreshed
         recalculateDownloadedUrls(refreshed)
+        ensureProgressLoop()
     }
 
     private fun requestUrl(request: DownloadRequest): String {
-        return if (request.data.isNotEmpty()) {
-            decodeMetadata(request.data).url.ifBlank {
+        val raw =
+            if (request.data.isNotEmpty()) {
+                decodeMetadata(request.data).url.ifBlank {
+                    request.uri.toString()
+                }
+            } else {
                 request.uri.toString()
             }
-        } else {
-            request.uri.toString()
-        }
+
+        return downloadKey(raw)
     }
 
     private fun requestTitle(request: DownloadRequest): String? {
@@ -413,12 +435,27 @@ class AndroidVideoDownloadManager(context: Context) {
         val bytes =
             MessageDigest
                 .getInstance("SHA-256")
-                .digest(url.encodeToByteArray())
+                .digest(downloadKey(url).encodeToByteArray())
 
         return buildString(bytes.size * 2) {
             for (byte in bytes) {
                 append("%02x".format(byte))
             }
+        }
+    }
+
+    private fun ensureProgressLoop() {
+        val hasActive =
+            _states.value.values.any {
+                it.status == VideoDownloadStatus.Downloading
+            }
+
+        if (hasActive && !progressLoopScheduled) {
+            progressLoopScheduled = true
+            progressHandler.postDelayed(progressRunnable, PROGRESS_UPDATE_INTERVAL_MS)
+        } else if (!hasActive && progressLoopScheduled) {
+            progressLoopScheduled = false
+            progressHandler.removeCallbacks(progressRunnable)
         }
     }
 

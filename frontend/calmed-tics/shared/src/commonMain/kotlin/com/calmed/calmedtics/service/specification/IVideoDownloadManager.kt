@@ -35,6 +35,16 @@ expect object LocalVideoDownloadManager : IVideoDownloadManager {
     override fun remove(url: String)
 }
 
+/**
+ * Returns the stable identity of a video URL.
+ *
+ * Signed Mux URLs carry a short-lived `?token=...` query parameter that changes
+ * on every backend response. Using the tokenized URL as a download identity
+ * would make a downloaded video "forget" it is downloaded after any refetch, so
+ * the volatile query string is stripped here.
+ */
+fun downloadKey(url: String): String = url.substringBefore('?')
+
 fun Map<String, VideoDownloadState>.stateFor(url: String): VideoDownloadState {
-    return this[url] ?: VideoDownloadState(VideoDownloadStatus.NotDownloaded)
+    return this[downloadKey(url)] ?: VideoDownloadState(VideoDownloadStatus.NotDownloaded)
 }

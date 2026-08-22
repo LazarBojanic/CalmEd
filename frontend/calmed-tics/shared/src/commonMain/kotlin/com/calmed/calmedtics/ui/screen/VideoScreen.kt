@@ -185,6 +185,7 @@ fun VideoScreen(
             key(currentUrl) {
                 VideoPlayer(
                     hlsUrl = currentUrl,
+                    title = displayTitle,
                     modifier = Modifier.fillMaxSize(),
                     isFullscreen = true,
                     isPlaying = isPlaying,
@@ -264,6 +265,7 @@ fun VideoScreen(
                             key(currentUrl) {
                                 VideoPlayer(
                                     hlsUrl = currentUrl,
+                                    title = displayTitle,
                                     modifier = Modifier.fillMaxSize(),
                                     isFullscreen = false,
                                     isPlaying = isPlaying,

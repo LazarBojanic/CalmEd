@@ -16,7 +16,7 @@ import com.calmed.calmedtics.repository.IExerciseCompletionDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 
-@Database(version = 4, entities = [UserEntity::class, UserInfoTicsEntity::class, ExerciseCompletionEntity::class])
+@Database(version = 1, entities = [UserEntity::class, UserInfoTicsEntity::class, ExerciseCompletionEntity::class])
 @TypeConverters(RoomConverters::class)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

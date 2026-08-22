@@ -121,6 +121,7 @@ fun WelcomeVideoScreen(
                         if (url != null) {
                             VideoPlayer(
                                 hlsUrl = url,
+                                title = title,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(16f / 9f),
