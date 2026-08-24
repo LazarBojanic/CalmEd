@@ -1,5 +1,6 @@
 workflows:
   ios-build:
+    #1
     name: ios-build
     max_build_duration: 120
     instance_type: mac_mini_m2
@@ -18,8 +19,10 @@ workflows:
         script: "xcode-project use-profiles --custom-export-options='{\"testFlightInternalTestingOnly\": true}'"
       - name: "Increment build number"
         script: "cd $CM_BUILD_DIR/frontend/calmed-tics/iosApp && LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number \"$APP_STORE_APPLE_ID\") && agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))"
-      - name: "Build ipa for distribution"
-        script: "cd $CM_BUILD_DIR/frontend/calmed-tics/iosApp && xcode-project build-ipa --workspace \"$XCODE_WORKSPACE\"  --scheme \"$XCODE_SCHEME\""
+      #- name: "Build ipa for distribution"
+      #  script: "cd $CM_BUILD_DIR/frontend/calmed-tics/iosApp && xcode-project build-ipa --workspace \"$XCODE_WORKSPACE\"  --scheme \"$XCODE_SCHEME\""
+      - name: "debug"
+        script: "LOG_FILE=\"$SRCROOT/../kotlin-ios-build.log\" && \"$SRCROOT/../gradlew\" :shared:embedAndSignAppleFrameworkForXcode --stacktrace --info --console=plain \"$LOG_FILE\" 2>&1 && STATUS=$? && cat \"$LOG_FILE\ && exit $STATUS"
     artifacts:
       - frontend/calmed-tics/iosApp/build/ipa/*.ipa
     publishing:
