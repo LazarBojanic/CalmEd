@@ -1,6 +1,5 @@
 workflows:
   ios-build:
-    #2
     name: ios-build
     max_build_duration: 120
     instance_type: mac_mini_m2
@@ -22,7 +21,7 @@ workflows:
       #- name: "Build ipa for distribution"
       #  script: "cd $CM_BUILD_DIR/frontend/calmed-tics/iosApp && xcode-project build-ipa --workspace \"$XCODE_WORKSPACE\"  --scheme \"$XCODE_SCHEME\""
       - name: "debug"
-        script: "LOG_FILE=\"$SRCROOT/../kotlin-ios-build.log\" && \"$SRCROOT/../gradlew\" :shared:embedAndSignAppleFrameworkForXcode --stacktrace --info --console=plain \"$LOG_FILE\" 2>&1 && STATUS=$? && cat \"$LOG_FILE\" && exit $STATUS"
+        script: "LOG_FILE=\"$CM_BUILD_DIR/frontend/calmed-tics/kotlin-ios-build.log\" && \"$CM_BUILD_DIR/frontend/calmed-tics/gradlew\" :shared:embedAndSignAppleFrameworkForXcode --stacktrace --info --console=plain \"$LOG_FILE\" 2>&1 && STATUS=$? && cat \"$LOG_FILE\" && exit $STATUS"
     artifacts:
       - frontend/calmed-tics/iosApp/build/ipa/*.ipa
     publishing:
