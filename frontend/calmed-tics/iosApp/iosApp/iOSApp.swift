@@ -1,5 +1,5 @@
 import SwiftUI
-import CalmEdTics
+import Shared
 import GoogleSignIn
 import UserNotifications
 
