@@ -17,6 +17,7 @@ expect fun VideoPlayer(
     onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)? = null,
     onFullscreenToggle: ((Boolean) -> Unit)? = null,
     onPlaybackEnded: (() -> Unit)? = null,
+    onPlayPauseChange: ((Boolean) -> Unit)? = null,
     restartTrigger: Int = 0
 )
 

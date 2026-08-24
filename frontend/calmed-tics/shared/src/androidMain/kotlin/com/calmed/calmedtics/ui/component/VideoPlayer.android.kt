@@ -54,6 +54,7 @@ actual fun VideoPlayer(
     onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
     onFullscreenToggle: ((Boolean) -> Unit)?,
     onPlaybackEnded: (() -> Unit)?,
+    onPlayPauseChange: ((Boolean) -> Unit)?,
     restartTrigger: Int
 ) {
     val context = LocalContext.current
@@ -76,6 +77,10 @@ actual fun VideoPlayer(
 
     val currentOnPlaybackEnded by rememberUpdatedState(
         onPlaybackEnded
+    )
+
+    val currentOnPlayPauseChange by rememberUpdatedState(
+        onPlayPauseChange
     )
 
     val cacheDataSourceFactory =
@@ -152,6 +157,13 @@ actual fun VideoPlayer(
                         currentOnVideoOrientationChanged
                             ?.invoke(isPortrait)
                     }
+                }
+
+                override fun onIsPlayingChanged(
+                    isPlaying: Boolean
+                ) {
+                    currentOnPlayPauseChange
+                        ?.invoke(isPlaying)
                 }
             }
 

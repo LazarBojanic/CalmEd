@@ -3,9 +3,12 @@ package com.calmed.calmedtics.ui.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
 import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
@@ -40,12 +43,14 @@ actual fun VideoPlayer(
     onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
     onFullscreenToggle: ((Boolean) -> Unit)?,
     onPlaybackEnded: (() -> Unit)?,
+    onPlayPauseChange: ((Boolean) -> Unit)?,
     restartTrigger: Int
 ) {
     val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
     val currentOnDurationChanged by rememberUpdatedState(onDurationChanged)
     val currentOnVideoOrientationChanged by rememberUpdatedState(onVideoOrientationChanged)
     val currentOnPlaybackEnded by rememberUpdatedState(onPlaybackEnded)
+    val currentOnPlayPauseChange by rememberUpdatedState(onPlayPauseChange)
 
     val player = remember { AVPlayer() }
     val controller = remember {
@@ -57,6 +62,17 @@ actual fun VideoPlayer(
         }
     }
     val tokens = remember { mutableStateListOf<NSObjectProtocol>() }
+
+    /*
+     * Tracks the last play state reported to the screen so we only fire
+     * onPlayPauseChange on actual transitions (the periodic observer runs
+     * several times per second).
+     */
+    var lastReportedPlaying by remember {
+        mutableStateOf(
+            player.timeControlStatus != AVPlayerTimeControlStatusPaused
+        )
+    }
 
     val states by LocalVideoDownloadManager.states.collectAsState()
     val downloadState = states.stateFor(hlsUrl)
@@ -145,6 +161,17 @@ actual fun VideoPlayer(
                     }
                 }
             }
+
+            /*
+             * Keep the screen's play/pause state in sync with the native
+             * transport controls. Anything that is not explicitly paused
+             * (playing or buffering/waiting) counts as "playing".
+             */
+            val nowPlaying = player.timeControlStatus != AVPlayerTimeControlStatusPaused
+            if (nowPlaying != lastReportedPlaying) {
+                lastReportedPlaying = nowPlaying
+                currentOnPlayPauseChange?.invoke(nowPlaying)
+            }
         }
 
         onDispose {
@@ -156,8 +183,6 @@ actual fun VideoPlayer(
             tokens.clear()
         }
     }
-
-
 
     Box(modifier = modifier.background(MaterialTheme.colorScheme.surface)) {
         UIKitView(
@@ -215,6 +240,21 @@ actual fun VideoPlayer(
                 isNativeAccessibilityEnabled = true
             )
         )
+
+        /*
+         * Custom download button (AVPlayerViewController has no native one).
+         * Anchored in the top-right corner; the screen's overlay column is
+         * offset below it via PlayerTopOverlayInset.
+         */
+        if (useController) {
+            VideoPlayerDownloadButton(
+                hlsUrl = hlsUrl,
+                title = title,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+            )
+        }
     }
 }
 

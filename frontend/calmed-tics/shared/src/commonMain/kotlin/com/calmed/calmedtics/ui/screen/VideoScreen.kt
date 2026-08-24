@@ -48,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -62,6 +61,8 @@ import com.calmed.calmedtics.ui.component.CastButton
 import com.calmed.calmedtics.ui.component.FullscreenEffect
 import com.calmed.calmedtics.ui.component.KeepScreenAwake
 import com.calmed.calmedtics.ui.component.PlatformBackHandler
+import com.calmed.calmedtics.ui.component.PlayerTopOverlayInset
+import com.calmed.calmedtics.ui.component.VideoOverlayButton
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import org.jetbrains.compose.resources.stringResource
 
@@ -205,6 +206,7 @@ fun VideoScreen(
                         isFullscreen = shouldBeFullscreen
                     },
                     onPlaybackEnded = onPlaybackEndedHandler,
+                    onPlayPauseChange = { isPlaying = it },
                     restartTrigger = restartTrigger
                 )
             }
@@ -289,11 +291,12 @@ fun VideoScreen(
                                         isFullscreen = shouldBeFullscreen
                                     },
                                     onPlaybackEnded = onPlaybackEndedHandler,
+                                    onPlayPauseChange = { isPlaying = it },
                                     restartTrigger = restartTrigger
                                 )
                             }
 
-                            OverlayIconButton(
+                            VideoOverlayButton(
                                 icon = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
                                 onClick = onBack,
@@ -305,7 +308,12 @@ fun VideoScreen(
                             Column(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
-                                    .padding(12.dp),
+                                    .padding(
+                                        start = 12.dp,
+                                        top = PlayerTopOverlayInset,
+                                        end = 12.dp,
+                                        bottom = 12.dp
+                                    ),
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -314,12 +322,12 @@ fun VideoScreen(
                                     title = displayTitle,
                                     modifier = Modifier.size(32.dp)
                                 )
-                                OverlayIconButton(
+                                VideoOverlayButton(
                                     icon = Icons.Default.Settings,
                                     contentDescription = "Settings",
                                     onClick = { showSettings = true }
                                 )
-                                OverlayIconButton(
+                                VideoOverlayButton(
                                     icon = if (isMuted) {
                                         Icons.AutoMirrored.Filled.VolumeOff
                                     } else {
@@ -554,28 +562,4 @@ private fun formatTimeFromMillis(milliseconds: Long): String {
     val min = totalSeconds / 60
     val sec = totalSeconds % 60
     return min.toString().padStart(2, '0') + ":" + sec.toString().padStart(2, '0')
-}
-
-@Composable
-private fun OverlayIconButton(
-    icon: ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null
-) {
-    Box(
-        modifier = modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.85f))
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(15.dp)
-        )
-    }
 }

@@ -1,0 +1,68 @@
+package com.calmed.calmedtics.ui.component
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
+import com.calmed.calmedtics.service.specification.VideoDownloadStatus
+import com.calmed.calmedtics.service.specification.stateFor
+
+/**
+ * Download toggle button for the video player, rendered with the platform's
+ * [VideoOverlayButton] style. Mirrors the states of the download button that
+ * is injected into the native Media3 control row on Android:
+ *
+ *  - NotDownloaded -> download icon (tap starts a download)
+ *  - Downloading   -> dimmed download icon (tap does nothing)
+ *  - Downloaded    -> check icon (tap removes the download)
+ *  - Failed        -> error icon (tap retries)
+ */
+@Composable
+fun VideoPlayerDownloadButton(
+    hlsUrl: String,
+    title: String?,
+    modifier: Modifier = Modifier
+) {
+    val states by LocalVideoDownloadManager.states.collectAsState()
+    val status = states.stateFor(hlsUrl).status
+
+    val icon = when (status) {
+        VideoDownloadStatus.NotDownloaded,
+        VideoDownloadStatus.Downloading -> Icons.Filled.Download
+        VideoDownloadStatus.Downloaded -> Icons.Filled.CheckCircle
+        VideoDownloadStatus.Failed -> Icons.Filled.ErrorOutline
+    }
+
+    val description = when (status) {
+        VideoDownloadStatus.NotDownloaded -> "Download video"
+        VideoDownloadStatus.Downloading -> "Downloading video"
+        VideoDownloadStatus.Downloaded -> "Remove downloaded video"
+        VideoDownloadStatus.Failed -> "Retry video download"
+    }
+
+    VideoOverlayButton(
+        icon = icon,
+        contentDescription = description,
+        onClick = {
+            when (status) {
+                VideoDownloadStatus.Downloaded -> LocalVideoDownloadManager.remove(hlsUrl)
+                VideoDownloadStatus.Downloading -> Unit
+                VideoDownloadStatus.NotDownloaded,
+                VideoDownloadStatus.Failed -> LocalVideoDownloadManager.download(hlsUrl, title)
+            }
+        },
+        modifier = modifier.then(
+            if (status == VideoDownloadStatus.Downloading) {
+                Modifier.alpha(0.5f)
+            } else {
+                Modifier
+            }
+        )
+    )
+}
