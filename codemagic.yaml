@@ -25,7 +25,7 @@ workflows:
       - name: "Build ipa for distribution"
         script: "cd $CM_BUILD_DIR/frontend/calmed-tics/iosApp && xcode-project build-ipa --workspace \"$XCODE_WORKSPACE\"  --scheme \"$XCODE_SCHEME\""
     artifacts:
-      - frontend/calmed-tics/iosApp/build/ipa/*.ipa
+      - frontend/calmed-tics/iosApp/build/ios/ipa/*.ipa
     publishing:
       app_store_connect:
         auth: integration
