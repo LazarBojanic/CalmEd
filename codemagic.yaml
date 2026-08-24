@@ -2,7 +2,7 @@ workflows:
   debug-workflow:
     scripts:
       - name: "debug-script"
-        script: "cd $CM_BUILD_DIR/frontend/calmed-tics && chmod +x ./gradlew ARCHS=arm64 SDK_NAME=iphoneos CONFIGURATION=Release && ./gradlew :shared:compileKotlinIosArm64 --stacktrace --info --console=plain"
+        script: "cd $CM_BUILD_DIR/frontend/calmed-tics && chmod +x ./gradlew && ARCHS=arm64 && SDK_NAME=iphoneos && CONFIGURATION=Release && ./gradlew :shared:compileKotlinIosArm64 --stacktrace --info --console=plain"
   ios-build:
     name: ios-build
     max_build_duration: 120
