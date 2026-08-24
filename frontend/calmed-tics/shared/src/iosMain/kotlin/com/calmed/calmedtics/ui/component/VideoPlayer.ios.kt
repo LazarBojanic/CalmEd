@@ -4,14 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
@@ -22,32 +15,13 @@ import kotlinx.cinterop.useContents
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
 import platform.AVFAudio.setActive
-import platform.AVFoundation.AVPlayer
-import platform.AVFoundation.AVPlayerItem
-import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
-import platform.AVFoundation.addPeriodicTimeObserverForInterval
-import platform.AVFoundation.currentItem
-import platform.AVFoundation.currentTime
-import platform.AVFoundation.duration
-import platform.AVFoundation.muted
-import platform.AVFoundation.pause
-import platform.AVFoundation.play
-import platform.AVFoundation.presentationSize
-import platform.AVFoundation.removeTimeObserver
-import platform.AVFoundation.replaceCurrentItemWithPlayerItem
-import platform.AVFoundation.seekToTime
+import platform.AVFoundation.*
 import platform.AVKit.AVPlayerViewController
 import platform.CoreMedia.CMTimeGetSeconds
 import platform.CoreMedia.CMTimeMakeWithSeconds
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSURL
-import platform.UIKit.NSLayoutAttributeBottom
-import platform.UIKit.NSLayoutAttributeLeading
-import platform.UIKit.NSLayoutAttributeTop
-import platform.UIKit.NSLayoutAttributeTrailing
-import platform.UIKit.NSLayoutConstraint
-import platform.UIKit.NSLayoutRelationEqual
-import platform.UIKit.UIView
+import platform.UIKit.*
 import platform.darwin.NSEC_PER_SEC
 import platform.darwin.NSObjectProtocol
 
@@ -55,6 +29,7 @@ import platform.darwin.NSObjectProtocol
 @Composable
 actual fun VideoPlayer(
     hlsUrl: String,
+    title: String?,
     modifier: Modifier,
     isFullscreen: Boolean,
     isPlaying: Boolean,
@@ -108,13 +83,8 @@ actual fun VideoPlayer(
 
         val playback = LocalVideoDownloadManager.playbackUrl(hlsUrl)
         val nsUrl = NSURL(string = playback)
-        if (nsUrl == null) {
-            player.pause()
-            player.replaceCurrentItemWithPlayerItem(null)
-            return@LaunchedEffect
-        }
 
-        val item = AVPlayerItem(uRL = nsUrl)
+	    val item = AVPlayerItem(uRL = nsUrl)
         player.replaceCurrentItemWithPlayerItem(item)
 
         val size = item.presentationSize
@@ -187,6 +157,8 @@ actual fun VideoPlayer(
         }
     }
 
+
+
     Box(modifier = modifier.background(MaterialTheme.colorScheme.surface)) {
         UIKitView(
             modifier = Modifier.fillMaxSize(),
@@ -246,33 +218,3 @@ actual fun VideoPlayer(
     }
 }
 
-@Composable
-actual fun VideoPlayerWithState(
-    hlsUrl: String,
-    modifier: Modifier,
-    isPlaying: Boolean,
-    isMuted: Boolean,
-    useController: Boolean,
-    onPositionChanged: (Long) -> Unit,
-    onDurationChanged: (Long) -> Unit,
-    restartTrigger: Int,
-    onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
-    onFullscreenToggle: ((Boolean) -> Unit)?,
-    onPlaybackEnded: (() -> Unit)?,
-    isFullscreen: Boolean
-) {
-    VideoPlayer(
-        hlsUrl = hlsUrl,
-        modifier = modifier,
-        isFullscreen = isFullscreen,
-        isPlaying = isPlaying,
-        isMuted = isMuted,
-        useController = useController,
-        onPositionChanged = onPositionChanged,
-        onDurationChanged = onDurationChanged,
-        onVideoOrientationChanged = onVideoOrientationChanged,
-        onFullscreenToggle = onFullscreenToggle,
-        onPlaybackEnded = onPlaybackEnded,
-        restartTrigger = restartTrigger
-    )
-}

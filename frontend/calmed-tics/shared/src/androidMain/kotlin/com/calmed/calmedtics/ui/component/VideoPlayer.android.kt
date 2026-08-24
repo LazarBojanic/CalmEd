@@ -269,45 +269,6 @@ actual fun VideoPlayer(
     )
 }
 
-@Composable
-actual fun VideoPlayerWithState(
-    hlsUrl: String,
-    title: String?,
-    modifier: Modifier,
-    isPlaying: Boolean,
-    isMuted: Boolean,
-    useController: Boolean,
-    onPositionChanged: (Long) -> Unit,
-    onDurationChanged: (Long) -> Unit,
-    restartTrigger: Int,
-    onVideoOrientationChanged:
-    ((isPortrait: Boolean) -> Unit)?,
-    onFullscreenToggle:
-    ((Boolean) -> Unit)?,
-    onPlaybackEnded:
-    (() -> Unit)?,
-    isFullscreen: Boolean
-) {
-    VideoPlayer(
-        hlsUrl = hlsUrl,
-        title = title,
-        modifier = modifier,
-        isFullscreen = isFullscreen,
-        isPlaying = isPlaying,
-        isMuted = isMuted,
-        useController = useController,
-        onPositionChanged = onPositionChanged,
-        onDurationChanged = onDurationChanged,
-        onVideoOrientationChanged =
-            onVideoOrientationChanged,
-        onFullscreenToggle =
-            onFullscreenToggle,
-        onPlaybackEnded =
-            onPlaybackEnded,
-        restartTrigger = restartTrigger
-    )
-}
-
 @OptIn(UnstableApi::class)
 @Composable
 private fun PlayerContent(
