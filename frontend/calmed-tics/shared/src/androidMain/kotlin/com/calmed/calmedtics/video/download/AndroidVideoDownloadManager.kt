@@ -245,12 +245,7 @@ class AndroidVideoDownloadManager(context: Context) {
 
     fun playbackUrl(url: String): String = url
 
-    /**
-     * Returns the MediaItem associated with the completed download.
-     *
-     * This is important for HLS because DownloadRequest.toMediaItem()
-     * carries the stream keys selected by DownloadHelper.
-     */
+
     fun downloadedMediaItem(url: String): MediaItem? {
         val download = runCatching {
             manager.downloadIndex.getDownload(downloadId(url))

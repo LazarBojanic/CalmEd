@@ -530,9 +530,6 @@ fun App() {
                                     launchSingleTop = true
                                 }
                             },
-                            onOpenVideo = { url ->
-                                openVideo(url)
-                            },
                             onOpenVideoFromList = { exercises, startIndex ->
                                 openVideoFromList(exercises, startIndex)
                             }
@@ -548,7 +545,7 @@ fun App() {
                                 val currentWeek = sessionViewModel.home.value?.currentWeek ?: 1
 
                                 val availableExercises = allExercises.filter {
-                                    it.weekNumber <= currentWeek
+                                    it.weekNumber in 1..currentWeek
                                 }
 
                                 val index = availableExercises.indexOfFirst {
@@ -560,9 +557,6 @@ fun App() {
                                 } else {
                                     openVideoFromList(listOf(exercise), 0)
                                 }
-                            },
-                            onOpenVideo = { url ->
-                                openVideo(url)
                             }
                         )
                     }

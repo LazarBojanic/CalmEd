@@ -17,7 +17,6 @@ data class ProgramExercise(
 	val thumbnailURL: String?,
 	val durationSeconds: Int?= null,
 	val visibility: Visibility,
-	val orderInWeek: Int?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)

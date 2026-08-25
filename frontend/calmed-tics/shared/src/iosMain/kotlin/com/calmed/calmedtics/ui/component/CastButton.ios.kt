@@ -14,12 +14,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVKit.AVRoutePickerView
 import platform.UIKit.UIColor
 
-/**
- * Native AirPlay route picker button. AVPlayerViewController already exposes
- * AirPlay through its own transport bar, but this makes casting available
- * from our overlay even when the native controls are hidden, and it keeps the
- * shared CastButton slot functional on iOS.
- */
+
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun CastButton(

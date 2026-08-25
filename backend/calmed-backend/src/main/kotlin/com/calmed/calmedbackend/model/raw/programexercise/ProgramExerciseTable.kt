@@ -18,7 +18,6 @@ object ProgramExerciseTable : UUIDTable("program_exercise") {
 	val thumbnailURL = text("thumbnail_url").nullable()
 	val durationSeconds = integer(name = "duration_seconds").nullable()
 	val visibility = enumeration("visibility", Visibility::class).default(Visibility.SIGNED)
-	val orderInWeek = integer("order_in_week").nullable()
 	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
 }

@@ -13,7 +13,6 @@ data class ProgramExerciseDto(
 	val thumbnailURL: String? = null,
 	val durationSeconds: Int? = null,
 	val visibility: String = "PUBLIC",
-	val orderInWeek: Int? = null,
 	val createdAt: String = "",
 	val updatedAt: String = ""
 )

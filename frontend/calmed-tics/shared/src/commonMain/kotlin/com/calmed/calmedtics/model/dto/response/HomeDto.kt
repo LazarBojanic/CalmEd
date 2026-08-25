@@ -8,7 +8,6 @@ data class HomeDto(
     val greetingName: String? = null,
     val avatarUrl: String? = null,
     val calendar: CalendarMonthDto,
-    val upNext: List<ProgramExerciseDto>,
     val currentWeek: Int,
     val programStartDate: String? = null,
     val completions: List<UserExerciseProgressCompactDto> = emptyList()

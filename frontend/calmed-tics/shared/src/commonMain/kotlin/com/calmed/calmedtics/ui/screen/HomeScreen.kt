@@ -67,12 +67,10 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.ui.unit.sp
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.util.epochDayToYmd
-import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 @Composable
 fun HomeScreen(
     sessionViewModel: SessionViewModel = koinInject(),
     onExerciseClick: (ProgramExerciseDto) -> Unit,
-    onOpenVideo: (String) -> Unit = {}
 ) {
     val home by sessionViewModel.home.collectAsState(initial = null)
     val user by sessionViewModel.user.collectAsState()
@@ -85,7 +83,6 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var selectedExerciseId by remember { mutableStateOf<String?>(null) }
 
     val userId = user?.id ?: ""
 
@@ -152,10 +149,6 @@ fun HomeScreen(
         }
     }
 
-    LaunchedEffect(displayWeek) {
-        selectedExerciseId = null
-    }
-
     val selectedDayInWeek = remember(selectedTrackerDateEpoch, trackerStartEpoch) {
         ((selectedTrackerDateEpoch - trackerStartEpoch).toInt() + 1).coerceIn(1, 7)
     }
@@ -171,15 +164,8 @@ fun HomeScreen(
 
     val weekExercises = remember(allExercises, displayWeek) {
         allExercises.filter { it.weekNumber == displayWeek }
-            .sortedBy { it.orderInWeek ?: Int.MAX_VALUE }
     }
-    val displayExercises = weekExercises
-    val selectedExercise = remember(displayExercises, selectedExerciseId) {
-        displayExercises.find { it.id == selectedExerciseId } ?: displayExercises.firstOrNull()
-    }
-    val selectedVideoUrl = remember(
-        selectedExercise
-    ) { selectedExercise?.videoURL }
+    val selectedExercise = remember(weekExercises) { weekExercises.firstOrNull() }
     val selectedTitle =
         remember(selectedExercise) { selectedExercise?.title }
 
@@ -693,7 +679,7 @@ fun HomeScreen(
                                     )
                             ) {
                                 Text(
-                                    text = "UP NEXT",
+                                    text = "CURRENT EXERCISE",
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimary
@@ -1074,230 +1060,6 @@ fun HomeScreen(
                 }
             }
 
-            item {
-                Text(
-                    text = "Exercises this week",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            if (displayExercises.isEmpty()) {
-                item {
-                    Text(
-                        text = if (allExercises.isEmpty()) {
-                            "Loading exercises…"
-                        } else {
-                            "No exercises for this week."
-                        },
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-            }
-
-            listItemsIndexed(displayExercises) { index, exercise ->
-
-                val displayTitle =
-                    exercise.title
-
-                val isSelected =
-                    exercise.id == selectedExercise?.id
-
-                val exerciseNumber =
-                    exercise.orderInWeek ?: (index + 1)
-
-                val formattedDuration =
-                    exercise.durationSeconds?.let { totalSeconds ->
-                        val minutes = totalSeconds / 60
-                        val seconds = totalSeconds % 60
-
-                        "${minutes}:${seconds.toString().padStart(2, '0')} min"
-                    } ?: "--:-- min"
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(112.dp)
-                        .clickable {
-                            selectedExerciseId = exercise.id
-                        },
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor =
-                            if (isSelected) {
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-                            } else {
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                            }
-                    ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation =
-                            if (isSelected) 3.dp else 2.dp
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(
-                                start = 10.dp,
-                                top = 10.dp,
-                                end = 12.dp,
-                                bottom = 10.dp
-                            ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        Card(
-                            modifier = Modifier.size(
-                                width = 108.dp,
-                                height = 90.dp
-                            ),
-                            shape = RoundedCornerShape(15.dp),
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 0.dp
-                            )
-                        ) {
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                val thumbnail =
-                                    exercise.thumbnailURL
-
-                                if (!thumbnail.isNullOrBlank()) {
-                                    ThumbnailImage(
-                                        url = thumbnail,
-                                        contentDescription = displayTitle,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                } else {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = stringResource(
-                                                Res.string.no_image
-                                            ),
-                                            fontSize = 11.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-
-                                VideoDownloadBadge(
-                                    videoUrl = exercise.videoURL,
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(4.dp)
-                                )
-                            }
-                        }
-
-                        Spacer(
-                            modifier = Modifier.width(12.dp)
-                        )
-
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxSize(),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = displayTitle,
-                                fontSize = 15.sp,
-                                lineHeight = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-
-                            Spacer(
-                                modifier = Modifier.height(6.dp)
-                            )
-
-                            Text(
-                                text =
-                                    "Week ${exercise.weekNumber} · Exercise $exerciseNumber",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-
-                            Spacer(
-                                modifier = Modifier.height(7.dp)
-                            )
-
-                            Row(
-                                verticalAlignment =
-                                    Alignment.CenterVertically,
-                                horizontalArrangement =
-                                    Arrangement.spacedBy(7.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(19.dp)
-                                        .then(
-                                            if (isSelected) {
-                                                Modifier.background(
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                    shape = CircleShape
-                                                )
-                                            } else {
-                                                Modifier.border(
-                                                    width = 1.5.dp,
-                                                    color = MaterialTheme.colorScheme.outline,
-                                                    shape = CircleShape
-                                                )
-                                            }
-                                        ),
-                                    contentAlignment =
-                                        Alignment.Center
-                                ) {
-                                    if (isSelected) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(7.dp)
-                                                .background(
-                                                    color = MaterialTheme.colorScheme.onPrimary,
-                                                    shape = CircleShape
-                                                )
-                                        )
-                                    }
-                                }
-
-                                Text(
-                                    text = formattedDuration,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1
-                                )
-                            }
-                        }
-
-                        Spacer(
-                            modifier = Modifier.width(6.dp)
-                        )
-
-                        Icon(
-                            imageVector =
-                                Icons.Default.ChevronRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(23.dp)
-                        )
-                    }
-                }
-            }
         }
     }
 }

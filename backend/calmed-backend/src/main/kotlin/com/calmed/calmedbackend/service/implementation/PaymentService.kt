@@ -142,7 +142,6 @@ class PaymentService(
                 EntitlementGrantResult.RESTORED
             }
             existing.userId == userId -> {
-                // Same user re-verifying (e.g. restore): refresh metadata and clear stale revocation.
                 storeEntitlementRepository.update(
                     existing.copy(
                         productId = productId ?: existing.productId,
@@ -181,7 +180,6 @@ class PaymentService(
 
     private fun looksLikeValidGooglePurchase(purchaseToken: String): Boolean {
         if (purchaseToken.isBlank()) return false
-        // Static test IDs represent no real purchase and must never grant access.
         val staticIds = listOf(
             "android.test.purchased",
             "android.test.canceled",
@@ -362,7 +360,6 @@ class PaymentService(
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Bundle ID mismatch")
             }
 
-            // Key on the original transaction id: it stays stable across restores/reinstalls.
             val entitlementTransactionId = verified.originalTransactionId.ifBlank { verified.transactionId }
 
             val finalProductId = verified.productId.ifBlank { dto.productId }
@@ -410,7 +407,6 @@ class PaymentService(
             var productId = dto.productId
             var purchaseToken = dto.purchaseToken
 
-            // Older clients may only send purchaseData; extract fields from it as a fallback.
             if (dto.purchaseData.isNotBlank()) {
                 val purchaseJson = runCatching { Json.parseToJsonElement(dto.purchaseData).jsonObject }.getOrNull()
                 if (purchaseJson != null) {
@@ -459,9 +455,6 @@ class PaymentService(
                     orderId = serverPurchase.orderId ?: dto.orderId
                     obfuscatedAccountId = serverPurchase.obfuscatedExternalAccountId
 
-                    // Best-effort account binding. Google reports the obfuscated account id we set at
-                    // purchase time. We store it for audit and warn on mismatch, but never reject here:
-                    // the platform ties billing to the device's Play account, not the app account.
                     val obfuscated = serverPurchase.obfuscatedExternalAccountId
                     if (!obfuscated.isNullOrBlank()) {
                         val expected = userEmail(userId)?.let { obfuscateAccountId(it) }
@@ -471,14 +464,10 @@ class PaymentService(
                     }
                 }
                 serverPurchase != null -> {
-                    // The server authoritatively said this purchase is not active (refunded/revoked);
-                    // never fall back in that case.
                     logger.warn("Google purchase state ${serverPurchase.purchaseState} for user $userId (not purchased)")
                     return AppResult.Failure(HttpStatusCode.PaymentRequired, "Google purchase is not in a purchased state")
                 }
                 googlePlayConfig.devFallbackEnabled && looksLikeValidGooglePurchase(purchaseToken) -> {
-                    // DEV-ONLY fallback: a sideloaded/debug build on the emulator cannot be validated by
-                    // the Play Developer API, so accept the ownership claim the device already reported.
                     logger.warn("DEV-ONLY: granting Google entitlement without Play API validation for user $userId (product '$productId')")
                     orderId = dto.orderId
                     obfuscatedAccountId = null

@@ -16,8 +16,6 @@ class StoreKitManager: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             guard let self = self else { return }
-            // Calling AppStore.sync() makes any owned (restored) transactions flow through
-            // Transaction.updates, which listenForTransactions posts back to Kotlin.
             Task {
                 try? await self.restorePurchases()
             }
@@ -37,13 +35,10 @@ class StoreKitManager: ObservableObject {
                 do {
                     let transaction = try self.checkVerified(result)
                     
-                    // Deliver content to user
                     await self.updatePurchasedProducts(transaction)
                     
-                    // Always finish a transaction
                     await transaction.finish()
                     
-                    // Notify Kotlin layer
                 NotificationCenter.default.post(
                     name: NSNotification.Name("OnApplePurchaseSuccess"),
                     object: nil,
@@ -118,10 +113,7 @@ class StoreKitManager: ObservableObject {
 }
 
     func restorePurchases() async throws {
-        // Ask the App Store to re-sync (shows the Sign In prompt when needed).
         try? await AppStore.sync()
-
-        // Apple's recommended restore path: current entitlements are automatically available.
         var found = 0
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? self.checkVerified(result) else { continue }

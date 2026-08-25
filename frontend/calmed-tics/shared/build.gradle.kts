@@ -139,7 +139,6 @@ fun Project.localProps(): Properties {
 val local = localProps()
 
 buildConfig{
-	// Ensure fields always exist with sensible defaults, then override from local.properties when available
 	buildConfigField("development", (local.getProperty("DEVELOPMENT") ?: "false").toBoolean())
 	buildConfigField("adbReverse", (local.getProperty("ADB_REVERSE") ?: "false").toBoolean())
 	buildConfigField("googleWebClientId", local.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "")

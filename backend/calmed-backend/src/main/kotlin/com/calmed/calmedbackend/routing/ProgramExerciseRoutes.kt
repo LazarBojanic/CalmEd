@@ -49,12 +49,7 @@ fun Route.programExerciseRoutes() {
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
-			get("/up-next") {
-				when (val res = service.getUpNext()) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
-					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
-				}
-			}
+
 			get("/week/{week}") {
 				val weekParam = call.parameters["week"]
 				if (weekParam == null) {

@@ -24,13 +24,7 @@ import java.time.Instant
 import java.util.Base64
 import java.util.Date
 
-/**
- * Server-side validation of Google Play purchases via the Google Play Developer API.
- *
- * This is the authoritative check that a purchase token belongs to our app, is in the
- * PURCHASED state, and (optionally) which account it is associated with. The deprecated
- * in-app billing V1 RSA signature should not be relied upon for security.
- */
+
 class GooglePlayDeveloperApi(private val serviceAccountJson: String) {
 
     private val logger = LoggerFactory.getLogger(GooglePlayDeveloperApi::class.java)
@@ -64,12 +58,7 @@ class GooglePlayDeveloperApi(private val serviceAccountJson: String) {
         val obfuscatedExternalProfileId: String?
     )
 
-    /**
-     * Validates a one-time product purchase token.
-     *
-     * @return the [ProductPurchase] on success, or null when the purchase does not exist / is not
-     *         in a valid state (the caller must treat null as a rejection).
-     */
+
     suspend fun validateProductPurchase(packageName: String, productId: String, token: String): ProductPurchase? {
         require(isConfigured()) { "Google Play service account is not configured" }
 

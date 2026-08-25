@@ -171,14 +171,11 @@ fun PaymentScreen(
         onDispose { job.cancel() }
     }
 
-    // Auto-restore on first entry so users who re-registered after deleting their account
-    // get their previous purchase back without needing to find the button.
     LaunchedEffect(Unit) {
         try {
             billingService.connect()
             billingService.restore()
         } catch (t: Throwable) {
-            // Restore is best-effort here; the manual button remains available.
             println("Auto-restore skipped: ${t.message}")
         }
     }

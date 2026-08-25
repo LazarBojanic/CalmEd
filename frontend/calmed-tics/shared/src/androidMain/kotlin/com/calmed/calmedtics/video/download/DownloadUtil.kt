@@ -42,10 +42,6 @@ object DownloadUtil {
         }
     }
 
-    /**
-     * Data source used by DownloadHelper to read HLS manifests
-     * and by DownloadManager to download media.
-     */
     fun getDownloadDataSourceFactory(
         context: Context
     ): DefaultDataSource.Factory {
@@ -58,12 +54,6 @@ object DownloadUtil {
         )
     }
 
-    /**
-     * Read-only cache data source used by the player.
-     *
-     * Downloaded media is read from the same SimpleCache used
-     * by DownloadManager.
-     */
     fun getPlaybackDataSourceFactory(
         context: Context
     ): CacheDataSource.Factory {
@@ -97,13 +87,7 @@ object DownloadUtil {
 
         manager.maxParallelDownloads = 2
 
-        /*
-         * Downloads are allowed only when a network is available.
-         *
-         * Once the user has downloaded the video, playback itself
-         * uses the cache and therefore doesn't require this network
-         * requirement.
-         */
+
         manager.setRequirements(
             Requirements(Requirements.NETWORK)
         )

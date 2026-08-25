@@ -29,9 +29,6 @@ import java.time.Instant
 import java.util.Base64
 import java.util.Date
 
-/**
- * Result of a verified App Store transaction (from the App Store Server API).
- */
 data class VerifiedAppleTransaction(
     val transactionId: String,
     val originalTransactionId: String,
@@ -42,13 +39,7 @@ data class VerifiedAppleTransaction(
     val revocationDate: Long?
 )
 
-/**
- * Server-side validation of Apple In-App Purchases via the App Store Server API.
- *
- * We call "Get Transaction Info" and verify the JWS (JSON Web Signature) returned by Apple
- * using the x5c certificate chain embedded in the JWS header, anchored to Apple's Root CA.
- * Only a valid, non-revoked, bundle-matching transaction is accepted.
- */
+
 class AppStoreServerApi(
     private val teamId: String,
     private val keyId: String,
@@ -69,11 +60,7 @@ class AppStoreServerApi(
             privateKeyPem.isNotBlank() && privateKeyPem != "placeholder" &&
             bundleId.isNotBlank() && bundleId != "placeholder"
 
-    /**
-     * Fetches and verifies a transaction by its transaction identifier.
-     *
-     * @return a verified transaction, or null if it does not exist or fails verification.
-     */
+
     suspend fun getVerifiedTransaction(transactionId: String): VerifiedAppleTransaction? {
         require(isConfigured()) { "Apple App Store Server API is not configured" }
 
@@ -165,12 +152,6 @@ class AppStoreServerApi(
         }
     }
 
-    /**
-     * Verifies the x5c chain. Apple's JWS header carries the leaf certificate plus the
-     * intermediate(s); the trust anchor is Apple Root CA - G3. We verify each certificate is
-     * signed by the next, and that the chain terminates at an Apple root (either the last
-     * certificate is the self-signed root itself, or it is an intermediate issued by that root).
-     */
     private fun verifyChain(certs: List<X509Certificate>): Boolean {
         return try {
             for (i in 0 until certs.size - 1) {

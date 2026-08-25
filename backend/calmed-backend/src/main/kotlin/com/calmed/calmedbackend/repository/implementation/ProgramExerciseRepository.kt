@@ -32,48 +32,10 @@ class ProgramExerciseRepository : IProgramExerciseRepository {
 		return findById(UUID.fromString("d84f5be0-c5e1-4445-a102-3e16e1b32355"))
 	}
 
-	override suspend fun findUpNext(): ProgramExercise? {
-		return withTransaction {
-			val found = ProgramExerciseEntity
-				.all()
-				.orderBy(ProgramExerciseTable.weekNumber to SortOrder.ASC)
-				.orderBy(ProgramExerciseTable.orderInWeek to SortOrder.ASC)
-				.firstOrNull()
-			if(found != null){
-				return@withTransaction found.toRaw()
-			}
-			else{
-				return@withTransaction null
-			}
-		}
-	}
-
-	override suspend fun findUpNextList(limit: Int): List<ProgramExercise>  {
-		return withTransaction {
-			ProgramExerciseEntity
-				.all()
-				.orderBy(ProgramExerciseTable.weekNumber to SortOrder.ASC)
-				.orderBy(ProgramExerciseTable.orderInWeek to SortOrder.ASC)
-				.limit(limit)
-				.map { it.toRaw() }
-		}
-
-	}
-
 	override suspend fun findByWeek(week: Int): List<ProgramExercise> {
 		return withTransaction {
 			ProgramExerciseEntity
 				.find { ProgramExerciseTable.weekNumber eq week }
-				.orderBy(ProgramExerciseTable.orderInWeek to SortOrder.ASC)
-				.map { it.toRaw() }
-		}
-	}
-
-	override suspend fun findUpNextByWeek(weekNumber: Int): List<ProgramExercise> {
-		return withTransaction {
-			ProgramExerciseEntity
-				.find { ProgramExerciseTable.weekNumber eq weekNumber }
-				.orderBy(ProgramExerciseTable.orderInWeek to SortOrder.ASC)
 				.map { it.toRaw() }
 		}
 	}

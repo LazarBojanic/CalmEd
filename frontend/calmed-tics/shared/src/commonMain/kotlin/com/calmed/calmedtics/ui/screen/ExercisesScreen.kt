@@ -62,8 +62,7 @@ fun ExercisesScreen(
         exercises
             .sortedWith(
                 compareBy(
-                    { it.weekNumber },
-                    { it.orderInWeek ?: 0 }
+                    { it.weekNumber }
                 )
             )
             .groupBy { it.weekNumber }
@@ -162,7 +161,6 @@ fun ExercisesScreen(
                                 modifier = Modifier.fillMaxSize()
                             ) {
 
-                                // THUMBNAIL
                                 if (!ex.thumbnailURL.isNullOrBlank()) {
 
                                     ThumbnailImage(
@@ -194,7 +192,6 @@ fun ExercisesScreen(
                                     }
                                 }
 
-                                // TAMNI GRADIENT PREKO SLIKE
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -224,7 +221,6 @@ fun ExercisesScreen(
                                         .padding(10.dp)
                                 )
 
-                                // TEKST DOLE LEVO
                                 Column(
                                     modifier = Modifier
                                         .align(
@@ -240,7 +236,6 @@ fun ExercisesScreen(
                                         Arrangement.spacedBy(6.dp)
                                 ) {
 
-                                    // WEEK BADGE
                                     Box(
                                         modifier = Modifier
                                             .background(
@@ -279,7 +274,6 @@ fun ExercisesScreen(
                                         )
                                     }
 
-                                    // NASLOV
                                     Text(
                                         text = ex.title,
                                         fontSize = 19.sp,
@@ -295,7 +289,6 @@ fun ExercisesScreen(
                                             TextOverflow.Ellipsis
                                     )
 
-                                    // TRAJANJE + NEDELJA
                                     Row(
                                         verticalAlignment =
                                             Alignment.CenterVertically,
@@ -341,7 +334,6 @@ fun ExercisesScreen(
                                     }
                                 }
 
-                                // PLAY ILI LOCK
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.Center)

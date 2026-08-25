@@ -1036,7 +1036,6 @@ fun OnboardingScreen(
 						horizontalAlignment = Alignment.CenterHorizontally,
 						verticalArrangement = Arrangement.SpaceBetween
 					) {
-						// TOP
 						Column(
 							modifier = Modifier.fillMaxWidth(),
 							horizontalAlignment = Alignment.CenterHorizontally
@@ -1278,7 +1277,6 @@ fun OnboardingScreen(
 								}
 							}
 						}
-						// BOTTOM
 						Column(
 							modifier = Modifier.fillMaxWidth(),
 							horizontalAlignment = Alignment.CenterHorizontally

@@ -13,16 +13,7 @@ import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
 
-/**
- * Download toggle button for the video player, rendered with the platform's
- * [VideoOverlayButton] style. Mirrors the states of the download button that
- * is injected into the native Media3 control row on Android:
- *
- *  - NotDownloaded -> download icon (tap starts a download)
- *  - Downloading   -> dimmed download icon (tap does nothing)
- *  - Downloaded    -> check icon (tap removes the download)
- *  - Failed        -> error icon (tap retries)
- */
+
 @Composable
 fun VideoPlayerDownloadButton(
     hlsUrl: String,

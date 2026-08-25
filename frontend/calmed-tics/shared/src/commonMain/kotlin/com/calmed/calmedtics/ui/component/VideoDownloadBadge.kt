@@ -29,13 +29,6 @@ private val DownloadedGreen = Color(0xFF4CAF50)
 private val FailedRed = Color(0xFFF44336)
 private val ScrimBlack = Color(0x99000000)
 
-/**
- * Small status badge shown over a video thumbnail.
- *
- * It reflects the download state of [videoUrl] (canonicalized, so it is stable
- * across signed-URL token refreshes) without being clickable — the actual
- * download action lives in the player controls.
- */
 @Composable
 fun VideoDownloadBadge(
     videoUrl: String?,

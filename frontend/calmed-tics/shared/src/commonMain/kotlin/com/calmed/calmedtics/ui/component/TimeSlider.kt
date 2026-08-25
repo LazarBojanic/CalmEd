@@ -27,7 +27,6 @@ fun TimeSlider(
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
-    // Parse initial time
     val initialHour = initialTime.substringBefore(":").toIntOrNull() ?: 8
     val initialMinute = initialTime.substringAfter(":").toIntOrNull() ?: 0
 

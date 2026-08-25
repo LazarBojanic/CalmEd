@@ -358,7 +358,6 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 		thumbnailURL = this.thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
-		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -371,7 +370,6 @@ fun ProgramExerciseEntity.setFrom(d: ProgramExercise, mapMode: MapMode) {
 	playbackId = d.playbackId
 	thumbnailURL = d.thumbnailURL
 	visibility = d.visibility
-	orderInWeek = d.orderInWeek
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
@@ -393,7 +391,6 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 		thumbnailURL = this.thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
-		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -449,7 +446,6 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 		thumbnailURL = thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
-		orderInWeek = this.orderInWeek,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)

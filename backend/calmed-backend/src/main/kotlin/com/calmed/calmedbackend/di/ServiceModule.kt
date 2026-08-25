@@ -49,19 +49,9 @@ val serviceModule = module {
 	single<IUserProgramService> { UserProgramService(get(), get()) }
 	single<IUserExerciseProgressService> { UserExerciseProgressService(get(), get()) }
 	single<IAuthService> { AuthService(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-	single<IHomeService> { HomeService(get(), get(), get(), get(), get()) }
+	single<IHomeService> { HomeService(get(), get(), get()) }
 	single<IPaymentService> { PaymentService(get(), get(), get(), get(), get(), get(), get()) }
-	single<IAccountDeletionService> {
-		AccountDeletionService(
-			userRepository = get(),
-			refreshTokenRepository = get(),
-			authCredentialRepository = get(),
-			userInfoTicsRepository = get(),
-			userProgramRepository = get(),
-			userExerciseProgressRepository = get(),
-			storeEntitlementRepository = get()
-		)
-	}
+	single<IAccountDeletionService> { AccountDeletionService(get(), get(), get(), get(), get(), get(), get()) }
 
 }
 

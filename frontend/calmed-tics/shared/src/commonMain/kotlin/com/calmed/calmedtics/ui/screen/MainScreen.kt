@@ -54,7 +54,6 @@ private enum class MainTab { Home, Exercises, Profile, HelpSupport }
 fun MainScreen(
 	onLogoutToLogin: () -> Unit,
 	onAccountDeleted: () -> Unit = {},
-	onOpenVideo: (String) -> Unit,
 	onOpenVideoFromList: (List<ProgramExerciseDto>, Int) -> Unit,
 	sessionViewModel: SessionViewModel = koinInject(),
 	authService: IAuthService = koinInject()
@@ -168,7 +167,7 @@ fun MainScreen(
 						val currentWeek = home?.currentWeek ?: 1
 
 						val availableExercises = allExercises.filter {
-							it.weekNumber <= currentWeek
+							it.weekNumber in 1..currentWeek
 						}
 
 						val index = availableExercises.indexOfFirst {
@@ -180,8 +179,7 @@ fun MainScreen(
 						} else {
 							onOpenVideoFromList(listOf(exercise), 0)
 						}
-					},
-					onOpenVideo = onOpenVideo
+					}
 				)
 
 				MainTab.Profile -> ProfileScreen(
@@ -219,7 +217,7 @@ fun MainScreen(
 							val currentWeek = home?.currentWeek ?: 1
 
 							val availableExercises = allExercises.filter {
-								it.weekNumber <= currentWeek
+								it.weekNumber in 1..currentWeek
 							}
 
 							val index = availableExercises.indexOfFirst {

@@ -1,19 +1,13 @@
 package com.calmed.calmedbackend.service.implementation
 
-import com.calmed.calmedbackend.config.MuxConfig
-import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.response.CalendarDayDto
 import com.calmed.calmedbackend.model.dto.response.CalendarMonthDto
 import com.calmed.calmedbackend.model.dto.response.HomeDto
-import com.calmed.calmedbackend.model.dto.response.ProgramExerciseDto
-import com.calmed.calmedbackend.model.toDto
 import com.calmed.calmedbackend.service.specification.IHomeService
-import com.calmed.calmedbackend.service.specification.IProgramExerciseService
 import com.calmed.calmedbackend.service.specification.IUserProgramService
 import com.calmed.calmedbackend.service.specification.IUserService
 import com.calmed.calmedbackend.repository.specification.IUserExerciseProgressRepository
-import io.ktor.http.HttpStatusCode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
@@ -22,11 +16,9 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class HomeService(
-    private val programExerciseService: IProgramExerciseService,
     private val userService: IUserService,
     private val userProgramService: IUserProgramService,
-    private val userExerciseProgressRepository: IUserExerciseProgressRepository,
-    private val muxConfig: MuxConfig
+    private val userExerciseProgressRepository: IUserExerciseProgressRepository
 ) : IHomeService {
 
     override suspend fun getHome(userId: String, year: Int, month: Int): HomeDto {
@@ -87,32 +79,18 @@ class HomeService(
 
         println("HOME DEBUG userId=$userId createdAt=${user.createdAt} startDate=$startDate today=$today currentWeek=$currentWeek")
 
-        val upNextResult = programExerciseService.getUpNextByWeek(currentWeek)
-        when(upNextResult){
-            is AppResult.Success -> {
-                var upNextDto = mutableListOf<ProgramExerciseDto>()
-                for(upNextJoined in upNextResult.data) {
-                    upNextDto.add(upNextJoined.toDto(muxConfig))
-                }
-                return HomeDto(
-                    greetingName = null,
-                    avatarUrl = null,
-                    calendar = CalendarMonthDto(
-                        year = ym.year,
-                        month = ym.monthValue,
-                        days = calendarDays
-                    ),
-                    currentWeek = currentWeek,
-                    upNext = upNextDto,
-                    programStartDate = startDate.toString(),
-                    completions = completions
-                )
-            }
-            is AppResult.Failure -> {
-                throw BusinessException(HttpStatusCode.InternalServerError, "Failed to get HomeDto.")
-            }
-        }
-
+        return HomeDto(
+            greetingName = null,
+            avatarUrl = null,
+            calendar = CalendarMonthDto(
+                year = ym.year,
+                month = ym.monthValue,
+                days = calendarDays
+            ),
+            currentWeek = currentWeek,
+            programStartDate = startDate.toString(),
+            completions = completions
+        )
     }
 
     fun calculateUnlockedWeeks(programStart: LocalDateTime, now: LocalDateTime): Int {

@@ -175,10 +175,6 @@ actual fun VideoPlayer(
         }
     }
 
-    /*
-     * Refresh the download entry whenever the URL changes
-     * or whenever its download status changes.
-     */
     LaunchedEffect(
         hlsUrl,
         downloadState.status
@@ -249,9 +245,7 @@ actual fun VideoPlayer(
         }
     }
 
-    /*
-     * Periodically report playback position.
-     */
+
     LaunchedEffect(player) {
         while (true) {
             val duration = player.duration
@@ -319,10 +313,7 @@ private fun PlayerContent(
 
                 playerView.player = player
 
-                /*
-                 * Keep the Media3 controller configuration
-                 * consistent across recompositions.
-                 */
+
                 playerView.useController =
                     useController
 
@@ -342,11 +333,7 @@ private fun PlayerContent(
                     downloadState = downloadState
                 )
 
-                /*
-                 * Media3's own fullscreen button.
-                 *
-                 * We do NOT create our own fullscreen button.
-                 */
+
                 if (onFullscreenToggle != null) {
                     playerView.setFullscreenButtonClickListener {
                             isFullScreen ->
@@ -405,9 +392,7 @@ private fun createPlayerView(
             PlayerView.SHOW_BUFFERING_ALWAYS
         )
 
-        /*
-         * Standard Media3 controls.
-         */
+
         setShowFastForwardButton(true)
         setShowRewindButton(true)
 
@@ -416,22 +401,14 @@ private fun createPlayerView(
 
         setShowSubtitleButton(true)
 
-        /*
-         * Standard player-controller behavior:
-         *
-         * - Controller appears automatically.
-         * - It stays visible for 3 seconds.
-         * - Touching the player toggles the controller.
-         */
+
         controllerAutoShow = true
 
         controllerShowTimeoutMs = 3000
 
         controllerHideOnTouch = true
 
-        /*
-         * Media3's built-in fullscreen button.
-         */
+
         if (onFullscreenToggle != null) {
             setFullscreenButtonClickListener {
                     isFullScreen ->
@@ -441,10 +418,7 @@ private fun createPlayerView(
             }
         }
 
-        /*
-         * Add our download button to Media3's
-         * existing control row.
-         */
+
         addDownloadButton(
             playerView = this,
             hlsUrl = hlsUrl,
@@ -452,10 +426,7 @@ private fun createPlayerView(
             downloadState = downloadState
         )
 
-        /*
-         * Make the controls visible immediately when
-         * the player first appears.
-         */
+
         post {
             if (useController) {
                 showController()
@@ -476,9 +447,7 @@ private fun addDownloadButton(
             Media3R.id.exo_basic_controls
         ) ?: return
 
-    /*
-     * Don't add the button twice.
-     */
+
     if (
         basicControls.findViewWithTag<ImageButton>(
             DOWNLOAD_BUTTON_TAG
@@ -495,11 +464,7 @@ private fun addDownloadButton(
             tag =
                 DOWNLOAD_BUTTON_TAG
 
-            /*
-             * Use Media3's own control dimensions so
-             * this button has the same size as the
-             * built-in player buttons.
-             */
+
             layoutParams =
                 LinearLayout.LayoutParams(
                     playerView.resources
@@ -557,10 +522,7 @@ private fun addDownloadButton(
                     .ScaleType
                     .CENTER_INSIDE
 
-            /*
-             * Use the same ripple background style
-             * as the standard Android controller buttons.
-             */
+
             val typedValue =
                 android.util.TypedValue()
 
@@ -578,17 +540,9 @@ private fun addDownloadButton(
                 )
             }
 
-            // No initial click listener - it will be set by updateDownloadButton
         }
 
-    /*
-     * Put the download button immediately before
-     * Media3's fullscreen button.
-     *
-     * Result:
-     *
-     * subtitle -> settings -> download -> fullscreen
-     */
+
     val fullscreenButton =
         basicControls.findViewById<ImageButton>(
             Media3R.id.exo_fullscreen
@@ -680,14 +634,12 @@ private fun updateDownloadButton(
         }
     }
 
-    // Always set the click listener with current state
     button.setOnClickListener {
         when (downloadState) {
             VideoDownloadStatus.Downloaded -> {
                 LocalVideoDownloadManager.remove(hlsUrl)
             }
             VideoDownloadStatus.Downloading -> {
-                // Already downloading
             }
             VideoDownloadStatus.NotDownloaded,
             VideoDownloadStatus.Failed -> {
