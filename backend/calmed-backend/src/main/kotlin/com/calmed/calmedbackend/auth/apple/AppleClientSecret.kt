@@ -1,16 +1,12 @@
 package com.calmed.calmedbackend.auth.apple
 
 import com.calmed.calmedbackend.config.AppleConfig
+import com.calmed.calmedbackend.util.EcPrivateKeyLoader
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.crypto.ECDSASigner
-import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
-import org.koin.java.KoinJavaComponent.inject
-import java.security.KeyFactory
-import java.security.interfaces.ECPrivateKey
-import java.security.spec.PKCS8EncodedKeySpec
 import java.time.Instant
 import java.util.*
 
@@ -33,20 +29,8 @@ object AppleClientSecret {
             .build()
 
         val jwt = SignedJWT(header, claims)
-        val signer = ECDSASigner(loadEcPrivateKey(appleConfig.privateKeyPem))
+        val signer = ECDSASigner(EcPrivateKeyLoader.load(appleConfig.privateKeyPem))
         jwt.sign(signer)
         return jwt.serialize()
-    }
-
-    private fun loadEcPrivateKey(pem: String): ECPrivateKey {
-        val clean = pem
-            .replace("-----BEGIN PRIVATE KEY-----", "")
-            .replace("-----END PRIVATE KEY-----", "")
-            .replace("\\s".toRegex(), "")
-
-        val keyBytes = Base64.getDecoder().decode(clean)
-        val keySpec = PKCS8EncodedKeySpec(keyBytes)
-        val kf = KeyFactory.getInstance("EC")
-        return kf.generatePrivate(keySpec) as ECPrivateKey
     }
 }

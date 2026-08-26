@@ -64,8 +64,8 @@ class PaymentService(
 
     private val appStoreServerApi = AppStoreServerApi(
         teamId = appleConfig.teamId,
-        keyId = appleConfig.keyId,
-        privateKeyPem = appleConfig.privateKeyPem,
+        keyId = appleConfig.iapKeyId,
+        privateKeyPem = appleConfig.iapPrivateKeyPem,
         bundleId = appleConfig.iosBundleId
     )
 

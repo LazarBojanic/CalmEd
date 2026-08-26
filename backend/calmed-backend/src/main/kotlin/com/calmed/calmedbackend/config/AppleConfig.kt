@@ -10,6 +10,8 @@ data class AppleConfig(
     val clientId: String,
     val privateKeyPem: String,
     val redirectURI: String,
+    val iapKeyId: String,
+    val iapPrivateKeyPem: String,
     val productId: String
 ) {
     companion object {
@@ -18,10 +20,10 @@ data class AppleConfig(
             val teamId = config.property("oauth.apple.team_id").getString()
             val keyId = config.property("oauth.apple.key_id").getString()
             val clientId = config.property("oauth.apple.client_id").getString()
-            val privateKeyPemRaw = config.property("oauth.apple.private_key").getString()
-
-            val privateKeyPem = privateKeyPemRaw.replace("\\n", "\n")
+            val privateKeyPem = config.property("oauth.apple.private_key").getString()
             val redirectURI = config.property("oauth.apple.redirect_uri").getString()
+            val iapKeyId = config.property("apple.iap.key_id").getString()
+            val iapPrivateKeyPem = config.property("apple.iap.private_key").getString()
             val productId = config.propertyOrNull("payment.product_id")?.getString() ?: "app_access"
             return AppleConfig(
                 iosBundleId = iosBundleId,
@@ -30,6 +32,8 @@ data class AppleConfig(
                 clientId = clientId,
                 privateKeyPem = privateKeyPem,
                 redirectURI = redirectURI,
+                iapKeyId = iapKeyId,
+                iapPrivateKeyPem = iapPrivateKeyPem,
                 productId = productId
             )
         }

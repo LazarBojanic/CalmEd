@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.payment.apple
 
+import com.calmed.calmedbackend.util.EcPrivateKeyLoader
 import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
@@ -19,14 +20,10 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.security.KeyFactory
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
-import java.security.interfaces.ECPrivateKey
 import java.security.interfaces.ECPublicKey
-import java.security.spec.PKCS8EncodedKeySpec
 import java.time.Instant
-import java.util.Base64
 import java.util.Date
 
 data class VerifiedAppleTransaction(
@@ -190,17 +187,7 @@ class AppStoreServerApi(
             .build()
 
         val jwt = SignedJWT(header, claims)
-        jwt.sign(ECDSASigner(loadEcPrivateKey(privateKeyPem)))
+        jwt.sign(ECDSASigner(EcPrivateKeyLoader.load(privateKeyPem)))
         return jwt.serialize()
-    }
-
-    private fun loadEcPrivateKey(pem: String): ECPrivateKey {
-        val clean = pem
-            .replace("-----BEGIN PRIVATE KEY-----", "")
-            .replace("-----END PRIVATE KEY-----", "")
-            .replace(Regex("\\s"), "")
-        val keyBytes = Base64.getDecoder().decode(clean)
-        val keySpec = PKCS8EncodedKeySpec(keyBytes)
-        return KeyFactory.getInstance("EC").generatePrivate(keySpec) as ECPrivateKey
     }
 }
