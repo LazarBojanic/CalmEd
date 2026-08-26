@@ -26,6 +26,7 @@
     <string name="send_message_button">Send message</string>
     <string name="message_success">Your message has been prepared successfully.</string>
     <string name="back_button">Back</string>
+    <string name="turn_your_phone">Turn your phone</string>
     <string name="home_title">Home</string>
     <string name="home_welcome">Welcome to CalmEd Tics.</string>
     <string name="calendar_loading">Calendar loading...</string>

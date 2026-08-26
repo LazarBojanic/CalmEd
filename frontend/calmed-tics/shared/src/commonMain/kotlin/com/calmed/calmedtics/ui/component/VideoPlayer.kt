@@ -3,6 +3,11 @@ package com.calmed.calmedtics.ui.component
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
+data class VideoPlaylistItem(
+    val url: String,
+    val title: String? = null
+)
+
 @Composable
 expect fun VideoPlayer(
     hlsUrl: String,
@@ -12,12 +17,21 @@ expect fun VideoPlayer(
     isPlaying: Boolean = true,
     isMuted: Boolean = false,
     useController: Boolean = true,
+    playlist: List<VideoPlaylistItem>? = null,
     onPositionChanged: ((Long) -> Unit)? = null,
     onDurationChanged: ((Long) -> Unit)? = null,
     onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)? = null,
     onFullscreenToggle: ((Boolean) -> Unit)? = null,
     onPlaybackEnded: (() -> Unit)? = null,
     onPlayPauseChange: ((Boolean) -> Unit)? = null,
+    onPlaylistIndexChanged: ((Int) -> Unit)? = null,
+    onPrevious: (() -> Unit)? = null,
+    onNext: (() -> Unit)? = null,
+    canGoPrevious: Boolean = false,
+    canGoNext: Boolean = false,
+    autoPlayNext: Boolean = true,
+    repeatCurrentExercise: Boolean = false,
+    startPositionMs: Long = 0,
     restartTrigger: Int = 0
 )
 

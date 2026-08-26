@@ -48,12 +48,13 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 
 @Composable
 fun WelcomeVideoScreen(
     onSkip: () -> Unit,
-    onContinue: (Boolean) -> Unit,
-    onOpenVideo: (String) -> Unit
+    onContinue: (Boolean) -> Unit
 ) {
     val appApi: IAppApi = koinInject()
     val appSettings: AppSettings = koinInject()
@@ -108,14 +109,18 @@ fun WelcomeVideoScreen(
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.extraLarge,
+                    shape = RoundedCornerShape(20.dp),
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
                     border = BorderStroke(
                         1.dp,
                         MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     )
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
                         val url = videoUrl
 
                         if (url != null) {
@@ -124,20 +129,24 @@ fun WelcomeVideoScreen(
                                 title = title,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .aspectRatio(16f / 9f),
-                                isPlaying = true,
-                                onFullscreenToggle = { onOpenVideo(url) }
+                                    .aspectRatio(16f / 9f)
+                                    .clip(RoundedCornerShape(14.dp)),
+                                isPlaying = false,
+                                useController = true
                             )
                         } else {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .aspectRatio(16f / 9f),
+                                    .aspectRatio(16f / 9f)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(Color.Black.copy(alpha = 0.25f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = error ?: loadingVideo,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                             }
                         }

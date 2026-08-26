@@ -389,8 +389,7 @@ fun App() {
                                 popUpTo(Routes.WelcomeVideo) { inclusive = true }
                                 launchSingleTop = true
                             }
-                        },
-                        onOpenVideo = { url -> openVideo(url) }
+                        }
                     )
                 }
 
@@ -421,8 +420,7 @@ fun App() {
                                     launchSingleTop = true
                                 }
                             }
-                        },
-                        onOpenVideo = { url -> openVideo(url) }
+                        }
                     )
                 }
 

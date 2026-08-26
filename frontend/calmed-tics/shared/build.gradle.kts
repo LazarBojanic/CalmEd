@@ -104,6 +104,7 @@ kotlin{
 			implementation(libs.ktorClientOkHttp)
 			implementation(libs.media3Exoplayer)
 			implementation(libs.media3UI)
+			implementation(libs.media3UIComposeMaterial3)
 			implementation(libs.media3Common)
 			implementation(libs.media3ExoplayerHLS)
 			implementation(libs.media3ExoplayerDash)
