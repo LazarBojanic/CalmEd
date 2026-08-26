@@ -7,7 +7,7 @@ final class StoreKitManager: ObservableObject {
     @Published var purchasedProductIDs: Set<String> = []
     
     private var transactionListener: Task<Void, Error>? = nil
-    private var restoreObserver: NSObjectProtocol? = nil
+    private nonisolated(unsafe) var restoreObserver: NSObjectProtocol? = nil
     
     init() {
         transactionListener = listenForTransactions()
