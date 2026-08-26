@@ -12,6 +12,7 @@ data class AppleConfig(
     val redirectURI: String,
     val iapKeyId: String,
     val iapPrivateKeyPem: String,
+    val iapIssuerId: String,
     val productId: String
 ) {
     companion object {
@@ -24,6 +25,7 @@ data class AppleConfig(
             val redirectURI = config.property("oauth.apple.redirect_uri").getString()
             val iapKeyId = config.property("apple.iap.key_id").getString()
             val iapPrivateKeyPem = config.property("apple.iap.private_key").getString()
+            val iapIssuerId = config.property("apple.iap.issuer_id").getString()
             val productId = config.propertyOrNull("payment.product_id")?.getString() ?: "app_access"
             return AppleConfig(
                 iosBundleId = iosBundleId,
@@ -34,6 +36,7 @@ data class AppleConfig(
                 redirectURI = redirectURI,
                 iapKeyId = iapKeyId,
                 iapPrivateKeyPem = iapPrivateKeyPem,
+                iapIssuerId = iapIssuerId,
                 productId = productId
             )
         }

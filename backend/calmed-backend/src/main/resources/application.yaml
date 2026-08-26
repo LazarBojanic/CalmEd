@@ -58,6 +58,7 @@ apple:
     iap:
         key_id: ${APPLE_IAP_KEY_ID:placeholder}
         private_key: ${APPLE_IAP_PRIVATE_KEY:placeholder}
+        issuer_id: ${APPLE_IAP_ISSUER_ID:placeholder}
 mux:
     signing_key: ${MUX_SIGNING_KEY:placeholder}
     private_key: ${MUX_PRIVATE_KEY:placeholder}

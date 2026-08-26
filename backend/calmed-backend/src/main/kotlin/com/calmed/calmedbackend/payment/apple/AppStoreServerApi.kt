@@ -38,7 +38,7 @@ data class VerifiedAppleTransaction(
 
 
 class AppStoreServerApi(
-    private val teamId: String,
+    private val issuerId: String,
     private val keyId: String,
     private val privateKeyPem: String,
     private val bundleId: String
@@ -52,7 +52,7 @@ class AppStoreServerApi(
     private val sandboxBase = "https://api.storekit-sandbox.itunes.apple.com"
 
     fun isConfigured(): Boolean =
-        teamId.isNotBlank() && teamId != "placeholder" &&
+        issuerId.isNotBlank() && issuerId != "placeholder" &&
             keyId.isNotBlank() && keyId != "placeholder" &&
             privateKeyPem.isNotBlank() && privateKeyPem != "placeholder" &&
             bundleId.isNotBlank() && bundleId != "placeholder"
@@ -174,7 +174,7 @@ class AppStoreServerApi(
     private fun generateServerToken(): String {
         val now = Instant.now()
         val claims = JWTClaimsSet.Builder()
-            .issuer(teamId)
+            .issuer(issuerId)
             .issueTime(Date.from(now))
             .expirationTime(Date.from(now.plusSeconds(20 * 60)))
             .audience("appstoreconnect-v1")

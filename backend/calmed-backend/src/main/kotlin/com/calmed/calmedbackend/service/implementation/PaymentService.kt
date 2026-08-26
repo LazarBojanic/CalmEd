@@ -63,7 +63,7 @@ class PaymentService(
     private val googlePlayDeveloperApi = GooglePlayDeveloperApi(googlePlayConfig.serviceAccountJson)
 
     private val appStoreServerApi = AppStoreServerApi(
-        teamId = appleConfig.teamId,
+        issuerId = appleConfig.iapIssuerId,
         keyId = appleConfig.iapKeyId,
         privateKeyPem = appleConfig.iapPrivateKeyPem,
         bundleId = appleConfig.iosBundleId
