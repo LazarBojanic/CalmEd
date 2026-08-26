@@ -37,7 +37,7 @@ android {
 		applicationId = "com.calmed.calmedtics"
 		minSdk = libs.versions.androidMinSdk.get().toInt()
 		targetSdk = libs.versions.androidTargetSdk.get().toInt()
-		versionCode = 12
+		versionCode = 14
 		versionName = "0.0.1"
 	}
 	packaging {
@@ -47,8 +47,12 @@ android {
 	}
 	buildTypes {
 		getByName("release") {
-			isMinifyEnabled = false
-			isShrinkResources = false
+			isMinifyEnabled = true
+			isShrinkResources = true
+			proguardFiles(
+				getDefaultProguardFile("proguard-android-optimize.txt"),
+				"proguard-rules.pro"
+			)
 		}
 	}
 	compileOptions {

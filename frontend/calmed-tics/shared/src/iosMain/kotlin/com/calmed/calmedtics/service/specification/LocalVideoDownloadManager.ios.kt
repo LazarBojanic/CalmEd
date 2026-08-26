@@ -20,13 +20,10 @@ import platform.darwin.NSObject
 
 private const val OFFLINE_URL_PREFIX = "offline_video_url::"
 private const val OFFLINE_TITLE_PREFIX = "offline_video_title::"
-private const val DOWNLOAD_SESSION_ID = "com.calmed.calmedtics.video.download"
+private const val DOWNLOAD_SESSION_ID = "com.tagware.calmedtics.video.download"
 
 actual object LocalVideoDownloadManager : IVideoDownloadManager {
-    private val _states = MutableStateFlow<Map<String, VideoDownloadState>>(emptyMap())
-    private val _downloadedUrls = MutableStateFlow<List<String>>(emptyList())
-
-    private val defaults = NSUserDefaults.standardUserDefaults
+	private val defaults = NSUserDefaults.standardUserDefaults
     private val pendingTaskIds = mutableMapOf<Long, String>()
 
     private val delegate = object : NSObject(), AVAssetDownloadDelegateProtocol {
@@ -36,13 +33,13 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             didFinishDownloadingToURL: NSURL
         ) {
             val remoteKey = pendingTaskIds.remove(assetDownloadTask.taskIdentifier.toLong())
-                ?: assetDownloadTask.URLAsset.URL?.absoluteString
+                ?: assetDownloadTask.URLAsset.URL.absoluteString
                 ?: return
             val key = downloadKey(remoteKey)
 
             defaults.setObject(didFinishDownloadingToURL.absoluteString, forKey = keyFor(key))
             val title = defaults.stringForKey(titleKeyFor(key))
-            _states.update {
+            states.update {
                 it + (key to VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f, title = title))
             }
             refreshDownloaded()
@@ -56,7 +53,7 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             val remoteKey = pendingTaskIds.remove(task.taskIdentifier.toLong()) ?: return
             if (didCompleteWithError != null) {
                 val key = downloadKey(remoteKey)
-                _states.update {
+                states.update {
                     it + (key to VideoDownloadState(VideoDownloadStatus.Failed))
                 }
             }
@@ -73,14 +70,12 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             delegateQueue = NSOperationQueue.mainQueue()
         )
     }
+	actual override val states: StateFlow<Map<String, VideoDownloadState>>
+		field = MutableStateFlow<Map<String, VideoDownloadState>>(emptyMap())
+	actual override val downloadedUrls: StateFlow<List<String>>
+		field = MutableStateFlow<List<String>>(emptyList())
 
-    actual override val states: StateFlow<Map<String, VideoDownloadState>>
-        get() = _states
-
-    actual override val downloadedUrls: StateFlow<List<String>>
-        get() = _downloadedUrls
-
-    init {
+	init {
         refreshDownloaded()
     }
 
@@ -93,7 +88,7 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         } else {
             VideoDownloadState(VideoDownloadStatus.NotDownloaded)
         }
-        _states.update { it + (key to state) }
+        states.update { it + (key to state) }
     }
 
     actual override fun refreshDownloaded() {
@@ -106,17 +101,14 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             localFileUrl(url) != null
         }.distinct().sorted()
 
-        _downloadedUrls.value = urls
+        downloadedUrls.value = urls
     }
 
     actual override fun download(url: String, title: String?) {
         val key = downloadKey(url)
-        val remote = NSURL(string = url) ?: run {
-            _states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Failed)) }
-            return
-        }
+        val remote = NSURL(string = url)
         if (localFileUrl(key) != null) {
-            _states.update {
+            states.update {
                 it + (key to VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f, title = title))
             }
             return
@@ -133,12 +125,12 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         )
 
         if (task == null) {
-            _states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Failed)) }
+            states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Failed)) }
             return
         }
 
         pendingTaskIds[task.taskIdentifier.toLong()] = key
-        _states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Downloading, progressPercent = 0f, title = title)) }
+        states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Downloading, progressPercent = 0f, title = title)) }
         task.resume()
     }
 
@@ -150,7 +142,7 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         }
         defaults.removeObjectForKey(keyFor(key))
         defaults.removeObjectForKey(titleKeyFor(key))
-        _states.update { it - key }
+        states.update { it - key }
         refreshDownloaded()
     }
 
@@ -164,7 +156,7 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
 
     private fun localFileUrl(url: String): NSURL? {
         val stored = defaults.stringForKey(keyFor(url)) ?: return null
-        val local = NSURL(string = stored) ?: return null
+        val local = NSURL(string = stored)
         val path = local.path ?: return null
         return if (NSFileManager.defaultManager.fileExistsAtPath(path)) local else null
     }
