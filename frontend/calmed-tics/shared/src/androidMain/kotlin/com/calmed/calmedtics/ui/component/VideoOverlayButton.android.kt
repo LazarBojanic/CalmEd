@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -19,7 +20,8 @@ actual fun VideoOverlayButton(
     icon: ImageVector,
     contentDescription: String?,
     onClick: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
+    enabled: Boolean
 ) {
     Box(
         modifier = modifier
@@ -30,7 +32,8 @@ actual fun VideoOverlayButton(
                     alpha = 0.85f
                 )
             )
-            .clickable(onClick = onClick),
+            .alpha(if (enabled) 1f else 0.4f)
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(

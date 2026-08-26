@@ -5,7 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,18 +24,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import calmedtics.shared.generated.resources.Res
-import calmedtics.shared.generated.resources.back_button
 import calmedtics.shared.generated.resources.help_support_description
 import calmedtics.shared.generated.resources.help_support_heading
 import calmedtics.shared.generated.resources.message_label
 import calmedtics.shared.generated.resources.message_success
 import calmedtics.shared.generated.resources.send_message_button
 import calmedtics.shared.generated.resources.subject_label
+import com.calmed.calmedtics.ui.component.BackButton
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import org.jetbrains.compose.resources.stringResource
 
@@ -64,6 +65,13 @@ fun HelpSupportScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BackButton(onClick = onBack)
+            }
+
             Text(
                 text = stringResource(Res.string.help_support_heading),
                 style = MaterialTheme.typography.headlineMedium,
@@ -168,12 +176,6 @@ fun HelpSupportScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            PrimaryButton(
-                text = stringResource(Res.string.back_button),
-                onClick = onBack
-            )
         }
     }
 }

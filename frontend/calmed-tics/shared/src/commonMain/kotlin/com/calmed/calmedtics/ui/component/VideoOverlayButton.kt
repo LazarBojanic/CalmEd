@@ -10,5 +10,6 @@ expect fun VideoOverlayButton(
     icon: ImageVector,
     contentDescription: String? = null,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 )

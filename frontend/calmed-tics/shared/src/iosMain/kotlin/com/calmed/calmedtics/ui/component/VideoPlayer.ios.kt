@@ -4,15 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
 import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
-import com.calmed.calmedtics.service.specification.stateFor
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import platform.AVFAudio.AVAudioSession
@@ -38,12 +40,21 @@ actual fun VideoPlayer(
     isPlaying: Boolean,
     isMuted: Boolean,
     useController: Boolean,
+    playlist: List<VideoPlaylistItem>?,
     onPositionChanged: ((Long) -> Unit)?,
     onDurationChanged: ((Long) -> Unit)?,
     onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
     onFullscreenToggle: ((Boolean) -> Unit)?,
     onPlaybackEnded: (() -> Unit)?,
     onPlayPauseChange: ((Boolean) -> Unit)?,
+    onPlaylistIndexChanged: ((Int) -> Unit)?,
+    onPrevious: (() -> Unit)?,
+    onNext: (() -> Unit)?,
+    canGoPrevious: Boolean,
+    canGoNext: Boolean,
+    autoPlayNext: Boolean,
+    repeatCurrentExercise: Boolean,
+    startPositionMs: Long,
     restartTrigger: Int
 ) {
     val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
@@ -61,7 +72,7 @@ actual fun VideoPlayer(
             this.canStartPictureInPictureAutomaticallyFromInline = true
         }
     }
-    val tokens = remember { mutableStateListOf<NSObjectProtocol>() }
+    var endToken by remember { mutableStateOf<NSObjectProtocol?>(null) }
 
     /*
      * Tracks the last play state reported to the screen so we only fire
@@ -74,8 +85,7 @@ actual fun VideoPlayer(
         )
     }
 
-    val states by LocalVideoDownloadManager.states.collectAsState()
-    val downloadState = states.stateFor(hlsUrl)
+    var hasSeekedToStart by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val session = AVAudioSession.sharedInstance()
@@ -91,17 +101,28 @@ actual fun VideoPlayer(
         player.muted = isMuted
     }
 
-    LaunchedEffect(hlsUrl, downloadState.status) {
+    LaunchedEffect(hlsUrl) {
         LocalVideoDownloadManager.refresh(hlsUrl)
 
-        tokens.forEach { NSNotificationCenter.defaultCenter.removeObserver(it) }
-        tokens.clear()
+        endToken?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
+        endToken = null
 
         val playback = LocalVideoDownloadManager.playbackUrl(hlsUrl)
         val nsUrl = NSURL(string = playback)
 
 	    val item = AVPlayerItem(uRL = nsUrl)
         player.replaceCurrentItemWithPlayerItem(item)
+
+        if (startPositionMs > 0 && !hasSeekedToStart) {
+            player.seekToTime(
+                CMTimeMakeWithSeconds(
+                    startPositionMs / 1000.0,
+                    NSEC_PER_SEC.toInt()
+                )
+            )
+
+            hasSeekedToStart = true
+        }
 
         val size = item.presentationSize
         size.useContents {
@@ -115,14 +136,13 @@ actual fun VideoPlayer(
             player.play()
         }
 
-        val endToken = NSNotificationCenter.defaultCenter.addObserverForName(
+        endToken = NSNotificationCenter.defaultCenter.addObserverForName(
             name = AVPlayerItemDidPlayToEndTimeNotification,
             `object` = item,
             queue = null
         ) {
             currentOnPlaybackEnded?.invoke()
         }
-        tokens.add(endToken)
     }
 
     LaunchedEffect(isPlaying) {
@@ -153,13 +173,6 @@ actual fun VideoPlayer(
                 if (!durSec.isNaN() && durSec > 0.0) {
                     currentOnDurationChanged?.invoke((durSec * 1000.0).toLong())
                 }
-                val presSize = currentItem.presentationSize
-                presSize.useContents {
-                    if (width > 0.0 && height > 0.0) {
-                        val isPortrait = height >= width
-                        currentOnVideoOrientationChanged?.invoke(isPortrait)
-                    }
-                }
             }
 
             /*
@@ -179,12 +192,12 @@ actual fun VideoPlayer(
             player.pause()
             player.replaceCurrentItemWithPlayerItem(null)
             controller.player = null
-            tokens.forEach { NSNotificationCenter.defaultCenter.removeObserver(it) }
-            tokens.clear()
+            endToken?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
+            endToken = null
         }
     }
 
-    Box(modifier = modifier.background(MaterialTheme.colorScheme.surface)) {
+    Box(modifier = modifier.background(Color.Black)) {
         UIKitView(
             modifier = Modifier.fillMaxSize(),
             factory = {
@@ -242,17 +255,31 @@ actual fun VideoPlayer(
         )
 
         /*
-         * Custom download button (AVPlayerViewController has no native one).
-         * Anchored in the top-right corner; the screen's overlay column is
-         * offset below it via PlayerTopOverlayInset.
+         * AVPlayerViewController does not expose native previous/next
+         * transport controls, so we render our own overlay buttons on iOS
+         * (Android uses the native playlist prev/next instead).
          */
-        if (useController) {
-            VideoPlayerDownloadButton(
-                hlsUrl = hlsUrl,
-                title = title,
+        if (useController && onPrevious != null) {
+            VideoOverlayButton(
+                icon = Icons.Filled.SkipPrevious,
+                contentDescription = "Previous Exercise",
+                onClick = { onPrevious?.invoke() },
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(12.dp)
+                    .align(Alignment.CenterStart)
+                    .padding(start = 12.dp),
+                enabled = canGoPrevious
+            )
+        }
+
+        if (useController && onNext != null) {
+            VideoOverlayButton(
+                icon = Icons.Filled.SkipNext,
+                contentDescription = "Next Exercise",
+                onClick = { onNext?.invoke() },
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 12.dp),
+                enabled = canGoNext
             )
         }
     }
