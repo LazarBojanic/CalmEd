@@ -1,6 +1,7 @@
 import StoreKit
 
-class StoreKitManager: ObservableObject {
+@MainActor
+final class StoreKitManager: ObservableObject {
     static let shared = StoreKitManager()
     
     @Published var purchasedProductIDs: Set<String> = []
@@ -12,7 +13,7 @@ class StoreKitManager: ObservableObject {
         transactionListener = listenForTransactions()
         restoreObserver = NotificationCenter.default.addObserver(
             forName: NSNotification.Name("TriggerAppleRestore"),
-                        object: nil,
+            object: nil,
             queue: .main
         ) { [weak self] _ in
             guard let self = self else { return }
@@ -30,23 +31,26 @@ class StoreKitManager: ObservableObject {
     }
     
     func listenForTransactions() -> Task<Void, Error> {
-        Task.detached {
+        Task.detached { [weak self] in
             for await result in Transaction.updates {
                 do {
+                    guard let self = self else { return }
                     let transaction = try self.checkVerified(result)
                     
                     await self.updatePurchasedProducts(transaction)
                     
                     await transaction.finish()
                     
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("OnApplePurchaseSuccess"),
-                    object: nil,
-                    userInfo: [
-                        "transactionId": transaction.originalID.description,
-                        "productId": transaction.productID
-                    ]
-                )
+                    await MainActor.run {
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("OnApplePurchaseSuccess"),
+                            object: nil,
+                            userInfo: [
+                                "transactionId": transaction.originalID.description,
+                                "productId": transaction.productID
+                            ]
+                        )
+                    }
                 } catch {
                     print("Transaction verification failed")
                 }
@@ -54,8 +58,7 @@ class StoreKitManager: ObservableObject {
         }
     }
     
-    @MainActor
-    func updatePurchasedProducts(_ transaction: Transaction) async {
+    func updatePurchasedProducts(_ transaction: Transaction) {
         if transaction.revocationDate == nil {
             purchasedProductIDs.insert(transaction.productID)
         } else {
@@ -63,7 +66,7 @@ class StoreKitManager: ObservableObject {
         }
     }
     
-    func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+    nonisolated func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
         switch result {
         case .unverified:
             throw StoreError.failedVerification
@@ -83,34 +86,30 @@ class StoreKitManager: ObservableObject {
         switch result {
         case .success(let verification):
             let transaction = try checkVerified(verification)
-            await updatePurchasedProducts(transaction)
+            updatePurchasedProducts(transaction)
             await transaction.finish()
             
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("OnApplePurchaseSuccess"),
-                    object: nil,
-                    userInfo: [
-                        "transactionId": transaction.originalID.description,
-                        "productId": transaction.productID
-                    ]
-                )
-        }
+            NotificationCenter.default.post(
+                name: NSNotification.Name("OnApplePurchaseSuccess"),
+                object: nil,
+                userInfo: [
+                    "transactionId": transaction.originalID.description,
+                    "productId": transaction.productID
+                ]
+            )
 
         case .userCancelled:
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("OnApplePurchaseFailure"),
-                    object: nil,
-                    userInfo: ["error": "User cancelled"]
-                )
-            }
+            NotificationCenter.default.post(
+                name: NSNotification.Name("OnApplePurchaseFailure"),
+                object: nil,
+                userInfo: ["error": "User cancelled"]
+            )
         case .pending:
             break
         @unknown default:
             break
+        }
     }
-}
 
     func restorePurchases() async throws {
         try? await AppStore.sync()
@@ -118,7 +117,7 @@ class StoreKitManager: ObservableObject {
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? self.checkVerified(result) else { continue }
             found += 1
-            await self.updatePurchasedProducts(transaction)
+            self.updatePurchasedProducts(transaction)
             await transaction.finish()
             NotificationCenter.default.post(
                 name: NSNotification.Name("OnApplePurchaseSuccess"),

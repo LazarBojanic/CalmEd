@@ -3,6 +3,7 @@ import Shared
 import GoogleSignIn
 import UserNotifications
 
+@MainActor
 struct GoogleSignInHelper {
     static func signIn() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -21,7 +22,7 @@ struct GoogleSignInHelper {
     }
 }
 
-final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate, @unchecked Sendable {
 	static let shared = NotificationDelegate()
 
 	func userNotificationCenter(
