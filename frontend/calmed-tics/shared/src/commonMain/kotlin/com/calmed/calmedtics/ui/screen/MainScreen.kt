@@ -20,7 +20,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -47,6 +46,7 @@ import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import androidx.compose.ui.platform.LocalUriHandler
 
 private enum class MainTab { Home, Exercises, Profile, HelpSupport }
 
@@ -59,7 +59,7 @@ fun MainScreen(
 	authService: IAuthService = koinInject()
 ) {
 	val scope = rememberCoroutineScope()
-
+	val uriHandler = LocalUriHandler.current
 	val tokenStore: ITokenDataStore = koinInject()
 	val token by tokenStore.tokenDto.collectAsState()
 
@@ -189,6 +189,15 @@ fun MainScreen(
 					onAccountDeleted = onAccountDeleted,
 					onHelpSupportClick = {
 						selectedTab.value = MainTab.HelpSupport
+					},
+					onPrivacyPolicyClick = {
+					Rew	uriHandler.openUri("https://calm-ed.com/privacy-policy/")
+					},
+					onTermsClick = {
+						uriHandler.openUri("https://calm-ed.com/terms-of-service/")
+					},
+					onRefundPolicyClick = {
+						uriHandler.openUri("https://calm-ed.com/refund-policy/")
 					}
 				)
 
