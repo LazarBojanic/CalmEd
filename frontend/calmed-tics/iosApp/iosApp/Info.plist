@@ -8,6 +8,8 @@
 	<string>CalmEd Tics</string>
 	<key>CFBundleName</key>
 	<string>CalmEd Tics</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GIDClientID</key>
 	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
 	<key>CFBundleIcons</key>
