@@ -92,9 +92,12 @@ fun ProfileScreen(
 	onLogout: () -> Unit,
 	onAccountDeleted: () -> Unit = {},
 	onHelpSupportClick: () -> Unit = {},
+	onPrivacyPolicyClick: () -> Unit = {},
+	onTermsClick: () -> Unit = {},
+	onRefundPolicyClick: () -> Unit = {},
 	appSettings: com.calmed.calmedtics.settings.AppSettings = koinInject(),
 	sessionViewModel: SessionViewModel = koinInject()
-) {
+){
 	val scope = rememberCoroutineScope()
 	val reminderManager = remember { ReminderManager() }
 
@@ -558,12 +561,19 @@ fun ProfileScreen(
 					SettingsRow(
 						icon = Icons.Default.Lock,
 						label = stringResource(Res.string.privacy_policy),
-						onClick = { }
+						onClick = onPrivacyPolicyClick
 					)
+
 					SettingsRow(
 						icon = Icons.Default.Description,
 						label = stringResource(Res.string.terms),
-						onClick = { }
+						onClick = onTermsClick
+					)
+
+					SettingsRow(
+						icon = Icons.Default.Refresh,
+						label = "Refund Policy",
+						onClick = onRefundPolicyClick
 					)
 				}
 			}
