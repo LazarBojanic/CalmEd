@@ -191,7 +191,7 @@ fun MainScreen(
 						selectedTab.value = MainTab.HelpSupport
 					},
 					onPrivacyPolicyClick = {
-					Rew	uriHandler.openUri("https://calm-ed.com/privacy-policy/")
+						uriHandler.openUri("https://calm-ed.com/privacy-policy/")
 					},
 					onTermsClick = {
 						uriHandler.openUri("https://calm-ed.com/terms-of-service/")
