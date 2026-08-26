@@ -37,7 +37,7 @@ android {
 		applicationId = "com.calmed.calmedtics"
 		minSdk = libs.versions.androidMinSdk.get().toInt()
 		targetSdk = libs.versions.androidTargetSdk.get().toInt()
-		versionCode = 10
+		versionCode = 11
 		versionName = "0.0.1"
 	}
 	packaging {
