@@ -25,7 +25,7 @@ actual fun VideoOverlayButton(
 ) {
     Box(
         modifier = modifier
-            .size(32.dp)
+            .size(28.dp)
             .clip(CircleShape)
             .background(
                 MaterialTheme.colorScheme.surfaceContainerHighest.copy(
@@ -40,7 +40,7 @@ actual fun VideoOverlayButton(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(15.dp)
+            modifier = Modifier.size(13.dp)
         )
     }
 }

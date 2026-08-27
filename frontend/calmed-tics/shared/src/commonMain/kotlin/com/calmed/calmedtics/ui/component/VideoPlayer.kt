@@ -17,11 +17,15 @@ expect fun VideoPlayer(
     isPlaying: Boolean = true,
     isMuted: Boolean = false,
     useController: Boolean = true,
+    showFullscreenButton: Boolean = false,
+    showPrevNextButtons: Boolean = false,
+    showRewindFastForwardButtons: Boolean = false,
     playlist: List<VideoPlaylistItem>? = null,
     onPositionChanged: ((Long) -> Unit)? = null,
     onDurationChanged: ((Long) -> Unit)? = null,
     onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)? = null,
     onFullscreenToggle: ((Boolean) -> Unit)? = null,
+    onControllerVisibilityChanged: ((Boolean) -> Unit)? = null,
     onPlaybackEnded: (() -> Unit)? = null,
     onPlayPauseChange: ((Boolean) -> Unit)? = null,
     onPlaylistIndexChanged: ((Int) -> Unit)? = null,
@@ -31,7 +35,5 @@ expect fun VideoPlayer(
     canGoNext: Boolean = false,
     autoPlayNext: Boolean = true,
     repeatCurrentExercise: Boolean = false,
-    startPositionMs: Long = 0,
     restartTrigger: Int = 0
 )
-

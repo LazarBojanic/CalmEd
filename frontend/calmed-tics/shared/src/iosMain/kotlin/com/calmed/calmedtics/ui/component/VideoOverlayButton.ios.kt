@@ -25,7 +25,7 @@ actual fun VideoOverlayButton(
 ) {
     Box(
         modifier = modifier
-            .size(32.dp)
+            .size(28.dp)
             .clip(CircleShape)
             .background(Color.Black.copy(alpha = 0.45f))
             .alpha(if (enabled) 1f else 0.4f)
@@ -36,7 +36,7 @@ actual fun VideoOverlayButton(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = Color.White,
-            modifier = Modifier.size(15.dp)
+            modifier = Modifier.size(13.dp)
         )
     }
 }

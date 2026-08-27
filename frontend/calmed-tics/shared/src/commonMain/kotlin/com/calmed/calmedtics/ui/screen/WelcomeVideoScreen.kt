@@ -107,48 +107,36 @@ fun WelcomeVideoScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                    )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.Black)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    ) {
-                        val url = videoUrl
+                    val url = videoUrl
 
-                        if (url != null) {
-                            VideoPlayer(
-                                hlsUrl = url,
-                                title = title,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(16f / 9f)
-                                    .clip(RoundedCornerShape(14.dp)),
-                                isPlaying = false,
-                                useController = true
+                    if (url != null) {
+                        VideoPlayer(
+                            hlsUrl = url,
+                            title = title,
+                            modifier = Modifier.fillMaxSize(),
+                            isPlaying = false,
+                            useController = true,
+                            showFullscreenButton = false,
+                            showPrevNextButtons = false,
+                            showRewindFastForwardButtons = false
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = error ?: loadingVideo,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.bodyMedium
                             )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(16f / 9f)
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(Color.Black.copy(alpha = 0.25f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = error ?: loadingVideo,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
                         }
                     }
                 }

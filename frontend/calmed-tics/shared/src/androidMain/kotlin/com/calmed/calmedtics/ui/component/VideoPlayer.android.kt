@@ -6,16 +6,13 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -48,11 +45,15 @@ actual fun VideoPlayer(
     isPlaying: Boolean,
     isMuted: Boolean,
     useController: Boolean,
+    showFullscreenButton: Boolean,
+    showPrevNextButtons: Boolean,
+    showRewindFastForwardButtons: Boolean,
     playlist: List<VideoPlaylistItem>?,
     onPositionChanged: ((Long) -> Unit)?,
     onDurationChanged: ((Long) -> Unit)?,
     onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
     onFullscreenToggle: ((Boolean) -> Unit)?,
+    onControllerVisibilityChanged: ((Boolean) -> Unit)?,
     onPlaybackEnded: (() -> Unit)?,
     onPlayPauseChange: ((Boolean) -> Unit)?,
     onPlaylistIndexChanged: ((Int) -> Unit)?,
@@ -62,7 +63,6 @@ actual fun VideoPlayer(
     canGoNext: Boolean,
     autoPlayNext: Boolean,
     repeatCurrentExercise: Boolean,
-    startPositionMs: Long,
     restartTrigger: Int
 ) {
     val context = LocalContext.current
@@ -70,10 +70,10 @@ actual fun VideoPlayer(
     val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
     val currentOnDurationChanged by rememberUpdatedState(onDurationChanged)
     val currentOnVideoOrientationChanged by rememberUpdatedState(onVideoOrientationChanged)
-    val currentOnFullscreenToggle by rememberUpdatedState(onFullscreenToggle)
     val currentOnPlaybackEnded by rememberUpdatedState(onPlaybackEnded)
     val currentOnPlayPauseChange by rememberUpdatedState(onPlayPauseChange)
     val currentOnPlaylistIndexChanged by rememberUpdatedState(onPlaylistIndexChanged)
+    val currentOnControllerVisibilityChanged by rememberUpdatedState(onControllerVisibilityChanged)
 
     val cacheDataSourceFactory = remember {
         DownloadUtil.getPlaybackDataSourceFactory(context)
@@ -136,8 +136,6 @@ actual fun VideoPlayer(
         playlist ?: listOf(VideoPlaylistItem(url = hlsUrl, title = title))
     }
 
-    var hasAppliedStartPosition by remember { mutableStateOf(false) }
-
     LaunchedEffect(playlistItems, hlsUrl) {
         playlistItems.forEach { item ->
             LocalVideoDownloadManager.refresh(item.url)
@@ -161,18 +159,12 @@ actual fun VideoPlayer(
 
         if (needsReload) {
             player.setMediaItems(mediaItems, startIndex, 0)
-
-            if (startPositionMs > 0 && !hasAppliedStartPosition) {
-                player.seekTo(startIndex, startPositionMs)
-                hasAppliedStartPosition = true
-            }
-
             player.prepare()
         }
     }
 
     LaunchedEffect(isPlaying, isMuted, restartTrigger, autoPlayNext, repeatCurrentExercise) {
-        player.pauseAtEndOfMediaItems = !autoPlayNext
+        player.pauseAtEndOfMediaItems = !autoPlayNext && !repeatCurrentExercise
         player.repeatMode =
             if (repeatCurrentExercise) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
 
@@ -200,7 +192,12 @@ actual fun VideoPlayer(
         modifier = modifier,
         player = player,
         useController = useController,
-        onFullscreenToggle = currentOnFullscreenToggle
+        isFullscreen = isFullscreen,
+        showFullscreenButton = showFullscreenButton,
+        showPrevNextButtons = showPrevNextButtons,
+        showRewindFastForwardButtons = showRewindFastForwardButtons,
+        onFullscreenToggle = onFullscreenToggle,
+        onControllerVisibilityChanged = currentOnControllerVisibilityChanged
     )
 }
 
@@ -210,7 +207,12 @@ private fun PlayerContent(
     modifier: Modifier,
     player: ExoPlayer,
     useController: Boolean,
-    onFullscreenToggle: ((Boolean) -> Unit)?
+    isFullscreen: Boolean,
+    showFullscreenButton: Boolean,
+    showPrevNextButtons: Boolean,
+    showRewindFastForwardButtons: Boolean,
+    onFullscreenToggle: ((Boolean) -> Unit)?,
+    onControllerVisibilityChanged: ((Boolean) -> Unit)?
 ) {
     Box(
         modifier = modifier.background(Color.Black)
@@ -218,19 +220,28 @@ private fun PlayerContent(
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                createPlayerView(ctx, player, useController, onFullscreenToggle)
+                createPlayerView(
+                    ctx = ctx,
+                    player = player,
+                    useController = useController,
+                    isFullscreen = isFullscreen,
+                    showFullscreenButton = showFullscreenButton,
+                    showPrevNextButtons = showPrevNextButtons,
+                    showRewindFastForwardButtons = showRewindFastForwardButtons,
+                    onFullscreenToggle = onFullscreenToggle,
+                    onControllerVisibilityChanged = onControllerVisibilityChanged
+                )
             },
             update = { playerView ->
-                playerView.player = player
-                playerView.useController = useController
-
-                if (onFullscreenToggle != null) {
-                    playerView.setFullscreenButtonClickListener { isFullScreen ->
-                        onFullscreenToggle(isFullScreen)
-                    }
-                } else {
-                    playerView.setFullscreenButtonClickListener(null)
-                }
+                playerView.configureController(
+                    useController = useController,
+                    isFullscreen = isFullscreen,
+                    showFullscreenButton = showFullscreenButton,
+                    showPrevNextButtons = showPrevNextButtons,
+                    showRewindFastForwardButtons = showRewindFastForwardButtons,
+                    onFullscreenToggle = onFullscreenToggle,
+                    onControllerVisibilityChanged = onControllerVisibilityChanged
+                )
             }
         )
     }
@@ -251,19 +262,18 @@ private fun createPlayerView(
     ctx: Context,
     player: ExoPlayer,
     useController: Boolean,
-    onFullscreenToggle: ((Boolean) -> Unit)?
+    isFullscreen: Boolean,
+    showFullscreenButton: Boolean,
+    showPrevNextButtons: Boolean,
+    showRewindFastForwardButtons: Boolean,
+    onFullscreenToggle: ((Boolean) -> Unit)?,
+    onControllerVisibilityChanged: ((Boolean) -> Unit)?
 ): PlayerView {
     return PlayerView(ctx).apply {
         this.player = player
-        this.useController = useController
 
         resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
         setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
-
-        setShowFastForwardButton(true)
-        setShowRewindButton(true)
-        setShowNextButton(true)
-        setShowPreviousButton(true)
         setShowSubtitleButton(false)
 
         controllerAutoShow = true
@@ -272,11 +282,15 @@ private fun createPlayerView(
 
         findViewById<View>(Media3R.id.exo_settings)?.visibility = View.GONE
 
-        if (onFullscreenToggle != null) {
-            setFullscreenButtonClickListener { isFullScreen ->
-                onFullscreenToggle(isFullScreen)
-            }
-        }
+        configureController(
+            useController = useController,
+            isFullscreen = isFullscreen,
+            showFullscreenButton = showFullscreenButton,
+            showPrevNextButtons = showPrevNextButtons,
+            showRewindFastForwardButtons = showRewindFastForwardButtons,
+            onFullscreenToggle = onFullscreenToggle,
+            onControllerVisibilityChanged = onControllerVisibilityChanged
+        )
 
         post {
             if (useController) {
@@ -286,3 +300,33 @@ private fun createPlayerView(
     }
 }
 
+@OptIn(UnstableApi::class)
+private fun PlayerView.configureController(
+    useController: Boolean,
+    isFullscreen: Boolean,
+    showFullscreenButton: Boolean,
+    showPrevNextButtons: Boolean,
+    showRewindFastForwardButtons: Boolean,
+    onFullscreenToggle: ((Boolean) -> Unit)?,
+    onControllerVisibilityChanged: ((Boolean) -> Unit)?
+) {
+    this.useController = useController
+
+    setShowPreviousButton(showPrevNextButtons)
+    setShowNextButton(showPrevNextButtons)
+    setShowRewindButton(showRewindFastForwardButtons)
+    setShowFastForwardButton(showRewindFastForwardButtons)
+
+    setControllerVisibilityListener(
+        PlayerView.ControllerVisibilityListener { visibility ->
+            onControllerVisibilityChanged?.invoke(visibility == View.VISIBLE)
+        }
+    )
+
+    if (showFullscreenButton && onFullscreenToggle != null) {
+        setFullscreenButtonClickListener { isFullScreen ->
+            onFullscreenToggle(isFullScreen)
+        }
+        setFullscreenButtonState(isFullscreen)
+    }
+}

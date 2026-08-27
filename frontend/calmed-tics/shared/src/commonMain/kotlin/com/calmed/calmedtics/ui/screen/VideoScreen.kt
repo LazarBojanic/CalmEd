@@ -1,7 +1,7 @@
 package com.calmed.calmedtics.ui.screen
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
@@ -28,7 +27,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -88,10 +86,9 @@ fun VideoScreen(
     var isPlaying by remember { mutableStateOf(true) }
     var isMuted by remember { mutableStateOf(false) }
 
-    var currentPositionMs by remember { mutableLongStateOf(0L) }
-    var resumePositionMs by remember { mutableLongStateOf(0L) }
     var isFullscreen by rememberSaveable { mutableStateOf(false) }
     var isVideoPortrait by remember { mutableStateOf(true) }
+    var controlsVisible by remember { mutableStateOf(true) }
 
     var showSettings by remember { mutableStateOf(false) }
     var autoPlayNext by rememberSaveable { mutableStateOf(false) }
@@ -100,7 +97,6 @@ fun VideoScreen(
     var restartTrigger by remember { mutableStateOf(0) }
 
     PlatformBackHandler(enabled = isFullscreen) {
-        resumePositionMs = currentPositionMs
         isFullscreen = false
     }
 
@@ -109,10 +105,8 @@ fun VideoScreen(
         isVideoPortrait = isVideoPortrait,
         onDeviceOrientationChanged = { isLandscape ->
             if (isLandscape && !isVideoPortrait) {
-                resumePositionMs = currentPositionMs
                 isFullscreen = true
             } else if (!isLandscape && !isVideoPortrait && isFullscreen) {
-                resumePositionMs = currentPositionMs
                 isFullscreen = false
             }
         }
@@ -163,7 +157,6 @@ fun VideoScreen(
         }
 
     LaunchedEffect(currentIndex) {
-        currentPositionMs = 0L
         isPlaying = true
     }
 
@@ -175,202 +168,121 @@ fun VideoScreen(
         }
     }
 
-    if (isFullscreen) {
-        Box(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(appBackgroundGradient())
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .then(if (isFullscreen) Modifier else Modifier.statusBarsPadding()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            VideoPlayer(
-                hlsUrl = currentUrl,
-                title = displayTitle,
-                modifier = Modifier.fillMaxSize(),
-                isFullscreen = true,
-                isPlaying = isPlaying,
-                isMuted = isMuted,
-                useController = true,
-                playlist = playlistItems,
-                onPositionChanged = { position ->
-                    currentPositionMs = position
-                },
-                onVideoOrientationChanged = { isPortrait ->
-                    isVideoPortrait = isPortrait
-                },
-                onFullscreenToggle = { shouldBeFullscreen ->
-                    resumePositionMs = currentPositionMs
-                    isFullscreen = shouldBeFullscreen
-                },
-                onPlaybackEnded = onPlaybackEndedHandler,
-                onPlayPauseChange = { isPlaying = it },
-                onPlaylistIndexChanged = { index ->
-                    if (index in exercises.indices) {
-                        currentIndex = index
-                    }
-                },
-                onPrevious = {
-                    if (currentIndex > 0) currentIndex--
-                },
-                onNext = {
-                    if (canGoNext) currentIndex++
-                },
-                canGoPrevious = canGoPrevious,
-                canGoNext = canGoNext,
-                autoPlayNext = autoPlayNext,
-                repeatCurrentExercise = repeatCurrentExercise,
-                startPositionMs = resumePositionMs,
-                restartTrigger = restartTrigger
-            )
-
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .statusBarsPadding()
-                    .padding(
-                        start = 12.dp,
-                        top = PlayerTopOverlayInset,
-                        end = 12.dp,
-                        bottom = 12.dp
-                    ),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                VideoPlayerDownloadButton(
-                    hlsUrl = currentUrl,
-                    title = displayTitle
-                )
-
-                CastButton(
-                    hlsUrl = currentUrl,
-                    title = displayTitle,
-                    modifier = Modifier.size(32.dp)
-                )
-
-                VideoOverlayButton(
-                    icon = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    onClick = { showSettings = true }
-                )
-
-                VideoOverlayButton(
-                    icon = if (isMuted) {
-                        Icons.AutoMirrored.Filled.VolumeOff
-                    } else {
-                        Icons.AutoMirrored.Filled.VolumeUp
-                    },
-                    contentDescription = if (isMuted) "Unmute" else "Mute",
-                    onClick = { isMuted = !isMuted }
-                )
-            }
-        }
-    } else {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(appBackgroundGradient())
-                .statusBarsPadding()
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BackButton(onClick = onBack)
-                }
-
-                Box(
-                    modifier = Modifier
+            Box(
+                modifier = if (isFullscreen) {
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                } else {
+                    Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
+                        .padding(top = 56.dp)
                         .height(340.dp)
                         .clip(RoundedCornerShape(20.dp))
                         .background(Color.Black)
-                ) {
-                    VideoPlayer(
-                        hlsUrl = currentUrl,
-                        title = displayTitle,
-                        modifier = Modifier.fillMaxSize(),
-                        isFullscreen = false,
-                        isPlaying = isPlaying,
-                        isMuted = isMuted,
-                        useController = true,
-                        playlist = playlistItems,
-                        onPositionChanged = { position ->
-                            currentPositionMs = position
-                        },
-                        onVideoOrientationChanged = { isPortrait ->
-                            isVideoPortrait = isPortrait
-                        },
-                        onFullscreenToggle = { shouldBeFullscreen ->
-                            resumePositionMs = currentPositionMs
-                            isFullscreen = shouldBeFullscreen
-                        },
-                        onPlaybackEnded = onPlaybackEndedHandler,
-                        onPlayPauseChange = { isPlaying = it },
-                        onPlaylistIndexChanged = { index ->
-                            if (index in exercises.indices) {
-                                currentIndex = index
-                            }
-                        },
-                        onPrevious = {
-                            if (currentIndex > 0) currentIndex--
-                        },
-                        onNext = {
-                            if (canGoNext) currentIndex++
-                        },
-                        canGoPrevious = canGoPrevious,
-                        canGoNext = canGoNext,
-                        autoPlayNext = autoPlayNext,
-                        repeatCurrentExercise = repeatCurrentExercise,
-                        startPositionMs = resumePositionMs,
-                        restartTrigger = restartTrigger
-                    )
+                }
+            ) {
+                VideoPlayer(
+                    hlsUrl = currentUrl,
+                    title = displayTitle,
+                    modifier = Modifier.fillMaxSize(),
+                    isFullscreen = isFullscreen,
+                    isPlaying = isPlaying,
+                    isMuted = isMuted,
+                    useController = true,
+                    showFullscreenButton = true,
+                    showPrevNextButtons = true,
+                    showRewindFastForwardButtons = true,
+                    playlist = playlistItems,
+                    onVideoOrientationChanged = { isPortrait ->
+                        isVideoPortrait = isPortrait
+                    },
+                    onFullscreenToggle = { shouldBeFullscreen ->
+                        isFullscreen = shouldBeFullscreen
+                    },
+                    onControllerVisibilityChanged = { visible ->
+                        controlsVisible = visible
+                    },
+                    onPlaybackEnded = onPlaybackEndedHandler,
+                    onPlayPauseChange = { isPlaying = it },
+                    onPlaylistIndexChanged = { index ->
+                        if (index in exercises.indices) {
+                            currentIndex = index
+                        }
+                    },
+                    onPrevious = {
+                        if (currentIndex > 0) currentIndex--
+                    },
+                    onNext = {
+                        if (canGoNext) currentIndex++
+                    },
+                    canGoPrevious = canGoPrevious,
+                    canGoNext = canGoNext,
+                    autoPlayNext = autoPlayNext,
+                    repeatCurrentExercise = repeatCurrentExercise,
+                    restartTrigger = restartTrigger
+                )
 
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(
-                                start = 12.dp,
+                Crossfade(
+                    targetState = controlsVisible,
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    label = "overlayVisibility"
+                ) { visible ->
+                    if (visible) {
+                        Column(
+                            modifier = Modifier.padding(
+                                start = 8.dp,
                                 top = PlayerTopOverlayInset,
-                                end = 12.dp,
-                                bottom = 12.dp
+                                end = 8.dp,
+                                bottom = 8.dp
                             ),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        VideoPlayerDownloadButton(
-                            hlsUrl = currentUrl,
-                            title = displayTitle
-                        )
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            VideoPlayerDownloadButton(
+                                hlsUrl = currentUrl,
+                                title = displayTitle
+                            )
 
-                        CastButton(
-                            hlsUrl = currentUrl,
-                            title = displayTitle,
-                            modifier = Modifier.size(32.dp)
-                        )
+                            CastButton(
+                                hlsUrl = currentUrl,
+                                title = displayTitle,
+                                modifier = Modifier.size(28.dp)
+                            )
 
-                        VideoOverlayButton(
-                            icon = Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            onClick = { showSettings = true }
-                        )
+                            VideoOverlayButton(
+                                icon = Icons.Default.Settings,
+                                contentDescription = "Settings",
+                                onClick = { showSettings = true }
+                            )
 
-                        VideoOverlayButton(
-                            icon = if (isMuted) {
-                                Icons.AutoMirrored.Filled.VolumeOff
-                            } else {
-                                Icons.AutoMirrored.Filled.VolumeUp
-                            },
-                            contentDescription = if (isMuted) "Unmute" else "Mute",
-                            onClick = { isMuted = !isMuted }
-                        )
+                            VideoOverlayButton(
+                                icon = if (isMuted) {
+                                    Icons.AutoMirrored.Filled.VolumeOff
+                                } else {
+                                    Icons.AutoMirrored.Filled.VolumeUp
+                                },
+                                contentDescription = if (isMuted) "Unmute" else "Mute",
+                                onClick = { isMuted = !isMuted }
+                            )
+                        }
                     }
                 }
+            }
 
+            if (!isFullscreen) {
                 Spacer(modifier = Modifier.height(48.dp))
 
                 Column(
@@ -401,8 +313,17 @@ fun VideoScreen(
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center
                 )
-
             }
+        }
+
+        if (!isFullscreen) {
+            BackButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
+                    .padding(start = 16.dp, top = 8.dp)
+            )
         }
     }
 

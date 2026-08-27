@@ -40,11 +40,15 @@ actual fun VideoPlayer(
     isPlaying: Boolean,
     isMuted: Boolean,
     useController: Boolean,
+    showFullscreenButton: Boolean,
+    showPrevNextButtons: Boolean,
+    showRewindFastForwardButtons: Boolean,
     playlist: List<VideoPlaylistItem>?,
     onPositionChanged: ((Long) -> Unit)?,
     onDurationChanged: ((Long) -> Unit)?,
     onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
     onFullscreenToggle: ((Boolean) -> Unit)?,
+    onControllerVisibilityChanged: ((Boolean) -> Unit)?,
     onPlaybackEnded: (() -> Unit)?,
     onPlayPauseChange: ((Boolean) -> Unit)?,
     onPlaylistIndexChanged: ((Int) -> Unit)?,
@@ -54,7 +58,6 @@ actual fun VideoPlayer(
     canGoNext: Boolean,
     autoPlayNext: Boolean,
     repeatCurrentExercise: Boolean,
-    startPositionMs: Long,
     restartTrigger: Int
 ) {
     val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
@@ -85,8 +88,6 @@ actual fun VideoPlayer(
         )
     }
 
-    var hasSeekedToStart by remember { mutableStateOf(false) }
-
     LaunchedEffect(Unit) {
         val session = AVAudioSession.sharedInstance()
         session.setCategory(AVAudioSessionCategoryPlayback, error = null)
@@ -112,17 +113,6 @@ actual fun VideoPlayer(
 
 	    val item = AVPlayerItem(uRL = nsUrl)
         player.replaceCurrentItemWithPlayerItem(item)
-
-        if (startPositionMs > 0 && !hasSeekedToStart) {
-            player.seekToTime(
-                CMTimeMakeWithSeconds(
-                    startPositionMs / 1000.0,
-                    NSEC_PER_SEC.toInt()
-                )
-            )
-
-            hasSeekedToStart = true
-        }
 
         val size = item.presentationSize
         size.useContents {
@@ -266,7 +256,7 @@ actual fun VideoPlayer(
                 onClick = { onPrevious?.invoke() },
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .padding(start = 12.dp),
+                    .padding(start = 8.dp),
                 enabled = canGoPrevious
             )
         }
@@ -278,10 +268,9 @@ actual fun VideoPlayer(
                 onClick = { onNext?.invoke() },
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .padding(end = 12.dp),
+                    .padding(end = 8.dp),
                 enabled = canGoNext
             )
         }
     }
 }
-
