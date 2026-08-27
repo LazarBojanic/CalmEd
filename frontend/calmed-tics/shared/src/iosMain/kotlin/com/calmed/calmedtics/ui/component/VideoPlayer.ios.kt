@@ -1,5 +1,6 @@
 package com.calmed.calmedtics.ui.component
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -65,6 +66,7 @@ actual fun VideoPlayer(
     val currentOnVideoOrientationChanged by rememberUpdatedState(onVideoOrientationChanged)
     val currentOnPlaybackEnded by rememberUpdatedState(onPlaybackEnded)
     val currentOnPlayPauseChange by rememberUpdatedState(onPlayPauseChange)
+    val currentOnControllerVisibilityChanged by rememberUpdatedState(onControllerVisibilityChanged)
 
     val player = remember { AVPlayer() }
     val controller = remember {
@@ -76,6 +78,7 @@ actual fun VideoPlayer(
         }
     }
     var endToken by remember { mutableStateOf<NSObjectProtocol?>(null) }
+    var controlsVisible by remember { mutableStateOf(true) }
 
     /*
      * Tracks the last play state reported to the screen so we only fire
@@ -140,6 +143,19 @@ actual fun VideoPlayer(
             player.play()
         } else {
             player.pause()
+        }
+    }
+
+    DisposableEffect(controller) {
+        TransportBarObserverHolder.onVisibilityChanged = { visible ->
+            controlsVisible = visible
+            currentOnControllerVisibilityChanged?.invoke(visible)
+        }
+        TransportBarObserverHolder.observer?.observe(controller)
+
+        onDispose {
+            TransportBarObserverHolder.onVisibilityChanged = null
+            controller.delegate = null
         }
     }
 
@@ -249,28 +265,36 @@ actual fun VideoPlayer(
          * transport controls, so we render our own overlay buttons on iOS
          * (Android uses the native playlist prev/next instead).
          */
-        if (useController && onPrevious != null) {
-            VideoOverlayButton(
-                icon = Icons.Filled.SkipPrevious,
-                contentDescription = "Previous Exercise",
-                onClick = { onPrevious?.invoke() },
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = 8.dp),
-                enabled = canGoPrevious
-            )
+        Crossfade(
+            targetState = controlsVisible,
+            modifier = Modifier.align(Alignment.CenterStart),
+            label = "previousVisibility"
+        ) { visible ->
+            if (visible && useController && onPrevious != null) {
+                VideoOverlayButton(
+                    icon = Icons.Filled.SkipPrevious,
+                    contentDescription = "Previous Exercise",
+                    onClick = { onPrevious?.invoke() },
+                    modifier = Modifier.padding(start = 8.dp),
+                    enabled = canGoPrevious
+                )
+            }
         }
 
-        if (useController && onNext != null) {
-            VideoOverlayButton(
-                icon = Icons.Filled.SkipNext,
-                contentDescription = "Next Exercise",
-                onClick = { onNext?.invoke() },
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 8.dp),
-                enabled = canGoNext
-            )
+        Crossfade(
+            targetState = controlsVisible,
+            modifier = Modifier.align(Alignment.CenterEnd),
+            label = "nextVisibility"
+        ) { visible ->
+            if (visible && useController && onNext != null) {
+                VideoOverlayButton(
+                    icon = Icons.Filled.SkipNext,
+                    contentDescription = "Next Exercise",
+                    onClick = { onNext?.invoke() },
+                    modifier = Modifier.padding(end = 8.dp),
+                    enabled = canGoNext
+                )
+            }
         }
     }
 }

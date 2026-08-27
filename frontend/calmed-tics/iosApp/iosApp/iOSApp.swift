@@ -39,6 +39,7 @@ struct iOSApp: App {
     @StateObject private var storeKitManager = StoreKitManager.shared
 	init(){
 		Frameworks_iosKt.doInitKoinIos()
+		TransportBarObserverHolder.shared.observer = TransportBarObserverImpl()
 		UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
         
         NotificationCenter.default.addObserver(
