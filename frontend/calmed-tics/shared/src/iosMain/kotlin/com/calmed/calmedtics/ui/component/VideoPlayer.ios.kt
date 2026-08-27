@@ -17,7 +17,9 @@ import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
 import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.useContents
+import kotlinx.coroutines.delay
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
 import platform.AVFAudio.setActive
@@ -26,9 +28,11 @@ import platform.AVKit.AVPlayerViewController
 import platform.CoreMedia.CMTimeGetSeconds
 import platform.CoreMedia.CMTimeMakeWithSeconds
 import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSSelectorFromString
 import platform.Foundation.NSURL
 import platform.UIKit.*
 import platform.darwin.NSEC_PER_SEC
+import platform.darwin.NSObject
 import platform.darwin.NSObjectProtocol
 
 @OptIn(ExperimentalForeignApi::class)
@@ -79,6 +83,18 @@ actual fun VideoPlayer(
     }
     var endToken by remember { mutableStateOf<NSObjectProtocol?>(null) }
     var controlsVisible by remember { mutableStateOf(true) }
+    var controlsRestart by remember { mutableStateOf(0) }
+
+    val tapHandler = remember { TapHandler { controlsRestart++ } }
+    val tapRecognizer = remember(tapHandler) {
+        UITapGestureRecognizer(
+            target = tapHandler,
+            action = NSSelectorFromString("handleTap")
+        ).apply {
+            cancelsTouchesInView = false
+            delegate = SimultaneousGestureDelegate()
+        }
+    }
 
     /*
      * Tracks the last play state reported to the screen so we only fire
@@ -146,17 +162,19 @@ actual fun VideoPlayer(
         }
     }
 
-    DisposableEffect(controller) {
-        TransportBarObserverHolder.onVisibilityChanged = { visible ->
-            controlsVisible = visible
-            currentOnControllerVisibilityChanged?.invoke(visible)
-        }
-        TransportBarObserverHolder.observer?.observe(controller)
-
+    DisposableEffect(controller, tapRecognizer) {
+        controller.view.addGestureRecognizer(tapRecognizer)
         onDispose {
-            TransportBarObserverHolder.onVisibilityChanged = null
-            controller.delegate = null
+            controller.view.removeGestureRecognizer(tapRecognizer)
         }
+    }
+
+    LaunchedEffect(controlsRestart) {
+        controlsVisible = true
+        currentOnControllerVisibilityChanged?.invoke(true)
+        delay(3000)
+        controlsVisible = false
+        currentOnControllerVisibilityChanged?.invoke(false)
     }
 
     LaunchedEffect(restartTrigger) {
@@ -297,4 +315,22 @@ actual fun VideoPlayer(
             }
         }
     }
+}
+
+@OptIn(ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
+private class TapHandler(
+    private val onTap: () -> Unit
+) : NSObject() {
+    @ObjCAction
+    fun handleTap() {
+        onTap()
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private class SimultaneousGestureDelegate : NSObject(), UIGestureRecognizerDelegateProtocol {
+    override fun gestureRecognizer(
+        gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWithGestureRecognizer: UIGestureRecognizer
+    ): Boolean = true
 }
