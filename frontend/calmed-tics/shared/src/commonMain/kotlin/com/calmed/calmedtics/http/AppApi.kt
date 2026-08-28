@@ -8,6 +8,7 @@ import com.calmed.calmedtics.model.dto.request.LoginUserDto
 import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.model.dto.request.RegisterUserDto
 import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
+import com.calmed.calmedtics.model.dto.request.SetConfirmOverEighteenDto
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
 import com.calmed.calmedtics.model.dto.request.UserExerciseProgressUpdateDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
@@ -151,6 +152,14 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 
 	override suspend fun setOnboarded(id: String, dto: SetIsOnboardedDto): UserDto? {
 		val resp: HttpResponse = client.post("/user/$id/onboarded") { setBody(dto) }
+		return when (resp.status) {
+			HttpStatusCode.OK -> resp.body<UserDto>()
+			else -> null
+		}
+	}
+
+	override suspend fun confirmOverEighteen(id: String, dto: SetConfirmOverEighteenDto): UserDto? {
+		val resp: HttpResponse = client.post("/user/$id/confirm-age") { setBody(dto) }
 		return when (resp.status) {
 			HttpStatusCode.OK -> resp.body<UserDto>()
 			else -> null

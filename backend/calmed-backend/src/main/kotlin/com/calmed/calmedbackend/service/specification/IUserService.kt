@@ -12,8 +12,9 @@ interface IUserService {
 	suspend fun create(user: User): AppResult<UserJoined>
 	suspend fun update(user: User): AppResult<UserJoined>
 	suspend fun delete(id: UUID): AppResult<Unit>
-	suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): AppResult<UserJoined>
-	suspend fun updateProfileImage(
+  suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): AppResult<UserJoined>
+  suspend fun setConfirmOverEighteen(id: UUID, confirmOverEighteen: Boolean): AppResult<UserJoined>
+  suspend fun updateProfileImage(
 		userId: UUID,
 		profileImageUrl: String
 	): AppResult<UserJoined>

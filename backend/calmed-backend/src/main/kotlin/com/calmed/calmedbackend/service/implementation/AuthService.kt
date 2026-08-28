@@ -45,6 +45,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.apache.commons.mail.DefaultAuthenticator
 import org.apache.commons.mail.HtmlEmail
+import org.apache.commons.validator.routines.EmailValidator
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
@@ -169,144 +170,147 @@ class AuthService(private val userService: IUserService,
 
 	override suspend fun register(dto: RegisterDto): AppResult<TokenPairDto> {
 		return withTransaction {
-			if(dto.confirmOverEighteen){
-				val passwordValidationResult = validatePassword(dto.password, dto.confirmPassword)
-				when (passwordValidationResult) {
-					is AppResult.Success -> {
-						val existingUserResult = userService.getByEmail(dto.email)
-						when (existingUserResult) {
-							is AppResult.Failure -> {
-								val newUser = User.createNew(
-									email = dto.email, username = dto.username, isEmailVerified = false, isOnboarded = false, confirmOverEighteen = dto.confirmOverEighteen
-								)
-								val createdUserResult = userService.create(newUser)
-								when (createdUserResult) {
-									is AppResult.Success -> {
-										val passwordHashResult = hashTextBCrypt(dto.password)
-										when (passwordHashResult) {
-											is AppResult.Success -> {
-												val authCredential = AuthCredential.createNew(
-													userId = createdUserResult.data.id,
-													type = AuthCredentialType.BASIC,
-													passwordHash = passwordHashResult.data
-												)
-												val createdAuthCredentialResult =
-													authCredentialService.create(authCredential)
-												when (createdAuthCredentialResult) {
-													is AppResult.Success -> {
-														CoroutineScope(Dispatchers.IO).launch {
-															val emailSentResult = sendVerificationEmail(
-																createdUserResult.data.id, createdUserResult.data.email
+			val emailValidationResult = validateEmail(dto.email)
+			when(emailValidationResult){
+				is AppResult.Success -> {
+					val passwordValidationResult = validatePassword(dto.password, dto.confirmPassword)
+					when (passwordValidationResult) {
+						is AppResult.Success -> {
+							val existingUserResult = userService.getByEmail(dto.email)
+							when (existingUserResult) {
+								is AppResult.Failure -> {
+									val newUser = User.createNew(
+										email = dto.email, username = dto.username, isEmailVerified = false, isOnboarded = false
+									)
+									val createdUserResult = userService.create(newUser)
+									when (createdUserResult) {
+										is AppResult.Success -> {
+											val passwordHashResult = hashTextBCrypt(dto.password)
+											when (passwordHashResult) {
+												is AppResult.Success -> {
+													val authCredential = AuthCredential.createNew(
+														userId = createdUserResult.data.id,
+														type = AuthCredentialType.BASIC,
+														passwordHash = passwordHashResult.data
+													)
+													val createdAuthCredentialResult =
+														authCredentialService.create(authCredential)
+													when (createdAuthCredentialResult) {
+														is AppResult.Success -> {
+															CoroutineScope(Dispatchers.IO).launch {
+																val emailSentResult = sendVerificationEmail(
+																	createdUserResult.data.id, createdUserResult.data.email
+																)
+																when (emailSentResult) {
+																	is AppResult.Success -> {
+																		println("Email sent to ${createdUserResult.data.email}")
+																	}
+
+																	is AppResult.Failure -> {
+																		println(emailSentResult.message)
+																	}
+																}
+															}
+															val newUserInfoTics = UserInfoTics.createNew(
+																userId = newUser.id,
+																preferredName = null,
+																age = null,
+																stressLevel = null,
+																tickType = null,
+																tickFrequency = null,
+																goal = null,
+																followProgress = null
 															)
-															when (emailSentResult) {
+															val userInfoTicsResult =
+																userInfoTicsService.create(newUserInfoTics)
+															when (userInfoTicsResult) {
 																is AppResult.Success -> {
-																	println("Email sent to ${createdUserResult.data.email}")
+																	val newUserProgram = UserProgram.createNew(
+																		userId = newUser.id,
+																		startDate = LocalDate.now(ZoneOffset.UTC)
+																	)
+																	val userProgramResult = userProgramService.create(newUserProgram)
+																	when (userProgramResult) {
+																		is AppResult.Success -> {
+																			val initProgressResult = userExerciseProgressService.initializeUserProgress(newUser.id, newUserProgram.startDate)
+																			when (initProgressResult) {
+																				is AppResult.Success -> {
+																					return@withTransaction createTokenPair(
+																						createdUserResult.data.id, createdUserResult.data.email
+																					)
+																				}
+																				is AppResult.Failure -> {
+																					return@withTransaction AppResult.Failure(
+																						initProgressResult.httpStatusCode,
+																						"Failed to initialize user progress. ${initProgressResult.message}"
+																					)
+																				}
+																			}
+																		}
+																		is AppResult.Failure -> {
+																			return@withTransaction AppResult.Failure(
+																				userProgramResult.httpStatusCode,
+																				"Failed to create user program. ${userProgramResult.message}"
+																			)
+																		}
+																	}
 																}
 
 																is AppResult.Failure -> {
-																	println(emailSentResult.message)
+																	return@withTransaction AppResult.Failure(
+																		userInfoTicsResult.httpStatusCode,
+																		"Failed to create user info tics. ${userInfoTicsResult.message}"
+																	)
 																}
 															}
 														}
-														val newUserInfoTics = UserInfoTics.createNew(
-															userId = newUser.id,
-															preferredName = null,
-															age = null,
-															stressLevel = null,
-															tickType = null,
-															tickFrequency = null,
-															goal = null,
-															followProgress = null
-														)
-														val userInfoTicsResult =
-															userInfoTicsService.create(newUserInfoTics)
-														when (userInfoTicsResult) {
-															is AppResult.Success -> {
-																val newUserProgram = UserProgram.createNew(
-																	userId = newUser.id,
-																	startDate = LocalDate.now(ZoneOffset.UTC)
-																)
-																val userProgramResult = userProgramService.create(newUserProgram)
-																when (userProgramResult) {
-																	is AppResult.Success -> {
-																		val initProgressResult = userExerciseProgressService.initializeUserProgress(newUser.id, newUserProgram.startDate)
-																		when (initProgressResult) {
-																			is AppResult.Success -> {
-																				return@withTransaction createTokenPair(
-																					createdUserResult.data.id, createdUserResult.data.email
-																				)
-																			}
-																			is AppResult.Failure -> {
-																				return@withTransaction AppResult.Failure(
-																					initProgressResult.httpStatusCode,
-																					"Failed to initialize user progress. ${initProgressResult.message}"
-																				)
-																			}
-																		}
-																	}
-																	is AppResult.Failure -> {
-																		return@withTransaction AppResult.Failure(
-																			userProgramResult.httpStatusCode,
-																			"Failed to create user program. ${userProgramResult.message}"
-																		)
-																	}
-																}
-															}
 
-															is AppResult.Failure -> {
-																return@withTransaction AppResult.Failure(
-																	userInfoTicsResult.httpStatusCode,
-																	"Failed to create user info tics. ${userInfoTicsResult.message}"
-																)
-															}
+														is AppResult.Failure -> {
+															return@withTransaction AppResult.Failure(
+																createdAuthCredentialResult.httpStatusCode,
+																"Failed to create authentication credentials. ${createdAuthCredentialResult.message}"
+															)
 														}
 													}
 
-													is AppResult.Failure -> {
-														return@withTransaction AppResult.Failure(
-															createdAuthCredentialResult.httpStatusCode,
-															"Failed to create authentication credentials. ${createdAuthCredentialResult.message}"
-														)
-													}
 												}
 
-											}
-
-											is AppResult.Failure -> {
-												return@withTransaction AppResult.Failure(
-													passwordHashResult.httpStatusCode,
-													"Failed to hash password. ${passwordHashResult.message}"
-												)
+												is AppResult.Failure -> {
+													return@withTransaction AppResult.Failure(
+														passwordHashResult.httpStatusCode,
+														"Failed to hash password. ${passwordHashResult.message}"
+													)
+												}
 											}
 										}
-									}
 
-									is AppResult.Failure -> {
-										return@withTransaction AppResult.Failure(
-											createdUserResult.httpStatusCode,
-											"Failed to create user. ${createdUserResult.message}"
-										)
+										is AppResult.Failure -> {
+											return@withTransaction AppResult.Failure(
+												createdUserResult.httpStatusCode,
+												"Failed to create user. ${createdUserResult.message}"
+											)
+										}
 									}
 								}
-							}
 
-							is AppResult.Success -> {
-								return@withTransaction AppResult.Failure(
-									HttpStatusCode.Unauthorized, "Email already exists. "
-								)
+								is AppResult.Success -> {
+									return@withTransaction AppResult.Failure(
+										HttpStatusCode.Unauthorized, "Email already exists. "
+									)
+								}
 							}
 						}
-					}
 
-					is AppResult.Failure -> {
-						return@withTransaction AppResult.Failure(
-							passwordValidationResult.httpStatusCode, "Invalid password. ${passwordValidationResult.message}"
-						)
+						is AppResult.Failure -> {
+							return@withTransaction AppResult.Failure(
+								passwordValidationResult.httpStatusCode, "Invalid password. ${passwordValidationResult.message}"
+							)
+						}
 					}
 				}
-			}
-			else{
-				AppResult.Failure(HttpStatusCode.Forbidden, "You must confirm you are at least 18 years old.");
+				is AppResult.Failure -> {
+					return@withTransaction AppResult.Failure(emailValidationResult.httpStatusCode, "Invalid email. ${emailValidationResult.message}")
+				}
 			}
 		}
 	}
@@ -882,6 +886,14 @@ class AuthService(private val userService: IUserService,
 			else {
 				return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token type.")
 			}
+		}
+	}
+	override suspend fun validateEmail(email: String?): AppResult<Unit> {
+		if(EmailValidator.getInstance().isValid(email)){
+			return AppResult.Success(Unit)
+		}
+		else{
+			return AppResult.Failure(HttpStatusCode.BadRequest,"Invalid email address")
 		}
 	}
 

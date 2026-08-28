@@ -2,6 +2,7 @@ package com.calmed.calmedbackend.routing
 
 import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
+import com.calmed.calmedbackend.model.dto.request.SetConfirmOverEighteenDto
 import com.calmed.calmedbackend.model.dto.request.SetIsOnboardedDto
 import com.calmed.calmedbackend.model.joined.UserJoined
 import com.calmed.calmedbackend.model.toDto
@@ -202,66 +203,117 @@ fun Route.userRoutes() {
 							)
 						}
 					}
-				} else {
-					throw BusinessException(
-						HttpStatusCode.BadRequest,
-						"Missing id parameter"
-					)
-				}
+			} else {
+				throw BusinessException(
+					HttpStatusCode.BadRequest,
+					"Missing id parameter"
+				)
+			}
+		}
+
+		post("/{id}/onboarded") {
+			val idParam = call.parameters["id"]
+
+			if (idParam == null) {
+				throw BusinessException(
+					HttpStatusCode.BadRequest,
+					"Missing id parameter"
+				)
 			}
 
-			post("/{id}/onboarded") {
-				val idParam = call.parameters["id"]
+			val id = UUID.fromString(idParam)
 
-				if (idParam == null) {
-					throw BusinessException(
-						HttpStatusCode.BadRequest,
-						"Missing id parameter"
-					)
-				}
-
-				val id = UUID.fromString(idParam)
-
-				val jwt = call.principal<JWTPrincipal>()
-					?: throw BusinessException(
-						HttpStatusCode.Unauthorized,
-						"Invalid authentication"
-					)
-
-				val subjectId = UUID.fromString(jwt.subject)
-
-				if (subjectId != id) {
-					throw BusinessException(
-						HttpStatusCode.Forbidden,
-						"Forbidden"
-					)
-				}
-
-				val dto = call.receive<SetIsOnboardedDto>()
-
-				val res = userService.setIsOnboarded(
-					id,
-					dto.isOnboarded
+			val jwt = call.principal<JWTPrincipal>()
+				?: throw BusinessException(
+					HttpStatusCode.Unauthorized,
+					"Invalid authentication"
 				)
 
-				when (res) {
-					is AppResult.Success -> {
-						call.respond(
-							HttpStatusCode.OK,
-							res.data.toDto()
-						)
-					}
+			val subjectId = UUID.fromString(jwt.subject)
 
-					is AppResult.Failure -> {
-						call.respond(
-							res.httpStatusCode,
-							res.message
-						)
-					}
-				}
+			if (subjectId != id) {
+				throw BusinessException(
+					HttpStatusCode.Forbidden,
+					"Forbidden"
+				)
 			}
 
-			delete("/{id}") {
+			val dto = call.receive<SetIsOnboardedDto>()
+
+			val res = userService.setIsOnboarded(
+				id,
+				dto.isOnboarded
+			)
+
+			when (res) {
+				is AppResult.Success -> {
+					call.respond(
+						HttpStatusCode.OK,
+						res.data.toDto()
+					)
+				}
+
+				is AppResult.Failure -> {
+					call.respond(
+						res.httpStatusCode,
+						res.message
+					)
+				}
+			}
+		}
+
+		post("/{id}/confirm-age") {
+			val idParam = call.parameters["id"]
+
+			if (idParam == null) {
+				throw BusinessException(
+					HttpStatusCode.BadRequest,
+					"Missing id parameter"
+				)
+			}
+
+			val id = UUID.fromString(idParam)
+
+			val jwt = call.principal<JWTPrincipal>()
+				?: throw BusinessException(
+					HttpStatusCode.Unauthorized,
+					"Invalid authentication"
+				)
+
+			val subjectId = UUID.fromString(jwt.subject)
+
+			if (subjectId != id) {
+				throw BusinessException(
+					HttpStatusCode.Forbidden,
+					"Forbidden"
+				)
+			}
+
+			val dto = call.receive<SetConfirmOverEighteenDto>()
+
+			val res = userService.setConfirmOverEighteen(
+				id,
+				dto.confirmOverEighteen
+			)
+
+			when (res) {
+				is AppResult.Success -> {
+					call.respond(
+						HttpStatusCode.OK,
+						res.data.toDto()
+					)
+				}
+
+				is AppResult.Failure -> {
+					call.respond(
+						res.httpStatusCode,
+						res.message
+					)
+				}
+			}
+		}
+
+		delete("/{id}") {
 				val idParam = call.parameters["id"]
 
 				if (idParam == null) {

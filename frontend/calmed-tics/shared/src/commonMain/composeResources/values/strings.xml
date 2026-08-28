@@ -130,6 +130,11 @@
     <string name="register_title">Register</string>
     <string name="username_label">Username</string>
     <string name="confirm_password">Confirm password</string>
+    <string name="password_min_length">Password must be at least 8 characters long.</string>
+    <string name="password_uppercase">Password must contain at least one uppercase letter.</string>
+    <string name="password_lowercase">Password must contain at least one lowercase letter.</string>
+    <string name="password_digit">Password must contain at least one digit.</string>
+    <string name="passwords_do_not_match">Passwords do not match.</string>
     <string name="creating">Creating...</string>
     <string name="back_to_login">Back to login</string>
     <string name="welcome_video_title">Welcome Video</string>
@@ -181,6 +186,9 @@
     <string name="no_exercises_available">No exercises available</string>
     <string name="exercise_counter">Exercise %1$d/%2$d</string>
     <string name="confirm_over_eighteen">I confirm I am over 18 years old.</string>
+    <string name="age_confirmation_title">Age confirmation</string>
+    <string name="age_confirmation_subtitle">You must be at least 18 years old to use CalmEd.</string>
+    <string name="not_over_eighteen">I am not over 18</string>
     <string name="res_continue">Continue</string>
     <string name="download_video">Download video</string>
     <string name="delete_video">Delete download</string>

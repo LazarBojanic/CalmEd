@@ -29,6 +29,7 @@ import com.calmed.calmedtics.ui.screen.SplashScreen
 import com.calmed.calmedtics.ui.screen.WelcomeVideoScreen
 import com.calmed.calmedtics.ui.screen.CourseOverviewScreen
 import com.calmed.calmedtics.ui.screen.OnboardingScreen
+import com.calmed.calmedtics.ui.screen.AgeConfirmScreen
 import com.calmed.calmedtics.util.isBackendReachable
 import com.calmed.calmedtics.viewmodel.AuthViewModel
 import com.calmed.calmedtics.viewmodel.SessionViewModel
@@ -58,6 +59,7 @@ object Routes {
     const val Video = "video"
     const val Main = "main"
     const val Onboarding = "onboarding"
+    const val AgeConfirm = "age-confirm"
     const val Payment = "payment"
     const val Offline = "offline"
 }
@@ -108,6 +110,7 @@ fun App() {
         val shouldShowCourseOverview =
             showCourseOverview && courseOverviewHandledUserId != remoteUser.id
         return when {
+            !remoteUser.confirmOverEighteen -> Routes.AgeConfirm
             shouldShowWelcomeVideo -> Routes.WelcomeVideo
             shouldShowCourseOverview -> Routes.CourseOverview
             !isPaid -> Routes.Payment
@@ -258,6 +261,35 @@ fun App() {
                                 } catch (t: Throwable) {
                                     println("GoogleSignIn failed: ${t.message}")
                                     t.printStackTrace()
+                                }
+                            }
+                        }
+                    )
+                }
+
+                composable(Routes.AgeConfirm) {
+                    AgeConfirmScreen(
+                        loading = sessionLoading,
+                        error = sessionError,
+                        onConfirm = {
+                            scope.launch {
+                                val ok = sessionViewModel.confirmOverEighteen()
+                                if (ok) {
+                                    val nextRoute = resolveNextAuthenticatedRoute()
+                                        ?: Routes.Login
+                                    navController.navigate(nextRoute) {
+                                        popUpTo(Routes.AgeConfirm) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        },
+                        onDecline = {
+                            scope.launch {
+                                authService.logout()
+                                navController.navigate(Routes.Login) {
+                                    popUpTo(Routes.AgeConfirm) { inclusive = true }
+                                    launchSingleTop = true
                                 }
                             }
                         }

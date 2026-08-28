@@ -2,6 +2,7 @@ package com.calmed.calmedtics.viewmodel
 
 import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
+import com.calmed.calmedtics.model.dto.request.SetConfirmOverEighteenDto
 import com.calmed.calmedtics.model.dto.request.UserExerciseProgressUpdateDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.dto.response.HomeDto
@@ -260,6 +261,35 @@ class SessionViewModel(
 			}
 		} catch (t: Throwable) {
 			_error.value = t.message ?: "Skip onboarding failed."
+			false
+		} finally {
+			_loading.value = false
+		}
+	}
+
+	suspend fun confirmOverEighteen(): Boolean {
+		_error.value = null
+		_loading.value = true
+		return try {
+			val currentUser = user.value
+			if (currentUser == null) {
+				_error.value = "Missing user."
+				false
+			} else {
+				val updatedUser = api.confirmOverEighteen(
+					currentUser.id,
+					SetConfirmOverEighteenDto(confirmOverEighteen = true)
+				)
+				if (updatedUser == null) {
+					_error.value = "Failed to confirm age."
+					false
+				} else {
+					cacheUserDto(updatedUser)
+					true
+				}
+			}
+		} catch (t: Throwable) {
+			_error.value = t.message ?: "Age confirmation failed."
 			false
 		} finally {
 			_loading.value = false

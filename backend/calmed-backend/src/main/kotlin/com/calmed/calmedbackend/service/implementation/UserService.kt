@@ -77,6 +77,15 @@ class UserService(
 		}
 	}
 
+	override suspend fun setConfirmOverEighteen(id: UUID, confirmOverEighteen: Boolean): AppResult<UserJoined> {
+		val updated = userRepository.setConfirmOverEighteen(id, confirmOverEighteen)
+		return if (updated != null) {
+			AppResult.Success(updated.join())
+		} else {
+			AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
+		}
+	}
+
 	override suspend fun updateProfileImage(
 		userId: UUID,
 		profileImageUrl: String

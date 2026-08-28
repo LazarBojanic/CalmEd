@@ -14,15 +14,16 @@ val junit_version: String by project
 val mockk_version: String by project
 val nimbus_jose_jwt_version: String by project
 val stripe_java_version: String by project
+val commons_validator: String by project
 
 plugins {
-	kotlin("jvm") version "2.4.10"
+	kotlin("jvm") version "2.4.0"
 	id("io.ktor.plugin") version "3.5.2"
-	id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
+	id("org.jetbrains.kotlin.plugin.serialization") version "2.4.0"
 }
 
 group = "com.calmed"
-version = "1.0.0"
+version = "0.0.1"
 
 application {
 	mainClass = "io.ktor.server.netty.EngineMain"
@@ -74,6 +75,7 @@ dependencies {
 	implementation("io.ktor:ktor-serialization-kotlinx-json")
 	implementation("com.nimbusds:nimbus-jose-jwt:$nimbus_jose_jwt_version")
 	implementation("com.stripe:stripe-java:$stripe_java_version")
+	implementation("commons-validator:commons-validator:$commons_validator")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junit_version")

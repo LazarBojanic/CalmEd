@@ -102,4 +102,19 @@ class UserRepository : IUserRepository {
 		}
 	}
 
+	override suspend fun setConfirmOverEighteen(id: UUID, confirmOverEighteen: Boolean
+	): User? {
+		return withTransaction {
+			val e = UserEntity.findById(id)
+			if(e != null) {
+				e.confirmOverEighteen = confirmOverEighteen
+				e.updatedAt = Instant.now()
+				return@withTransaction e.toRaw()
+			}
+			else{
+				return@withTransaction null
+			}
+		}
+	}
+
 }

@@ -8,6 +8,7 @@ import com.calmed.calmedtics.model.dto.request.LoginUserDto
 import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.model.dto.request.RegisterUserDto
 import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
+import com.calmed.calmedtics.model.dto.request.SetConfirmOverEighteenDto
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
 import com.calmed.calmedtics.model.dto.request.UserExerciseProgressUpdateDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
@@ -37,6 +38,7 @@ interface IAppApi {
         fileName: String = "profile.jpg"
     ): UserDto
     suspend fun setOnboarded(id: String, dto: SetIsOnboardedDto): UserDto?
+    suspend fun confirmOverEighteen(id: String, dto: SetConfirmOverEighteenDto): UserDto?
     suspend fun deleteAccount(id: String): Boolean
     suspend fun syncExerciseProgress(dto: UserExerciseProgressUpdateDto): Boolean
 

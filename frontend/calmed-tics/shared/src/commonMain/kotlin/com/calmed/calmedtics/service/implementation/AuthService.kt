@@ -30,20 +30,15 @@ class AuthService(
         email: String,
         username: String,
         password: String,
-        confirmPassword: String,
-        confirmOverEighteen: Boolean
+        confirmPassword: String
     ): Boolean {
-        if(!confirmOverEighteen){
-            return false
-        }
         val trimmedEmail = email.trim()
         val trimmedUsername = username.trim()
         val registerDto = RegisterUserDto(
             email = trimmedEmail,
             username = trimmedUsername,
             password = password,
-            confirmPassword = confirmPassword,
-            confirmOverEighteen = confirmOverEighteen
+            confirmPassword = confirmPassword
         )
         val token = api.register(registerDto)
         if (token != null) {

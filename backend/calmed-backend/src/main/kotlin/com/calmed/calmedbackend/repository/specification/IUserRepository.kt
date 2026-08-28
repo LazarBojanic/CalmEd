@@ -10,6 +10,7 @@ interface IUserRepository {
 	suspend fun create(user: User): User?
 	suspend fun update(user: User): User?
 	suspend fun delete(id: UUID): Boolean
- suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): User?
+  suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): User?
+  suspend fun setConfirmOverEighteen(id: UUID, confirmOverEighteen: Boolean): User?
 
 }

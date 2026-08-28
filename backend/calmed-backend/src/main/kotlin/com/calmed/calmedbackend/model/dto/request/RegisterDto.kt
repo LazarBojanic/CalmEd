@@ -8,5 +8,4 @@ data class RegisterDto(
 	val username: String,
 	val password: String,
 	val confirmPassword: String,
-	val confirmOverEighteen: Boolean,
 )

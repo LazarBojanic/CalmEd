@@ -41,7 +41,7 @@ interface IAuthService {
 
 
 
-
+	suspend fun validateEmail(email: String?): AppResult<Unit>
 	suspend fun validatePassword(p: String?, c: String?): AppResult<Unit>
 	suspend fun hashTextBCrypt(text: String?): AppResult<String>
 	suspend fun verifyTextBCrypt(text: String?, hash: String?): AppResult<Unit>
