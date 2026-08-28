@@ -16,7 +16,6 @@ object UserInfoTicsTable : UUIDTable(name = "user_info_tics") {
 	val tickFrequency = enumeration("tick_frequency", TickFrequency::class).nullable()
 	val ticDuration = enumeration("tic_duration", TicDuration::class).nullable()
 	val goal = text("goal").nullable()
-	val followProgress = bool("follow_progress").nullable()
 	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
 }

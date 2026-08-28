@@ -16,7 +16,6 @@ data class UserInfoTicsJoined(
 	val tickFrequency: TickFrequency?,
 	val ticDuration: TicDuration?,
 	val goal: String?,
-	val followProgress: Boolean?,
 	val createdAt: String,
 	val updatedAt: String
 )

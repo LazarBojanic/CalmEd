@@ -19,7 +19,6 @@ data class UserInfoTics(
 	val tickFrequency: TickFrequency?,
 	val ticDuration: TicDuration?,
 	val goal: String?,
-	val followProgress: Boolean?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
@@ -35,7 +34,6 @@ data class UserInfoTics(
 			tickFrequency: TickFrequency?,
 			ticDuration: TicDuration?,
 			goal: String?,
-			followProgress: Boolean?,
 			createdAt: Instant? = null,
 			updatedAt: Instant? = null,
 		): UserInfoTics {
@@ -52,7 +50,6 @@ data class UserInfoTics(
 				tickFrequency = tickFrequency,
 				ticDuration = ticDuration,
 				goal = goal,
-				followProgress = followProgress,
 				createdAt = cat,
 				updatedAt = uat
 			)
