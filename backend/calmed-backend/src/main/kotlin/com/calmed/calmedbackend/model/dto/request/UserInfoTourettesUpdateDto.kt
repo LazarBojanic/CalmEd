@@ -17,6 +17,5 @@ data class UserInfoTicsUpdateDto(
 	val tickType: TickType?,
 	val tickFrequency: TickFrequency?,
 	val ticDuration: TicDuration?,
-	val goal: String?,
-	val followProgress: Boolean?
+	val goal: String?
 )

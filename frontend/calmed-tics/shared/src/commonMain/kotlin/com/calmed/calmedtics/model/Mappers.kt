@@ -32,7 +32,6 @@ fun UserInfoTicsDto.toEntity(): UserInfoTicsEntity {
 		tickFrequency = tickFrequency,
 		ticDuration = ticDuration,
 		goal = goal,
-		followProgress = followProgress,
 		createdAt = createdAt,
 		updatedAt = updatedAt
 	)
@@ -77,7 +76,6 @@ fun UserInfoTicsEntity.toJoined(user: UserJoined): UserInfoTicsJoined {
 		tickFrequency = tickFrequency,
 		ticDuration = ticDuration,
 		goal = goal,
-		followProgress = followProgress,
 		createdAt = createdAt,
 		updatedAt = updatedAt
 	)

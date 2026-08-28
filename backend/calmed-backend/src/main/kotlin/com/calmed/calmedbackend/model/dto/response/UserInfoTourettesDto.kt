@@ -21,7 +21,6 @@ data class UserInfoTicsDto(
 	val tickFrequency:TickFrequency?,
 	val ticDuration: TicDuration?,
 	val goal: String?,
-	val followProgress: Boolean?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)

@@ -17,3 +17,6 @@
 - On the backend, make sure to point the EngineMain run configuration to the .env file ({backend_root_dir}/src/resources/.env). EngineMain -> Edit Configurations -> Environment Variables
 - In pgAdmin, create a database "calmed". Or through the psql command line: createdb -U postgres -h localhost calmed (password: postgres).
 - Run the Server, then run the Client.
+
+![Home Screen](./home_screen.png)
+![Video Screen](./video_screen.png)

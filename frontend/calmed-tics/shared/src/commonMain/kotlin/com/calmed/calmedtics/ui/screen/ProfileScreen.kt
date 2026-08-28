@@ -52,8 +52,6 @@ import calmedtics.shared.generated.resources.edit_profile
 import calmedtics.shared.generated.resources.email
 import calmedtics.shared.generated.resources.error_prefix
 import calmedtics.shared.generated.resources.evening_reminder_label
-import calmedtics.shared.generated.resources.follow_progress
-import calmedtics.shared.generated.resources.following_progress
 import calmedtics.shared.generated.resources.frequency_daily
 import calmedtics.shared.generated.resources.frequency_moderate
 import calmedtics.shared.generated.resources.frequency_rare
@@ -126,8 +124,8 @@ fun ProfileScreen(
 	val stress = remember { mutableIntStateOf(userInfo?.stressLevel ?: 5) }
 	val tickType = remember { mutableStateOf(userInfo?.tickType ?: TickType.BOTH) }
 	val tickFrequency = remember { mutableStateOf(userInfo?.tickFrequency ?: TickFrequency.MODERATE) }
+	val ticDuration = remember { mutableStateOf(userInfo?.ticDuration ?: TicDuration.ZERO_TO_ONE_YEAR) }
 	val goal = remember { mutableStateOf(userInfo?.goal ?: "") }
-	val followProgress = remember { mutableStateOf(userInfo?.followProgress ?: true) }
 	val ageText = remember { mutableStateOf(age.intValue.toString()) }
 
 	LaunchedEffect(Unit) {
@@ -142,8 +140,8 @@ fun ProfileScreen(
 		stress.intValue = userInfo?.stressLevel ?: 5
 		tickType.value = userInfo?.tickType ?: TickType.BOTH
 		tickFrequency.value = userInfo?.tickFrequency ?: TickFrequency.MODERATE
+		ticDuration.value = userInfo?.ticDuration ?: TicDuration.ZERO_TO_ONE_YEAR
 		goal.value = userInfo?.goal ?: ""
-		followProgress.value = userInfo?.followProgress ?: true
 		ageText.value = age.intValue.toString()
 	}
 
@@ -159,9 +157,8 @@ fun ProfileScreen(
 			stressLevel = stress.intValue,
 			tickType = tickType.value,
 			tickFrequency = tickFrequency.value,
-			ticDuration = userInfo?.ticDuration,
-			goal = goal.value.trim(),
-			followProgress = followProgress.value
+			ticDuration = ticDuration.value,
+			goal = goal.value.trim()
 		)
 	}
 
@@ -394,39 +391,35 @@ fun ProfileScreen(
 								)
 							}
 
+							Text(
+								text = "How long have you had tics?",
+								color = MaterialTheme.colorScheme.onSurface
+							)
+
+							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+								RadioOptionRow(
+									text = "0–1 year",
+									selected = ticDuration.value == TicDuration.ZERO_TO_ONE_YEAR,
+									onClick = { ticDuration.value = TicDuration.ZERO_TO_ONE_YEAR }
+								)
+								RadioOptionRow(
+									text = "1–3 years",
+									selected = ticDuration.value == TicDuration.ONE_TO_THREE_YEARS,
+									onClick = { ticDuration.value = TicDuration.ONE_TO_THREE_YEARS }
+								)
+								RadioOptionRow(
+									text = "3+ years",
+									selected = ticDuration.value == TicDuration.THREE_PLUS_YEARS,
+									onClick = { ticDuration.value = TicDuration.THREE_PLUS_YEARS }
+								)
+							}
+
 							TextField(
 								value = goal.value,
 								onValueChange = { goal.value = it },
 								label = stringResource(Res.string.goal_label),
 								singleLine = false
 							)
-
-							Surface(
-								modifier = Modifier.fillMaxWidth(),
-								shape = RoundedCornerShape(20.dp),
-								color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
-								border = BorderStroke(
-									width = 1.dp,
-									color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-								)
-							) {
-								Row(
-									modifier = Modifier
-										.fillMaxWidth()
-										.padding(horizontal = 16.dp, vertical = 16.dp),
-									verticalAlignment = Alignment.CenterVertically
-								) {
-									Text(
-										text = stringResource(Res.string.follow_progress),
-										color = MaterialTheme.colorScheme.onSurface
-									)
-									Spacer(modifier = Modifier.weight(1f))
-									Switch(
-										checked = followProgress.value,
-										onCheckedChange = { followProgress.value = it }
-									)
-								}
-							}
 						}
 					}
 

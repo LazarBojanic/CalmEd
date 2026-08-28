@@ -21,7 +21,6 @@ data class UserInfoTicsJoined(
 	val tickFrequency: TickFrequency?,
 	val ticDuration: TicDuration?,
 	val goal: String?,
-	val followProgress: Boolean?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)
@@ -37,7 +36,6 @@ data class UserInfoTicsJoined(
 			tickFrequency: TickFrequency?,
 			ticDuration: TicDuration?,
 			goal: String?,
-			followProgress: Boolean?,
 			createdAt: Instant? = null,
 			updatedAt: Instant? = null,
 		): UserInfoTicsJoined {
@@ -54,7 +52,6 @@ data class UserInfoTicsJoined(
 				tickFrequency = tickFrequency,
 				ticDuration = ticDuration,
 				goal = goal,
-				followProgress = followProgress,
 				createdAt = cat,
 				updatedAt = uat
 			)

@@ -15,7 +15,6 @@ class UserInfoTicsEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var tickFrequency by UserInfoTicsTable.tickFrequency
 	var ticDuration by UserInfoTicsTable.ticDuration
 	var goal by UserInfoTicsTable.goal
-	var followProgress by UserInfoTicsTable.followProgress
 	var createdAt by UserInfoTicsTable.createdAt
 	var updatedAt by UserInfoTicsTable.updatedAt
 }

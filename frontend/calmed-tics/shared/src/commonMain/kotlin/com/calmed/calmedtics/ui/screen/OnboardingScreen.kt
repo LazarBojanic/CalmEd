@@ -84,7 +84,6 @@ fun OnboardingScreen(
         mutableStateOf(userInfo.ticDuration ?: TicDuration.ZERO_TO_ONE_YEAR)
     }
     val goal = remember { mutableStateOf(userInfo.goal ?: "") }
-    val followProgress = remember { mutableStateOf(userInfo.followProgress ?: true) }
     fun buildUpdate(): UserInfoTicsUpdateDto {
         return UserInfoTicsUpdateDto(
             userId = user.id,
@@ -94,8 +93,7 @@ fun OnboardingScreen(
             tickType = tickType.value,
             tickFrequency = tickFrequency.value,
             ticDuration = ticDuration.value,
-            goal = goal.value.trim(),
-            followProgress = followProgress.value
+            goal = goal.value.trim()
         )
     }
     @Composable

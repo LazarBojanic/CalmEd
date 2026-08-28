@@ -112,7 +112,6 @@ class UserInfoTicsRepository : IUserInfoTicsRepository {
 						tickFrequency = dto.tickFrequency,
 						ticDuration = dto.ticDuration,
 						goal = dto.goal,
-						followProgress = dto.followProgress,
 						createdAt = e.createdAt,
 						updatedAt = Instant.now()
 					)

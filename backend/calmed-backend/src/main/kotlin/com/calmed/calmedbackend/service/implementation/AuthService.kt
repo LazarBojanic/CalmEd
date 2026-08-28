@@ -219,8 +219,7 @@ class AuthService(private val userService: IUserService,
 																tickType = null,
 																tickFrequency = null,
 																ticDuration = null,
-																goal = null,
-																followProgress = null
+																goal = null
 															)
 															val userInfoTicsResult =
 																userInfoTicsService.create(newUserInfoTics)
@@ -445,8 +444,7 @@ class AuthService(private val userService: IUserService,
 														tickType = null,
 														tickFrequency = null,
 														ticDuration = null,
-														goal = null,
-														followProgress = null
+														goal = null
 													)
 													val userInfoTicsResult =
 														userInfoTicsService.create(newUserInfoTics)
@@ -594,8 +592,7 @@ class AuthService(private val userService: IUserService,
 												tickType = null,
 												tickFrequency = null,
 												ticDuration = null,
-												goal = null,
-												followProgress = null
+												goal = null
 											)
 											val userInfoTicsResult =
 												userInfoTicsService.create(newUserInfoTics)

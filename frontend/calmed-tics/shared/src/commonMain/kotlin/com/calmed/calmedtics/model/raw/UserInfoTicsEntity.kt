@@ -24,8 +24,6 @@ data class UserInfoTicsEntity(
 	val ticDuration: TicDuration?,
 	@ColumnInfo(name = "goal")
 	val goal: String?,
-	@ColumnInfo(name = "follow_progress")
-	val followProgress: Boolean?,
 	@ColumnInfo(name = "created_at")
 	val createdAt: String,
 	@ColumnInfo(name = "updated_at")

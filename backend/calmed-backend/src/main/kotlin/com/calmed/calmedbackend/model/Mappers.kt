@@ -290,7 +290,6 @@ fun UserInfoTics.join(user: UserJoined): UserInfoTicsJoined {
 		tickFrequency = this.tickFrequency,
 		ticDuration = this.ticDuration,
 		goal = this.goal,
-		followProgress = this.followProgress,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -307,7 +306,6 @@ fun UserInfoTicsEntity.toRaw(): UserInfoTics {
 		tickFrequency = this.tickFrequency,
 		ticDuration = this.ticDuration,
 		goal = this.goal,
-		followProgress = this.followProgress,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -322,7 +320,6 @@ fun UserInfoTicsEntity.setFrom(d: UserInfoTics, mapMode: MapMode) {
 	tickFrequency = d.tickFrequency
 	ticDuration = d.ticDuration
 	goal = d.goal
-	followProgress = d.followProgress
 	when (mapMode) {
 		MapMode.CREATE -> {
 			createdAt = d.createdAt
@@ -346,7 +343,6 @@ fun UserInfoTicsJoined.toDto(): UserInfoTicsDto {
 		tickFrequency = this.tickFrequency,
 		ticDuration = this.ticDuration,
 		goal = this.goal,
-		followProgress = this.followProgress,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)

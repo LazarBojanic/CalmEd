@@ -67,8 +67,7 @@ class UserInfoTicsService(private val userInfoTicsRepository: IUserInfoTicsRepos
 				tickType = null,
 				tickFrequency = null,
 				ticDuration = null,
-				goal = null,
-				followProgress = null
+				goal = null
 			)
 			return create(createdRaw)
 		}
