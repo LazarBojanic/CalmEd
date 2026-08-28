@@ -288,6 +288,7 @@ fun UserInfoTics.join(user: UserJoined): UserInfoTicsJoined {
 		stressLevel = this.stressLevel,
 		tickType = this.tickType,
 		tickFrequency = this.tickFrequency,
+		ticDuration = this.ticDuration,
 		goal = this.goal,
 		followProgress = this.followProgress,
 		createdAt = this.createdAt,
@@ -304,6 +305,7 @@ fun UserInfoTicsEntity.toRaw(): UserInfoTics {
 		stressLevel = this.stressLevel,
 		tickType = this.tickType,
 		tickFrequency = this.tickFrequency,
+		ticDuration = this.ticDuration,
 		goal = this.goal,
 		followProgress = this.followProgress,
 		createdAt = this.createdAt,
@@ -318,6 +320,7 @@ fun UserInfoTicsEntity.setFrom(d: UserInfoTics, mapMode: MapMode) {
 	stressLevel = d.stressLevel
 	tickType = d.tickType
 	tickFrequency = d.tickFrequency
+	ticDuration = d.ticDuration
 	goal = d.goal
 	followProgress = d.followProgress
 	when (mapMode) {
@@ -341,6 +344,7 @@ fun UserInfoTicsJoined.toDto(): UserInfoTicsDto {
 		stressLevel = this.stressLevel,
 		tickType = this.tickType,
 		tickFrequency = this.tickFrequency,
+		ticDuration = this.ticDuration,
 		goal = this.goal,
 		followProgress = this.followProgress,
 		createdAt = this.createdAt,

@@ -20,6 +20,8 @@ data class UserInfoTicsEntity(
 	val tickType: TickType?,
 	@ColumnInfo(name = "tick_frequency")
 	val tickFrequency: TickFrequency?,
+	@ColumnInfo(name = "tic_duration")
+	val ticDuration: TicDuration?,
 	@ColumnInfo(name = "goal")
 	val goal: String?,
 	@ColumnInfo(name = "follow_progress")

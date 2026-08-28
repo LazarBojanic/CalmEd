@@ -110,6 +110,7 @@ class UserInfoTicsRepository : IUserInfoTicsRepository {
 						stressLevel = dto.stressLevel,
 						tickType = dto.tickType,
 						tickFrequency = dto.tickFrequency,
+						ticDuration = dto.ticDuration,
 						goal = dto.goal,
 						followProgress = dto.followProgress,
 						createdAt = e.createdAt,

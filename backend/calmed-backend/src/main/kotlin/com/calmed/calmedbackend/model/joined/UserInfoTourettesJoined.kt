@@ -7,6 +7,7 @@ import com.calmed.calmedbackend.util.UUIDSerializer
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.util.UUID
+import com.calmed.calmedbackend.model.raw.userinfo.tics.TicDuration
 
 @Serializable
 data class UserInfoTicsJoined(
@@ -18,6 +19,7 @@ data class UserInfoTicsJoined(
 	val stressLevel: Int?,
 	val tickType: TickType?,
 	val tickFrequency: TickFrequency?,
+	val ticDuration: TicDuration?,
 	val goal: String?,
 	val followProgress: Boolean?,
 	@Serializable(with = InstantSerializer::class)
@@ -33,6 +35,7 @@ data class UserInfoTicsJoined(
 			stressLevel: Int?,
 			tickType: TickType?,
 			tickFrequency: TickFrequency?,
+			ticDuration: TicDuration?,
 			goal: String?,
 			followProgress: Boolean?,
 			createdAt: Instant? = null,
@@ -49,6 +52,7 @@ data class UserInfoTicsJoined(
 				stressLevel = stressLevel,
 				tickType = tickType,
 				tickFrequency = tickFrequency,
+				ticDuration = ticDuration,
 				goal = goal,
 				followProgress = followProgress,
 				createdAt = cat,

@@ -13,6 +13,7 @@ class UserInfoTicsEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var stressLevel by UserInfoTicsTable.stressLevel
 	var tickType by UserInfoTicsTable.tickType
 	var tickFrequency by UserInfoTicsTable.tickFrequency
+	var ticDuration by UserInfoTicsTable.ticDuration
 	var goal by UserInfoTicsTable.goal
 	var followProgress by UserInfoTicsTable.followProgress
 	var createdAt by UserInfoTicsTable.createdAt

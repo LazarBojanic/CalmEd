@@ -66,6 +66,7 @@ class UserInfoTicsService(private val userInfoTicsRepository: IUserInfoTicsRepos
 				stressLevel = null,
 				tickType = null,
 				tickFrequency = null,
+				ticDuration = null,
 				goal = null,
 				followProgress = null
 			)

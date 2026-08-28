@@ -84,6 +84,7 @@ import calmedtics.shared.generated.resources.tics_type
 import calmedtics.shared.generated.resources.tics_vocal
 import calmedtics.shared.generated.resources.username
 import calmedtics.shared.generated.resources.yes
+import com.calmed.calmedtics.model.raw.TicDuration
 
 @Composable
 fun ProfileScreen(
@@ -158,6 +159,7 @@ fun ProfileScreen(
 			stressLevel = stress.intValue,
 			tickType = tickType.value,
 			tickFrequency = tickFrequency.value,
+			ticDuration = userInfo?.ticDuration,
 			goal = goal.value.trim(),
 			followProgress = followProgress.value
 		)
@@ -536,14 +538,14 @@ fun ProfileScreen(
 								value = it
 							)
 						}
-						userInfo.followProgress?.let {
+						userInfo.ticDuration?.let {
 							InfoRow(
-								icon = Icons.Default.CheckCircle,
-								label = stringResource(Res.string.following_progress),
-								value = if (it) {
-									stringResource(Res.string.yes)
-								} else {
-									stringResource(Res.string.no)
+								icon = Icons.Default.DateRange,
+								label = "How long have you had tics?",
+								value = when (it) {
+									TicDuration.ZERO_TO_ONE_YEAR -> "0–1 year"
+									TicDuration.ONE_TO_THREE_YEARS -> "1–3 years"
+									TicDuration.THREE_PLUS_YEARS -> "3+ years"
 								}
 							)
 						}
