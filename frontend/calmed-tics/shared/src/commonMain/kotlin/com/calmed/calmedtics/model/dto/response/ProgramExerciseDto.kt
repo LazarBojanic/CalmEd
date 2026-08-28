@@ -9,6 +9,8 @@ data class ProgramExerciseDto(
 	val title: String = "",
 	val description: String? = null,
 	val playbackId: String? = null,
+	val previewPlaybackId: String? = null,
+	val previewVideoURL: String? = null,
 	val videoURL: String? = null,
 	val thumbnailURL: String? = null,
 	val durationSeconds: Int? = null,

@@ -14,6 +14,7 @@ data class ProgramExercise(
 	val title: String,
 	val description: String?,
 	val playbackId: String?,
+	val previewPlaybackId: String? = null,
 	val thumbnailURL: String?,
 	val durationSeconds: Int?= null,
 	val visibility: Visibility,

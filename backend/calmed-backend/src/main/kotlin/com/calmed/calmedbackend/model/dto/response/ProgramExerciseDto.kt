@@ -15,6 +15,8 @@ data class ProgramExerciseDto(
 	val title: String,
 	val description: String?,
 	val playbackId: String?,
+	val previewPlaybackId: String?,
+	val previewVideoURL: String?,
 	val videoURL: String?,
 	val videoURLEs: String?,
 	val thumbnailURL: String?,

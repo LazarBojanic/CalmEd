@@ -67,6 +67,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.ui.unit.sp
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.util.epochDayToYmd
+import com.calmed.calmedtics.ui.component.VideoPlayer
+
 @Composable
 fun HomeScreen(
     sessionViewModel: SessionViewModel = koinInject(),
@@ -589,6 +591,7 @@ fun HomeScreen(
 
             item {
                 val thumbnailUrl = selectedExercise?.thumbnailURL
+                val previewVideoUrl = selectedExercise?.previewVideoURL
 
                 Card(
                     modifier = Modifier
@@ -610,7 +613,21 @@ fun HomeScreen(
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        if (!thumbnailUrl.isNullOrBlank()) {
+                        if (!previewVideoUrl.isNullOrBlank()) {
+                            VideoPlayer(
+                                hlsUrl = previewVideoUrl,
+                                title = null,
+                                modifier = Modifier.fillMaxSize(),
+                                isFullscreen = false,
+                                isPlaying = true,
+                                isMuted = true,
+                                useController = false,
+                                showFullscreenButton = false,
+                                showPrevNextButtons = false,
+                                showRewindFastForwardButtons = false,
+                                repeatCurrentExercise = true
+                            )
+                        } else if (!thumbnailUrl.isNullOrBlank()) {
                             ThumbnailImage(
                                 url = thumbnailUrl,
                                 contentDescription = selectedTitle ?: "",

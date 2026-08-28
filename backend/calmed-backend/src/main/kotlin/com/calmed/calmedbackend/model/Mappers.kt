@@ -359,6 +359,7 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 		title = this.title,
 		description = this.description,
 		playbackId = this.playbackId,
+		previewPlaybackId = this.previewPlaybackId,
 		thumbnailURL = this.thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
@@ -372,6 +373,7 @@ fun ProgramExerciseEntity.setFrom(d: ProgramExercise, mapMode: MapMode) {
 	title = d.title
 	description = d.description
 	playbackId = d.playbackId
+	previewPlaybackId = d.previewPlaybackId
 	thumbnailURL = d.thumbnailURL
 	visibility = d.visibility
 	when (mapMode) {
@@ -392,6 +394,7 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 		title = this.title,
 		description = this.description,
 		playbackId = this.playbackId,
+		previewPlaybackId = this.previewPlaybackId,
 		thumbnailURL = this.thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
@@ -401,50 +404,74 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 }
 
 fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
-	val videoBaseURL = "https://stream.mux.com/";
-	val thumbnailBaseURL = "https://image.mux.com/";
+	val videoBaseURL = "https://stream.mux.com/"
+	val thumbnailBaseURL = "https://image.mux.com/"
 	var videoURL = ""
 	var videoURLEs = ""
+	var previewVideoURL = ""
 	var thumbnailURL = this.thumbnailURL
-	if(muxConfig.signingKey.isNotBlank() && muxConfig.privateKey.isNotBlank()){
-		if(!this.playbackId.isNullOrBlank()){
-			if(this.visibility == Visibility.SIGNED){
+
+	if (muxConfig.signingKey.isNotBlank() && muxConfig.privateKey.isNotBlank()) {
+		if (!this.playbackId.isNullOrBlank()) {
+			if (this.visibility == Visibility.SIGNED) {
 				val videoToken = MuxTokenGenerator.generatePlaybackToken(
 					this.playbackId,
 					muxConfig.signingKey,
 					muxConfig.privateKey
 				)
-				videoURL = "$videoBaseURL${this.playbackId}.m3u8?token=${videoToken}"
+				videoURL = "$videoBaseURL${this.playbackId}.m3u8?token=$videoToken"
 
 				val thumbnailToken = MuxTokenGenerator.generateThumbnailToken(
 					this.playbackId,
 					muxConfig.signingKey,
 					muxConfig.privateKey
 				)
-				thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg?token=${thumbnailToken}"
-			}
-			else{
+				thumbnailURL =
+					"$thumbnailBaseURL${this.playbackId}/thumbnail.jpg?token=$thumbnailToken"
+			} else {
 				videoURL = "$videoBaseURL${this.playbackId}.m3u8"
 				if (thumbnailURL.isNullOrBlank()) {
 					thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
 				}
 			}
 		}
-	}
-	else {
-		if (!this.playbackId.isNullOrBlank()){
+
+		if (!this.previewPlaybackId.isNullOrBlank()) {
+			if (this.visibility == Visibility.SIGNED) {
+				val previewToken = MuxTokenGenerator.generatePlaybackToken(
+					this.previewPlaybackId,
+					muxConfig.signingKey,
+					muxConfig.privateKey
+				)
+				previewVideoURL =
+					"$videoBaseURL${this.previewPlaybackId}.m3u8?token=$previewToken"
+			} else {
+				previewVideoURL =
+					"$videoBaseURL${this.previewPlaybackId}.m3u8"
+			}
+		}
+	} else {
+		if (!this.playbackId.isNullOrBlank()) {
 			videoURL = "$videoBaseURL${this.playbackId}.m3u8"
 			if (thumbnailURL.isNullOrBlank()) {
 				thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
 			}
 		}
+
+		if (!this.previewPlaybackId.isNullOrBlank()) {
+			previewVideoURL =
+				"$videoBaseURL${this.previewPlaybackId}.m3u8"
+		}
 	}
+
 	return ProgramExerciseDto(
 		id = this.id,
 		weekNumber = this.weekNumber,
 		title = this.title,
 		description = this.description,
 		playbackId = this.playbackId,
+		previewPlaybackId = this.previewPlaybackId,
+		previewVideoURL = previewVideoURL,
 		videoURL = videoURL,
 		videoURLEs = videoURLEs,
 		thumbnailURL = thumbnailURL,
@@ -456,7 +483,7 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 }
 
 fun UserProgramEntity.toRaw(): UserProgram {
- return UserProgram(
+	return UserProgram(
 		id = this.id.value,
 		userId = this.userId,
 		startDate = this.startDate,
@@ -562,3 +589,4 @@ fun UserExerciseProgressJoined.toDto(): UserExerciseProgressDto {
 		updatedAt = this.updatedAt
 	)
 }
+

@@ -15,6 +15,7 @@ object ProgramExerciseTable : UUIDTable("program_exercise") {
 	val title = text("title")
 	val description = text("description").nullable()
 	val playbackId = text("playback_id").nullable()
+	val previewPlaybackId = text("preview_playback_id").nullable()
 	val thumbnailURL = text("thumbnail_url").nullable()
 	val durationSeconds = integer(name = "duration_seconds").nullable()
 	val visibility = enumeration("visibility", Visibility::class).default(Visibility.SIGNED)
