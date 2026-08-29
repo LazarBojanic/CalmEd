@@ -46,6 +46,8 @@ import calmedtics.shared.generated.resources.age
 import calmedtics.shared.generated.resources.cancel
 import calmedtics.shared.generated.resources.condition_info
 import calmedtics.shared.generated.resources.default_user
+import calmedtics.shared.generated.resources.download_quality
+import calmedtics.shared.generated.resources.download_quality_description
 import calmedtics.shared.generated.resources.edit_condition_info
 import calmedtics.shared.generated.resources.edit_personal_details
 import calmedtics.shared.generated.resources.edit_profile
@@ -83,6 +85,7 @@ import calmedtics.shared.generated.resources.tics_vocal
 import calmedtics.shared.generated.resources.username
 import calmedtics.shared.generated.resources.yes
 import com.calmed.calmedtics.model.raw.TicDuration
+import com.calmed.calmedtics.video.VideoResolution
 
 @Composable
 fun ProfileScreen(
@@ -101,6 +104,7 @@ fun ProfileScreen(
 	val reminderManager = remember { ReminderManager() }
 
 	var remindersEnabled by remember { mutableStateOf(appSettings.isRemindersEnabled()) }
+	var downloadResolution by remember { mutableStateOf(appSettings.getDownloadResolution()) }
 
 	val loading by sessionViewModel.loading.collectAsState()
 	val error by sessionViewModel.error.collectAsState()
@@ -638,6 +642,29 @@ fun ProfileScreen(
 								reminderManager.enableMorningAndEvening()
 							}
 						)
+					}
+				}
+			}
+
+			item {
+				InfoSection(title = stringResource(Res.string.download_quality)) {
+					Text(
+						text = stringResource(Res.string.download_quality_description),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+
+					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+						VideoResolution.entries.forEach { resolution ->
+							RadioOptionRow(
+								text = resolution.label,
+								selected = downloadResolution == resolution,
+								onClick = {
+									downloadResolution = resolution
+									appSettings.setDownloadResolution(resolution)
+								}
+							)
+						}
 					}
 				}
 			}

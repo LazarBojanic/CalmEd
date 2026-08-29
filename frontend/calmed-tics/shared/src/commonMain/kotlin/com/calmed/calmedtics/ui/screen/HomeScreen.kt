@@ -43,7 +43,7 @@ import calmedtics.shared.generated.resources.no_image
 import calmedtics.shared.generated.resources.select_video
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import com.calmed.calmedtics.ui.component.ThumbnailImage
-import com.calmed.calmedtics.ui.component.VideoDownloadBadge
+import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.util.dateToEpochDay
 import com.calmed.calmedtics.viewmodel.SessionViewModel
@@ -661,12 +661,17 @@ fun HomeScreen(
                                 )
                         )
 
-                        VideoDownloadBadge(
-                            videoUrl = selectedExercise?.videoURL,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(10.dp)
-                        )
+                        selectedExercise?.videoURL
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let { videoUrl ->
+                                VideoPlayerDownloadButton(
+                                    hlsUrl = videoUrl,
+                                    title = selectedTitle,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(10.dp)
+                                )
+                            }
 
                         Column(
                             modifier = Modifier

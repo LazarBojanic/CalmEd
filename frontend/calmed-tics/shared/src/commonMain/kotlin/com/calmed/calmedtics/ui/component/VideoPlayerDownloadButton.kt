@@ -12,6 +12,9 @@ import androidx.compose.ui.draw.alpha
 import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
+import com.calmed.calmedtics.settings.AppSettings
+import com.calmed.calmedtics.video.applyMaxResolution
+import org.koin.compose.koinInject
 
 
 @Composable
@@ -20,6 +23,7 @@ fun VideoPlayerDownloadButton(
     title: String?,
     modifier: Modifier = Modifier
 ) {
+    val appSettings: AppSettings = koinInject()
     val states by LocalVideoDownloadManager.states.collectAsState()
     val status = states.stateFor(hlsUrl).status
 
@@ -45,7 +49,11 @@ fun VideoPlayerDownloadButton(
                 VideoDownloadStatus.Downloaded -> LocalVideoDownloadManager.remove(hlsUrl)
                 VideoDownloadStatus.Downloading -> Unit
                 VideoDownloadStatus.NotDownloaded,
-                VideoDownloadStatus.Failed -> LocalVideoDownloadManager.download(hlsUrl, title)
+                VideoDownloadStatus.Failed -> {
+                    val resolved =
+                        applyMaxResolution(hlsUrl, appSettings.getDownloadResolution())
+                    LocalVideoDownloadManager.download(resolved, title)
+                }
             }
         },
         modifier = modifier.then(

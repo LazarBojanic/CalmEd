@@ -192,4 +192,8 @@
     <string name="download_for_offline">Download for offline</string>
     <string name="offline_available">Available offline</string>
     <string name="downloading_video">Downloading video…</string>
+
+    <!-- Video Download Quality -->
+    <string name="download_quality">Video Downloads</string>
+    <string name="download_quality_description">Choose the quality for videos you download for offline viewing.</string>
 </resources>

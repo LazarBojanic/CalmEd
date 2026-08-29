@@ -2,6 +2,8 @@ package com.calmed.calmedtics.ui.screen
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,10 +15,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Hd
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -56,6 +61,8 @@ import com.calmed.calmedtics.ui.component.VideoOverlayButton
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
 import com.calmed.calmedtics.ui.component.VideoPlaylistItem
+import com.calmed.calmedtics.video.VideoResolution
+import com.calmed.calmedtics.video.applyMaxResolution
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -91,6 +98,8 @@ fun VideoScreen(
     var controlsVisible by remember { mutableStateOf(true) }
 
     var showSettings by remember { mutableStateOf(false) }
+    var showResolutionPicker by remember { mutableStateOf(false) }
+    var selectedResolution by rememberSaveable { mutableStateOf(VideoResolution.R1080) }
     var autoPlayNext by rememberSaveable { mutableStateOf(false) }
     var keepScreenAwake by rememberSaveable { mutableStateOf(false) }
     var repeatCurrentExercise by rememberSaveable { mutableStateOf(false) }
@@ -140,6 +149,9 @@ fun VideoScreen(
     val currentExercise = exercises[currentIndex]
     val currentUrl = currentExercise.videoURL ?: ""
     val displayTitle = currentExercise.title
+    val resolvedUrl = remember(currentUrl, selectedResolution) {
+        applyMaxResolution(currentUrl, selectedResolution)
+    }
     val canGoNext =
         currentIndex < exercises.lastIndex &&
                 exercises[currentIndex + 1].weekNumber <= currentWeek
@@ -147,10 +159,13 @@ fun VideoScreen(
     val canGoPrevious = currentIndex > 0
 
     val playlistItems =
-        remember(exercises) {
+        remember(exercises, selectedResolution) {
             exercises.map { exercise ->
                 VideoPlaylistItem(
-                    url = exercise.videoURL ?: "",
+                    url = applyMaxResolution(
+                        exercise.videoURL ?: "",
+                        selectedResolution
+                    ),
                     title = exercise.title
                 )
             }
@@ -195,7 +210,7 @@ fun VideoScreen(
                 }
             ) {
                 VideoPlayer(
-                    hlsUrl = currentUrl,
+                    hlsUrl = resolvedUrl,
                     title = displayTitle,
                     modifier = Modifier.fillMaxSize(),
                     isFullscreen = isFullscreen,
@@ -260,6 +275,12 @@ fun VideoScreen(
                                 hlsUrl = currentUrl,
                                 title = displayTitle,
                                 modifier = Modifier.size(28.dp)
+                            )
+
+                            VideoOverlayButton(
+                                icon = Icons.Default.Hd,
+                                contentDescription = "Resolution",
+                                onClick = { showResolutionPicker = true }
                             )
 
                             VideoOverlayButton(
@@ -378,6 +399,99 @@ fun VideoScreen(
                         )
                     }
                 }
+            }
+        )
+    }
+
+    if (showResolutionPicker) {
+        AlertDialog(
+            onDismissRequest = { showResolutionPicker = false },
+            confirmButton = {
+                TextButton(onClick = { showResolutionPicker = false }) {
+                    Text("Close")
+                }
+            },
+            title = {
+                Text("Resolution")
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    VideoResolution.entries.forEach { resolution ->
+                        ResolutionOptionRow(
+                            label = resolution.label,
+                            selected = selectedResolution == resolution,
+                            onClick = {
+                                selectedResolution = resolution
+                                showResolutionPicker = false
+                            }
+                        )
+                    }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun ResolutionOptionRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(20.dp)
+                .background(
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        Color.Transparent
+                    },
+                    shape = CircleShape
+                )
+                .border(
+                    width = 2.dp,
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outline
+                    },
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(
+                            MaterialTheme.colorScheme.onPrimary,
+                            CircleShape
+                        )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = label,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 16.sp,
+            fontWeight = if (selected) {
+                FontWeight.SemiBold
+            } else {
+                FontWeight.Normal
             }
         )
     }

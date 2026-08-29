@@ -45,7 +45,7 @@ import calmedtics.shared.generated.resources.week_title
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import com.calmed.calmedtics.ui.component.ThumbnailImage
-import com.calmed.calmedtics.ui.component.VideoDownloadBadge
+import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -214,12 +214,17 @@ fun ExercisesScreen(
                                         )
                                 )
 
-                                VideoDownloadBadge(
-                                    videoUrl = ex.videoURL,
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(10.dp)
-                                )
+                                ex.videoURL
+                                    ?.takeIf { it.isNotBlank() }
+                                    ?.let { videoUrl ->
+                                        VideoPlayerDownloadButton(
+                                            hlsUrl = videoUrl,
+                                            title = ex.title,
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(10.dp)
+                                        )
+                                    }
 
                                 Column(
                                     modifier = Modifier

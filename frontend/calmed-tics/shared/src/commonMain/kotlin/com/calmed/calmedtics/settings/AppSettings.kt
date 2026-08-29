@@ -1,5 +1,6 @@
 package com.calmed.calmedtics.settings
 
+import com.calmed.calmedtics.video.VideoResolution
 import com.russhwolf.settings.Settings
 
 class AppSettings(
@@ -11,6 +12,7 @@ class AppSettings(
         private const val KEY_REMINDERS_ENABLED = "reminders_enabled"
         private const val KEY_MORNING_REMINDER_TIME = "morning_reminder_time"
         private const val KEY_EVENING_REMINDER_TIME = "evening_reminder_time"
+        private const val KEY_DOWNLOAD_RESOLUTION = "download_resolution"
     }
 
     private fun welcomeVideoKey(userId: String?): String {
@@ -48,4 +50,11 @@ class AppSettings(
 
     fun getEveningReminderTime(): String = settings.getString(KEY_EVENING_REMINDER_TIME, "17:00")
     fun setEveningReminderTime(value: String) = settings.putString(KEY_EVENING_REMINDER_TIME, value)
+
+    fun getDownloadResolution(): VideoResolution =
+        VideoResolution.fromName(settings.getStringOrNull(KEY_DOWNLOAD_RESOLUTION))
+
+    fun setDownloadResolution(value: VideoResolution) {
+        settings.putString(KEY_DOWNLOAD_RESOLUTION, value.name)
+    }
 }
