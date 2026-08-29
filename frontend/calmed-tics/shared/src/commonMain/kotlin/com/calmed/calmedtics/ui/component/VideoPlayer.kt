@@ -33,7 +33,5 @@ expect fun VideoPlayer(
     onNext: (() -> Unit)? = null,
     canGoPrevious: Boolean = false,
     canGoNext: Boolean = false,
-    autoPlayNext: Boolean = true,
-    repeatCurrentExercise: Boolean = false,
-    restartTrigger: Int = 0
+    repeatCurrentExercise: Boolean = false
 )

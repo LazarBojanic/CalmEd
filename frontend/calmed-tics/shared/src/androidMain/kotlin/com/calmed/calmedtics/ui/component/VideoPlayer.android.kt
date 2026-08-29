@@ -61,9 +61,7 @@ actual fun VideoPlayer(
     onNext: (() -> Unit)?,
     canGoPrevious: Boolean,
     canGoNext: Boolean,
-    autoPlayNext: Boolean,
-    repeatCurrentExercise: Boolean,
-    restartTrigger: Int
+    repeatCurrentExercise: Boolean
 ) {
     val context = LocalContext.current
 
@@ -163,8 +161,8 @@ actual fun VideoPlayer(
         }
     }
 
-    LaunchedEffect(isPlaying, isMuted, restartTrigger, autoPlayNext, repeatCurrentExercise) {
-        player.pauseAtEndOfMediaItems = !autoPlayNext && !repeatCurrentExercise
+    LaunchedEffect(isPlaying, isMuted, repeatCurrentExercise) {
+        player.pauseAtEndOfMediaItems = !repeatCurrentExercise
         player.repeatMode =
             if (repeatCurrentExercise) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
 
@@ -172,11 +170,6 @@ actual fun VideoPlayer(
         if (isPlaying) player.play() else player.pause()
 
         player.volume = if (isMuted) 0f else 1f
-
-        if (restartTrigger > 0) {
-            player.seekTo(0L)
-            player.play()
-        }
     }
 
     LaunchedEffect(player) {

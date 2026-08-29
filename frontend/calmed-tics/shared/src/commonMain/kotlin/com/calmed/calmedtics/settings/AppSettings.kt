@@ -13,6 +13,7 @@ class AppSettings(
         private const val KEY_MORNING_REMINDER_TIME = "morning_reminder_time"
         private const val KEY_EVENING_REMINDER_TIME = "evening_reminder_time"
         private const val KEY_DOWNLOAD_RESOLUTION = "download_resolution"
+        private const val KEY_KEEP_SCREEN_AWAKE = "keep_screen_awake"
     }
 
     private fun welcomeVideoKey(userId: String?): String {
@@ -56,5 +57,12 @@ class AppSettings(
 
     fun setDownloadResolution(value: VideoResolution) {
         settings.putString(KEY_DOWNLOAD_RESOLUTION, value.name)
+    }
+
+    fun isKeepScreenAwake(): Boolean =
+        settings.getBoolean(KEY_KEEP_SCREEN_AWAKE, false)
+
+    fun setKeepScreenAwake(value: Boolean) {
+        settings.putBoolean(KEY_KEEP_SCREEN_AWAKE, value)
     }
 }

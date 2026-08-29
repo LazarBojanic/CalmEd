@@ -196,4 +196,8 @@
     <!-- Video Download Quality -->
     <string name="download_quality">Video Downloads</string>
     <string name="download_quality_description">Choose the quality for videos you download for offline viewing.</string>
+
+    <!-- Video Settings -->
+    <string name="video_settings">Video Settings</string>
+    <string name="keep_screen_awake">Keep screen awake</string>
 </resources>

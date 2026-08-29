@@ -22,11 +22,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Hd
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,6 +48,7 @@ import calmedtics.shared.generated.resources.mobile_rotate
 import calmedtics.shared.generated.resources.no_exercises_available
 import calmedtics.shared.generated.resources.turn_your_phone
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import com.calmed.calmedtics.ui.component.BackButton
 import com.calmed.calmedtics.ui.component.CastButton
@@ -57,6 +56,7 @@ import com.calmed.calmedtics.ui.component.FullscreenEffect
 import com.calmed.calmedtics.ui.component.KeepScreenAwake
 import com.calmed.calmedtics.ui.component.PlatformBackHandler
 import com.calmed.calmedtics.ui.component.PlayerTopOverlayInset
+import com.calmed.calmedtics.ui.component.ShowMuteOverlayButton
 import com.calmed.calmedtics.ui.component.VideoOverlayButton
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
@@ -65,6 +65,7 @@ import com.calmed.calmedtics.video.VideoResolution
 import com.calmed.calmedtics.video.applyMaxResolution
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
 fun VideoScreen(
@@ -97,13 +98,11 @@ fun VideoScreen(
     var isVideoPortrait by remember { mutableStateOf(true) }
     var controlsVisible by remember { mutableStateOf(true) }
 
-    var showSettings by remember { mutableStateOf(false) }
     var showResolutionPicker by remember { mutableStateOf(false) }
     var selectedResolution by rememberSaveable { mutableStateOf(VideoResolution.R1080) }
-    var autoPlayNext by rememberSaveable { mutableStateOf(false) }
-    var keepScreenAwake by rememberSaveable { mutableStateOf(false) }
-    var repeatCurrentExercise by rememberSaveable { mutableStateOf(false) }
-    var restartTrigger by remember { mutableStateOf(0) }
+
+    val appSettings: AppSettings = koinInject()
+    val keepScreenAwake = appSettings.isKeepScreenAwake()
 
     PlatformBackHandler(enabled = isFullscreen) {
         isFullscreen = false
@@ -175,14 +174,6 @@ fun VideoScreen(
         isPlaying = true
     }
 
-    val onPlaybackEndedHandler: () -> Unit = {
-        if (repeatCurrentExercise) {
-            restartTrigger++
-        } else if (autoPlayNext && canGoNext) {
-            currentIndex++
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -230,7 +221,6 @@ fun VideoScreen(
                     onControllerVisibilityChanged = { visible ->
                         controlsVisible = visible
                     },
-                    onPlaybackEnded = onPlaybackEndedHandler,
                     onPlayPauseChange = { isPlaying = it },
                     onPlaylistIndexChanged = { index ->
                         if (index in exercises.indices) {
@@ -244,10 +234,7 @@ fun VideoScreen(
                         if (canGoNext) currentIndex++
                     },
                     canGoPrevious = canGoPrevious,
-                    canGoNext = canGoNext,
-                    autoPlayNext = autoPlayNext,
-                    repeatCurrentExercise = repeatCurrentExercise,
-                    restartTrigger = restartTrigger
+                    canGoNext = canGoNext
                 )
 
                 Crossfade(
@@ -283,21 +270,17 @@ fun VideoScreen(
                                 onClick = { showResolutionPicker = true }
                             )
 
-                            VideoOverlayButton(
-                                icon = Icons.Default.Settings,
-                                contentDescription = "Settings",
-                                onClick = { showSettings = true }
-                            )
-
-                            VideoOverlayButton(
-                                icon = if (isMuted) {
-                                    Icons.AutoMirrored.Filled.VolumeOff
-                                } else {
-                                    Icons.AutoMirrored.Filled.VolumeUp
-                                },
-                                contentDescription = if (isMuted) "Unmute" else "Mute",
-                                onClick = { isMuted = !isMuted }
-                            )
+                            if (ShowMuteOverlayButton) {
+                                VideoOverlayButton(
+                                    icon = if (isMuted) {
+                                        Icons.AutoMirrored.Filled.VolumeOff
+                                    } else {
+                                        Icons.AutoMirrored.Filled.VolumeUp
+                                    },
+                                    contentDescription = if (isMuted) "Unmute" else "Mute",
+                                    onClick = { isMuted = !isMuted }
+                                )
+                            }
                         }
                     }
                 }
@@ -346,61 +329,6 @@ fun VideoScreen(
                     .padding(start = 16.dp, top = 8.dp)
             )
         }
-    }
-
-    if (showSettings) {
-        AlertDialog(
-            onDismissRequest = { showSettings = false },
-            confirmButton = {
-                TextButton(onClick = { showSettings = false }) {
-                    Text("Close")
-                }
-            },
-            title = {
-                Text("Settings")
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Auto-play next exercise")
-                        Switch(
-                            checked = autoPlayNext,
-                            onCheckedChange = { autoPlayNext = it }
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Keep screen awake")
-                        Switch(
-                            checked = keepScreenAwake,
-                            onCheckedChange = { keepScreenAwake = it }
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Repeat current exercise")
-                        Switch(
-                            checked = repeatCurrentExercise,
-                            onCheckedChange = { repeatCurrentExercise = it }
-                        )
-                    }
-                }
-            }
-        )
     }
 
     if (showResolutionPicker) {

@@ -61,9 +61,7 @@ actual fun VideoPlayer(
     onNext: (() -> Unit)?,
     canGoPrevious: Boolean,
     canGoNext: Boolean,
-    autoPlayNext: Boolean,
-    repeatCurrentExercise: Boolean,
-    restartTrigger: Int
+    repeatCurrentExercise: Boolean
 ) {
     val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
     val currentOnDurationChanged by rememberUpdatedState(onDurationChanged)
@@ -175,13 +173,6 @@ actual fun VideoPlayer(
         delay(3000)
         controlsVisible = false
         currentOnControllerVisibilityChanged?.invoke(false)
-    }
-
-    LaunchedEffect(restartTrigger) {
-        if (restartTrigger > 0) {
-            player.seekToTime(CMTimeMakeWithSeconds(0.0, NSEC_PER_SEC.toInt()))
-            player.play()
-        }
     }
 
     DisposableEffect(player) {
