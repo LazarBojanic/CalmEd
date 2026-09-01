@@ -20,6 +20,7 @@ import com.calmed.calmedtics.model.dto.response.PaymentStatusDto
 import com.calmed.calmedtics.model.dto.response.UserDto
 import com.calmed.calmedtics.model.dto.response.UserInfoTicsDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.model.dto.response.ExerciseGroupDto
 import com.calmed.calmedtics.model.dto.response.SupportMessageResponseDto
 import com.calmed.calmedtics.store.ITokenDataStore
 import io.ktor.client.call.body
@@ -219,10 +220,20 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 			token?.let { header("Authorization", "Bearer $it") }
 		}
 
-		return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
-	}
+        return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
+    }
 
-	override suspend fun getWelcomeVideo(): ProgramExerciseDto? {
+    override suspend fun getAllExerciseGroups(): List<ExerciseGroupDto> {
+        val token = tokenDataStore.tokenDto.first()?.access
+
+        val resp: HttpResponse = client.get(urlString = "/exercise-groups") {
+            token?.let { header("Authorization", "Bearer $it") }
+        }
+
+        return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
+    }
+
+    override suspend fun getWelcomeVideo(): ProgramExerciseDto? {
 		val token = tokenDataStore.tokenDto.first()?.access
 		val resp: HttpResponse = client.get(urlString = "/program-exercises/welcome-video") {
 			token?.let { header("Authorization", "Bearer $it") }

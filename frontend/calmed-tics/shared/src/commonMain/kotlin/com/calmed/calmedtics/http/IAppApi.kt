@@ -18,6 +18,7 @@ import com.calmed.calmedtics.model.dto.response.HomeDto
 import com.calmed.calmedtics.model.dto.response.MessageDto
 import com.calmed.calmedtics.model.dto.response.PaymentStatusDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.model.dto.response.ExerciseGroupDto
 import com.calmed.calmedtics.model.dto.response.SupportMessageResponseDto
 import com.calmed.calmedtics.model.dto.response.UserDto
 import com.calmed.calmedtics.model.dto.response.UserInfoTicsDto
@@ -47,6 +48,7 @@ interface IAppApi {
     suspend fun loginWithApple(dto: AppleLoginDto): TokenDto?
     suspend fun getHome(year: Int, month: Int): HomeDto?
     suspend fun getAllProgramExercises(): List<ProgramExerciseDto>
+    suspend fun getAllExerciseGroups(): List<ExerciseGroupDto>
     suspend fun getWelcomeVideo(): ProgramExerciseDto?
     suspend fun getCourseOverviewVideo(): ProgramExerciseDto?
     suspend fun getPaymentStatus(): PaymentStatusDto?

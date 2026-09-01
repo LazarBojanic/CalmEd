@@ -42,6 +42,11 @@ class ProgramExerciseService(private val repository: IProgramExerciseRepository)
 		return AppResult.Success(list)
 	}
 
+	override suspend fun getByGroup(group: Int): AppResult<List<ProgramExerciseJoined>> {
+		val list = repository.findByGroup(group).map { it.join() }
+		return AppResult.Success(list)
+	}
+
 	override suspend fun create(programExercise: ProgramExercise): AppResult<ProgramExerciseJoined> {
 		val created = repository.create(programExercise) ?: return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to create program exercise.")
 		return AppResult.Success(created.join())

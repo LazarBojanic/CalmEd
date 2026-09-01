@@ -30,7 +30,9 @@ import java.time.Instant
 import java.util.UUID
 import com.calmed.calmedbackend.model.raw.payment.PaymentTable
 import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementTable
-
+import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroupTable
+import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroupEntity
+import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroup
 fun main(args: Array<String>) {
 	io.ktor.server.netty.EngineMain.main(args)
 }
@@ -56,7 +58,8 @@ suspend fun Application.module() {
 		ProgramExerciseTable,
 		UserExerciseProgressTable,
 		PaymentTable,
-		StoreEntitlementTable
+		StoreEntitlementTable,
+		ExerciseGroupTable
 	)
 	transaction {
 		if (ktorConfig.development) {
@@ -71,6 +74,30 @@ suspend fun Application.module() {
 }
 
 suspend fun Application.seed() {
+	val seedGroups = listOf(
+		ExerciseGroup(id = 0, name = "Getting Started", description = null),
+		ExerciseGroup(id = 1, name = "Group 1", description = "Week 1-4"),
+		ExerciseGroup(id = 2, name = "Group 2", description = "Week 5-12"),
+		ExerciseGroup(id = 3, name = "Group 3", description = "Week 13-18"),
+		ExerciseGroup(id = 4, name = "Group 4", description = "Week 19-24"),
+		ExerciseGroup(id = 5, name = "Final Group", description = "Week 25+")
+	)
+
+	transaction {
+		for (group in seedGroups) {
+			val existing = ExerciseGroupEntity.findById(group.id)
+			if (existing == null) {
+				ExerciseGroupEntity.new(group.id) {
+					name = group.name
+					description = group.description
+				}
+			} else {
+				existing.name = group.name
+				existing.description = group.description
+			}
+		}
+	}
+
 	val seedExercises = listOf(
 		ProgramExercise(
 			id = UUID.fromString("3a420f83-c314-4731-b319-310c94e55752"),
@@ -398,12 +425,26 @@ suspend fun Application.seed() {
 
 	transaction {
 		for (ex in seedExercises) {
+			val groupId = groupIdForWeek(ex.weekNumber)
 			val existing = ProgramExerciseEntity.findById(ex.id)
 			if (existing == null) {
 				ProgramExerciseEntity.new(ex.id) {
-					setFrom(ex, MapMode.CREATE)
+					setFrom(ex.copy(groupId = groupId), MapMode.CREATE)
 				}
+			} else if (existing.groupId == null) {
+				existing.groupId = groupId
 			}
 		}
+	}
+}
+
+private fun groupIdForWeek(week: Int): Int {
+	return when {
+		week <= 0 -> 0
+		week <= 4 -> 1
+		week <= 12 -> 2
+		week <= 18 -> 3
+		week <= 24 -> 4
+		else -> 5
 	}
 }

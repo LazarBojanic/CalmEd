@@ -40,6 +40,15 @@ class ProgramExerciseRepository : IProgramExerciseRepository {
 		}
 	}
 
+	override suspend fun findByGroup(group: Int): List<ProgramExercise> {
+		return withTransaction {
+			ProgramExerciseEntity
+				.find { ProgramExerciseTable.groupId eq group }
+				.map { it.toRaw() }
+				.sortedBy { it.weekNumber }
+		}
+	}
+
 	override suspend fun create(programExercise: ProgramExercise): ProgramExercise? {
 		return withTransaction {
 			val existing = ProgramExerciseEntity.findById(programExercise.id)

@@ -7,6 +7,7 @@ import com.calmed.calmedtics.model.dto.request.UserExerciseProgressUpdateDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.dto.response.HomeDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.model.dto.response.ExerciseGroupDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.ExerciseCompletionEntity
@@ -61,6 +62,9 @@ class SessionViewModel(
 
 	private val _allExercises = MutableStateFlow<List<ProgramExerciseDto>>(emptyList())
 	val allExercises: StateFlow<List<ProgramExerciseDto>> = _allExercises
+
+	private val _exerciseGroups = MutableStateFlow<List<ExerciseGroupDto>>(emptyList())
+	val exerciseGroups: StateFlow<List<ExerciseGroupDto>> = _exerciseGroups
 
 	val allCompletions: StateFlow<List<ExerciseCompletionEntity>> =
 		exerciseCompletionDao.getAllCompletions()
@@ -470,6 +474,10 @@ class SessionViewModel(
 	}
 	suspend fun loadAllExercises() {
 		_allExercises.value = api.getAllProgramExercises()
+	}
+
+	suspend fun loadAllExerciseGroups() {
+		_exerciseGroups.value = api.getAllExerciseGroups()
 	}
 
 	fun getCompletionForWeek(userId: String, week: Int): StateFlow<List<ExerciseCompletionEntity>> {

@@ -69,6 +69,7 @@ fun MainScreen(
 	val userInfo by sessionViewModel.userInfo.collectAsState()
 	val home by sessionViewModel.home.collectAsState()
 	val allExercises by sessionViewModel.allExercises.collectAsState()
+	val exerciseGroups by sessionViewModel.exerciseGroups.collectAsState()
 
 	val selectedTab = rememberSaveable { mutableStateOf(MainTab.Home) }
 	val appSettings = koinInject<AppSettings>()
@@ -80,6 +81,7 @@ fun MainScreen(
 			sessionViewModel.loadSession()
 			sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
 			sessionViewModel.loadAllExercises()
+			sessionViewModel.loadAllExerciseGroups()
 		}
 	}
 
@@ -222,6 +224,7 @@ fun MainScreen(
 					ExercisesScreen(
 						currentWeek = home?.currentWeek ?: 1,
 						exercises = allExercises,
+						groups = exerciseGroups,
 						onExerciseClick = { ex ->
 							val currentWeek = home?.currentWeek ?: 1
 

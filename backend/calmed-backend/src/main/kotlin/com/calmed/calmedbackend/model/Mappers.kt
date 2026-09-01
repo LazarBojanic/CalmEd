@@ -4,6 +4,7 @@ import com.calmed.calmedbackend.config.MuxConfig
 import com.calmed.calmedbackend.model.dto.response.UserDto
 import com.calmed.calmedbackend.model.dto.response.UserInfoTicsDto
 import com.calmed.calmedbackend.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedbackend.model.dto.response.ExerciseGroupDto
 import com.calmed.calmedbackend.model.dto.response.UserProgramDto
 import com.calmed.calmedbackend.model.dto.response.UserExerciseProgressDto
 import com.calmed.calmedbackend.model.joined.AuthCredentialJoined
@@ -28,6 +29,8 @@ import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTicsEntity
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExercise
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseEntity
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseTable.durationSeconds
+import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroup
+import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroupEntity
 import com.calmed.calmedbackend.model.raw.programexercise.Visibility
 import com.calmed.calmedbackend.model.raw.userprogram.UserProgram
 import com.calmed.calmedbackend.model.raw.userprogram.UserProgramEntity
@@ -348,10 +351,27 @@ fun UserInfoTicsJoined.toDto(): UserInfoTicsDto {
 	)
 }
 
+fun ExerciseGroupEntity.toRaw(): ExerciseGroup {
+	return ExerciseGroup(
+		id = this.id.value,
+		name = this.name,
+		description = this.description
+	)
+}
+
+fun ExerciseGroup.toDto(): ExerciseGroupDto {
+	return ExerciseGroupDto(
+		id = this.id,
+		name = this.name,
+		description = this.description
+	)
+}
+
 fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 	return ProgramExercise(
 		id = this.id.value,
 		weekNumber = this.weekNumber,
+		groupId = this.groupId,
 		title = this.title,
 		description = this.description,
 		playbackId = this.playbackId,
@@ -366,6 +386,7 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 
 fun ProgramExerciseEntity.setFrom(d: ProgramExercise, mapMode: MapMode) {
 	weekNumber = d.weekNumber
+	groupId = d.groupId
 	title = d.title
 	description = d.description
 	playbackId = d.playbackId
@@ -387,6 +408,7 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 	return ProgramExerciseJoined(
 		id = this.id,
 		weekNumber = this.weekNumber,
+		groupId = this.groupId,
 		title = this.title,
 		description = this.description,
 		playbackId = this.playbackId,
@@ -463,6 +485,7 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 	return ProgramExerciseDto(
 		id = this.id,
 		weekNumber = this.weekNumber,
+		groupId = this.groupId,
 		title = this.title,
 		description = this.description,
 		playbackId = this.playbackId,

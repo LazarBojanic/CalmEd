@@ -15,6 +15,7 @@ fun Application.configureRouting() {
 		userInfoTicsRoutes()
 		homeRoutes()
 		programExerciseRoutes()
+		exerciseGroupRoutes()
 		paymentRoutes()
 		userProgramRoutes()
 		userExerciseProgressRoutes()

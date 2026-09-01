@@ -18,7 +18,6 @@ actual class ReminderManager actual constructor() : KoinComponent {
 
         if (BuildConfig.notificationDebug) {
             NSLog("REMINDERS: scheduling test notifications (10s, 20s)")
-            // TEST: posle 10s i 20s notifikacija
             scheduleAfterSeconds(
                 id = "test_morning_10s",
                 seconds = 10,

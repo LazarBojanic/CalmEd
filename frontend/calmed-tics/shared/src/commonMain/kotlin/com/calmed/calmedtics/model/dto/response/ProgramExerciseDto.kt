@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class ProgramExerciseDto(
 	val id: String = "",
 	val weekNumber: Int = 1,
+	val groupId: Int? = null,
 	val title: String = "",
 	val description: String? = null,
 	val playbackId: String? = null,

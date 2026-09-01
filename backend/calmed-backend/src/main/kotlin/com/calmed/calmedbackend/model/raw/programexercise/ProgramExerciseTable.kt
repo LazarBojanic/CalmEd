@@ -12,6 +12,7 @@ import java.util.UUID
 
 object ProgramExerciseTable : UUIDTable("program_exercise") {
 	val weekNumber = integer("week_number")
+	val groupId = integer("group_id").nullable()
 	val title = text("title")
 	val description = text("description").nullable()
 	val playbackId = text("playback_id").nullable()

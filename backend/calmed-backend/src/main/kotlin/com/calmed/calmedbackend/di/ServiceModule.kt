@@ -13,6 +13,7 @@ import com.calmed.calmedbackend.service.implementation.ProgramExerciseService
 import com.calmed.calmedbackend.service.implementation.UserProgramService
 import com.calmed.calmedbackend.service.implementation.UserExerciseProgressService
 import com.calmed.calmedbackend.service.implementation.AccountDeletionService
+import com.calmed.calmedbackend.service.implementation.ExerciseGroupService
 import com.calmed.calmedbackend.service.specification.IAuthCredentialService
 import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IRefreshTokenService
@@ -24,6 +25,7 @@ import com.calmed.calmedbackend.service.specification.IProgramExerciseService
 import com.calmed.calmedbackend.service.specification.IUserProgramService
 import com.calmed.calmedbackend.service.specification.IUserExerciseProgressService
 import com.calmed.calmedbackend.service.specification.IAccountDeletionService
+import com.calmed.calmedbackend.service.specification.IExerciseGroupService
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
@@ -52,6 +54,7 @@ val serviceModule = module {
 	single<IHomeService> { HomeService(get(), get(), get()) }
 	single<IPaymentService> { PaymentService(get(), get(), get(), get(), get(), get(), get()) }
 	single<IAccountDeletionService> { AccountDeletionService(get(), get(), get(), get(), get(), get(), get()) }
+	single<IExerciseGroupService> { ExerciseGroupService(get()) }
 
 }
 

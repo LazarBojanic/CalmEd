@@ -67,8 +67,6 @@ class IosBillingService : BillingService {
         )
     }
     override suspend fun restore() {
-        // Ask the native StoreKit layer to sync (restore) owned purchases. New/updated
-        // transactions flow back through the "OnApplePurchaseSuccess" notification above.
         NSNotificationCenter.defaultCenter.postNotificationName(
             aName = "TriggerAppleRestore",
             `object` = null,

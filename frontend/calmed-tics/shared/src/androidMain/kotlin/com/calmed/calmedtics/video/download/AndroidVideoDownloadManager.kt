@@ -373,7 +373,6 @@ class AndroidVideoDownloadManager(context: Context) {
                     .takeIf { it.isNotBlank() }
             )
         } catch (_: Exception) {
-            // Old format: data was just the URL
             DownloadMetadata(
                 url = data.decodeToString(),
                 title = null

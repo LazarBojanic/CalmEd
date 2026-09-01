@@ -8,6 +8,7 @@ import java.util.UUID
 class ProgramExerciseEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	companion object : UUIDEntityClass<ProgramExerciseEntity>(ProgramExerciseTable)
 	var weekNumber by ProgramExerciseTable.weekNumber
+	var groupId by ProgramExerciseTable.groupId
 	var title by ProgramExerciseTable.title
 	var description by ProgramExerciseTable.description
 	var playbackId by ProgramExerciseTable.playbackId

@@ -11,6 +11,7 @@ interface IProgramExerciseService {
 	suspend fun getWelcomeVideo(): AppResult<ProgramExerciseJoined>
 	suspend fun getCourseOverviewVideo(): AppResult<ProgramExerciseJoined>
 	suspend fun getByWeek(week: Int): AppResult<List<ProgramExerciseJoined>>
+	suspend fun getByGroup(group: Int): AppResult<List<ProgramExerciseJoined>>
 	suspend fun create(programExercise: ProgramExercise): AppResult<ProgramExerciseJoined>
 	suspend fun update(programExercise: ProgramExercise): AppResult<ProgramExerciseJoined>
 	suspend fun delete(id: UUID): AppResult<Unit>

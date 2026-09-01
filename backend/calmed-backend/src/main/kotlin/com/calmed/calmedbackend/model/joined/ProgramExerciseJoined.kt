@@ -12,6 +12,7 @@ data class ProgramExerciseJoined(
 	@Serializable(with = UUIDSerializer::class)
 	val id: UUID,
 	val weekNumber: Int,
+	val groupId: Int?,
 	val title: String,
 	val description: String?,
 	val playbackId: String?,

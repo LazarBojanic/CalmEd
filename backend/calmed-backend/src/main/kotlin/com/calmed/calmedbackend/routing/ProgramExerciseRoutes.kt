@@ -66,6 +66,23 @@ fun Route.programExerciseRoutes() {
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
+
+			get("/group/{group}") {
+				val groupParam = call.parameters["group"]
+				if (groupParam == null) {
+					call.respond(HttpStatusCode.BadRequest, "Missing group parameter")
+					return@get
+				}
+				val group = groupParam.toIntOrNull()
+				if (group == null) {
+					call.respond(HttpStatusCode.BadRequest, "Invalid group parameter")
+					return@get
+				}
+				when (val res = service.getByGroup(group)) {
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig) })
+					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+				}
+			}
 		}
 	}
 }
