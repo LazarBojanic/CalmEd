@@ -107,8 +107,6 @@
     <string name="email">Email</string>
     <string name="username">Username</string>
     <string name="stress_level">Stress Level</string>
-    <string name="tick_type">Tick Type</string>
-    <string name="frequency">Frequency</string>
     <string name="goal">Goal</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>

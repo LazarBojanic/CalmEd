@@ -28,7 +28,6 @@ import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
 import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTicsEntity
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExercise
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseEntity
-import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseTable.durationSeconds
 import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroup
 import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroupEntity
 import com.calmed.calmedbackend.model.raw.programexercise.Visibility
@@ -289,8 +288,8 @@ fun UserInfoTics.join(user: UserJoined): UserInfoTicsJoined {
 		preferredName = this.preferredName,
 		age = this.age,
 		stressLevel = this.stressLevel,
-		tickType = this.tickType,
-		tickFrequency = this.tickFrequency,
+		ticType = this.ticType,
+		ticFrequency = this.ticFrequency,
 		ticDuration = this.ticDuration,
 		goal = this.goal,
 		createdAt = this.createdAt,
@@ -305,8 +304,8 @@ fun UserInfoTicsEntity.toRaw(): UserInfoTics {
 		preferredName = this.preferredName,
 		age = this.age,
 		stressLevel = this.stressLevel,
-		tickType = this.tickType,
-		tickFrequency = this.tickFrequency,
+		ticType = this.ticType,
+		ticFrequency = this.ticFrequency,
 		ticDuration = this.ticDuration,
 		goal = this.goal,
 		createdAt = this.createdAt,
@@ -319,8 +318,8 @@ fun UserInfoTicsEntity.setFrom(d: UserInfoTics, mapMode: MapMode) {
 	preferredName = d.preferredName
 	age = d.age
 	stressLevel = d.stressLevel
-	tickType = d.tickType
-	tickFrequency = d.tickFrequency
+	ticType = d.ticType
+	ticFrequency = d.ticFrequency
 	ticDuration = d.ticDuration
 	goal = d.goal
 	when (mapMode) {
@@ -342,8 +341,8 @@ fun UserInfoTicsJoined.toDto(): UserInfoTicsDto {
 		preferredName = this.preferredName,
 		age = this.age,
 		stressLevel = this.stressLevel,
-		tickType = this.tickType,
-		tickFrequency = this.tickFrequency,
+		ticType = this.ticType,
+		ticFrequency = this.ticFrequency,
 		ticDuration = this.ticDuration,
 		goal = this.goal,
 		createdAt = this.createdAt,

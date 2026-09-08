@@ -1,7 +1,7 @@
 package com.calmed.calmedtics.model.joined
 
-import com.calmed.calmedtics.model.raw.TickFrequency
-import com.calmed.calmedtics.model.raw.TickType
+import com.calmed.calmedtics.model.raw.TicFrequency
+import com.calmed.calmedtics.model.raw.TicType
 import kotlinx.serialization.Serializable
 import com.calmed.calmedtics.model.raw.TicDuration
 
@@ -12,8 +12,8 @@ data class UserInfoTicsJoined(
 	val preferredName: String?,
 	val age: Int?,
 	val stressLevel: Int?,
-	val tickType: TickType?,
-	val tickFrequency: TickFrequency?,
+	val ticType: TicType?,
+	val ticFrequency: TicFrequency?,
 	val ticDuration: TicDuration?,
 	val goal: String?,
 	val createdAt: String,

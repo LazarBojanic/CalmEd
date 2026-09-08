@@ -2,22 +2,22 @@ package com.calmed.calmedtics.model
 
 import androidx.room.TypeConverter
 import com.calmed.calmedtics.model.raw.PaymentProvider
-import com.calmed.calmedtics.model.raw.TickFrequency
-import com.calmed.calmedtics.model.raw.TickType
+import com.calmed.calmedtics.model.raw.TicFrequency
+import com.calmed.calmedtics.model.raw.TicType
 import com.calmed.calmedtics.model.raw.TicDuration
 
 class RoomConverters {
 	@TypeConverter
-	fun fromTickType(value: TickType?): String? = value?.name
+	fun fromTicType(value: TicType?): String? = value?.name
 
 	@TypeConverter
-	fun toTickType(value: String?): TickType? = value?.let { TickType.valueOf(it) }
+	fun toTicType(value: String?): TicType? = value?.let { TicType.valueOf(it) }
 
 	@TypeConverter
-	fun fromTickFrequency(value: TickFrequency?): String? = value?.name
+	fun fromTicFrequency(value: TicFrequency?): String? = value?.name
 
 	@TypeConverter
-	fun toTickFrequency(value: String?): TickFrequency? = value?.let { TickFrequency.valueOf(it) }
+	fun toTicFrequency(value: String?): TicFrequency? = value?.let { TicFrequency.valueOf(it) }
 
 	@TypeConverter
 	fun fromTicDuration(value: TicDuration?): String? = value?.name

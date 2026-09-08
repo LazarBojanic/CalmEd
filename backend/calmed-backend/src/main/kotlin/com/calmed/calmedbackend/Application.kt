@@ -33,12 +33,13 @@ import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementTable
 import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroupTable
 import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroupEntity
 import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroup
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
+
 fun main(args: Array<String>) {
 	io.ktor.server.netty.EngineMain.main(args)
 }
 
 suspend fun Application.module() {
-	val config = environment.config
 	val ktorConfig by inject<KtorConfig>()
 	configureFrameworks()
 	configureHTTP()
@@ -65,15 +66,15 @@ suspend fun Application.module() {
 		if (ktorConfig.development) {
 			exec("DROP SCHEMA IF EXISTS public CASCADE;")
 			exec("CREATE SCHEMA public;")
+			seed()
 		}
 	}
 	transaction {
 		SchemaUtils.createMissingTablesAndColumns(*allTables)
 	}
-	seed()
 }
 
-suspend fun Application.seed() {
+fun seed() {
 	val seedGroups = listOf(
 		ExerciseGroup(id = 0, name = "Getting Started", description = null),
 		ExerciseGroup(id = 1, name = "Group 1", description = "Week 1-4"),

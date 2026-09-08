@@ -23,12 +23,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.calmed.calmedtics.*
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
-import com.calmed.calmedtics.model.raw.TickFrequency
-import com.calmed.calmedtics.model.raw.TickType
+import com.calmed.calmedtics.model.raw.TicFrequency
+import com.calmed.calmedtics.model.raw.TicType
 import com.calmed.calmedtics.reminders.ReminderManager
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.TextField
@@ -64,7 +63,6 @@ import calmedtics.shared.generated.resources.loading
 import calmedtics.shared.generated.resources.logout
 import calmedtics.shared.generated.resources.morning_evening
 import calmedtics.shared.generated.resources.morning_reminder_label
-import calmedtics.shared.generated.resources.no
 import calmedtics.shared.generated.resources.personal_details
 import calmedtics.shared.generated.resources.preferred_name
 import calmedtics.shared.generated.resources.privacy_policy
@@ -83,7 +81,6 @@ import calmedtics.shared.generated.resources.tics_motor
 import calmedtics.shared.generated.resources.tics_type
 import calmedtics.shared.generated.resources.tics_vocal
 import calmedtics.shared.generated.resources.username
-import calmedtics.shared.generated.resources.yes
 import calmedtics.shared.generated.resources.video_settings
 import calmedtics.shared.generated.resources.keep_screen_awake
 import com.calmed.calmedtics.model.raw.TicDuration
@@ -129,8 +126,8 @@ fun ProfileScreen(
 	val preferredName = remember { mutableStateOf(userInfo?.preferredName ?: "") }
 	val age = remember { mutableIntStateOf(userInfo?.age ?: 18) }
 	val stress = remember { mutableIntStateOf(userInfo?.stressLevel ?: 5) }
-	val tickType = remember { mutableStateOf(userInfo?.tickType ?: TickType.BOTH) }
-	val tickFrequency = remember { mutableStateOf(userInfo?.tickFrequency ?: TickFrequency.MODERATE) }
+	val ticType = remember { mutableStateOf(userInfo?.ticType ?: TicType.BOTH) }
+	val ticFrequency = remember { mutableStateOf(userInfo?.ticFrequency ?: TicFrequency.MODERATE) }
 	val ticDuration = remember { mutableStateOf(userInfo?.ticDuration ?: TicDuration.ZERO_TO_ONE_YEAR) }
 	val goal = remember { mutableStateOf(userInfo?.goal ?: "") }
 	val ageText = remember { mutableStateOf(age.intValue.toString()) }
@@ -145,8 +142,8 @@ fun ProfileScreen(
 		preferredName.value = userInfo?.preferredName ?: ""
 		age.intValue = userInfo?.age ?: 18
 		stress.intValue = userInfo?.stressLevel ?: 5
-		tickType.value = userInfo?.tickType ?: TickType.BOTH
-		tickFrequency.value = userInfo?.tickFrequency ?: TickFrequency.MODERATE
+		ticType.value = userInfo?.ticType ?: TicType.BOTH
+		ticFrequency.value = userInfo?.ticFrequency ?: TicFrequency.MODERATE
 		ticDuration.value = userInfo?.ticDuration ?: TicDuration.ZERO_TO_ONE_YEAR
 		goal.value = userInfo?.goal ?: ""
 		ageText.value = age.intValue.toString()
@@ -162,8 +159,8 @@ fun ProfileScreen(
 			preferredName = preferredName.value.trim(),
 			age = age.intValue,
 			stressLevel = stress.intValue,
-			tickType = tickType.value,
-			tickFrequency = tickFrequency.value,
+			ticType = ticType.value,
+			ticFrequency = ticFrequency.value,
 			ticDuration = ticDuration.value,
 			goal = goal.value.trim()
 		)
@@ -360,18 +357,18 @@ fun ProfileScreen(
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 								RadioOptionRow(
 									text = stringResource(Res.string.tics_motor),
-									selected = tickType.value == TickType.MOTOR,
-									onClick = { tickType.value = TickType.MOTOR }
+									selected = ticType.value == TicType.MOTOR,
+									onClick = { ticType.value = TicType.MOTOR }
 								)
 								RadioOptionRow(
 									text = stringResource(Res.string.tics_vocal),
-									selected = tickType.value == TickType.VOCAL,
-									onClick = { tickType.value = TickType.VOCAL }
+									selected = ticType.value == TicType.VOCAL,
+									onClick = { ticType.value = TicType.VOCAL }
 								)
 								RadioOptionRow(
 									text = stringResource(Res.string.tics_both),
-									selected = tickType.value == TickType.BOTH,
-									onClick = { tickType.value = TickType.BOTH }
+									selected = ticType.value == TicType.BOTH,
+									onClick = { ticType.value = TicType.BOTH }
 								)
 							}
 
@@ -383,18 +380,18 @@ fun ProfileScreen(
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 								RadioOptionRow(
 									text = stringResource(Res.string.frequency_rare),
-									selected = tickFrequency.value == TickFrequency.RARE,
-									onClick = { tickFrequency.value = TickFrequency.RARE }
+									selected = ticFrequency.value == TicFrequency.RARE,
+									onClick = { ticFrequency.value = TicFrequency.RARE }
 								)
 								RadioOptionRow(
 									text = stringResource(Res.string.frequency_moderate),
-									selected = tickFrequency.value == TickFrequency.MODERATE,
-									onClick = { tickFrequency.value = TickFrequency.MODERATE }
+									selected = ticFrequency.value == TicFrequency.MODERATE,
+									onClick = { ticFrequency.value = TicFrequency.MODERATE }
 								)
 								RadioOptionRow(
 									text = stringResource(Res.string.frequency_daily),
-									selected = tickFrequency.value == TickFrequency.DAILY,
-									onClick = { tickFrequency.value = TickFrequency.DAILY }
+									selected = ticFrequency.value == TicFrequency.DAILY,
+									onClick = { ticFrequency.value = TicFrequency.DAILY }
 								)
 							}
 
@@ -517,14 +514,14 @@ fun ProfileScreen(
 
 				item {
 					InfoSection(title = stringResource(Res.string.condition_info)) {
-						userInfo.tickType?.let {
+						userInfo.ticType?.let {
 							InfoRow(
 								icon = Icons.Default.Info,
 								label = stringResource(Res.string.tics_type),
 								value = it.name
 							)
 						}
-						userInfo.tickFrequency?.let {
+						userInfo.ticFrequency?.let {
 							InfoRow(
 								icon = Icons.Default.Refresh,
 								label = stringResource(Res.string.tics_frequency),

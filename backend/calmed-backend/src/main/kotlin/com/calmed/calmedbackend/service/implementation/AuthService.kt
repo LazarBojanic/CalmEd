@@ -216,8 +216,8 @@ class AuthService(private val userService: IUserService,
 																preferredName = null,
 																age = null,
 																stressLevel = null,
-																tickType = null,
-																tickFrequency = null,
+																ticType = null,
+																ticFrequency = null,
 																ticDuration = null,
 																goal = null
 															)
@@ -441,8 +441,8 @@ class AuthService(private val userService: IUserService,
 														preferredName = null,
 														age = null,
 														stressLevel = null,
-														tickType = null,
-														tickFrequency = null,
+														ticType = null,
+														ticFrequency = null,
 														ticDuration = null,
 														goal = null
 													)
@@ -589,8 +589,8 @@ class AuthService(private val userService: IUserService,
 												preferredName = null,
 												age = null,
 												stressLevel = null,
-												tickType = null,
-												tickFrequency = null,
+												ticType = null,
+												ticFrequency = null,
 												ticDuration = null,
 												goal = null
 											)

@@ -16,10 +16,10 @@ data class UserInfoTicsEntity(
 	val age: Int?,
 	@ColumnInfo(name = "stress_level")
 	val stressLevel: Int?,
-	@ColumnInfo(name = "tick_type")
-	val tickType: TickType?,
-	@ColumnInfo(name = "tick_frequency")
-	val tickFrequency: TickFrequency?,
+	@ColumnInfo(name = "tic_type")
+	val ticType: TicType?,
+	@ColumnInfo(name = "tic_frequency")
+	val ticFrequency: TicFrequency?,
 	@ColumnInfo(name = "tic_duration")
 	val ticDuration: TicDuration?,
 	@ColumnInfo(name = "goal")

@@ -53,13 +53,12 @@ import calmedtics.shared.generated.resources.tics_type_title
 import calmedtics.shared.generated.resources.tics_vocal
 import calmedtics.shared.generated.resources.tics_vocal_description
 import calmedtics.shared.generated.resources.welcome_user
-import com.calmed.calmedtics.*
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TicDuration
-import com.calmed.calmedtics.model.raw.TickFrequency
-import com.calmed.calmedtics.model.raw.TickType
+import com.calmed.calmedtics.model.raw.TicFrequency
+import com.calmed.calmedtics.model.raw.TicType
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import com.calmed.calmedtics.ui.component.TextField
 import org.jetbrains.compose.resources.stringResource
@@ -77,9 +76,9 @@ fun OnboardingScreen(
     val preferredName = remember { mutableStateOf(userInfo.preferredName ?: "") }
     val age = remember { mutableIntStateOf(userInfo.age ?: 18) }
     val stress = remember { mutableIntStateOf(userInfo.stressLevel ?: 5) }
-    val tickType = remember { mutableStateOf(userInfo.tickType ?: TickType.BOTH) }
-    val tickFrequency =
-        remember { mutableStateOf(userInfo.tickFrequency ?: TickFrequency.MODERATE) }
+    val ticType = remember { mutableStateOf(userInfo.ticType ?: TicType.BOTH) }
+    val ticFrequency =
+        remember { mutableStateOf(userInfo.ticFrequency ?: TicFrequency.MODERATE) }
     val ticDuration = remember {
         mutableStateOf(userInfo.ticDuration ?: TicDuration.ZERO_TO_ONE_YEAR)
     }
@@ -90,8 +89,8 @@ fun OnboardingScreen(
             preferredName = preferredName.value.trim(),
             age = age.intValue,
             stressLevel = stress.intValue,
-            tickType = tickType.value,
-            tickFrequency = tickFrequency.value,
+            ticType = ticType.value,
+            ticFrequency = ticFrequency.value,
             ticDuration = ticDuration.value,
             goal = goal.value.trim()
         )
@@ -797,16 +796,16 @@ fun OnboardingScreen(
                                 Surface(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { tickType.value = TickType.MOTOR },
+                                        .clickable { ticType.value = TicType.MOTOR },
                                     shape = MaterialTheme.shapes.extraLarge,
-                                    color = if (tickType.value == TickType.MOTOR) {
+                                    color = if (ticType.value == TicType.MOTOR) {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                                     } else {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.25f)
                                     },
                                     border = BorderStroke(
-                                        width = if (tickType.value == TickType.MOTOR) 2.dp else 1.dp,
-                                        color = if (tickType.value == TickType.MOTOR) {
+                                        width = if (ticType.value == TicType.MOTOR) 2.dp else 1.dp,
+                                        color = if (ticType.value == TicType.MOTOR) {
                                             MaterialTheme.colorScheme.onSurface
                                         } else {
                                             MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -840,7 +839,7 @@ fun OnboardingScreen(
                                             modifier = Modifier
                                                 .size(24.dp)
                                                 .background(
-                                                    color = if (tickType.value == TickType.MOTOR) {
+                                                    color = if (ticType.value == TicType.MOTOR) {
                                                         MaterialTheme.colorScheme.onSurface
                                                     } else {
                                                         Color.Transparent
@@ -859,16 +858,16 @@ fun OnboardingScreen(
                                 Surface(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { tickType.value = TickType.VOCAL },
+                                        .clickable { ticType.value = TicType.VOCAL },
                                     shape = MaterialTheme.shapes.extraLarge,
-                                    color = if (tickType.value == TickType.VOCAL) {
+                                    color = if (ticType.value == TicType.VOCAL) {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                                     } else {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.25f)
                                     },
                                     border = BorderStroke(
-                                        width = if (tickType.value == TickType.VOCAL) 2.dp else 1.dp,
-                                        color = if (tickType.value == TickType.VOCAL) {
+                                        width = if (ticType.value == TicType.VOCAL) 2.dp else 1.dp,
+                                        color = if (ticType.value == TicType.VOCAL) {
                                             MaterialTheme.colorScheme.onSurface
                                         } else {
                                             MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -902,7 +901,7 @@ fun OnboardingScreen(
                                             modifier = Modifier
                                                 .size(24.dp)
                                                 .background(
-                                                    color = if (tickType.value == TickType.VOCAL) {
+                                                    color = if (ticType.value == TicType.VOCAL) {
                                                         MaterialTheme.colorScheme.onSurface
                                                     } else {
                                                         Color.Transparent
@@ -921,16 +920,16 @@ fun OnboardingScreen(
                                 Surface(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { tickType.value = TickType.BOTH },
+                                        .clickable { ticType.value = TicType.BOTH },
                                     shape = MaterialTheme.shapes.extraLarge,
-                                    color = if (tickType.value == TickType.BOTH) {
+                                    color = if (ticType.value == TicType.BOTH) {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                                     } else {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.25f)
                                     },
                                     border = BorderStroke(
-                                        width = if (tickType.value == TickType.BOTH) 2.dp else 1.dp,
-                                        color = if (tickType.value == TickType.BOTH) {
+                                        width = if (ticType.value == TicType.BOTH) 2.dp else 1.dp,
+                                        color = if (ticType.value == TicType.BOTH) {
                                             MaterialTheme.colorScheme.onSurface
                                         } else {
                                             MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -964,7 +963,7 @@ fun OnboardingScreen(
                                             modifier = Modifier
                                                 .size(24.dp)
                                                 .background(
-                                                    color = if (tickType.value == TickType.BOTH) {
+                                                    color = if (ticType.value == TicType.BOTH) {
                                                         MaterialTheme.colorScheme.onSurface
                                                     } else {
                                                         Color.Transparent
@@ -1091,16 +1090,16 @@ fun OnboardingScreen(
                                 Surface(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { tickFrequency.value = TickFrequency.RARE },
+                                        .clickable { ticFrequency.value = TicFrequency.RARE },
                                     shape = MaterialTheme.shapes.extraLarge,
-                                    color = if (tickFrequency.value == TickFrequency.RARE) {
+                                    color = if (ticFrequency.value == TicFrequency.RARE) {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                                     } else {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.25f)
                                     },
                                     border = BorderStroke(
-                                        width = if (tickFrequency.value == TickFrequency.RARE) 2.dp else 1.dp,
-                                        color = if (tickFrequency.value == TickFrequency.RARE) {
+                                        width = if (ticFrequency.value == TicFrequency.RARE) 2.dp else 1.dp,
+                                        color = if (ticFrequency.value == TicFrequency.RARE) {
                                             MaterialTheme.colorScheme.onSurface
                                         } else {
                                             MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -1134,7 +1133,7 @@ fun OnboardingScreen(
                                             modifier = Modifier
                                                 .size(24.dp)
                                                 .background(
-                                                    color = if (tickFrequency.value == TickFrequency.RARE) {
+                                                    color = if (ticFrequency.value == TicFrequency.RARE) {
                                                         MaterialTheme.colorScheme.onSurface
                                                     } else {
                                                         Color.Transparent
@@ -1153,16 +1152,16 @@ fun OnboardingScreen(
                                 Surface(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { tickFrequency.value = TickFrequency.MODERATE },
+                                        .clickable { ticFrequency.value = TicFrequency.MODERATE },
                                     shape = MaterialTheme.shapes.extraLarge,
-                                    color = if (tickFrequency.value == TickFrequency.MODERATE) {
+                                    color = if (ticFrequency.value == TicFrequency.MODERATE) {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                                     } else {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.25f)
                                     },
                                     border = BorderStroke(
-                                        width = if (tickFrequency.value == TickFrequency.MODERATE) 2.dp else 1.dp,
-                                        color = if (tickFrequency.value == TickFrequency.MODERATE) {
+                                        width = if (ticFrequency.value == TicFrequency.MODERATE) 2.dp else 1.dp,
+                                        color = if (ticFrequency.value == TicFrequency.MODERATE) {
                                             MaterialTheme.colorScheme.onSurface
                                         } else {
                                             MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -1196,7 +1195,7 @@ fun OnboardingScreen(
                                             modifier = Modifier
                                                 .size(24.dp)
                                                 .background(
-                                                    color = if (tickFrequency.value == TickFrequency.MODERATE) {
+                                                    color = if (ticFrequency.value == TicFrequency.MODERATE) {
                                                         MaterialTheme.colorScheme.onSurface
                                                     } else {
                                                         Color.Transparent
@@ -1215,16 +1214,16 @@ fun OnboardingScreen(
                                 Surface(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { tickFrequency.value = TickFrequency.DAILY },
+                                        .clickable { ticFrequency.value = TicFrequency.DAILY },
                                     shape = MaterialTheme.shapes.extraLarge,
-                                    color = if (tickFrequency.value == TickFrequency.DAILY) {
+                                    color = if (ticFrequency.value == TicFrequency.DAILY) {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                                     } else {
                                         MaterialTheme.colorScheme.surface.copy(alpha = 0.25f)
                                     },
                                     border = BorderStroke(
-                                        width = if (tickFrequency.value == TickFrequency.DAILY) 2.dp else 1.dp,
-                                        color = if (tickFrequency.value == TickFrequency.DAILY) {
+                                        width = if (ticFrequency.value == TicFrequency.DAILY) 2.dp else 1.dp,
+                                        color = if (ticFrequency.value == TicFrequency.DAILY) {
                                             MaterialTheme.colorScheme.onSurface
                                         } else {
                                             MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -1258,7 +1257,7 @@ fun OnboardingScreen(
                                             modifier = Modifier
                                                 .size(24.dp)
                                                 .background(
-                                                    color = if (tickFrequency.value == TickFrequency.DAILY) {
+                                                    color = if (ticFrequency.value == TicFrequency.DAILY) {
                                                         MaterialTheme.colorScheme.onSurface
                                                     } else {
                                                         Color.Transparent

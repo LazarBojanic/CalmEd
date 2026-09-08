@@ -11,8 +11,8 @@ class UserInfoTicsEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 	var preferredName by UserInfoTicsTable.preferredName
 	var age by UserInfoTicsTable.age
 	var stressLevel by UserInfoTicsTable.stressLevel
-	var tickType by UserInfoTicsTable.tickType
-	var tickFrequency by UserInfoTicsTable.tickFrequency
+	var ticType by UserInfoTicsTable.ticType
+	var ticFrequency by UserInfoTicsTable.ticFrequency
 	var ticDuration by UserInfoTicsTable.ticDuration
 	var goal by UserInfoTicsTable.goal
 	var createdAt by UserInfoTicsTable.createdAt

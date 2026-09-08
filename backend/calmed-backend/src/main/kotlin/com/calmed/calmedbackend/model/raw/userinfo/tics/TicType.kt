@@ -1,5 +1,5 @@
 package com.calmed.calmedbackend.model.raw.userinfo.tics
 
-enum class TickFrequency {
-	RARE, MODERATE, DAILY
+enum class TicType {
+	MOTOR, VOCAL, BOTH
 }
