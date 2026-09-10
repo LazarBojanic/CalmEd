@@ -1,13 +1,22 @@
 package com.calmed.calmedtics.service.specification
 
 import com.calmed.calmedtics.di.appContext
+import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.video.download.AndroidVideoDownloadManager
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.koin.core.context.GlobalContext
 
 actual object LocalVideoDownloadManager : IVideoDownloadManager {
 
+    private val appSettings by lazy {
+        GlobalContext.get().get<AppSettings>()
+    }
+
     private val delegate by lazy {
-        AndroidVideoDownloadManager(appContext)
+        AndroidVideoDownloadManager(appContext) {
+            appSettings.isDownloadWifiOnly()
+        }
     }
 
     actual override val states: StateFlow<Map<String, VideoDownloadState>>
@@ -15,6 +24,9 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
 
     actual override val downloadedUrls: StateFlow<List<String>>
         get() = delegate.downloadedUrls
+
+    actual override val events: SharedFlow<DownloadEvent>
+        get() = delegate.events
 
     actual override fun refresh(url: String) {
         delegate.refresh(url)

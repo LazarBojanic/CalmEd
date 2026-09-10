@@ -199,4 +199,14 @@
     <!-- Video Settings -->
     <string name="video_settings">Video Settings</string>
     <string name="keep_screen_awake">Keep screen awake</string>
+
+    <!-- Network & Download Toasts -->
+    <string name="no_internet_connection">No internet connection. Please check your connection and try again.</string>
+    <string name="download_wifi_only">Download only over Wi-Fi</string>
+    <string name="download_wifi_only_description">When enabled, videos download only when connected to Wi-Fi.</string>
+    <string name="download_wifi_only_blocked">Downloads are only available over Wi-Fi.</string>
+    <string name="download_completed">Download complete</string>
+    <string name="download_failed">Download failed</string>
+    <string name="download_completed_title">Downloaded: %1$s</string>
+    <string name="download_failed_title">Download failed: %1$s</string>
 </resources>

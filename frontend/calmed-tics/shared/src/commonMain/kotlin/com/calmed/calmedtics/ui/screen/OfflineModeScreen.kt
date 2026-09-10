@@ -30,11 +30,16 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +49,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.cancel
+import calmedtics.shared.generated.resources.delete
+import calmedtics.shared.generated.resources.delete_confirm_message
+import calmedtics.shared.generated.resources.delete_confirm_title
 import calmedtics.shared.generated.resources.downloaded_videos
 import calmedtics.shared.generated.resources.no_downloads
 import calmedtics.shared.generated.resources.offline_description
@@ -74,6 +83,8 @@ fun OfflineModeScreen(
 
     val states by
     LocalVideoDownloadManager.states.collectAsState()
+
+    var pendingDeleteUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         LocalVideoDownloadManager.refreshDownloaded()
@@ -302,7 +313,7 @@ fun OfflineModeScreen(
 
                         IconButton(
                             onClick = {
-                                LocalVideoDownloadManager.remove(url)
+                                pendingDeleteUrl = url
                             }
                         ) {
                             Icon(
@@ -315,6 +326,35 @@ fun OfflineModeScreen(
                 }
             }
         }
+    }
+
+    pendingDeleteUrl?.let { url ->
+        AlertDialog(
+            onDismissRequest = { pendingDeleteUrl = null },
+            title = {
+                Text(stringResource(Res.string.delete_confirm_title))
+            },
+            text = {
+                Text(stringResource(Res.string.delete_confirm_message))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        LocalVideoDownloadManager.remove(url)
+                        pendingDeleteUrl = null
+                    }
+                ) {
+                    Text(stringResource(Res.string.delete))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { pendingDeleteUrl = null }
+                ) {
+                    Text(stringResource(Res.string.cancel))
+                }
+            }
+        )
     }
 }
 

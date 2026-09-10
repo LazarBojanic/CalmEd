@@ -8,6 +8,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -36,6 +40,12 @@ import com.calmed.calmedtics.viewmodel.SessionViewModel
 import com.calmed.calmedtics.auth.launchAppleSignIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
+import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.no_internet_connection
+import com.calmed.calmedtics.ui.component.AppToastHost
+import com.calmed.calmedtics.ui.component.ToastCenter
+import com.calmed.calmedtics.ui.component.ToastKind
+import org.jetbrains.compose.resources.stringResource
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
@@ -149,7 +159,8 @@ fun App() {
     }
     AppLocaleProvider {
         AppTheme {
-            NavHost(navController, startDestination = Routes.Splash) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                NavHost(navController, startDestination = Routes.Splash) {
 
                 composable(Routes.Splash) {
                     SplashScreen()
@@ -297,11 +308,18 @@ fun App() {
                 }
 
                 composable(Routes.Offline) {
+                    val noInternetMessage =
+                        stringResource(Res.string.no_internet_connection)
+
                     OfflineModeScreen(
                         onTryOnline = {
                             scope.launch {
                                 val online = isBackendReachable(appApi)
                                 if (!online) {
+                                    ToastCenter.show(
+                                        noInternetMessage,
+                                        ToastKind.Error
+                                    )
                                     return@launch
                                 }
 
@@ -590,6 +608,11 @@ fun App() {
                             }
                         )
                     }
+                }
+
+                    AppToastHost(
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
                 }
             }
         }

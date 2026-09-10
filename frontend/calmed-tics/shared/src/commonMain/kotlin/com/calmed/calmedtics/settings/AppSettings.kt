@@ -14,6 +14,7 @@ class AppSettings(
         private const val KEY_EVENING_REMINDER_TIME = "evening_reminder_time"
         private const val KEY_DOWNLOAD_RESOLUTION = "download_resolution"
         private const val KEY_KEEP_SCREEN_AWAKE = "keep_screen_awake"
+        private const val KEY_DOWNLOAD_WIFI_ONLY = "download_wifi_only"
     }
 
     private fun welcomeVideoKey(userId: String?): String {
@@ -64,5 +65,12 @@ class AppSettings(
 
     fun setKeepScreenAwake(value: Boolean) {
         settings.putBoolean(KEY_KEEP_SCREEN_AWAKE, value)
+    }
+
+    fun isDownloadWifiOnly(): Boolean =
+        settings.getBoolean(KEY_DOWNLOAD_WIFI_ONLY, true)
+
+    fun setDownloadWifiOnly(value: Boolean) {
+        settings.putBoolean(KEY_DOWNLOAD_WIFI_ONLY, value)
     }
 }

@@ -14,10 +14,15 @@ import androidx.media3.exoplayer.offline.DownloadHelper
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.media3.exoplayer.scheduler.Requirements
+import com.calmed.calmedtics.service.specification.DownloadEvent
+import com.calmed.calmedtics.service.specification.DownloadEventType
 import com.calmed.calmedtics.service.specification.VideoDownloadState
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.downloadKey
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import java.security.MessageDigest
@@ -25,7 +30,10 @@ import androidx.core.net.toUri
 import org.json.JSONObject
 
 @OptIn(UnstableApi::class)
-class AndroidVideoDownloadManager(context: Context) {
+class AndroidVideoDownloadManager(
+    context: Context,
+    private val wifiOnlyProvider: () -> Boolean = { false }
+) {
 
     private val applicationContext = context.applicationContext
 
@@ -42,6 +50,12 @@ class AndroidVideoDownloadManager(context: Context) {
 
     val downloadedUrls: StateFlow<List<String>> = _downloadedUrls
 
+    private val _events = MutableSharedFlow<DownloadEvent>(
+        extraBufferCapacity = 32
+    )
+
+    val events: SharedFlow<DownloadEvent> = _events
+
     private val progressHandler = Handler(Looper.getMainLooper())
 
     private var progressLoopScheduled = false
@@ -55,6 +69,7 @@ class AndroidVideoDownloadManager(context: Context) {
     }
 
     init {
+        applyNetworkRequirements()
         manager.resumeDownloads()
         synchronizeWithDownloadIndex()
 
@@ -120,6 +135,8 @@ class AndroidVideoDownloadManager(context: Context) {
     }
 
     fun download(url: String, title: String? = null) {
+        applyNetworkRequirements()
+
         val key = downloadKey(url)
         val existingDownload = runCatching {
             manager.downloadIndex.getDownload(downloadId(key))
@@ -199,6 +216,12 @@ class AndroidVideoDownloadManager(context: Context) {
                                 )
                                 )
                         }
+                        _events.tryEmit(
+                            DownloadEvent(
+                                DownloadEventType.Failed,
+                                title
+                            )
+                        )
                         ensureProgressLoop()
                     } finally {
                         helper.release()
@@ -217,6 +240,12 @@ class AndroidVideoDownloadManager(context: Context) {
                             )
                             )
                     }
+                    _events.tryEmit(
+                        DownloadEvent(
+                            DownloadEventType.Failed,
+                            title
+                        )
+                    )
                     ensureProgressLoop()
 
                     helper.release()
@@ -288,6 +317,8 @@ class AndroidVideoDownloadManager(context: Context) {
         val mappedStatus =
             toStatus(download.state)
 
+        val previousStatus = _states.value[url]?.status
+
         _states.update { current ->
             val updated =
                 current + (
@@ -302,7 +333,48 @@ class AndroidVideoDownloadManager(context: Context) {
             updated
         }
 
+        emitTransition(previousStatus, mappedStatus, title)
+
         ensureProgressLoop()
+    }
+
+    private fun emitTransition(
+        previous: VideoDownloadStatus?,
+        current: VideoDownloadStatus,
+        title: String?
+    ) {
+        if (previous == current) {
+            return
+        }
+
+        when (current) {
+            VideoDownloadStatus.Downloaded ->
+                _events.tryEmit(
+                    DownloadEvent(
+                        DownloadEventType.Completed,
+                        title
+                    )
+                )
+
+            VideoDownloadStatus.Failed ->
+                _events.tryEmit(
+                    DownloadEvent(
+                        DownloadEventType.Failed,
+                        title
+                    )
+                )
+
+            else -> Unit
+        }
+    }
+
+    private fun applyNetworkRequirements() {
+        val requirement = if (wifiOnlyProvider()) {
+            Requirements.NETWORK_UNMETERED
+        } else {
+            Requirements.NETWORK
+        }
+        manager.setRequirements(Requirements(requirement))
     }
 
     private fun synchronizeWithDownloadIndex() {

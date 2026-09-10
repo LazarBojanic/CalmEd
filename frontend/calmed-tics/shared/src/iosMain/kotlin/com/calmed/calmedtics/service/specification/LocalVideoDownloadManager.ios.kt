@@ -1,7 +1,9 @@
 package com.calmed.calmedtics.service.specification
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import platform.AVFoundation.AVAssetDownloadDelegateProtocol
@@ -42,6 +44,12 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             states.update {
                 it + (key to VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f, title = title))
             }
+            _events.tryEmit(
+                DownloadEvent(
+                    DownloadEventType.Completed,
+                    title
+                )
+            )
             refreshDownloaded()
         }
 
@@ -53,9 +61,16 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             val remoteKey = pendingTaskIds.remove(task.taskIdentifier.toLong()) ?: return
             if (didCompleteWithError != null) {
                 val key = downloadKey(remoteKey)
+                val title = defaults.stringForKey(titleKeyFor(key))
                 states.update {
-                    it + (key to VideoDownloadState(VideoDownloadStatus.Failed))
+                    it + (key to VideoDownloadState(VideoDownloadStatus.Failed, title = title))
                 }
+                _events.tryEmit(
+                    DownloadEvent(
+                        DownloadEventType.Failed,
+                        title
+                    )
+                )
             }
         }
     }
@@ -74,6 +89,10 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
 		field = MutableStateFlow<Map<String, VideoDownloadState>>(emptyMap())
 	actual override val downloadedUrls: StateFlow<List<String>>
 		field = MutableStateFlow<List<String>>(emptyList())
+
+    private val _events = MutableSharedFlow<DownloadEvent>(extraBufferCapacity = 32)
+    actual override val events: SharedFlow<DownloadEvent>
+        get() = _events
 
 	init {
         refreshDownloaded()

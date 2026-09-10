@@ -83,6 +83,8 @@ import calmedtics.shared.generated.resources.tics_vocal
 import calmedtics.shared.generated.resources.username
 import calmedtics.shared.generated.resources.video_settings
 import calmedtics.shared.generated.resources.keep_screen_awake
+import calmedtics.shared.generated.resources.download_wifi_only
+import calmedtics.shared.generated.resources.download_wifi_only_description
 import com.calmed.calmedtics.model.raw.TicDuration
 import com.calmed.calmedtics.video.VideoResolution
 
@@ -105,6 +107,7 @@ fun ProfileScreen(
 	var remindersEnabled by remember { mutableStateOf(appSettings.isRemindersEnabled()) }
 	var downloadResolution by remember { mutableStateOf(appSettings.getDownloadResolution()) }
 	var keepScreenAwake by remember { mutableStateOf(appSettings.isKeepScreenAwake()) }
+	var downloadWifiOnly by remember { mutableStateOf(appSettings.isDownloadWifiOnly()) }
 
 	val loading by sessionViewModel.loading.collectAsState()
 	val error by sessionViewModel.error.collectAsState()
@@ -605,6 +608,46 @@ fun ProfileScreen(
 									keepScreenAwake = enabled
 									appSettings.setKeepScreenAwake(enabled)
 								}
+							)
+						}
+					}
+
+					Surface(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(20.dp),
+						color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
+						border = BorderStroke(
+							width = 1.dp,
+							color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+						)
+					) {
+						Column(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 16.dp, vertical = 16.dp)
+						) {
+							Row(
+								modifier = Modifier.fillMaxWidth(),
+								verticalAlignment = Alignment.CenterVertically
+							) {
+								Text(
+									text = stringResource(Res.string.download_wifi_only),
+									color = MaterialTheme.colorScheme.onSurface
+								)
+								Spacer(Modifier.weight(1f))
+								Switch(
+									checked = downloadWifiOnly,
+									onCheckedChange = { enabled ->
+										downloadWifiOnly = enabled
+										appSettings.setDownloadWifiOnly(enabled)
+									}
+								)
+							}
+
+							Text(
+								text = stringResource(Res.string.download_wifi_only_description),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
 							)
 						}
 					}
