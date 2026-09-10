@@ -17,9 +17,9 @@ val stripe_java_version: String by project
 val commons_validator: String by project
 
 plugins {
-	kotlin("jvm") version "2.4.0"
+	kotlin("jvm") version "2.4.20"
 	id("io.ktor.plugin") version "3.5.2"
-	id("org.jetbrains.kotlin.plugin.serialization") version "2.4.0"
+	id("org.jetbrains.kotlin.plugin.serialization") version "2.4.20"
 }
 
 group = "com.calmed"
