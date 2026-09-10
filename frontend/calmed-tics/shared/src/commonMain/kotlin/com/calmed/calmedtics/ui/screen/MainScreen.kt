@@ -27,12 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.error_prefix
-import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import calmedtics.shared.generated.resources.onboarding_error
 import calmedtics.shared.generated.resources.onboarding_title
 import calmedtics.shared.generated.resources.retry
-import com.calmed.calmedtics.service.specification.IAuthService
 import calmedtics.shared.generated.resources.skip_onboarding
 import com.calmed.calmedtics.store.ITokenDataStore
 import calmedtics.shared.generated.resources.tab_exercises
@@ -50,17 +48,17 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import androidx.compose.ui.platform.LocalUriHandler
 
-private enum class MainTab { Home, Exercises, Profile, HelpSupport }
+private enum class MainTab { Home, Exercises, Profile }
 
 @Composable
 fun MainScreen(
 	onLogoutToLogin: () -> Unit,
 	onAccountDeleted: () -> Unit = {},
 	onOpenVideoFromList: (List<ProgramExerciseDto>, Int) -> Unit,
+	onOpenHelpSupport: () -> Unit,
 	sessionViewModel: SessionViewModel,
 	homeViewModel: HomeViewModel,
-	exercisesViewModel: ExercisesViewModel,
-	authService: IAuthService = koinInject()
+	exercisesViewModel: ExercisesViewModel
 ) {
 	val scope = rememberCoroutineScope()
 	val uriHandler = LocalUriHandler.current
@@ -214,9 +212,7 @@ fun MainScreen(
 					sessionViewModel = sessionViewModel,
 					onLogout = { onLogoutToLogin() },
 					onAccountDeleted = onAccountDeleted,
-					onHelpSupportClick = {
-						selectedTab.value = MainTab.HelpSupport
-					},
+					onHelpSupportClick = onOpenHelpSupport,
 					onPrivacyPolicyClick = {
 						uriHandler.openUri("https://calm-ed.com/privacy-policy/")
 					},
@@ -225,23 +221,6 @@ fun MainScreen(
 					},
 					onRefundPolicyClick = {
 						uriHandler.openUri("https://calm-ed.com/refund-policy/")
-					}
-				)
-
-				MainTab.HelpSupport -> HelpSupportScreen(
-					onBack = {
-						selectedTab.value = MainTab.Profile
-					},
-					onSendMessage = { subject, message ->
-						scope.launch {
-							authService.sendSupportMessage(
-								SupportMessageRequestDto(
-									subject = subject,
-									message = message,
-									userEmail = u.email
-								)
-							)
-						}
 					}
 				)
 

@@ -29,6 +29,7 @@ import com.calmed.calmedtics.ui.screen.WelcomeVideoScreen
 import com.calmed.calmedtics.ui.screen.CourseOverviewScreen
 import com.calmed.calmedtics.ui.screen.OnboardingScreen
 import com.calmed.calmedtics.ui.screen.AgeConfirmScreen
+import com.calmed.calmedtics.ui.screen.HelpSupportScreen
 import com.calmed.calmedtics.util.isBackendReachable
 import com.calmed.calmedtics.viewmodel.AuthViewModel
 import com.calmed.calmedtics.viewmodel.ExercisesViewModel
@@ -60,6 +61,7 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import com.calmed.calmedtics.localization.AppLocaleProvider
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
 
 object Routes {
     const val Splash = "splash"
@@ -74,6 +76,7 @@ object Routes {
     const val AgeConfirm = "age-confirm"
     const val Payment = "payment"
     const val Offline = "offline"
+    const val HelpSupport = "help-support"
 }
 
 @Composable
@@ -599,6 +602,22 @@ fun App() {
                         }
                     )
                 }
+                    composable(Routes.HelpSupport) {
+                        HelpSupportScreen(
+                            onBack = { navController.popBackStack() },
+                            onSendMessage = { subject, message ->
+                                scope.launch {
+                                    authService.sendSupportMessage(
+                                        SupportMessageRequestDto(
+                                            subject = subject,
+                                            message = message,
+                                            userEmail = user?.email ?: ""
+                                        )
+                                    )
+                                }
+                            }
+                        )
+                    }
                     composable(Routes.Main) {
                         MainScreen(
                             sessionViewModel = sessionViewModel,
@@ -621,6 +640,9 @@ fun App() {
                             },
                             onOpenVideoFromList = { exercises, startIndex ->
                                 openVideoFromList(exercises, startIndex)
+                            },
+                            onOpenHelpSupport = {
+                                navController.navigate(Routes.HelpSupport)
                             }
                         )
                     }
