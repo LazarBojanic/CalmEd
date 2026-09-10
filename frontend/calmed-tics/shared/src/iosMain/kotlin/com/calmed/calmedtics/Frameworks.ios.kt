@@ -23,6 +23,8 @@ fun iosModule() = module {
     single { get<AppDatabase>().getUserDao() }
     single { get<AppDatabase>().getUserInfoTicsDao() }
     single { get<AppDatabase>().getExerciseCompletionDao() }
+    single { get<AppDatabase>().getProgramExerciseDao() }
+    single { get<AppDatabase>().getExerciseGroupDao() }
 }
 
 fun initKoinIos() {

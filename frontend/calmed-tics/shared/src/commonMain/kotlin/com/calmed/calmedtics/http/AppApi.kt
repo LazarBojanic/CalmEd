@@ -22,12 +22,10 @@ import com.calmed.calmedtics.model.dto.response.UserInfoTicsDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.model.dto.response.ExerciseGroupDto
 import com.calmed.calmedtics.model.dto.response.SupportMessageResponseDto
-import com.calmed.calmedtics.store.ITokenDataStore
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.delete
-import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
@@ -35,15 +33,13 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.flow.first
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 
-class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStore: ITokenDataStore
-) : IAppApi {
+class AppApi(private val appHttpClient: AppHttpClient) : IAppApi {
 	private val client get() = appHttpClient.client
 
 	override suspend fun register(dto: RegisterUserDto): TokenDto? {
@@ -197,55 +193,30 @@ class AppApi(private val appHttpClient: AppHttpClient, private val tokenDataStor
 
 
 	override suspend fun getHome(year: Int, month: Int): HomeDto? {
-
-		val token = tokenDataStore.tokenDto.first()?.access
-
-
 		val resp: HttpResponse = client.get("/home") {
 			parameter("year", year)
 			parameter("month", month)
-			token?.let { header("Authorization", "Bearer $it") }
-
 		}
-
-		val raw = resp.bodyAsText()
 		return if (resp.status == HttpStatusCode.OK) resp.body() else null
-
 	}
 
 	override suspend fun getAllProgramExercises(): List<ProgramExerciseDto> {
-		val token = tokenDataStore.tokenDto.first()?.access
+		val resp: HttpResponse = client.get(urlString = "/program-exercises")
+		return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
+	}
 
-		val resp: HttpResponse = client.get(urlString = "/program-exercises") {
-			token?.let { header("Authorization", "Bearer $it") }
-		}
+	override suspend fun getAllExerciseGroups(): List<ExerciseGroupDto> {
+		val resp: HttpResponse = client.get(urlString = "/exercise-groups")
+		return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
+	}
 
-        return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
-    }
-
-    override suspend fun getAllExerciseGroups(): List<ExerciseGroupDto> {
-        val token = tokenDataStore.tokenDto.first()?.access
-
-        val resp: HttpResponse = client.get(urlString = "/exercise-groups") {
-            token?.let { header("Authorization", "Bearer $it") }
-        }
-
-        return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
-    }
-
-    override suspend fun getWelcomeVideo(): ProgramExerciseDto? {
-		val token = tokenDataStore.tokenDto.first()?.access
-		val resp: HttpResponse = client.get(urlString = "/program-exercises/welcome-video") {
-			token?.let { header("Authorization", "Bearer $it") }
-		}
+	override suspend fun getWelcomeVideo(): ProgramExerciseDto? {
+		val resp: HttpResponse = client.get(urlString = "/program-exercises/welcome-video")
 		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 	}
 
 	override suspend fun getCourseOverviewVideo(): ProgramExerciseDto? {
-		val token = tokenDataStore.tokenDto.first()?.access
-		val resp: HttpResponse = client.get(urlString = "/program-exercises/course-overview-video") {
-			token?.let { header("Authorization", "Bearer $it") }
-		}
+		val resp: HttpResponse = client.get(urlString = "/program-exercises/course-overview-video")
 		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 	}
 

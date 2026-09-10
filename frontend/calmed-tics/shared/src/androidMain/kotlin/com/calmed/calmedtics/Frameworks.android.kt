@@ -23,4 +23,6 @@ fun androidModule(appContext: Context) = module {
     single { get<AppDatabase>().getUserDao() }
     single { get<AppDatabase>().getUserInfoTicsDao() }
     single { get<AppDatabase>().getExerciseCompletionDao() }
+    single { get<AppDatabase>().getProgramExerciseDao() }
+    single { get<AppDatabase>().getExerciseGroupDao() }
 }

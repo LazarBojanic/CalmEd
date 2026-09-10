@@ -71,7 +71,7 @@ import org.koin.compose.koinInject
 fun PaymentScreen(
     onPaid: () -> Unit,
     onLogout: () -> Unit = {},
-    sessionViewModel: SessionViewModel = koinInject(),
+    sessionViewModel: SessionViewModel,
     api: IAppApi = koinInject(),
     billingService: BillingService = remember { provideBillingService() }
 ) {

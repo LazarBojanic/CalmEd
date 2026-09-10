@@ -1,82 +1,125 @@
 package com.calmed.calmedtics.http
 
+import com.calmed.calmedtics.model.dto.TokenDto
+import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.store.ITokenDataStore
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.api.Send
+import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
+private class RefreshTokenConfig {
+	var tokenProvider: () -> String? = { null }
+	var refresh: suspend () -> String? = { null }
+}
+
+private val RefreshTokenPlugin = createClientPlugin("RefreshTokenPlugin", ::RefreshTokenConfig) {
+	on(Send) { request ->
+		var hadToken = false
+		val token = pluginConfig.tokenProvider()
+		if (!token.isNullOrBlank()) {
+			hadToken = true
+			request.headers.remove(HttpHeaders.Authorization)
+			request.headers.append(HttpHeaders.Authorization, "Bearer $token")
+		}
+
+		var call = proceed(request)
+
+		if (hadToken && call.response.status == HttpStatusCode.Unauthorized) {
+			val newToken = pluginConfig.refresh()
+			if (!newToken.isNullOrBlank()) {
+				val retry = HttpRequestBuilder().takeFrom(request)
+				retry.headers.remove(HttpHeaders.Authorization)
+				retry.headers.append(HttpHeaders.Authorization, "Bearer $newToken")
+				call = proceed(retry)
+			}
+		}
+		call
+	}
+}
+
 class AppHttpClient(
-    val baseUrl: String,
-    val platformEngine: HttpClientEngineFactory<*>,
-    private val tokenStore: ITokenDataStore
+	val baseUrl: String,
+	val platformEngine: HttpClientEngineFactory<*>,
+	private val tokenStore: ITokenDataStore
 ) {
 
+	private val json = Json {
+		ignoreUnknownKeys = true
+		isLenient = true
+		explicitNulls = false
+	}
 
-    val client: HttpClient = HttpClient(platformEngine) {
+	private val refreshClient = HttpClient(platformEngine) {
+		install(ContentNegotiation) { json(json) }
+		expectSuccess = false
+	}
 
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                    isLenient = true
-                    explicitNulls = false
-                    prettyPrint = true
-                }
-            )
-        }
+	private suspend fun refreshToken(): String? {
+		val current = tokenStore.getToken() ?: return null
+		val refresh = current.refresh
+		if (refresh.isNullOrBlank()) return null
 
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.ALL
-        }
+		val response = refreshClient.post("$baseUrl/auth/refresh") {
+			contentType(ContentType.Application.Json)
+			setBody(RefreshDto(refresh = refresh))
+		}
+		if (response.status != HttpStatusCode.OK) return null
 
-        install(HttpTimeout) {
-            requestTimeoutMillis = 30_000
-            connectTimeoutMillis = 30_000
-            socketTimeoutMillis = 30_000
-        }
+		val token: TokenDto = response.body()
+		tokenStore.setToken(token)
+		return token.access
+	}
 
-        install(DefaultRequest) {
-            url { takeFrom(baseUrl) }
+	val client: HttpClient = HttpClient(platformEngine) {
+		install(ContentNegotiation) { json(json) }
 
+		install(Logging) {
+			logger = Logger.DEFAULT
+			level = LogLevel.ALL
+		}
 
-            headers.append("User-Agent", "Mozilla/5.0 (Android) CalmEd")
-            // headers.append("Accept", "image/*,*/*;q=0.8")
+		install(HttpTimeout) {
+			requestTimeoutMillis = 30_000
+			connectTimeoutMillis = 30_000
+			socketTimeoutMillis = 30_000
+		}
 
-            contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json)
+		install(DefaultRequest) {
+			url { takeFrom(baseUrl) }
 
-            val token = tokenStore.tokenDto.value
-            val access = token?.access
-            if (!access.isNullOrBlank()) {
-                header(HttpHeaders.Authorization, "Bearer $access")
-            }
-        }
-    }
+			headers.append("User-Agent", "Mozilla/5.0 (Android) CalmEd")
 
-    init {
-        println("HTTP baseUrl = $baseUrl")
-    }
+			contentType(ContentType.Application.Json)
+			accept(ContentType.Application.Json)
+		}
 
+		install(RefreshTokenPlugin) {
+			tokenProvider = { tokenStore.tokenDto.value?.access }
+			refresh = { refreshToken() }
+		}
+	}
 
-
+	init {
+		println("HTTP baseUrl = $baseUrl")
+	}
 }

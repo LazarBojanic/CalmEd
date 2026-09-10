@@ -99,7 +99,7 @@ fun ProfileScreen(
 	onTermsClick: () -> Unit = {},
 	onRefundPolicyClick: () -> Unit = {},
 	appSettings: com.calmed.calmedtics.settings.AppSettings = koinInject(),
-	sessionViewModel: SessionViewModel = koinInject()
+	sessionViewModel: SessionViewModel
 ){
 	val scope = rememberCoroutineScope()
 	val reminderManager = remember { ReminderManager() }

@@ -21,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,10 +45,11 @@ import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.util.dateToEpochDay
+import com.calmed.calmedtics.viewmodel.ExercisesViewModel
+import com.calmed.calmedtics.viewmodel.HomeViewModel
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -71,14 +71,16 @@ import com.calmed.calmedtics.ui.component.VideoPlayer
 
 @Composable
 fun HomeScreen(
-    sessionViewModel: SessionViewModel = koinInject(),
+    sessionViewModel: SessionViewModel,
+    homeViewModel: HomeViewModel,
+    exercisesViewModel: ExercisesViewModel,
     onExerciseClick: (ProgramExerciseDto) -> Unit,
 ) {
-    val home by sessionViewModel.home.collectAsState(initial = null)
+    val home by homeViewModel.home.collectAsState(initial = null)
     val user by sessionViewModel.user.collectAsState()
     val userInfo by sessionViewModel.userInfo.collectAsState()
-    val allExercises by sessionViewModel.allExercises.collectAsState()
-    val allCompletions by sessionViewModel.allCompletions.collectAsState()
+    val allExercises by exercisesViewModel.exercises.collectAsState()
+    val allCompletions by homeViewModel.allCompletions.collectAsState()
 
 
     val ymd = currentYmd()
@@ -157,11 +159,6 @@ fun HomeScreen(
 
     val completions = remember(allCompletions, selectedDayInWeek, userId, displayWeek) {
         allCompletions.filter { it.userId == userId && it.day == selectedDayInWeek && it.week == displayWeek }
-    }
-
-    LaunchedEffect(Unit) {
-        sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
-        sessionViewModel.loadAllExercises()
     }
 
     val weekExercises = remember(allExercises, displayWeek) {
@@ -803,7 +800,7 @@ fun HomeScreen(
                             .weight(1f)
                             .clickable {
                                 scope.launch {
-                                    sessionViewModel.markSessionCompleted(
+                                    homeViewModel.markSessionCompleted(
                                         displayWeek,
                                         selectedDayInWeek,
                                         userId,
@@ -944,7 +941,7 @@ fun HomeScreen(
                             .weight(1f)
                             .clickable {
                                 scope.launch {
-                                    sessionViewModel.markSessionCompleted(
+                                    homeViewModel.markSessionCompleted(
                                         displayWeek,
                                         selectedDayInWeek,
                                         userId,

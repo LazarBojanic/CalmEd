@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -52,6 +53,7 @@ import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import com.calmed.calmedtics.ui.component.BackButton
 import com.calmed.calmedtics.ui.component.CastButton
+import com.calmed.calmedtics.ui.component.AppToastHost
 import com.calmed.calmedtics.ui.component.FullscreenEffect
 import com.calmed.calmedtics.ui.component.KeepScreenAwake
 import com.calmed.calmedtics.ui.component.PlatformBackHandler
@@ -329,6 +331,10 @@ fun VideoScreen(
                     .padding(start = 16.dp, top = 8.dp)
             )
         }
+
+        AppToastHost(
+            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding()
+        )
     }
 
     if (showResolutionPicker) {

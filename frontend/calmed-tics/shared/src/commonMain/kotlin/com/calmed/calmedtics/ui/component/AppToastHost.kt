@@ -30,13 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import calmedtics.shared.generated.resources.Res
-import calmedtics.shared.generated.resources.download_completed
-import calmedtics.shared.generated.resources.download_completed_title
-import calmedtics.shared.generated.resources.download_failed
-import calmedtics.shared.generated.resources.download_failed_title
-import com.calmed.calmedtics.service.specification.DownloadEventType
-import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -105,48 +98,9 @@ object ToastCenter {
 fun AppToastHost(modifier: Modifier = Modifier) {
     val toasts by ToastCenter.toasts.collectAsState()
 
-    LaunchedEffect(Unit) {
-        LocalVideoDownloadManager.events.collect { event ->
-            when (event.type) {
-                DownloadEventType.Completed -> {
-                    val title = event.title?.takeIf { it.isNotBlank() }
-                    if (title != null) {
-                        ToastCenter.show(
-                            Res.string.download_completed_title,
-                            title,
-                            kind = ToastKind.Success
-                        )
-                    } else {
-                        ToastCenter.show(
-                            Res.string.download_completed,
-                            kind = ToastKind.Success
-                        )
-                    }
-                }
-
-                DownloadEventType.Failed -> {
-                    val title = event.title?.takeIf { it.isNotBlank() }
-                    if (title != null) {
-                        ToastCenter.show(
-                            Res.string.download_failed_title,
-                            title,
-                            kind = ToastKind.Error
-                        )
-                    } else {
-                        ToastCenter.show(
-                            Res.string.download_failed,
-                            kind = ToastKind.Error
-                        )
-                    }
-                }
-            }
-        }
-    }
-
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally

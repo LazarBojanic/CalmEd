@@ -33,7 +33,6 @@ import calmedtics.shared.generated.resources.onboarding_error
 import calmedtics.shared.generated.resources.onboarding_title
 import calmedtics.shared.generated.resources.retry
 import com.calmed.calmedtics.service.specification.IAuthService
-import com.calmed.calmedtics.settings.AppSettings
 import calmedtics.shared.generated.resources.skip_onboarding
 import com.calmed.calmedtics.store.ITokenDataStore
 import calmedtics.shared.generated.resources.tab_exercises
@@ -41,7 +40,10 @@ import calmedtics.shared.generated.resources.tab_home
 import calmedtics.shared.generated.resources.tab_profile
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.ScreenScaffold
+import com.calmed.calmedtics.ui.component.AppToastHost
 import com.calmed.calmedtics.util.currentYmd
+import com.calmed.calmedtics.viewmodel.ExercisesViewModel
+import com.calmed.calmedtics.viewmodel.HomeViewModel
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -55,7 +57,9 @@ fun MainScreen(
 	onLogoutToLogin: () -> Unit,
 	onAccountDeleted: () -> Unit = {},
 	onOpenVideoFromList: (List<ProgramExerciseDto>, Int) -> Unit,
-	sessionViewModel: SessionViewModel = koinInject(),
+	sessionViewModel: SessionViewModel,
+	homeViewModel: HomeViewModel,
+	exercisesViewModel: ExercisesViewModel,
 	authService: IAuthService = koinInject()
 ) {
 	val scope = rememberCoroutineScope()
@@ -67,21 +71,19 @@ fun MainScreen(
 	val error by sessionViewModel.error.collectAsState()
 	val user by sessionViewModel.user.collectAsState()
 	val userInfo by sessionViewModel.userInfo.collectAsState()
-	val home by sessionViewModel.home.collectAsState()
-	val allExercises by sessionViewModel.allExercises.collectAsState()
-	val exerciseGroups by sessionViewModel.exerciseGroups.collectAsState()
+	val home by homeViewModel.home.collectAsState()
+	val allExercises by exercisesViewModel.exercises.collectAsState()
+	val exerciseGroups by exercisesViewModel.groups.collectAsState()
 
 	val selectedTab = rememberSaveable { mutableStateOf(MainTab.Home) }
-	val appSettings = koinInject<AppSettings>()
 
 	LaunchedEffect(token?.access) {
 		val access = token?.access
 		if (!access.isNullOrBlank()) {
 			val ymd = currentYmd()
 			sessionViewModel.loadSession()
-			sessionViewModel.loadHome(year = ymd.year, month = ymd.month)
-			sessionViewModel.loadAllExercises()
-			sessionViewModel.loadAllExerciseGroups()
+			homeViewModel.load(year = ymd.year, month = ymd.month)
+			exercisesViewModel.load()
 		}
 	}
 
@@ -95,7 +97,26 @@ fun MainScreen(
 	val u = user
 	val ui = userInfo
 
-	if (u != null && !u.isOnboarded) {
+	if (u == null) {
+		Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+			Column(
+				horizontalAlignment = Alignment.CenterHorizontally,
+				verticalArrangement = Arrangement.spacedBy(12.dp)
+			) {
+				Text(stringResource(Res.string.onboarding_error))
+				if (error != null) {
+					Text(stringResource(Res.string.error_prefix, error ?: ""))
+				}
+				PrimaryButton(
+					text = stringResource(Res.string.retry),
+					onClick = { scope.launch { sessionViewModel.loadSession() } }
+				)
+			}
+		}
+		return
+	}
+
+	if (!u.isOnboarded) {
 		if (loading && ui == null) {
 			Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 				CircularProgressIndicator()
@@ -138,6 +159,7 @@ fun MainScreen(
 	}
 
 	Scaffold(
+		snackbarHost = { AppToastHost() },
 		bottomBar = {
 			NavigationBar {
 				NavigationBarItem(
@@ -165,6 +187,8 @@ fun MainScreen(
 			when (selectedTab.value) {
 				MainTab.Home -> HomeScreen(
 					sessionViewModel = sessionViewModel,
+					homeViewModel = homeViewModel,
+					exercisesViewModel = exercisesViewModel,
 					onExerciseClick = { exercise ->
 						val currentWeek = home?.currentWeek ?: 1
 
@@ -187,6 +211,7 @@ fun MainScreen(
 				MainTab.Profile -> ProfileScreen(
 					user = u,
 					userInfo = ui,
+					sessionViewModel = sessionViewModel,
 					onLogout = { onLogoutToLogin() },
 					onAccountDeleted = onAccountDeleted,
 					onHelpSupportClick = {
@@ -213,7 +238,7 @@ fun MainScreen(
 								SupportMessageRequestDto(
 									subject = subject,
 									message = message,
-									userEmail = u?.email ?: ""
+									userEmail = u.email
 								)
 							)
 						}

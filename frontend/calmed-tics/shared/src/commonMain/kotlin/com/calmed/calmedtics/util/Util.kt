@@ -1,14 +1,22 @@
 package com.calmed.calmedtics.util
 
+import com.calmed.calmedtics.store.ITokenDataStore
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import okio.ByteString.Companion.decodeBase64
 
 fun jwtDecode(token: String): JsonObject {
 	val payload = token.split(".")[1]
 	val decoded = payload.decodeBase64()!!.utf8()
 	return Json.parseToJsonElement(decoded).jsonObject
+}
+
+suspend fun ITokenDataStore.currentUserId(): String? {
+	val access = getToken()?.access ?: return null
+	val payload = jwtDecode(access)
+	return payload["sub"]?.jsonPrimitive?.content
 }
 
 fun isValidEmail(email: String): Boolean{

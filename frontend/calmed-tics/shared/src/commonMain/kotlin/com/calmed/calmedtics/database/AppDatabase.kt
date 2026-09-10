@@ -10,19 +10,34 @@ import com.calmed.calmedtics.model.RoomConverters
 import com.calmed.calmedtics.model.raw.UserEntity
 import com.calmed.calmedtics.model.raw.UserInfoTicsEntity
 import com.calmed.calmedtics.model.raw.ExerciseCompletionEntity
+import com.calmed.calmedtics.model.raw.ProgramExerciseEntity
+import com.calmed.calmedtics.model.raw.ExerciseGroupEntity
 import com.calmed.calmedtics.repository.IUserDao
 import com.calmed.calmedtics.repository.IUserInfoTicsDao
 import com.calmed.calmedtics.repository.IExerciseCompletionDao
+import com.calmed.calmedtics.repository.IProgramExerciseDao
+import com.calmed.calmedtics.repository.IExerciseGroupDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 
-@Database(version = 3, entities = [UserEntity::class, UserInfoTicsEntity::class, ExerciseCompletionEntity::class])
+@Database(
+	version = 4,
+	entities = [
+		UserEntity::class,
+		UserInfoTicsEntity::class,
+		ExerciseCompletionEntity::class,
+		ProgramExerciseEntity::class,
+		ExerciseGroupEntity::class
+	]
+)
 @TypeConverters(RoomConverters::class)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
 	abstract fun getUserDao(): IUserDao
 	abstract fun getUserInfoTicsDao(): IUserInfoTicsDao
 	abstract fun getExerciseCompletionDao(): IExerciseCompletionDao
+	abstract fun getProgramExerciseDao(): IProgramExerciseDao
+	abstract fun getExerciseGroupDao(): IExerciseGroupDao
 }
 
 @Suppress("KotlinNoActualForExpect")

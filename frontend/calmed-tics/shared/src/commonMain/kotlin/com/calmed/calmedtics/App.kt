@@ -8,10 +8,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -23,7 +19,6 @@ import com.calmed.calmedtics.store.ITokenDataStore
 import com.calmed.calmedtics.theme.AppTheme
 import com.calmed.calmedtics.ui.screen.ForgotPasswordScreen
 import com.calmed.calmedtics.ui.screen.VideoScreen
-import com.calmed.calmedtics.ui.screen.HomeScreen
 import com.calmed.calmedtics.ui.screen.LoginScreen
 import com.calmed.calmedtics.ui.screen.MainScreen
 import com.calmed.calmedtics.ui.screen.OfflineModeScreen
@@ -36,13 +31,20 @@ import com.calmed.calmedtics.ui.screen.OnboardingScreen
 import com.calmed.calmedtics.ui.screen.AgeConfirmScreen
 import com.calmed.calmedtics.util.isBackendReachable
 import com.calmed.calmedtics.viewmodel.AuthViewModel
+import com.calmed.calmedtics.viewmodel.ExercisesViewModel
+import com.calmed.calmedtics.viewmodel.HomeViewModel
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import com.calmed.calmedtics.auth.launchAppleSignIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
 import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.download_completed
+import calmedtics.shared.generated.resources.download_completed_title
+import calmedtics.shared.generated.resources.download_failed
+import calmedtics.shared.generated.resources.download_failed_title
 import calmedtics.shared.generated.resources.no_internet_connection
-import com.calmed.calmedtics.ui.component.AppToastHost
+import com.calmed.calmedtics.service.specification.DownloadEventType
+import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
 import com.calmed.calmedtics.ui.component.ToastCenter
 import com.calmed.calmedtics.ui.component.ToastKind
 import org.jetbrains.compose.resources.stringResource
@@ -55,6 +57,7 @@ import coil3.util.DebugLogger
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import com.calmed.calmedtics.localization.AppLocaleProvider
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 
@@ -63,7 +66,6 @@ object Routes {
     const val Login = "auth/login"
     const val Register = "auth/register"
     const val ForgotPassword = "auth/forgot-password"
-    const val Home = "home"
     const val WelcomeVideo = "welcome-video"
     const val CourseOverview = "course-overview"
     const val Video = "video"
@@ -101,7 +103,9 @@ fun App() {
     val authViewModel = remember { AuthViewModel(authService) }
 
     val appSettings: AppSettings = koinInject()
-    val sessionViewModel: SessionViewModel = koinInject()
+    val sessionViewModel: SessionViewModel = koinViewModel()
+    val homeViewModel: HomeViewModel = koinViewModel()
+    val exercisesViewModel: ExercisesViewModel = koinViewModel()
     val user by sessionViewModel.user.collectAsState()
     val userInfo by sessionViewModel.userInfo.collectAsState()
     val sessionLoading by sessionViewModel.loading.collectAsState()
@@ -159,8 +163,41 @@ fun App() {
     }
     AppLocaleProvider {
         AppTheme {
-            Box(modifier = Modifier.fillMaxSize()) {
-                NavHost(navController, startDestination = Routes.Splash) {
+            LaunchedEffect(Unit) {
+                LocalVideoDownloadManager.events.collect { event ->
+                    val title = event.title?.takeIf { it.isNotBlank() }
+                    when (event.type) {
+                        DownloadEventType.Completed ->
+                            if (title != null) {
+                                ToastCenter.show(
+                                    Res.string.download_completed_title,
+                                    title,
+                                    kind = ToastKind.Success
+                                )
+                            } else {
+                                ToastCenter.show(
+                                    Res.string.download_completed,
+                                    kind = ToastKind.Success
+                                )
+                            }
+
+                        DownloadEventType.Failed ->
+                            if (title != null) {
+                                ToastCenter.show(
+                                    Res.string.download_failed_title,
+                                    title,
+                                    kind = ToastKind.Error
+                                )
+                            } else {
+                                ToastCenter.show(
+                                    Res.string.download_failed,
+                                    kind = ToastKind.Error
+                                )
+                            }
+                    }
+                }
+            }
+            NavHost(navController, startDestination = Routes.Splash) {
 
                 composable(Routes.Splash) {
                     SplashScreen()
@@ -537,7 +574,8 @@ fun App() {
                                 popUpTo(Routes.Payment) { inclusive = true }
                                 launchSingleTop = true
                             }
-                        }
+                        },
+                        sessionViewModel = sessionViewModel
                     )
                 }
 
@@ -555,7 +593,7 @@ fun App() {
                     VideoScreen(
                         exercises = exercises,
                         startIndex = videoIndex,
-                        currentWeek = sessionViewModel.home.value?.currentWeek ?: 1,
+                        currentWeek = homeViewModel.home.value?.currentWeek ?: 1,
                         onBack = {
                             navController.popBackStack()
                         }
@@ -563,6 +601,9 @@ fun App() {
                 }
                     composable(Routes.Main) {
                         MainScreen(
+                            sessionViewModel = sessionViewModel,
+                            homeViewModel = homeViewModel,
+                            exercisesViewModel = exercisesViewModel,
                             onLogoutToLogin = {
                                 welcomeHandledUserId = null
                                 navController.navigate(Routes.Login) {
@@ -583,36 +624,6 @@ fun App() {
                             }
                         )
                     }
-
-
-                    composable(Routes.Home) {
-                        HomeScreen(
-                            sessionViewModel = koinInject(),
-                            onExerciseClick = { exercise ->
-                                val allExercises = sessionViewModel.allExercises.value
-                                val currentWeek = sessionViewModel.home.value?.currentWeek ?: 1
-
-                                val availableExercises = allExercises.filter {
-                                    it.weekNumber in 1..currentWeek
-                                }
-
-                                val index = availableExercises.indexOfFirst {
-                                    it.id == exercise.id
-                                }
-
-                                if (index != -1) {
-                                    openVideoFromList(availableExercises, index)
-                                } else {
-                                    openVideoFromList(listOf(exercise), 0)
-                                }
-                            }
-                        )
-                    }
-                }
-
-                    AppToastHost(
-                        modifier = Modifier.align(Alignment.BottomCenter)
-                    )
                 }
             }
         }

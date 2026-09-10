@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -64,6 +65,7 @@ import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadState
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
+import com.calmed.calmedtics.ui.component.AppToastHost
 import calmedtics.shared.generated.resources.status_downloaded
 import calmedtics.shared.generated.resources.status_downloading
 import calmedtics.shared.generated.resources.status_failed
@@ -90,18 +92,21 @@ fun OfflineModeScreen(
         LocalVideoDownloadManager.refreshDownloaded()
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(appBackgroundGradient()),
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            top = 18.dp,
-            end = 16.dp,
-            bottom = 96.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(appBackgroundGradient()),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                top = 18.dp,
+                end = 16.dp,
+                bottom = 96.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
 
         item {
             Column(
@@ -326,6 +331,11 @@ fun OfflineModeScreen(
                 }
             }
         }
+    }
+
+        AppToastHost(
+            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding()
+        )
     }
 
     pendingDeleteUrl?.let { url ->
