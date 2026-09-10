@@ -20,6 +20,7 @@ workflows:
         APP_STORE_APPLE_ID: 6803588201
         XCODE_WORKSPACE: "iosApp.xcworkspace"
         XCODE_SCHEME: "iosApp"
+        JAVA_TOOL_OPTIONS: "-Xmx6g"   
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.tagware.calmedtics
