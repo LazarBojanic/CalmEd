@@ -1,4 +1,4 @@
-package com.calmed.calmedbackend.model.raw.payment
+package com.calmed.calmedbackend.model.raw.storeentitlement
 
 import com.calmed.calmedbackend.model.raw.user.UserTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable

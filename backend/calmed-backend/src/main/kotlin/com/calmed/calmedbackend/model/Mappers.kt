@@ -20,8 +20,8 @@ import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshToken
 import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenEntity
 import com.calmed.calmedbackend.model.raw.payment.Payment
 import com.calmed.calmedbackend.model.raw.payment.PaymentEntity
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlement
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementEntity
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlement
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlementEntity
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
 import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTics
@@ -82,6 +82,7 @@ fun AuthCredentialEntity.toRaw(): AuthCredential {
 		userId = this.userId,
 		type = this.type,
 		passwordHash = this.passwordHash,
+		providerUserId = this.providerUserId,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -120,7 +121,8 @@ fun AuthCredential.join(userJoined: UserJoined): AuthCredentialJoined {
 		id = this.id,
 		userJoined = userJoined,
 		type = this.type,
-		passwordHash = this.passwordHash ?: "",
+		passwordHash = this.passwordHash,
+		providerUserId = this.providerUserId,
 		createdAt = this.createdAt,
 		updatedAt = this.updatedAt
 	)
@@ -424,7 +426,6 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 	val videoBaseURL = "https://stream.mux.com/"
 	val thumbnailBaseURL = "https://image.mux.com/"
 	var videoURL = ""
-	var videoURLEs = ""
 	var previewVideoURL = ""
 	var thumbnailURL = this.thumbnailURL
 
@@ -491,7 +492,6 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
 		previewPlaybackId = this.previewPlaybackId,
 		previewVideoURL = previewVideoURL,
 		videoURL = videoURL,
-		videoURLEs = videoURLEs,
 		thumbnailURL = thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,

@@ -13,6 +13,8 @@ data class DatabaseConfig(
 	val sslMode: String,
 	val channelBinding: String,
 	val databaseUrl: String,
+	val useFlyway: Boolean,
+	val recreate: Boolean,
 ) {
 	companion object {
 		fun from(config: ApplicationConfig): DatabaseConfig {
@@ -50,7 +52,9 @@ data class DatabaseConfig(
 					databaseUsername,
 					databasePassword,
 					sslModeAndChannelBinding
-				)
+				),
+				useFlyway = config.property("database.use_flyway").getString().toBoolean(),
+				recreate = config.property("database.recreate").getString().toBoolean(),
 			)
 		}
 		private fun sslModeAndChannelBinding(sslMode: String, channelBinding: String): String {

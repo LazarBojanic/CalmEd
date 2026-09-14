@@ -19,7 +19,6 @@ data class ProgramExerciseDto(
 	val previewPlaybackId: String?,
 	val previewVideoURL: String?,
 	val videoURL: String?,
-	val videoURLEs: String?,
 	val thumbnailURL: String?,
 	val durationSeconds: Int?,
 	val visibility: Visibility,

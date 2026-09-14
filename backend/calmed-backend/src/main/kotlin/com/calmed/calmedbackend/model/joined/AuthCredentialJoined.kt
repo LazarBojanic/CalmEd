@@ -13,7 +13,8 @@ data class AuthCredentialJoined(
 	val id: UUID,
 	val userJoined: UserJoined,
 	val type: AuthCredentialType,
-	val passwordHash: String,
+	val passwordHash: String?,
+	val providerUserId: String?,
 	@Serializable(with = InstantSerializer::class)
 	val createdAt: Instant,
 	@Serializable(with = InstantSerializer::class)

@@ -2,10 +2,10 @@ package com.calmed.calmedbackend.repository.implementation
 
 import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.MapMode
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlement
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementEntity
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementProvider
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementTable
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlement
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlementEntity
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlementProvider
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlementTable
 import com.calmed.calmedbackend.model.setFrom
 import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.repository.specification.IStoreEntitlementRepository

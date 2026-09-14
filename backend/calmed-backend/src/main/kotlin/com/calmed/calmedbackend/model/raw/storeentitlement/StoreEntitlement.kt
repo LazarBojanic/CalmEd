@@ -1,4 +1,4 @@
-package com.calmed.calmedbackend.model.raw.payment
+package com.calmed.calmedbackend.model.raw.storeentitlement
 
 import com.calmed.calmedbackend.util.InstantSerializer
 import com.calmed.calmedbackend.util.UUIDSerializer

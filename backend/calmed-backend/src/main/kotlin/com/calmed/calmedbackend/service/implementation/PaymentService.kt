@@ -10,8 +10,9 @@ import com.calmed.calmedbackend.model.dto.response.*
 import com.calmed.calmedbackend.model.raw.payment.Payment
 import com.calmed.calmedbackend.model.raw.payment.PaymentProvider
 import com.calmed.calmedbackend.model.raw.payment.PaymentStatus
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlement
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementProvider
+import com.calmed.calmedbackend.model.raw.storeentitlement.EntitlementGrantResult
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlement
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlementProvider
 import com.calmed.calmedbackend.payment.apple.AppStoreServerApi
 import com.calmed.calmedbackend.payment.google.GooglePlayDeveloperApi
 import com.calmed.calmedbackend.repository.specification.IPaymentRepository

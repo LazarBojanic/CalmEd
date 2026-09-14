@@ -10,7 +10,9 @@ data class EmailConfig(
 	val ssl: Boolean,
 	val fromEmail: String,
 	val fromName: String,
-	val verificationBaseUrl: String
+	val verificationBaseUrl: String,
+	val mailtrapApiToken: String,
+	val mailtrapInboxId: Long
 ) {
 	companion object {
 		fun from(config: ApplicationConfig): EmailConfig {
@@ -22,7 +24,9 @@ data class EmailConfig(
 				ssl = config.property("email.ssl").getString().toBoolean(),
 				fromEmail = config.property("email.from_email").getString(),
 				fromName = config.property("email.from_name").getString(),
-				verificationBaseUrl = config.property("email.verification_base_url").getString()
+				verificationBaseUrl = config.property("email.verification_base_url").getString(),
+				mailtrapApiToken = config.property("email.mailtrap_api_token").getString(),
+				mailtrapInboxId = config.property("email.mailtrap_inbox_id").getString().toLong()
 			)
 		}
 	}

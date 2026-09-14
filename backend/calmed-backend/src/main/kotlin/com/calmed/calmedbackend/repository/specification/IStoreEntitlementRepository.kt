@@ -1,7 +1,7 @@
 package com.calmed.calmedbackend.repository.specification
 
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlement
-import com.calmed.calmedbackend.model.raw.payment.StoreEntitlementProvider
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlement
+import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlementProvider
 import java.util.UUID
 
 interface IStoreEntitlementRepository {

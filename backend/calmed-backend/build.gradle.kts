@@ -1,25 +1,12 @@
-val exposed_version: String by project
-val koin_version: String by project
-val kotlin_version: String by project
-val logback_version: String by project
-val postgres_version: String by project
-val ktor_version: String by project
-val commons_email_version: String by project
-val java_jwt_version: String by project
-val jwks_rsa_version: String by project
-val lib_bcrypt: String by project
-val HikariCP_version: String by project
-val flyway_database_postgresql_version: String by project
-val junit_version: String by project
-val mockk_version: String by project
-val nimbus_jose_jwt_version: String by project
-val stripe_java_version: String by project
-val commons_validator: String by project
+import org.jetbrains.exposed.v1.gradle.plugin.GenerateMigrationsTask
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 plugins {
-	kotlin("jvm") version "2.4.20"
-	id("io.ktor.plugin") version "3.5.2"
-	id("org.jetbrains.kotlin.plugin.serialization") version "2.4.20"
+	alias(libs.plugins.kotlin.jvm)
+	alias(libs.plugins.ktor)
+	alias(libs.plugins.kotlin.serialization)
+	alias(libs.plugins.exposed)
 }
 
 group = "com.calmed"
@@ -35,53 +22,73 @@ java {
 }
 
 dependencies {
-	implementation("io.ktor:ktor-server-compression")
-	implementation("io.ktor:ktor-server-cors")
-	implementation("io.ktor:ktor-server-default-headers")
-	implementation("io.ktor:ktor-server-core")
-	implementation("io.ktor:ktor-server-auth")
-	implementation("io.ktor:ktor-server-auth-jwt")
-	implementation("io.ktor:ktor-client-core")
-	implementation("io.ktor:ktor-client-apache")
-	implementation("io.ktor:ktor-server-csrf")
-	implementation("io.ktor:ktor-server-content-negotiation")
-	implementation("io.ktor:ktor-serialization-kotlinx-json")
-	implementation("io.ktor:ktor-server-sessions")
-	implementation("io.ktor:ktor-server-request-validation")
-	implementation("io.ktor:ktor-server-resources")
-	implementation("io.ktor:ktor-server-host-common")
-	implementation("io.ktor:ktor-server-status-pages")
-	implementation("io.ktor:ktor-server-call-logging")
-	implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
-	implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
-	implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
-	implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
-	implementation("org.postgresql:postgresql:$postgres_version")
-	implementation("io.insert-koin:koin-ktor:$koin_version")
-	implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
-	implementation("io.ktor:ktor-server-netty")
-	implementation("ch.qos.logback:logback-classic:$logback_version")
-	implementation("io.ktor:ktor-server-config-yaml")
-	testImplementation("io.ktor:ktor-server-test-host")
-	implementation("org.apache.commons:commons-email:$commons_email_version")
-	implementation("com.auth0:java-jwt:$java_jwt_version")
-	implementation("com.auth0:jwks-rsa:$jwks_rsa_version")
-	implementation("at.favre.lib:bcrypt:$lib_bcrypt")
-	implementation("com.zaxxer:HikariCP:$HikariCP_version")
-	implementation("org.flywaydb:flyway-database-postgresql:$flyway_database_postgresql_version")
-	implementation("io.ktor:ktor-client-core")
-	implementation("io.ktor:ktor-client-cio")
-	implementation("io.ktor:ktor-client-content-negotiation")
-	implementation("io.ktor:ktor-serialization-kotlinx-json")
-	implementation("com.nimbusds:nimbus-jose-jwt:$nimbus_jose_jwt_version")
-	implementation("com.stripe:stripe-java:$stripe_java_version")
-	implementation("commons-validator:commons-validator:$commons_validator")
-	testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
-	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junit_version")
-	testImplementation("io.mockk:mockk:$mockk_version")
+	// Ktor Server & Client Bundles
+	implementation(libs.bundles.ktor.server)
+	implementation(libs.bundles.ktor.client)
+	implementation(libs.ktor.serialization.kotlinx.json)
+
+	// Database Stack Bundle & Drivers
+	implementation(libs.bundles.exposed)
+	implementation(libs.postgresql)
+	implementation(libs.hikaricp)
+	implementation(libs.flyway.postgres)
+
+	// Dependency Injection
+	implementation(libs.koin.ktor)
+	implementation(libs.koin.logger.slf4j)
+
+	// Email Utilities
+	implementation(libs.commons.email)
+	implementation(libs.commons.validator)
+	implementation(libs.mailtrap)
+
+	// Security & Crypto
+	implementation(libs.nimbus.jwt)
+	implementation(libs.auth0.jwt)
+	implementation(libs.auth0.jwks)
+	implementation(libs.bcrypt)
+
+	// Payments
+	implementation(libs.stripe.java)
+
+	// Logging
+	implementation(libs.logback.classic)
+
+	// Testing
+	testImplementation(libs.ktor.server.test.host)
+	testImplementation(libs.junit.api)
+	testImplementation(libs.mockk)
+	testRuntimeOnly(libs.junit.engine)
+	testRuntimeOnly(libs.junit.launcher)
 }
-tasks.test{
+
+exposed{
+	migrations {
+		tablesPackage.set("com.calmed.calmedbackend.model.raw")
+		testContainersImageName.set("postgres:18")
+	}
+}
+
+tasks.named<GenerateMigrationsTask>("generateMigrations") {
+	doFirst {
+		val filename = "V${
+			LocalDateTime.now().format(
+				DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+			)
+		}__MIGRATION.sql"
+
+		val getter = javaClass.getMethod("getFullFileName")
+		val setter = javaClass.getMethod("setFullFileName", String::class.java)
+
+		val currentFilename = getter.invoke(this) as? String
+
+		if (currentFilename.isNullOrBlank()) {
+			setter.invoke(this, filename)
+		}
+	}
+}
+
+tasks.test {
 	useJUnitPlatform()
 	failOnNoDiscoveredTests = false
 }
