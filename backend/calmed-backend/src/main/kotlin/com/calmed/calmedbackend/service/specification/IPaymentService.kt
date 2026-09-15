@@ -8,6 +8,7 @@ import java.util.UUID
 
 interface IPaymentService {
     suspend fun paymentStatus(userId: UUID): AppResult<PaymentStatusDto>
+    suspend fun hasActiveAccess(userId: UUID): Boolean
     suspend fun createCheckoutSession(userId: UUID, dto: CreateCheckoutSessionDto): AppResult<CheckoutSessionResponseDto>
     suspend fun handleStripeWebhook(payload: String, sigHeader: String): AppResult<Unit>
     suspend fun verifyApplePurchase(userId: UUID, dto: VerifyAppleReceiptDto): AppResult<PaymentStatusDto>

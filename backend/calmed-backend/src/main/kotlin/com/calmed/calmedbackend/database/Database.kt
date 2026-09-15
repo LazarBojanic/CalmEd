@@ -1,6 +1,7 @@
 package com.calmed.calmedbackend.database
 
 import com.calmed.calmedbackend.config.DatabaseConfig
+import com.calmed.calmedbackend.config.KtorConfig
 import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.authcredential.AuthCredentialTable
 import com.calmed.calmedbackend.model.raw.exercisegroup.ExerciseGroup
@@ -420,15 +421,17 @@ val databaseTables: Array<Table> = arrayOf(
 )
 fun Application.configureDatabase() {
 	val databaseConfig by inject<DatabaseConfig>()
+	val ktorConfig by inject<KtorConfig>()
 	val dataSource = hikariDataSource(databaseConfig)
 
 	Database.connect(
 		dataSource
 	)
-	if(databaseConfig.recreate) {
-		transaction {
-			dropAllTables()
+	if (databaseConfig.recreate) {
+		check(ktorConfig.development) {
+			"DATABASE_RECREATE is enabled but ktor.development is false. Refusing to drop all tables outside development."
 		}
+		dropAllTables()
 	}
 
 	if (databaseConfig.useFlyway) {
@@ -441,6 +444,9 @@ fun Application.configureDatabase() {
 		transaction {
 			SchemaUtils.createMissingTablesAndColumns(*databaseTables)
 		}
+	}
+	if(databaseConfig.recreate){
+		seed()
 	}
 }
 

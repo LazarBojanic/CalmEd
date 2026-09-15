@@ -24,6 +24,7 @@ fun Route.userProgramRoutes() {
 					return@get
 				}
 				val id = UUID.fromString(idParam)
+				call.requireSelf(id)
 				when (val res = service.getById(id)) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
@@ -38,6 +39,7 @@ fun Route.userProgramRoutes() {
 					return@get
 				}
 				val userId = UUID.fromString(userIdParam)
+				call.requireSelf(userId)
 				when (val res = service.getByUserId(userId)) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)

@@ -73,6 +73,14 @@ class IosBillingService : BillingService {
             userInfo = null
         )
     }
+    override suspend fun completePurchase(purchaseToken: String) {
+        if (purchaseToken.isBlank()) return
+        NSNotificationCenter.defaultCenter.postNotificationName(
+            aName = "TriggerAppleFinish",
+            `object` = null,
+            userInfo = mapOf("transactionId" to purchaseToken)
+        )
+    }
     override fun close() {
         NSNotificationCenter.defaultCenter.removeObserver(notificationObserver)
         NSNotificationCenter.defaultCenter.removeObserver(failureObserver)

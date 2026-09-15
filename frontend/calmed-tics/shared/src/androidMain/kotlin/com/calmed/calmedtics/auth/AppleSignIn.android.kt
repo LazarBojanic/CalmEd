@@ -16,6 +16,8 @@ actual fun launchAppleSignIn() {
     val state = UUID.randomUUID().toString()
     val nonce = UUID.randomUUID().toString()
 
+    AppleAuthStateStore.save(context, state)
+
     val url = Uri.Builder()
         .scheme("https")
         .authority("appleid.apple.com")

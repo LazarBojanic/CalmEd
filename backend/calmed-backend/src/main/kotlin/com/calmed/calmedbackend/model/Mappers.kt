@@ -422,63 +422,50 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 	)
 }
 
-fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig): ProgramExerciseDto {
+fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig, hasAccess: Boolean): ProgramExerciseDto {
 	val videoBaseURL = "https://stream.mux.com/"
 	val thumbnailBaseURL = "https://image.mux.com/"
+	val signingEnabled = muxConfig.signingKey.isNotBlank() && muxConfig.privateKey.isNotBlank()
+	val isSigned = this.visibility == Visibility.SIGNED
+	val canPlayFull = !isSigned || hasAccess
+
 	var videoURL = ""
 	var previewVideoURL = ""
 	var thumbnailURL = this.thumbnailURL
 
-	if (muxConfig.signingKey.isNotBlank() && muxConfig.privateKey.isNotBlank()) {
-		if (!this.playbackId.isNullOrBlank()) {
-			if (this.visibility == Visibility.SIGNED) {
-				val videoToken = MuxTokenGenerator.generatePlaybackToken(
-					this.playbackId,
-					muxConfig.signingKey,
-					muxConfig.privateKey
-				)
-				videoURL = "$videoBaseURL${this.playbackId}.m3u8?token=$videoToken"
+	if (!this.playbackId.isNullOrBlank() && canPlayFull) {
+		if (signingEnabled && isSigned) {
+			val videoToken = MuxTokenGenerator.generatePlaybackToken(
+				this.playbackId,
+				muxConfig.signingKey,
+				muxConfig.privateKey
+			)
+			videoURL = "$videoBaseURL${this.playbackId}.m3u8?token=$videoToken"
 
-				val thumbnailToken = MuxTokenGenerator.generateThumbnailToken(
-					this.playbackId,
-					muxConfig.signingKey,
-					muxConfig.privateKey
-				)
-				thumbnailURL =
-					"$thumbnailBaseURL${this.playbackId}/thumbnail.jpg?token=$thumbnailToken"
-			} else {
-				videoURL = "$videoBaseURL${this.playbackId}.m3u8"
-				if (thumbnailURL.isNullOrBlank()) {
-					thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
-				}
-			}
-		}
-
-		if (!this.previewPlaybackId.isNullOrBlank()) {
-			if (this.visibility == Visibility.SIGNED) {
-				val previewToken = MuxTokenGenerator.generatePlaybackToken(
-					this.previewPlaybackId,
-					muxConfig.signingKey,
-					muxConfig.privateKey
-				)
-				previewVideoURL =
-					"$videoBaseURL${this.previewPlaybackId}.m3u8?token=$previewToken"
-			} else {
-				previewVideoURL =
-					"$videoBaseURL${this.previewPlaybackId}.m3u8"
-			}
-		}
-	} else {
-		if (!this.playbackId.isNullOrBlank()) {
+			val thumbnailToken = MuxTokenGenerator.generateThumbnailToken(
+				this.playbackId,
+				muxConfig.signingKey,
+				muxConfig.privateKey
+			)
+			thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg?token=$thumbnailToken"
+		} else {
 			videoURL = "$videoBaseURL${this.playbackId}.m3u8"
 			if (thumbnailURL.isNullOrBlank()) {
 				thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
 			}
 		}
+	}
 
-		if (!this.previewPlaybackId.isNullOrBlank()) {
-			previewVideoURL =
-				"$videoBaseURL${this.previewPlaybackId}.m3u8"
+	if (!this.previewPlaybackId.isNullOrBlank()) {
+		if (signingEnabled && isSigned) {
+			val previewToken = MuxTokenGenerator.generatePlaybackToken(
+				this.previewPlaybackId,
+				muxConfig.signingKey,
+				muxConfig.privateKey
+			)
+			previewVideoURL = "$videoBaseURL${this.previewPlaybackId}.m3u8?token=$previewToken"
+		} else {
+			previewVideoURL = "$videoBaseURL${this.previewPlaybackId}.m3u8"
 		}
 	}
 

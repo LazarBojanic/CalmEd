@@ -24,4 +24,7 @@ interface IUserDao {
 
 	@Query("DELETE FROM user")
 	suspend fun clearAll()
+
+	@Query("DELETE FROM user WHERE id != :userId")
+	suspend fun deleteAllExcept(userId: String)
 }

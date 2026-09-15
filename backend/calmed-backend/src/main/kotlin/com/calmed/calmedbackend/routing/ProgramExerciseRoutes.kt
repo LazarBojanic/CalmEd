@@ -3,6 +3,7 @@ package com.calmed.calmedbackend.routing
 import com.calmed.calmedbackend.config.MuxConfig
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.toDto
+import com.calmed.calmedbackend.service.specification.IPaymentService
 import com.calmed.calmedbackend.service.specification.IProgramExerciseService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
@@ -16,24 +17,26 @@ import java.util.UUID
 fun Route.programExerciseRoutes() {
 	val service by inject<IProgramExerciseService>()
 	val muxConfig by inject<MuxConfig>()
+	val paymentService by inject<IPaymentService>()
 
 	authenticate("auth-jwt") {
 		route("/program-exercises") {
 			get("") {
+				val hasAccess = paymentService.hasActiveAccess(call.requireSubjectId())
 				when (val res = service.getAll()) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig) })
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig, hasAccess) })
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
 			get("/welcome-video") {
 				when (val res = service.getWelcomeVideo()) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig, hasAccess = true))
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
 			get("/course-overview-video") {
 				when (val res = service.getCourseOverviewVideo()) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig, hasAccess = true))
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
@@ -44,8 +47,9 @@ fun Route.programExerciseRoutes() {
 					return@get
 				}
 				val id = UUID.fromString(idParam)
+				val hasAccess = paymentService.hasActiveAccess(call.requireSubjectId())
 				when (val res = service.getById(id)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig))
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto(muxConfig, hasAccess))
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
@@ -61,8 +65,9 @@ fun Route.programExerciseRoutes() {
 					call.respond(HttpStatusCode.BadRequest, "Invalid week parameter")
 					return@get
 				}
+				val hasAccess = paymentService.hasActiveAccess(call.requireSubjectId())
 				when (val res = service.getByWeek(week)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig) })
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig, hasAccess) })
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}
@@ -78,8 +83,9 @@ fun Route.programExerciseRoutes() {
 					call.respond(HttpStatusCode.BadRequest, "Invalid group parameter")
 					return@get
 				}
+				val hasAccess = paymentService.hasActiveAccess(call.requireSubjectId())
 				when (val res = service.getByGroup(group)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig) })
+					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto(muxConfig, hasAccess) })
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
 				}
 			}

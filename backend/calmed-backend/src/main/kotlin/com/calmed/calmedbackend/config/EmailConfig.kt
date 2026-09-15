@@ -8,8 +8,8 @@ data class EmailConfig(
 	val username: String,
 	val password: String,
 	val ssl: Boolean,
-	val fromEmail: String,
-	val fromName: String,
+	val appEmail: String,
+	val supportEmail: String,
 	val verificationBaseUrl: String,
 	val mailtrapApiToken: String,
 	val mailtrapInboxId: Long
@@ -22,8 +22,8 @@ data class EmailConfig(
 				username = config.property("email.username").getString(),
 				password = config.property("email.password").getString(),
 				ssl = config.property("email.ssl").getString().toBoolean(),
-				fromEmail = config.property("email.from_email").getString(),
-				fromName = config.property("email.from_name").getString(),
+				appEmail = config.property("email.app_email").getString(),
+				supportEmail = config.property("email.support_email").getString(),
 				verificationBaseUrl = config.property("email.verification_base_url").getString(),
 				mailtrapApiToken = config.property("email.mailtrap_api_token").getString(),
 				mailtrapInboxId = config.property("email.mailtrap_inbox_id").getString().toLong()

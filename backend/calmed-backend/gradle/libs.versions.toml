@@ -30,6 +30,7 @@ ktor-server-csrf = { group = "io.ktor", name = "ktor-server-csrf", version.ref =
 ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-server-sessions = { group = "io.ktor", name = "ktor-server-sessions", version.ref = "ktor" }
 ktor-server-request-validation = { group = "io.ktor", name = "ktor-server-request-validation", version.ref = "ktor" }
+ktor-server-rate-limit = { group = "io.ktor", name = "ktor-server-rate-limit", version.ref = "ktor" }
 ktor-server-resources = { group = "io.ktor", name = "ktor-server-resources", version.ref = "ktor" }
 ktor-server-host-common = { group = "io.ktor", name = "ktor-server-host-common", version.ref = "ktor" }
 ktor-server-status-pages = { group = "io.ktor", name = "ktor-server-status-pages", version.ref = "ktor" }
@@ -88,6 +89,7 @@ ktor-server = [
     "ktor-server-compression", "ktor-server-cors", "ktor-server-default-headers",
     "ktor-server-core", "ktor-server-auth", "ktor-server-auth-jwt", "ktor-server-csrf",
     "ktor-server-content-negotiation", "ktor-server-sessions", "ktor-server-request-validation",
+    "ktor-server-rate-limit",
     "ktor-server-resources", "ktor-server-host-common", "ktor-server-status-pages",
     "ktor-server-call-logging", "ktor-server-config-yaml", "ktor-server-netty"
 ]

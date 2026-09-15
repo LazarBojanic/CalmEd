@@ -42,12 +42,9 @@ import io.ktor.http.HttpHeaders
 class AppApi(private val appHttpClient: AppHttpClient) : IAppApi {
 	private val client get() = appHttpClient.client
 
-	override suspend fun register(dto: RegisterUserDto): TokenDto? {
+	override suspend fun register(dto: RegisterUserDto): Boolean {
 		val resp: HttpResponse = client.post("/auth/register") { setBody(dto) }
-		return when (resp.status) {
-			HttpStatusCode.Created, HttpStatusCode.OK -> resp.body<TokenDto>()
-			else -> null
-		}
+		return resp.status == HttpStatusCode.Created || resp.status == HttpStatusCode.OK
 	}
 
 	override suspend fun login(dto: LoginUserDto): TokenDto? {
@@ -231,7 +228,7 @@ class AppApi(private val appHttpClient: AppHttpClient) : IAppApi {
 		return if (resp.status == HttpStatusCode.OK) {
 			resp.body()
 		} else {
-			error("Apple verification failed (${resp.status.value}): ${resp.bodyAsText()}")
+			error("Apple verification failed (${resp.status.value}).")
 		}
 	}
 
@@ -240,7 +237,7 @@ class AppApi(private val appHttpClient: AppHttpClient) : IAppApi {
 		return if (resp.status == HttpStatusCode.OK) {
 			resp.body()
 		} else {
-			error("Google verification failed (${resp.status.value}): ${resp.bodyAsText()}")
+			error("Google verification failed (${resp.status.value}).")
 		}
 	}
 	override suspend fun sendSupportMessage(
@@ -252,7 +249,7 @@ class AppApi(private val appHttpClient: AppHttpClient) : IAppApi {
 
 		return when (resp.status) {
 			HttpStatusCode.OK -> resp.body()
-			else -> error("Support message failed (${resp.status.value}): ${resp.bodyAsText()}")
+			else -> error("Support message failed (${resp.status.value}).")
 		}
 	}
 }

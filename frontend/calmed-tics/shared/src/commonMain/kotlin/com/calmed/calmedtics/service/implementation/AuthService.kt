@@ -40,18 +40,7 @@ class AuthService(
             password = password,
             confirmPassword = confirmPassword
         )
-        val token = api.register(registerDto)
-        if (token != null) {
-            val access = token.access
-            val refresh = token.refresh
-            if (!access.isNullOrBlank() && !refresh.isNullOrBlank()) {
-                return true
-            } else {
-                return false
-            }
-        } else {
-            return false
-        }
+        return api.register(registerDto)
     }
 
     override suspend fun forgotPassword(email: String): String? {
@@ -111,12 +100,8 @@ class AuthService(
     }
 
     override suspend fun loginWithGoogle(idToken: String): Boolean {
-        println("AUTH: loginWithGoogle() called")
         val token = api.loginWithGoogle(GoogleLoginDto(idToken = idToken))
-        println("AUTH: token from api = $token")
-        val ok = storeTokenIfValid(token)
-        println("AUTH: storeTokenIfValid = $ok")
-        return ok
+        return storeTokenIfValid(token)
     }
 
     override suspend fun loginWithApple(identityToken: String): Boolean {
@@ -124,15 +109,8 @@ class AuthService(
             val token = api.loginWithApple(
                 dto = AppleLoginDto(identityToken = identityToken)
             )
-
-            println("APPLE_AUTH SERVICE token from backend = $token")
-
-            val ok = storeTokenIfValid(token)
-            println("APPLE_AUTH SERVICE storeTokenIfValid = $ok")
-
-            ok
+            storeTokenIfValid(token)
         } catch (e: Exception) {
-            println("APPLE_AUTH SERVICE EXCEPTION = ${e.message}")
             false
         }
     }

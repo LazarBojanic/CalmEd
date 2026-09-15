@@ -77,8 +77,6 @@ class HomeService(
             )
         }
 
-        println("HOME DEBUG userId=$userId createdAt=${user.createdAt} startDate=$startDate today=$today currentWeek=$currentWeek")
-
         return HomeDto(
             greetingName = null,
             avatarUrl = null,

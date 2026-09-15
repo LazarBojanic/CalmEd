@@ -25,7 +25,7 @@ import com.calmed.calmedtics.model.dto.response.UserInfoTicsDto
 
 
 interface IAppApi {
-    suspend fun register(dto: RegisterUserDto): TokenDto?
+    suspend fun register(dto: RegisterUserDto): Boolean
     suspend fun login(dto: LoginUserDto): TokenDto?
     suspend fun refresh(dto: RefreshDto): TokenDto?
     suspend fun forgotPassword(dto: ForgotPasswordDto): MessageDto?

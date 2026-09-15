@@ -74,6 +74,9 @@ class SessionViewModel(
 				return null
 			}
 
+			userDao.deleteAllExcept(userId)
+			userInfoDao.deleteAllExcept(userId)
+
 			val remoteUser = api.getUser(userId)
 			if (remoteUser == null) {
 				clearLocal()
@@ -102,13 +105,13 @@ class SessionViewModel(
 		_error.value = null
 		_loading.value = true
 		return try {
-			val currentUser = user.value
-			if (currentUser == null) {
-				_error.value = "Missing user."
+			val userId = tokenStore.currentUserId()
+			if (userId == null) {
+				_error.value = "Missing user id."
 				false
 			} else {
 				val updatedUser = api.setOnboarded(
-					currentUser.id,
+					userId,
 					SetIsOnboardedDto(isOnboarded = true)
 				)
 				if (updatedUser == null) {
@@ -131,13 +134,13 @@ class SessionViewModel(
 		_error.value = null
 		_loading.value = true
 		return try {
-			val currentUser = user.value
-			if (currentUser == null) {
-				_error.value = "Missing user."
+			val userId = tokenStore.currentUserId()
+			if (userId == null) {
+				_error.value = "Missing user id."
 				false
 			} else {
 				val updatedUser = api.confirmOverEighteen(
-					currentUser.id,
+					userId,
 					SetConfirmOverEighteenDto(confirmOverEighteen = true)
 				)
 				if (updatedUser == null) {
@@ -220,9 +223,9 @@ class SessionViewModel(
 		_error.value = null
 		_loading.value = true
 		return try {
+			val userId = tokenStore.currentUserId()
 			val currentUserInfo = userInfo.value
-			val currentUser = user.value
-			if (currentUserInfo == null || currentUser == null) {
+			if (userId == null || currentUserInfo == null || currentUserInfo.user.id != userId) {
 				_error.value = "Missing user info."
 				false
 			} else {
@@ -235,7 +238,7 @@ class SessionViewModel(
 					cacheUserInfoDto(updatedInfo)
 
 					val updatedUser = api.setOnboarded(
-						currentUser.id,
+						userId,
 						SetIsOnboardedDto(isOnboarded = true)
 					)
 					if (updatedUser == null) {

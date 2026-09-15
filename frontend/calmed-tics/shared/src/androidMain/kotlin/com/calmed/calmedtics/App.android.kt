@@ -26,6 +26,7 @@ class AndroidApp : Application() {
 		}
 		initKoin(
 			baseUrl = url,
+			development = BuildConfig.development,
 			androidModule(this)
 		)
 	}

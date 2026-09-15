@@ -269,20 +269,25 @@ class AndroidBillingService(
                 productId = productId
             )
         )
+    }
 
-        if (!purchase.isAcknowledged) {
-            val params = AcknowledgePurchaseParams.newBuilder()
-                .setPurchaseToken(purchase.purchaseToken)
-                .build()
+    override suspend fun completePurchase(purchaseToken: String) {
+        if (purchaseToken.isBlank()) return
+        connect()
+        val params = AcknowledgePurchaseParams.newBuilder()
+            .setPurchaseToken(purchaseToken)
+            .build()
+        suspendCancellableCoroutine { cont ->
             billingClient.acknowledgePurchase(params) { billingResult ->
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                    Log.d(tag, "Purchase acknowledged successfully for token: ${purchase.purchaseToken}")
+                    Log.d(tag, "Purchase acknowledged after server verification.")
                 } else {
                     Log.e(
                         tag,
                         "Failed to acknowledge purchase (${billingResult.responseCode}): ${billingResult.debugMessage}"
                     )
                 }
+                if (cont.isActive) cont.resume(Unit)
             }
         }
     }

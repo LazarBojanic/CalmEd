@@ -337,7 +337,7 @@ fun App() {
                         },
                         onDecline = {
                             scope.launch {
-                                authService.logout()
+                                sessionViewModel.logout()
                                 navController.navigate(Routes.Login) {
                                     popUpTo(Routes.AgeConfirm) { inclusive = true }
                                     launchSingleTop = true

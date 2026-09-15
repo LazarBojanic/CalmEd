@@ -150,7 +150,19 @@ fun PaymentScreen(
                                 else -> {}
                             }
                             val paid = api.getPaymentStatus()?.hasAccess == true
-                            if (paid) onPaid() else  error = errorPaymentNotConfirmed
+                            if (paid) {
+                                val token = when (result.paymentProvider) {
+                                    PaymentProvider.APPLE -> result.appleTransactionId ?: ""
+                                    PaymentProvider.GOOGLE -> result.googlePurchaseToken ?: ""
+                                    else -> ""
+                                }
+                                if (token.isNotBlank()) {
+                                    runCatching { billingService.completePurchase(token) }
+                                }
+                                onPaid()
+                            } else {
+                                error = errorPaymentNotConfirmed
+                            }
                         } catch (t: Throwable) {
                             error = t.message ?: errorPaymentVerification
                         } finally {
@@ -176,7 +188,7 @@ fun PaymentScreen(
             billingService.connect()
             billingService.restore()
         } catch (t: Throwable) {
-            println("Auto-restore skipped: ${t.message}")
+            // Auto-restore is best-effort; ignore failures.
         }
     }
 

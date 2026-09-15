@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
 	alias(libs.plugins.androidApplication)
@@ -37,7 +37,7 @@ android {
 		applicationId = "com.calmed.calmedtics"
 		minSdk = libs.versions.androidMinSdk.get().toInt()
 		targetSdk = libs.versions.androidTargetSdk.get().toInt()
-		versionCode = 23
+		versionCode = 24
 		versionName = "0.0.1"
 	}
 	packaging {
@@ -45,10 +45,27 @@ android {
 			excludes += "/META-INF/{AL2.0,LGPL2.1}"
 		}
 	}
+	val keystoreProps = Properties().apply {
+		val propFile = rootProject.file("keystore.properties")
+		if (propFile.exists()) propFile.inputStream().use { load(it) }
+	}
+	signingConfigs {
+		create("release") {
+			if (keystoreProps.isNotEmpty()) {
+				storeFile = file(keystoreProps.getProperty("storeFile"))
+				storePassword = keystoreProps.getProperty("storePassword")
+				keyAlias = keystoreProps.getProperty("keyAlias")
+				keyPassword = keystoreProps.getProperty("keyPassword")
+			}
+		}
+	}
 	buildTypes {
 		getByName("release") {
 			isMinifyEnabled = true
 			isShrinkResources = true
+			if (keystoreProps.isNotEmpty()) {
+				signingConfig = signingConfigs.getByName("release")
+			}
 			proguardFiles(
 				getDefaultProguardFile("proguard-android-optimize.txt"),
 				"proguard-rules.pro"
@@ -59,7 +76,4 @@ android {
 		sourceCompatibility = JavaVersion.VERSION_21
 		targetCompatibility = JavaVersion.VERSION_21
 	}
-}
-dependencies{
-	implementation(projects.shared)
 }

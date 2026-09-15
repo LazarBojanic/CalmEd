@@ -12,16 +12,16 @@ jwt:
     refresh_alg: ${JWT_REFRESH_ALG:HS512}
     email_verification_alg: ${JWT_EMAIL_VERIFICATION_ALG:HS512}
     password_reset_alg: ${JWT_PASSWORD_RESET_ALG:HS512}
-    iss: https://api.calm-ed.com
-    aud: https://api.calm-ed.com
+    iss: ${JWT_ISS:https://api.calm-ed.com}
+    aud: ${JWT_AUD:https://api.calm-ed.com}
     access_ttl: ${JWT_ACCESS_TTL:PT15M}
     refresh_ttl: ${JWT_REFRESH_TTL:PT720H}
     email_verification_ttl: ${JWT_EMAIL_VERIFICATION_TTL:PT24H}
     password_reset_ttl: ${JWT_PASSWORD_RESET_TTL:PT15M}
-    access_secret: ${JWT_ACCESS_SECRET:placeholder}
-    refresh_secret: ${JWT_REFRESH_SECRET:placeholder}
-    email_verification_secret: ${JWT_EMAIL_VERIFICATION_SECRET:placeholder}
-    password_reset_secret: ${JWT_PASSWORD_RESET_SECRET:placeholder}
+    access_secret: ${JWT_ACCESS_SECRET}
+    refresh_secret: ${JWT_REFRESH_SECRET}
+    email_verification_secret: ${JWT_EMAIL_VERIFICATION_SECRET}
+    password_reset_secret: ${JWT_PASSWORD_RESET_SECRET}
 
 database:
     username: ${DATABASE_USERNAME:postgres}
@@ -31,17 +31,17 @@ database:
     name: ${DATABASE_NAME:calmed}
     dialect: ${DATABASE_DIALECT:postgresql}
     driver: ${DATABASE_DRIVER:org.postgresql.Driver}
-    use_flyway: ${DATABASE_USE_FLYWAY:false}
-    recreate: ${DATABASE_RECREATE:true}
+    use_flyway: ${DATABASE_USE_FLYWAY:true}
+    recreate: ${DATABASE_RECREATE:false}
 
 email:
-    host: ${EMAIL_HOST:smtp.gmail.com}
+    host: ${EMAIL_HOST:placeholder}
     port: ${EMAIL_PORT:587}
     username: ${EMAIL_USERNAME:placeholder}
     password: ${EMAIL_PASSWORD:placeholder}
     ssl: ${EMAIL_SSL:true}
-    from_email: ${EMAIL_FROM_EMAIL:placeholder}
-    from_name: ${EMAIL_FROM_NAME:placeholder}
+    app_email: ${EMAIL_APP_EMAIL:placeholder}
+    support_email: ${EMAIL_SUPPORT_EMAIL:placeholder}
     verification_base_url: ${EMAIL_VERIFICATION_BASE_URL:placeholder}
     mailtrap_api_token: ${EMAIL_MAILTRAP_API_TOKEN:placeholder}
     mailtrap_inbox_id: ${EMAIL_MAILTRAP_INBOX_ID:placeholder}

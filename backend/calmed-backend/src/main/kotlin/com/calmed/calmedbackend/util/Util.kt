@@ -1,9 +1,12 @@
 package com.calmed.calmedbackend.util
 
 import kotlinx.serialization.json.Json
+import org.slf4j.LoggerFactory
 
 class Util {
 	companion object {
+		private val logger = LoggerFactory.getLogger(Util::class.java)
+
 		fun jsonFormat(): Json {
 			return Json {
 				prettyPrint = true
@@ -12,12 +15,7 @@ class Util {
 			}
 		}
 		fun printError(cause: Throwable) {
-			println("========== ERROR ==========")
-			println("Type: ${cause::class.simpleName}")
-			println("Message: ${cause.message}")
-			println("Stacktrace:")
-			cause.printStackTrace()
-			println("===========================")
+			logger.error("Request failed: {}", cause.message, cause)
 		}
 	}
 }

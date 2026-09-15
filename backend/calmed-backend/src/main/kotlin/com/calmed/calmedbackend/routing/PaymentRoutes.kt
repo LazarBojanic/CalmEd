@@ -18,32 +18,31 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
+import org.slf4j.LoggerFactory
 import java.util.UUID
 import com.calmed.calmedbackend.model.dto.request.CapturePayPalOrderDto
+
+private val paymentLogger = LoggerFactory.getLogger("PaymentRoutes")
 
 fun Route.paymentRoutes() {
     val paymentService by inject<IPaymentService>()
 
     route("/payment") {
         post("/webhook") {
-            println("[DEBUG_LOG] PaymentRoutes: POST /webhook hit")
             val payload = try {
                 call.receiveText()
             } catch (e: Exception) {
-                println("[DEBUG_LOG] PaymentRoutes: Failed to receive payload: ${e.message}")
+                paymentLogger.warn("Failed to read Stripe webhook payload: {}", e.message)
                 ""
             }
-            println("[DEBUG_LOG] PaymentRoutes: Payload length: ${payload.length}")
             val sigHeader = call.request.headers["Stripe-Signature"] ?: ""
-            println("[DEBUG_LOG] PaymentRoutes: Stripe-Signature header present: ${sigHeader.isNotEmpty()}")
-            
+
             when (val res = paymentService.handleStripeWebhook(payload, sigHeader)) {
                 is AppResult.Success -> {
-                    println("[DEBUG_LOG] PaymentRoutes: Webhook processed successfully")
                     call.respond(HttpStatusCode.OK)
                 }
                 is AppResult.Failure -> {
-                    println("[DEBUG_LOG] PaymentRoutes: Webhook processing FAILURE: ${res.message} (HTTP ${res.httpStatusCode})")
+                    paymentLogger.warn("Stripe webhook processing failed: {}", res.message)
                     call.respond(res.httpStatusCode, res.message)
                 }
             }

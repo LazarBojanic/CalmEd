@@ -93,6 +93,7 @@ kotlin{
 			implementation(libs.androidxAppcompat)
 			implementation(libs.androidxDatastore)
 			implementation(libs.androidxDatastorePreferences)
+			implementation(libs.androidxSecurityCrypto)
 			implementation(libs.androidxCredentials)
 			implementation(libs.androidxCredentialsPlayServicesAuth)
 			implementation(libs.googleAndroidLibrariesIdentityGoogleId)

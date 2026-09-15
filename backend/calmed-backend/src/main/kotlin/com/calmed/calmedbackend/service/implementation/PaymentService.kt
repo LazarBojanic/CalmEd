@@ -51,6 +51,17 @@ class PaymentService(
 
     private val logger = LoggerFactory.getLogger(PaymentService::class.java)
 
+    private companion object {
+        val ALLOWED_REDIRECT_HOSTS = setOf(
+            "calm-ed.com",
+            "calm-ed.org",
+            "calm-ed.net",
+            "calm-ed.edu",
+            "hostingersite.com",
+            "localhost"
+        )
+    }
+
     init {
         Stripe.apiKey = stripeConfig.secretKey
     }
@@ -163,6 +174,24 @@ class PaymentService(
         return expected.isBlank() || productId == expected
     }
 
+    private fun isAllowedRedirectUrl(url: String): Boolean {
+        if (url.isBlank()) return false
+        return try {
+            val uri = URI(url)
+            val host = uri.host?.lowercase()
+            when (uri.scheme?.lowercase()) {
+                "calmed" -> true
+                "https" -> host != null && (
+                    host in ALLOWED_REDIRECT_HOSTS ||
+                        ALLOWED_REDIRECT_HOSTS.any { host == it || host.endsWith(".$it") }
+                    )
+                else -> false
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     private suspend fun userEmail(userId: UUID): String? {
         return when (val res = userService.getById(userId)) {
             is AppResult.Success -> res.data.email
@@ -216,6 +245,8 @@ class PaymentService(
             ?: throw IllegalStateException("PayPal response missing access_token")
     }
 
+    override suspend fun hasActiveAccess(userId: UUID): Boolean = userHasActivePayment(userId)
+
     override suspend fun paymentStatus(userId: UUID): AppResult<PaymentStatusDto> {
         return try {
             val userRes = userService.getById(userId)
@@ -241,6 +272,10 @@ class PaymentService(
 
     override suspend fun createCheckoutSession(userId: UUID, dto: CreateCheckoutSessionDto): AppResult<CheckoutSessionResponseDto> {
         return try {
+            if (!isAllowedRedirectUrl(dto.successUrl) || !isAllowedRedirectUrl(dto.cancelUrl)) {
+                logger.warn("Rejected Stripe checkout with untrusted redirect URL for user $userId")
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Invalid redirect URL")
+            }
             val params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -518,6 +553,20 @@ class PaymentService(
     override suspend fun verifyStripeSession(userId: UUID, sessionId: String): AppResult<PaymentStatusDto> {
         return try {
             val session = Session.retrieve(sessionId)
+
+            val metadataUserId = session.metadata?.get("userId")
+            if (metadataUserId != userId.toString()) {
+                logger.warn("Stripe session $sessionId does not belong to user $userId")
+                return AppResult.Failure(HttpStatusCode.Forbidden, "Stripe session does not belong to this account")
+            }
+
+            val amountMatches = session.amountTotal == stripeConfig.amountCents
+            val currencyMatches = session.currency?.equals(stripeConfig.currency, ignoreCase = true) == true
+            if (!amountMatches || !currencyMatches) {
+                logger.warn("Stripe session $sessionId amount/currency mismatch for user $userId")
+                return AppResult.Failure(HttpStatusCode.BadRequest, "Stripe session amount or currency mismatch")
+            }
+
             val isPaid = session.paymentStatus == "paid" || session.status == "complete"
 
             val existing = paymentRepository.findByStripeCheckoutSessionId(sessionId)
@@ -620,19 +669,33 @@ class PaymentService(
             val status = json["status"]?.jsonPrimitive?.content
             val successful = status == "COMPLETED"
 
-            val captureId = json["purchase_units"]
-                ?.jsonArray
-                ?.firstOrNull()
-                ?.jsonObject
-                ?.get("payments")
+            val purchaseUnit = json["purchase_units"]?.jsonArray?.firstOrNull()?.jsonObject
+            val referenceId = purchaseUnit?.get("reference_id")?.jsonPrimitive?.content
+            if (referenceId != userId.toString()) {
+                logger.warn("PayPal order ${dto.orderId} reference mismatch for user $userId")
+                return AppResult.Failure(HttpStatusCode.Forbidden, "PayPal order does not belong to this account")
+            }
+
+            val capture = purchaseUnit
+	            .get("payments")
                 ?.jsonObject
                 ?.get("captures")
                 ?.jsonArray
                 ?.firstOrNull()
                 ?.jsonObject
-                ?.get("id")
-                ?.jsonPrimitive
-                ?.content
+            val captureId = capture?.get("id")?.jsonPrimitive?.content
+
+            if (successful) {
+                val capturedAmount = capture?.get("amount")?.jsonObject?.get("value")?.jsonPrimitive?.content
+                val capturedCurrency = capture?.get("amount")?.jsonObject?.get("currency_code")?.jsonPrimitive?.content
+                val amountMatches = capturedAmount?.toDoubleOrNull()
+                    ?.let { kotlin.math.abs(it - paypalConfig.amount.toDouble()) < 0.005 } ?: false
+                val currencyMatches = capturedCurrency?.equals(paypalConfig.currency, ignoreCase = true) ?: false
+                if (!amountMatches || !currencyMatches) {
+                    logger.warn("PayPal order ${dto.orderId} captured amount/currency mismatch for user $userId")
+                    return AppResult.Failure(HttpStatusCode.PaymentRequired, "PayPal captured amount or currency mismatch")
+                }
+            }
 
             val existing = paymentRepository.findByPayPalOrderId(dto.orderId)
             if (existing != null) {

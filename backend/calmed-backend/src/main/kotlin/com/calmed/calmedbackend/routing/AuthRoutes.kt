@@ -48,15 +48,18 @@ fun Route.authRoutes() {
 	route("/auth/register") {
 		post {
 			val registerDto = call.receive<RegisterDto>()
-			val tokenPairDto = authService.register(registerDto)
+			val result = authService.register(registerDto)
 
-			when (tokenPairDto) {
+			when (result) {
 				is AppResult.Success -> {
-					call.respond(HttpStatusCode.Created, tokenPairDto.data)
+					call.respond(
+						HttpStatusCode.Created,
+						MessageDto("Registration successful. Please check your email to verify your account before logging in.")
+					)
 				}
 
 				is AppResult.Failure -> {
-					throw BusinessException(tokenPairDto.httpStatusCode, tokenPairDto.message)
+					throw BusinessException(result.httpStatusCode, result.message)
 				}
 			}
 		}
@@ -197,13 +200,11 @@ fun Route.authRoutes() {
 
 			when (result) {
 				is AppResult.Success -> {
-					println("Email sent to ${dto.email}")
 					val messageDto = MessageDto("Password reset email sent.")
 					call.respond(HttpStatusCode.OK, messageDto)
 				}
 
 				is AppResult.Failure -> {
-					println("Failed to send password reset email to ${dto.email}")
 					val messageDto = MessageDto("Password reset email not sent.")
 					call.respond(HttpStatusCode.OK, messageDto)
 				}
@@ -223,6 +224,7 @@ fun Route.authRoutes() {
 						contentType = ContentType.Text.Html,
 						status = HttpStatusCode.Unauthorized
 					)
+					return@get
 				}
 				val resource = call.resolveResource("static/auth/reset-password.html")
 				if (resource != null) {
@@ -284,25 +286,29 @@ private suspend fun handleAppleCallback(
 	val error = params["error"]
 	val code = params["code"]
 	val idTokenRaw = params["id_token"]
+	val stateParam = params["state"]
+		?.takeIf { it.isNotBlank() }
+		?.let { "&state=${URLEncoder.encode(it, "UTF-8")}" }
+		.orEmpty()
 
 	val redirectUrl = when {
 		!error.isNullOrBlank() -> {
-			"calmed://apple?status=error&error=${URLEncoder.encode(error, "UTF-8")}"
+			"calmed://apple?status=error&error=${URLEncoder.encode(error, "UTF-8")}$stateParam"
 		}
 		!idTokenRaw.isNullOrBlank() -> {
-			"calmed://apple?status=success&id_token=${URLEncoder.encode(idTokenRaw, "UTF-8")}"
+			"calmed://apple?status=success&id_token=${URLEncoder.encode(idTokenRaw, "UTF-8")}$stateParam"
 		}
 		!code.isNullOrBlank() -> {
 			val tokenResponse = appleTokenApi.exchangeCode(code, appleConfig.redirectURI)
 			val resolvedIdToken = tokenResponse.id_token
 			if (!resolvedIdToken.isNullOrBlank()) {
-				"calmed://apple?status=success&id_token=${URLEncoder.encode(resolvedIdToken, "UTF-8")}"
+				"calmed://apple?status=success&id_token=${URLEncoder.encode(resolvedIdToken, "UTF-8")}$stateParam"
 			} else {
 				val err = tokenResponse.error ?: "token_exchange_failed"
-				"calmed://apple?status=error&error=${URLEncoder.encode(err, "UTF-8")}"
+				"calmed://apple?status=error&error=${URLEncoder.encode(err, "UTF-8")}$stateParam"
 			}
 		}
-		else -> "calmed://apple?status=error&error=missing_params"
+		else -> "calmed://apple?status=error&error=missing_params$stateParam"
 	}
 
 	call.respondText(

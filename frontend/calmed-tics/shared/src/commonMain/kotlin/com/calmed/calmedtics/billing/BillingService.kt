@@ -8,5 +8,6 @@ interface BillingService {
     suspend fun loadProduct(productId: String): Boolean
     suspend fun purchase(productId: String, obfuscatedAccountId: String? = null)
     suspend fun restore()
+    suspend fun completePurchase(purchaseToken: String)
     fun close()
 }

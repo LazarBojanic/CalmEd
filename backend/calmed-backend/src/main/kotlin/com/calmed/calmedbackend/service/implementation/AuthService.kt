@@ -38,6 +38,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
+import io.mailtrap.client.MailtrapClient
+import io.mailtrap.config.MailtrapConfig
+import io.mailtrap.factory.MailtrapClientFactory
+import io.mailtrap.model.request.emails.Address
+import io.mailtrap.model.request.emails.MailtrapMail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,6 +51,7 @@ import kotlinx.serialization.json.Json
 import org.apache.commons.mail.DefaultAuthenticator
 import org.apache.commons.mail.HtmlEmail
 import org.apache.commons.validator.routines.EmailValidator
+import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
@@ -61,6 +67,7 @@ class AuthService(private val userService: IUserService,
 				  private val appleConfig: AppleConfig,
 				  private val googleOAuthConfig: GoogleOAuthConfig
 ) : IAuthService {
+	private val logger = LoggerFactory.getLogger(AuthService::class.java)
 	private val googleHttp = HttpClient {
 		install(ContentNegotiation) {
 			json(Json { ignoreUnknownKeys = true })
@@ -89,7 +96,8 @@ class AuthService(private val userService: IUserService,
 				AppResult.Success(claims)
 			}
 		} catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Apple token: ${e.message}")
+			logger.warn("Apple identity token verification failed: {}", e.message)
+			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Apple token.")
 		}
 	}
 
@@ -123,7 +131,8 @@ class AuthService(private val userService: IUserService,
 
 			AppResult.Success(info)
 		} catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token: ${e.message}")
+			logger.warn("Google ID token verification failed: {}", e.message)
+			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token.")
 		}
 	}
 	private fun base64UrlDecode(s: String): ByteArray {
@@ -164,11 +173,12 @@ class AuthService(private val userService: IUserService,
 			AppResult.Success(token)
 		}
 		catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.NotFound, "Failed to generate email verification token: ${e.message}.")
+			logger.warn("Failed to generate password reset token: {}", e.message)
+			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to generate password reset token.")
 		}
 	}
 
-	override suspend fun register(dto: RegisterDto): AppResult<TokenPairDto> {
+	override suspend fun register(dto: RegisterDto): AppResult<Unit> {
 		return withTransaction {
 			val emailValidationResult = validateEmail(dto.email)
 			when(emailValidationResult){
@@ -203,11 +213,11 @@ class AuthService(private val userService: IUserService,
 																)
 																when (emailSentResult) {
 																	is AppResult.Success -> {
-																		println("Email sent to ${createdUserResult.data.email}")
+																		logger.info("Verification email sent for user {}", createdUserResult.data.id)
 																	}
 
 																	is AppResult.Failure -> {
-																		println(emailSentResult.message)
+																		logger.warn("Failed to send verification email for user {}: {}", createdUserResult.data.id, emailSentResult.message)
 																	}
 																}
 															}
@@ -235,9 +245,7 @@ class AuthService(private val userService: IUserService,
 																			val initProgressResult = userExerciseProgressService.initializeUserProgress(newUser.id, newUserProgram.startDate)
 																			when (initProgressResult) {
 																				is AppResult.Success -> {
-																					return@withTransaction createTokenPair(
-																						createdUserResult.data.id, createdUserResult.data.email
-																					)
+																					return@withTransaction AppResult.Success(Unit)
 																				}
 																				is AppResult.Failure -> {
 																					return@withTransaction AppResult.Failure(
@@ -746,10 +754,10 @@ class AuthService(private val userService: IUserService,
 	override suspend fun generateAccessToken(id: UUID, email: String, now: Instant
 	): AppResult<String> {
 		return try {
-			println("JWT GENERATE → iss='${jwtConfig.iss}', aud='${jwtConfig.aud}'")
 			val token = JWT.create().withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).withSubject(id.toString())
 				.withIssuedAt(now).withExpiresAt(now.plus(jwtConfig.accessTtl)).withJWTId(UUID.randomUUID().toString())
-				.withClaim("typ", TokenType.ACCESS.name).withClaim("email", email).sign(jwtConfig.accessAlg)
+				.withClaim("typ", TokenType.ACCESS.name).withClaim("email", email)
+				.withClaim("ev", true).sign(jwtConfig.accessAlg)
 
 			AppResult.Success(token)
 		}
@@ -763,7 +771,6 @@ class AuthService(private val userService: IUserService,
 		return try {
 			val refreshTokenId = UUID.randomUUID()
 			val expiresAt = now.plus(jwtConfig.refreshTtl)
-			println("JWT REFRESH → iss='${jwtConfig.iss}', aud='${jwtConfig.aud}'")
 			val token =
 				JWT.create().withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).withSubject(userId.toString())
 					.withIssuedAt(now).withExpiresAt(expiresAt).withJWTId(refreshTokenId.toString())
@@ -1000,6 +1007,7 @@ class AuthService(private val userService: IUserService,
 					val verificationLink = buildVerificationLink(token)
 
 					sendEmail(
+						from = emailConfig.appEmail,
 						to = email,
 						subject = "Verify your email address",
 						body = buildVerificationEmailBody(verificationLink)
@@ -1030,6 +1038,11 @@ class AuthService(private val userService: IUserService,
 					return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Token verification failed.")
 				}
 				if (decodedToken != null) {
+					if (decodedToken.getClaim("typ").asString() != TokenType.EMAIL_VERIFICATION.name) {
+						return@withTransaction AppResult.Failure(
+							HttpStatusCode.Unauthorized, "Invalid verification token."
+						)
+					}
 					val userId = UUID.fromString(decodedToken.subject)
 					val email = decodedToken.getClaim("email").asString()
 					val expiresAt = decodedToken.getClaim("exp").asInstant()
@@ -1213,29 +1226,27 @@ class AuthService(private val userService: IUserService,
         """.trimIndent()
 	}
 
-	private fun sendEmail(to: String, subject: String, body: String) {
-		val email = HtmlEmail()
+	public fun sendEmail(from: String, to: String, subject: String, body: String) {
+		val config = MailtrapConfig.Builder()
+			.token(emailConfig.mailtrapApiToken)
+			.sandbox(true)
+			.inboxId(emailConfig.mailtrapInboxId)
+			.build()
 
-		email.hostName = emailConfig.host
-		email.setSmtpPort(emailConfig.port)
+		val client: MailtrapClient = MailtrapClientFactory.createMailtrapClient(config)
 
-		email.setAuthenticator(
-			DefaultAuthenticator(
-				emailConfig.username, emailConfig.password
-			)
-		)
+		val mail = MailtrapMail.builder()
+			.from(Address(from))
+			.to(listOf(Address(to)))
+			.subject(subject)
+			.text(body)
+			.build()
 
-		email.isSSLOnConnect = false
-		email.isStartTLSEnabled = true
-		email.isStartTLSRequired = true
-
-		email.setFrom(emailConfig.fromEmail, emailConfig.fromName)
-		email.subject = subject
-		email.setHtmlMsg(body)
-		email.setTextMsg("Please verify your email by opening this link.")
-		email.addTo(to)
-
-		email.send()
+		try {
+			println(client.send(mail))
+		} catch (e: Exception) {
+			println("Caught exception : $e")
+		}
 	}
 
 	override suspend fun sendPasswordResetEmail(email: String): AppResult<Unit> {
@@ -1250,6 +1261,7 @@ class AuthService(private val userService: IUserService,
 						val resetLink =
 							"${emailConfig.verificationBaseUrl}/auth/reset-password?token=${tokenResult.data}"
 						sendEmail(
+							from = emailConfig.appEmail,
 							to = user.email,
 							subject = "Reset your password",
 							body = "Click here to reset your password: $resetLink"
@@ -1289,6 +1301,10 @@ class AuthService(private val userService: IUserService,
 
 				if (decodedToken != null && decodedToken.getClaim("typ").asString() == TokenType.PASSWORD_RESET.name) {
 					val userId = UUID.fromString(decodedToken.subject)
+					val validation = validatePassword(newPassword, newPassword)
+					if (validation is AppResult.Failure) {
+						return@withTransaction validation
+					}
 					val credentialResult = authCredentialService.getByUserIdAndType(userId, AuthCredentialType.BASIC)
 
 					when (credentialResult) {
@@ -1307,6 +1323,7 @@ class AuthService(private val userService: IUserService,
 											updatedAt = Instant.now()
 										)
 									)
+									refreshTokenService.revokeAllByUserId(userId, null)
 									AppResult.Success(Unit)
 								}
 

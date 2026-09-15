@@ -31,7 +31,7 @@ interface IAuthService {
 	suspend fun sendPasswordResetEmail(email: String): AppResult<Unit>
 	suspend fun resetPassword(token: String, newPassword: String): AppResult<Unit>
 
-	suspend fun register(dto: RegisterDto): AppResult<TokenPairDto>
+	suspend fun register(dto: RegisterDto): AppResult<Unit>
 	suspend fun login(dto: LoginDto): AppResult<TokenPairDto>
 	suspend fun refresh(dto: RefreshDto): AppResult<TokenPairDto>
 	suspend fun logout(userId: UUID): AppResult<Unit>

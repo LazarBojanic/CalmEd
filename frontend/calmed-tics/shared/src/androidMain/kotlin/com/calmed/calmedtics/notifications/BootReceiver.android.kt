@@ -13,9 +13,13 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != Intent.ACTION_BOOT_COMPLETED) return
         androidAppContext = context.applicationContext
-        val appSettings = org.koin.core.context.GlobalContext.get().get<AppSettings>()
-        if (appSettings.isRemindersEnabled()) {
-            ReminderManager().enableMorningAndEvening()
+        runCatching {
+            val appSettings = org.koin.core.context.GlobalContext.get().get<AppSettings>()
+            if (appSettings.isRemindersEnabled()) {
+                ReminderManager().enableMorningAndEvening()
+            }
+        }.onFailure {
+            android.util.Log.w("BootReceiver", "Unable to reschedule reminders after boot", it)
         }
     }
 }

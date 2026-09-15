@@ -44,16 +44,10 @@ fun Route.userRoutes() {
 
 				val id = UUID.fromString(jwt.subject)
 
-				println("[DEBUG_LOG] UserRoutes: /me called for userId: $id")
-
 				val res = userService.getById(id)
 
 				when (res) {
 					is AppResult.Success -> {
-						println(
-							"[DEBUG_LOG] UserRoutes: /me success for userId: $id, onboarded: ${res.data.isOnboarded}"
-						)
-
 						call.respond(
 							HttpStatusCode.OK,
 							res.data.toDto()
@@ -61,10 +55,6 @@ fun Route.userRoutes() {
 					}
 
 					is AppResult.Failure -> {
-						println(
-							"[DEBUG_LOG] UserRoutes: /me FAILURE for userId: $id, error: ${res.message}"
-						)
-
 						call.respond(
 							res.httpStatusCode,
 							res.message
@@ -103,7 +93,7 @@ fun Route.userRoutes() {
 							setOf("jpg", "jpeg", "png", "webp")
 
 						if (extension !in allowedExtensions) {
-							part.dispose()
+							part.release()
 
 							throw BusinessException(
 								HttpStatusCode.BadRequest,
@@ -144,7 +134,7 @@ fun Route.userRoutes() {
 						savedFileName = fileName
 					}
 
-					part.dispose()
+					part.release()
 				}
 
 				if (savedFileName == null) {
@@ -185,6 +175,7 @@ fun Route.userRoutes() {
 
 				if (idParam != null) {
 					val id = UUID.fromString(idParam)
+					call.requireSelf(id)
 
 					val res = userService.getById(id)
 
@@ -223,20 +214,7 @@ fun Route.userRoutes() {
 
 			val id = UUID.fromString(idParam)
 
-			val jwt = call.principal<JWTPrincipal>()
-				?: throw BusinessException(
-					HttpStatusCode.Unauthorized,
-					"Invalid authentication"
-				)
-
-			val subjectId = UUID.fromString(jwt.subject)
-
-			if (subjectId != id) {
-				throw BusinessException(
-					HttpStatusCode.Forbidden,
-					"Forbidden"
-				)
-			}
+			call.requireSelf(id)
 
 			val dto = call.receive<SetIsOnboardedDto>()
 
@@ -274,20 +252,7 @@ fun Route.userRoutes() {
 
 			val id = UUID.fromString(idParam)
 
-			val jwt = call.principal<JWTPrincipal>()
-				?: throw BusinessException(
-					HttpStatusCode.Unauthorized,
-					"Invalid authentication"
-				)
-
-			val subjectId = UUID.fromString(jwt.subject)
-
-			if (subjectId != id) {
-				throw BusinessException(
-					HttpStatusCode.Forbidden,
-					"Forbidden"
-				)
-			}
+			call.requireSelf(id)
 
 			val dto = call.receive<SetConfirmOverEighteenDto>()
 
@@ -325,20 +290,7 @@ fun Route.userRoutes() {
 
 				val id = UUID.fromString(idParam)
 
-				val jwt = call.principal<JWTPrincipal>()
-					?: throw BusinessException(
-						HttpStatusCode.Unauthorized,
-						"Invalid authentication"
-					)
-
-				val subjectId = UUID.fromString(jwt.subject)
-
-				if (subjectId != id) {
-					throw BusinessException(
-						HttpStatusCode.Forbidden,
-						"Forbidden"
-					)
-				}
+				call.requireSelf(id)
 
 				when (val res = accountDeletionService.deleteAccount(id)) {
 					is AppResult.Success -> {

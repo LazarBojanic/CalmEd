@@ -8,6 +8,7 @@ final class StoreKitManager: ObservableObject {
     
     private var transactionListener: Task<Void, Error>? = nil
     private nonisolated(unsafe) var restoreObserver: NSObjectProtocol? = nil
+    private nonisolated(unsafe) var finishObserver: NSObjectProtocol? = nil
     
     init() {
         transactionListener = listenForTransactions()
@@ -21,12 +22,35 @@ final class StoreKitManager: ObservableObject {
                 try? await self.restorePurchases()
             }
         }
+        finishObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("TriggerAppleFinish"),
+            object: nil,
+            queue: .main
+        ) { [weak self] note in
+            guard let self = self else { return }
+            guard let id = note.userInfo?["transactionId"] as? String else { return }
+            Task {
+                await self.finishTransaction(originalID: id)
+            }
+        }
     }
     
     deinit {
         transactionListener?.cancel()
         if let restoreObserver = restoreObserver {
             NotificationCenter.default.removeObserver(restoreObserver)
+        }
+        if let finishObserver = finishObserver {
+            NotificationCenter.default.removeObserver(finishObserver)
+        }
+    }
+    
+    func finishTransaction(originalID: String) async {
+        for await result in Transaction.unfinished {
+            guard let transaction = try? self.checkVerified(result) else { continue }
+            if transaction.originalID.description == originalID {
+                await transaction.finish()
+            }
         }
     }
     
@@ -38,8 +62,6 @@ final class StoreKitManager: ObservableObject {
                     let transaction = try self.checkVerified(result)
                     
                     await self.updatePurchasedProducts(transaction)
-                    
-                    await transaction.finish()
                     
                     await MainActor.run {
                         NotificationCenter.default.post(
@@ -87,7 +109,6 @@ final class StoreKitManager: ObservableObject {
         case .success(let verification):
             let transaction = try checkVerified(verification)
             updatePurchasedProducts(transaction)
-            await transaction.finish()
             
             NotificationCenter.default.post(
                 name: NSNotification.Name("OnApplePurchaseSuccess"),
@@ -118,7 +139,6 @@ final class StoreKitManager: ObservableObject {
             guard let transaction = try? self.checkVerified(result) else { continue }
             found += 1
             self.updatePurchasedProducts(transaction)
-            await transaction.finish()
             NotificationCenter.default.post(
                 name: NSNotification.Name("OnApplePurchaseSuccess"),
                 object: nil,

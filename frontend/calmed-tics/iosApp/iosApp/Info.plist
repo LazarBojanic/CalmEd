@@ -63,24 +63,6 @@
 				<true/>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
-				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.0</string>
-				<key>NSExceptionRequiresForwardSecrecy</key>
-				<false/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
-			<key>192.168.0.25</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
-			<key>192.168.0.35</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
 				<key>NSIncludesSubdomains</key>
 				<true/>
 			</dict>
@@ -88,7 +70,7 @@
 	</dict>
 	<key>UILaunchScreen</key>
 	<dict/>
-	<key>NSCameraUsageDescription</key>
-	<string>This app requires camera access to allow you to securely scan your payment cards during the checkout process.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CalmEd needs access to your photo library so you can choose a profile picture.</string>
 </dict>
 </plist>

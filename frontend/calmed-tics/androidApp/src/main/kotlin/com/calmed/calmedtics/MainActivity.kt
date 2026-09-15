@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.calmed.calmedtics.auth.AppleAuthBridge
+import com.calmed.calmedtics.auth.AppleAuthStateStore
 import com.calmed.calmedtics.auth.setGoogleAuthActivityProvider
 import com.calmed.calmedtics.billing.BillingProducts
 import com.calmed.calmedtics.billing.initBilling
@@ -35,7 +36,7 @@ class MainActivity : FragmentActivity() {
 			val exists = billing.loadProduct(BillingProducts.APP_ACCESS)
 			Log.d("BILLING", "Product exists = $exists (id=${BillingProducts.APP_ACCESS})")
 		}
-		Log.d("APPLE_AUTH", "onCreate intent=$intent")
+		Log.d("APPLE_AUTH", "onCreate")
 		handleDeepLink(intent)
 		setGoogleAuthActivityProvider { this }
 		setImagePickerActivityProvider { this }
@@ -50,28 +51,34 @@ class MainActivity : FragmentActivity() {
 
 	override fun onNewIntent(intent: Intent) {
 		super.onNewIntent(intent)
-		Log.d("APPLE_AUTH", "onNewIntent intent=$intent")
+		Log.d("APPLE_AUTH", "onNewIntent")
 		handleDeepLink(intent)
 	}
 
 	private fun handleDeepLink(intent: Intent?) {
-		Log.d("APPLE_AUTH", "handleAppleDeepLink CALLED. intent=$intent")
-
 		val data = intent?.data ?: return
-		Log.d("APPLE_AUTH", "APPLE CALLBACK URI: $data")
 
 		if (data.scheme != "calmed") return
 		if (data.host != "apple") return
 
+		val expectedState = AppleAuthStateStore.consume(this)
+		val returnedState = data.getQueryParameter("state")
+		if (expectedState.isNullOrBlank() || returnedState != expectedState) {
+			Log.e("APPLE_AUTH", "Apple callback state mismatch; rejecting")
+			AppleAuthBridge.onIdToken?.invoke(
+				Result.failure(IllegalStateException("Apple Sign-In failed: invalid state"))
+			)
+			return
+		}
+
 		val idToken = data.getQueryParameter("id_token")
 		val code = data.getQueryParameter("code")
-		val state = data.getQueryParameter("state")
 		val error = data.getQueryParameter("error")
 		val errorDesc = data.getQueryParameter("error_description")
 
 
 		if (!error.isNullOrBlank()) {
-			Log.e("APPLE_AUTH", "error=$error desc=$errorDesc")
+			Log.e("APPLE_AUTH", "Apple sign-in error=$error desc=$errorDesc")
 			val errorMessage = errorDesc ?: error
 			AppleAuthBridge.onIdToken?.invoke(Result.failure(IllegalStateException("Apple Sign-In failed: $errorMessage")))
 			return
@@ -87,11 +94,8 @@ class MainActivity : FragmentActivity() {
 
 
 		if (!code.isNullOrBlank()) {
-			Log.d("APPLE_AUTH", "code=$code")
 			AppleAuthBridge.onAuthCode?.invoke(Result.success(code))
 		}
-
-		Log.d("APPLE_AUTH", "state=$state")
 	}
 
 

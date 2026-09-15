@@ -10,8 +10,6 @@ data class DatabaseConfig(
 	val databasePort: Int,
 	val databaseDialect: String,
 	val databaseDriver: String,
-	val sslMode: String,
-	val channelBinding: String,
 	val databaseUrl: String,
 	val useFlyway: Boolean,
 	val recreate: Boolean,
@@ -23,47 +21,20 @@ data class DatabaseConfig(
 			val databaseDialect = config.property("database.dialect").getString()
 			val databaseUsername = config.property("database.username").getString()
 			val databasePassword = config.property("database.password").getString()
-			var sslMode = ""
-			var channelBinding = ""
-			try{
-				sslMode = config.property("ssl.mode").getString()
-				channelBinding = config.property("ssl.channel").getString()
-			}
-			catch (e: Exception){
-				println(e.message)
-			}
-			val sslModeAndChannelBinding = sslModeAndChannelBinding(sslMode, channelBinding)
+			val databasePort = config.property("database.port").getString().toInt()
 			return DatabaseConfig(
 				databaseName = databaseName,
 				databaseUsername = databaseUsername,
 				databasePassword = databasePassword,
 				databaseIP = databaseIP,
-				databasePort = config.property("database.port").getString().toInt(),
+				databasePort = databasePort,
 				databaseDialect = databaseDialect,
 				databaseDriver = config.property("database.driver").getString(),
-				sslMode = sslMode,
-				channelBinding = channelBinding,
-				databaseUrl = String.format(
-					"jdbc:%s://%s:%d/%s?user=%s&password=%s%s",
-					databaseDialect,
-					databaseIP,
-					config.property("database.port").getString().toInt(),
-					databaseName,
-					databaseUsername,
-					databasePassword,
-					sslModeAndChannelBinding
-				),
+				databaseUrl = "jdbc:$databaseDialect://$databaseIP:$databasePort/$databaseName",
 				useFlyway = config.property("database.use_flyway").getString().toBoolean(),
 				recreate = config.property("database.recreate").getString().toBoolean(),
 			)
 		}
-		private fun sslModeAndChannelBinding(sslMode: String, channelBinding: String): String {
-			if(sslMode.isEmpty() && channelBinding.isEmpty()){
-				return ""
-			}
-			else{
-				return "&sslMode=$sslMode&channelBinding=$channelBinding"
-			}
-		}
+
 	}
 }

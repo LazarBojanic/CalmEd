@@ -20,8 +20,8 @@ import org.koin.core.module.dsl.viewModel
 
 expect fun platformEngine(): HttpClientEngineFactory<*>
 
-fun commonModule(baseUrl: String) = module {
-    single { AppHttpClient(baseUrl, platformEngine(), get()) }
+fun commonModule(baseUrl: String, development: Boolean) = module {
+    single { AppHttpClient(baseUrl, platformEngine(), get(), enableLogging = development) }
     single { get<AppHttpClient>().client }
     single<IAppApi> { AppApi(get()) }
     single { HomeRepository(api = get()) }
@@ -33,8 +33,8 @@ fun commonModule(baseUrl: String) = module {
     viewModel { ExercisesViewModel(get()) }
 }
 
-fun initKoin(baseUrl: String, vararg platformModules: Module) {
+fun initKoin(baseUrl: String, development: Boolean, vararg platformModules: Module) {
     startKoin {
-        modules(listOf(commonModule(baseUrl),settingsModule) + platformModules)
+        modules(listOf(commonModule(baseUrl, development),settingsModule) + platformModules)
     }
 }

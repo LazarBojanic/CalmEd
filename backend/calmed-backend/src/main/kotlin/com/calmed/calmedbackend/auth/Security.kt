@@ -19,6 +19,9 @@ fun Application.configureSecurity() {
 				if (cred.payload.getClaim("typ").asString() != TokenType.ACCESS.name) {
 					return@validate null
 				}
+				if (cred.payload.getClaim("ev").asBoolean() != true) {
+					return@validate null
+				}
 				JWTPrincipal(cred.payload)
 			}
 		}

@@ -41,6 +41,7 @@ fun Route.userExerciseProgressRoutes() {
 					return@get
 				}
 				val id = UUID.fromString(idParam)
+				call.requireSelf(id)
 				when (val res = service.getById(id)) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
@@ -55,6 +56,7 @@ fun Route.userExerciseProgressRoutes() {
 					return@get
 				}
 				val userId = UUID.fromString(userIdParam)
+				call.requireSelf(userId)
 				when (val res = service.getAllByUserId(userId)) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto() })
 					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)

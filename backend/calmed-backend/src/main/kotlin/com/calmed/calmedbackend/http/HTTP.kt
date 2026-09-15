@@ -6,11 +6,21 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.plugins.ratelimit.*
 import org.koin.ktor.ext.inject
+import kotlin.time.Duration.Companion.seconds
 
 fun Application.configureHTTP() {
 	val ktorConfig by inject<KtorConfig>()
 	install(Compression)
+	install(RateLimit) {
+		register(RateLimitName("auth")) {
+			rateLimiter(limit = 20, refillPeriod = 60.seconds)
+		}
+		register(RateLimitName("support")) {
+			rateLimiter(limit = 5, refillPeriod = 60.seconds)
+		}
+	}
 	install(CORS) {
 		allowMethod(HttpMethod.Options)
 		allowMethod(HttpMethod.Get)
@@ -22,7 +32,7 @@ fun Application.configureHTTP() {
 		allowHeader(HttpHeaders.ContentType)
 		allowHeader(HttpHeaders.Authorization)
 
-		allowCredentials = true
+		allowCredentials = false
 
 		allowHost("appleid.apple.com", listOf("https"))
 
@@ -46,5 +56,12 @@ fun Application.configureHTTP() {
 	}
 	install(DefaultHeaders) {
 		header("X-Engine", "Ktor")
+		header("X-Content-Type-Options", "nosniff")
+		header("X-Frame-Options", "DENY")
+		header("Referrer-Policy", "no-referrer")
+		header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+		if (!ktorConfig.development) {
+			header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
 	}
 }

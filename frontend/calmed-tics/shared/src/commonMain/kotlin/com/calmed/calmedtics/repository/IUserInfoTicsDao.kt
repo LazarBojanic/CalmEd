@@ -24,4 +24,7 @@ interface IUserInfoTicsDao {
 
 	@Query("DELETE FROM user_info_tics")
 	suspend fun clearAll()
+
+	@Query("DELETE FROM user_info_tics WHERE userId != :userId")
+	suspend fun deleteAllExcept(userId: String)
 }
