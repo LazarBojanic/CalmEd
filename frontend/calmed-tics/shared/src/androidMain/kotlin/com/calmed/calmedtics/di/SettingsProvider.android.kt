@@ -4,9 +4,7 @@ import android.content.Context
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.SharedPreferencesSettings
 
-lateinit var appContext: Context
-
-actual fun provideSettings(): Settings =
+fun provideSettings(context: Context): Settings =
     SharedPreferencesSettings(
-        appContext.getSharedPreferences("calmed_settings", Context.MODE_PRIVATE)
+        context.getSharedPreferences("calmed_settings", Context.MODE_PRIVATE)
     )

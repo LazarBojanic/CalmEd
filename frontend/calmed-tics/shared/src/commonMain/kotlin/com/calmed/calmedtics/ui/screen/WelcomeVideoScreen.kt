@@ -31,7 +31,7 @@ import com.calmed.calmedtics.theme.appBackgroundGradient
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import calmedtics.shared.generated.resources.Res
-import calmedtics.shared.generated.resources.`continue`
+import calmedtics.shared.generated.resources.continue_button
 import calmedtics.shared.generated.resources.dont_show_again
 import calmedtics.shared.generated.resources.error_video_failed
 import calmedtics.shared.generated.resources.error_video_no_source
@@ -289,7 +289,7 @@ fun WelcomeVideoScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = stringResource(Res.string.`continue`),
+                            text = stringResource(Res.string.continue_button),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )

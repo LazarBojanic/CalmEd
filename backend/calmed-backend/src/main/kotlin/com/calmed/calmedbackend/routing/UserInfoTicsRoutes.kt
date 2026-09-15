@@ -40,7 +40,7 @@ fun Route.userInfoTicsRoutes() {
 							}
 							call.respond(HttpStatusCode.OK, res.data.toDto())
 						}
-						is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+						is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
 					}
 				} else {
 					throw BusinessException(HttpStatusCode.BadRequest, "Missing id parameter")
@@ -67,7 +67,7 @@ fun Route.userInfoTicsRoutes() {
 
 				when (res) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
-					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+					is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
 				}
 			}
 		}
@@ -88,7 +88,7 @@ fun Route.userInfoTicsRoutes() {
 					val res = userInfoTicsService.getByUserId(userId)
 					when (res) {
 						is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
-						is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+						is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
 					}
 				} else {
 					throw BusinessException(HttpStatusCode.BadRequest, "Missing user id parameter")

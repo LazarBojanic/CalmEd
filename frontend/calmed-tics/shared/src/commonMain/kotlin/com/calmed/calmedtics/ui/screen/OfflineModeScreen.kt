@@ -36,7 +36,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,10 +59,9 @@ import calmedtics.shared.generated.resources.downloaded_videos
 import calmedtics.shared.generated.resources.no_downloads
 import calmedtics.shared.generated.resources.offline_description
 import calmedtics.shared.generated.resources.offline_label
-import calmedtics.shared.generated.resources.offline_title
 import calmedtics.shared.generated.resources.play_offline_video
 import calmedtics.shared.generated.resources.remove_downloaded_video
-import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
+import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadState
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
@@ -74,22 +74,24 @@ import com.calmed.calmedtics.theme.appBackgroundGradient
 import calmedtics.shared.generated.resources.try_online
 import calmedtics.shared.generated.resources.you_are_offline
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
 fun OfflineModeScreen(
     onTryOnline: () -> Unit,
     onOpenVideo: (url: String, title: String?) -> Unit
 ) {
+    val videoDownloadManager: IVideoDownloadManager = koinInject()
     val downloadedUrls by
-    LocalVideoDownloadManager.downloadedUrls.collectAsState()
+    videoDownloadManager.downloadedUrls.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
     val states by
-    LocalVideoDownloadManager.states.collectAsState()
+    videoDownloadManager.states.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
     var pendingDeleteUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        LocalVideoDownloadManager.refreshDownloaded()
+        videoDownloadManager.refreshDownloaded()
     }
 
     Box(
@@ -350,7 +352,7 @@ fun OfflineModeScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        LocalVideoDownloadManager.remove(url)
+                        videoDownloadManager.remove(url)
                         pendingDeleteUrl = null
                     }
                 ) {

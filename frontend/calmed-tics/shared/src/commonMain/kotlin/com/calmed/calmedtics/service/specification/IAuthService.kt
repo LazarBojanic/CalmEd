@@ -1,7 +1,6 @@
 package com.calmed.calmedtics.service.specification
 
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
-import com.calmed.calmedtics.model.dto.response.SupportMessageResponseDto
 
 interface IAuthService {
     suspend fun login(email: String, password: String): Boolean
@@ -13,5 +12,5 @@ interface IAuthService {
     suspend fun loginWithApple(identityToken: String): Boolean
     suspend fun sendSupportMessage(
         request: SupportMessageRequestDto
-    ): SupportMessageResponseDto
+    ): Boolean
 }

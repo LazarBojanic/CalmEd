@@ -4,6 +4,7 @@ import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.config.GooglePlayConfig
 import com.calmed.calmedbackend.config.PayPalConfig
 import com.calmed.calmedbackend.config.StripeConfig
+import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.*
 import com.calmed.calmedbackend.model.dto.response.*
@@ -245,35 +246,37 @@ class PaymentService(
             ?: throw IllegalStateException("PayPal response missing access_token")
     }
 
-    override suspend fun hasActiveAccess(userId: UUID): Boolean = userHasActivePayment(userId)
+    override suspend fun hasActiveAccess(userId: UUID): Boolean = withTransaction { userHasActivePayment(userId) }
 
     override suspend fun paymentStatus(userId: UUID): AppResult<PaymentStatusDto> {
         return try {
-            val userRes = userService.getById(userId)
-            when (userRes) {
-                is AppResult.Success -> {
-                    AppResult.Success(
-                        PaymentStatusDto(
-                            hasAccess = userHasActivePayment(userId),
-                            status = latestPaymentStatus(userId),
-                            provider = latestActivePaymentProvider(userId),
-                            amount = stripeConfig.amount,
-                            currency = stripeConfig.currency
+            withTransaction {
+                val userRes = userService.getById(userId)
+                when (userRes) {
+                    is AppResult.Success -> {
+                        AppResult.Success(
+                            PaymentStatusDto(
+                                hasAccess = userHasActivePayment(userId),
+                                status = latestPaymentStatus(userId),
+                                provider = latestActivePaymentProvider(userId),
+                                amount = stripeConfig.amount,
+                                currency = stripeConfig.currency
+                            )
                         )
-                    )
+                    }
+                    is AppResult.Failure -> AppResult.Failure(userRes.httpStatusCode, userRes.message)
                 }
-                is AppResult.Failure -> AppResult.Failure(userRes.httpStatusCode, userRes.message)
             }
         } catch (e: Exception) {
-            logger.error("Failed to retrieve payment status for user $userId: ${e.message}", e)
-            AppResult.Failure(HttpStatusCode.InternalServerError, "Error retrieving payment status: ${e.message}")
+            logger.error("Failed to retrieve payment status for user {}", userId, e)
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to retrieve payment status.")
         }
     }
 
     override suspend fun createCheckoutSession(userId: UUID, dto: CreateCheckoutSessionDto): AppResult<CheckoutSessionResponseDto> {
         return try {
             if (!isAllowedRedirectUrl(dto.successUrl) || !isAllowedRedirectUrl(dto.cancelUrl)) {
-                logger.warn("Rejected Stripe checkout with untrusted redirect URL for user $userId")
+                logger.warn("Rejected Stripe checkout with untrusted redirect URL for user {}", userId)
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Invalid redirect URL")
             }
             val params = SessionCreateParams.builder()
@@ -303,8 +306,8 @@ class PaymentService(
             val session = Session.create(params)
             AppResult.Success(CheckoutSessionResponseDto(session.id, session.url))
         } catch (e: Exception) {
-            logger.error("Failed to create Stripe checkout session for user $userId: ${e.message}", e)
-            AppResult.Failure(HttpStatusCode.InternalServerError, e.message ?: "Stripe error")
+            logger.error("Failed to create Stripe checkout session for user {}", userId, e)
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to create checkout session.")
         }
     }
 
@@ -314,6 +317,7 @@ class PaymentService(
             val session = event.dataObjectDeserializer.getObject().get() as? Session ?: return AppResult.Success(Unit)
             val userIdStr = session.metadata["userId"]
 
+            withTransaction {
             when (event.type) {
                 "checkout.session.completed" -> {
                     if (userIdStr != null) {
@@ -358,10 +362,11 @@ class PaymentService(
                     }
                 }
             }
+            }
             AppResult.Success(Unit)
         } catch (e: Exception) {
-            logger.error("Stripe webhook processing failed: ${e.message}", e)
-            AppResult.Failure(HttpStatusCode.BadRequest, "Webhook error: ${e.message}")
+            logger.error("Stripe webhook processing failed", e)
+            AppResult.Failure(HttpStatusCode.BadRequest, "Webhook processing failed.")
         }
     }
 
@@ -374,11 +379,11 @@ class PaymentService(
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Product ID is required")
             }
             if (!isProductAllowed(dto.productId)) {
-                logger.warn("Unexpected Apple product '${dto.productId}' for user $userId")
+                logger.warn("Unexpected Apple product '{}' for user {}", dto.productId, userId)
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Unknown product")
             }
             if (!appStoreServerApi.isConfigured()) {
-                logger.error("Apple App Store Server API is not configured; cannot verify transaction ${dto.transactionId}")
+                logger.error("Apple App Store Server API is not configured; cannot verify transaction {}", dto.transactionId)
                 return AppResult.Failure(HttpStatusCode.ServiceUnavailable, "Apple purchase verification is not configured")
             }
 
@@ -386,13 +391,13 @@ class PaymentService(
                 ?: return AppResult.Failure(HttpStatusCode.PaymentRequired, "Apple transaction could not be verified")
 
             if (verified.revocationDate != null) {
-                logger.warn("Apple transaction ${verified.transactionId} is revoked; rejecting for user $userId")
+                logger.warn("Apple transaction {} is revoked; rejecting for user {}", verified.transactionId, userId)
                 return AppResult.Failure(HttpStatusCode.PaymentRequired, "This purchase has been refunded or revoked")
             }
             if (verified.bundleId.isNotBlank() && appleConfig.iosBundleId.isNotBlank() &&
                 verified.bundleId != appleConfig.iosBundleId
             ) {
-                logger.warn("Apple transaction bundle mismatch: '${verified.bundleId}' vs '${appleConfig.iosBundleId}'")
+                logger.warn("Apple transaction bundle mismatch: '{}' vs '{}'", verified.bundleId, appleConfig.iosBundleId)
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Bundle ID mismatch")
             }
 
@@ -400,41 +405,45 @@ class PaymentService(
 
             val finalProductId = verified.productId.ifBlank { dto.productId }
             if (!isProductAllowed(finalProductId)) {
-                logger.warn("Unexpected Apple product '$finalProductId' for user $userId")
+                logger.warn("Unexpected Apple product '{}' for user {}", finalProductId, userId)
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Unknown product")
             }
 
-            val grant = grantOrRestoreEntitlement(
-                store = StoreEntitlementProvider.APPLE,
-                storeTransactionId = entitlementTransactionId,
-                userId = userId,
-                productId = finalProductId,
-                environment = verified.environment
-            )
-            if (grant == EntitlementGrantResult.CONFLICT) {
-                logger.warn("Apple transaction $entitlementTransactionId already claimed by another account")
-                return AppResult.Failure(HttpStatusCode.Conflict, "This Apple transaction has already been redeemed by another account")
-            }
-
-            val existingLedger = paymentRepository.findByAppleTransactionId(entitlementTransactionId)
-            if (existingLedger == null) {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.APPLE,
-                        appleTransactionId = verified.transactionId,
-                        appleOriginalTransactionId = entitlementTransactionId,
-                        status = PaymentStatus.SUCCESSFUL
-                    )
+            val dbResult = withTransaction {
+                val grant = grantOrRestoreEntitlement(
+                    store = StoreEntitlementProvider.APPLE,
+                    storeTransactionId = entitlementTransactionId,
+                    userId = userId,
+                    productId = finalProductId,
+                    environment = verified.environment
                 )
-            } else if (existingLedger.userId == null || existingLedger.userId != userId) {
-                paymentRepository.update(existingLedger.copy(userId = userId, updatedAt = Instant.now()))
+                if (grant == EntitlementGrantResult.CONFLICT) {
+                    logger.warn("Apple transaction {} already claimed by another account", entitlementTransactionId)
+                    return@withTransaction AppResult.Failure(HttpStatusCode.Conflict, "This Apple transaction has already been redeemed by another account")
+                }
+
+                val existingLedger = paymentRepository.findByAppleOriginalTransactionId(entitlementTransactionId)
+                if (existingLedger == null) {
+                    paymentRepository.create(
+                        Payment.createNew(
+                            userId = userId,
+                            provider = PaymentProvider.APPLE,
+                            appleTransactionId = verified.transactionId,
+                            appleOriginalTransactionId = entitlementTransactionId,
+                            status = PaymentStatus.SUCCESSFUL
+                        )
+                    )
+                } else if (existingLedger.userId == null || existingLedger.userId != userId) {
+                    paymentRepository.update(existingLedger.copy(userId = userId, updatedAt = Instant.now()))
+                }
+                AppResult.Success(Unit)
             }
+            if (dbResult is AppResult.Failure) return dbResult
 
             paymentStatus(userId)
         } catch (e: Exception) {
-            logger.error("Failed to verify Apple purchase for user $userId: ${e.message}", e)
-            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to verify Apple purchase: ${e.message}")
+            logger.error("Failed to verify Apple purchase for user {}", userId, e)
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to verify Apple purchase.")
         }
     }
 
@@ -458,13 +467,13 @@ class PaymentService(
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Product ID is required")
             }
             if (!isProductAllowed(productId)) {
-                logger.warn("Unexpected Google product '$productId' for user $userId")
+                logger.warn("Unexpected Google product '{}' for user {}", productId, userId)
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Unknown product")
             }
             val apiConfigured = googlePlayDeveloperApi.isConfigured()
 
             if (!apiConfigured && !googlePlayConfig.devFallbackEnabled) {
-                logger.error("Google Play Developer API is not configured; cannot verify purchase for user $userId")
+                logger.error("Google Play Developer API is not configured; cannot verify purchase for user {}", userId)
                 return AppResult.Failure(HttpStatusCode.ServiceUnavailable, "Google purchase verification is not configured")
             }
 
@@ -477,7 +486,7 @@ class PaymentService(
                         token = purchaseToken
                     )
                 } catch (e: Exception) {
-                    logger.warn("Google Play Developer API validation failed for user $userId: ${e.message}")
+                    logger.warn("Google Play Developer API validation failed for user {}", userId, e)
                     null
                 }
             }
@@ -495,16 +504,16 @@ class PaymentService(
                     if (!obfuscated.isNullOrBlank()) {
                         val expected = userEmail(userId)?.let { obfuscateAccountId(it) }
                         if (expected != null && expected != obfuscated) {
-                            logger.warn("Google purchase obfuscated account mismatch: expected $expected, got $obfuscated for user $userId")
+                            logger.warn("Google purchase obfuscated account mismatch: expected {}, got {} for user {}", expected, obfuscated, userId)
                         }
                     }
                 }
                 serverPurchase != null -> {
-                    logger.warn("Google purchase state ${serverPurchase.purchaseState} for user $userId (not purchased)")
+                    logger.warn("Google purchase state {} for user {} (not purchased)", serverPurchase.purchaseState, userId)
                     return AppResult.Failure(HttpStatusCode.PaymentRequired, "Google purchase is not in a purchased state")
                 }
                 googlePlayConfig.devFallbackEnabled && looksLikeValidGooglePurchase(purchaseToken) -> {
-                    logger.warn("DEV-ONLY: granting Google entitlement without Play API validation for user $userId (product '$productId')")
+                    logger.warn("DEV-ONLY: granting Google entitlement without Play API validation for user {} (product '{}')", userId, productId)
                     orderId = dto.orderId
                     obfuscatedAccountId = null
                     environment = "DEV_LOCAL"
@@ -514,39 +523,43 @@ class PaymentService(
                 }
             }
 
-            val grant = grantOrRestoreEntitlement(
-                store = StoreEntitlementProvider.GOOGLE,
-                storeTransactionId = purchaseToken,
-                userId = userId,
-                productId = productId,
-                obfuscatedAccountId = obfuscatedAccountId,
-                environment = environment
-            )
-            if (grant == EntitlementGrantResult.CONFLICT) {
-                logger.warn("Google purchase $purchaseToken already claimed by another account, attempted by $userId")
-                return AppResult.Failure(HttpStatusCode.Conflict, "This Google Play purchase has already been redeemed by another account")
-            }
-
-            val ledgerKey = orderId.takeIf { it.isNotBlank() } ?: purchaseToken
-            val existingLedger = paymentRepository.findByGoogleOrderId(ledgerKey)
-            if (existingLedger == null) {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.GOOGLE,
-                        googleOrderId = orderId,
-                        googlePurchaseToken = purchaseToken,
-                        status = PaymentStatus.SUCCESSFUL
-                    )
+            val dbResult = withTransaction {
+                val grant = grantOrRestoreEntitlement(
+                    store = StoreEntitlementProvider.GOOGLE,
+                    storeTransactionId = purchaseToken,
+                    userId = userId,
+                    productId = productId,
+                    obfuscatedAccountId = obfuscatedAccountId,
+                    environment = environment
                 )
-            } else if (existingLedger.userId == null || existingLedger.userId != userId) {
-                paymentRepository.update(existingLedger.copy(userId = userId, updatedAt = Instant.now()))
+                if (grant == EntitlementGrantResult.CONFLICT) {
+                    logger.warn("Google purchase {} already claimed by another account, attempted by {}", purchaseToken, userId)
+                    return@withTransaction AppResult.Failure(HttpStatusCode.Conflict, "This Google Play purchase has already been redeemed by another account")
+                }
+
+                val ledgerKey = orderId.takeIf { it.isNotBlank() } ?: purchaseToken
+                val existingLedger = paymentRepository.findByGoogleOrderId(ledgerKey)
+                if (existingLedger == null) {
+                    paymentRepository.create(
+                        Payment.createNew(
+                            userId = userId,
+                            provider = PaymentProvider.GOOGLE,
+                            googleOrderId = orderId,
+                            googlePurchaseToken = purchaseToken,
+                            status = PaymentStatus.SUCCESSFUL
+                        )
+                    )
+                } else if (existingLedger.userId == null || existingLedger.userId != userId) {
+                    paymentRepository.update(existingLedger.copy(userId = userId, updatedAt = Instant.now()))
+                }
+                AppResult.Success(Unit)
             }
+            if (dbResult is AppResult.Failure) return dbResult
 
             paymentStatus(userId)
         } catch (e: Exception) {
-            logger.error("Exception during Google purchase processing for user $userId: ${e.message}", e)
-            AppResult.Failure(HttpStatusCode.InternalServerError, "Error processing Google purchase: ${e.message}")
+            logger.error("Exception during Google purchase processing for user {}", userId, e)
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to process Google purchase.")
         }
     }
 
@@ -556,38 +569,40 @@ class PaymentService(
 
             val metadataUserId = session.metadata?.get("userId")
             if (metadataUserId != userId.toString()) {
-                logger.warn("Stripe session $sessionId does not belong to user $userId")
+                logger.warn("Stripe session {} does not belong to user {}", sessionId, userId)
                 return AppResult.Failure(HttpStatusCode.Forbidden, "Stripe session does not belong to this account")
             }
 
             val amountMatches = session.amountTotal == stripeConfig.amountCents
             val currencyMatches = session.currency?.equals(stripeConfig.currency, ignoreCase = true) == true
             if (!amountMatches || !currencyMatches) {
-                logger.warn("Stripe session $sessionId amount/currency mismatch for user $userId")
+                logger.warn("Stripe session {} amount/currency mismatch for user {}", sessionId, userId)
                 return AppResult.Failure(HttpStatusCode.BadRequest, "Stripe session amount or currency mismatch")
             }
 
             val isPaid = session.paymentStatus == "paid" || session.status == "complete"
 
-            val existing = paymentRepository.findByStripeCheckoutSessionId(sessionId)
-            if (existing != null) {
-                paymentRepository.update(
-                    existing.copy(
-                        status = if (isPaid) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING,
-                        stripePaymentIntentId = existing.stripePaymentIntentId ?: session.paymentIntent,
-                        updatedAt = Instant.now()
+            withTransaction {
+                val existing = paymentRepository.findByStripeCheckoutSessionId(sessionId)
+                if (existing != null) {
+                    paymentRepository.update(
+                        existing.copy(
+                            status = if (isPaid) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING,
+                            stripePaymentIntentId = existing.stripePaymentIntentId ?: session.paymentIntent,
+                            updatedAt = Instant.now()
+                        )
                     )
-                )
-            } else {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.STRIPE,
-                        stripeCheckoutSessionId = sessionId,
-                        stripePaymentIntentId = session.paymentIntent,
-                        status = if (isPaid) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING
+                } else {
+                    paymentRepository.create(
+                        Payment.createNew(
+                            userId = userId,
+                            provider = PaymentProvider.STRIPE,
+                            stripeCheckoutSessionId = sessionId,
+                            stripePaymentIntentId = session.paymentIntent,
+                            status = if (isPaid) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING
+                        )
                     )
-                )
+                }
             }
 
             if (isPaid) {
@@ -599,18 +614,20 @@ class PaymentService(
                 )
             }
         } catch (e: Exception) {
-            logger.error("Failed to verify Stripe session $sessionId for user $userId: ${e.message}", e)
+            logger.error("Failed to verify Stripe session {} for user {}", sessionId, userId, e)
             try {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.STRIPE,
-                        stripeCheckoutSessionId = sessionId,
-                        status = PaymentStatus.PENDING
+                withTransaction {
+                    paymentRepository.create(
+                        Payment.createNew(
+                            userId = userId,
+                            provider = PaymentProvider.STRIPE,
+                            stripeCheckoutSessionId = sessionId,
+                            status = PaymentStatus.PENDING
+                        )
                     )
-                )
+                }
             } catch (ignored: Exception) {}
-            AppResult.Failure(HttpStatusCode.InternalServerError, e.message ?: "Stripe error")
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to verify Stripe session.")
         }
     }
 
@@ -647,8 +664,8 @@ class PaymentService(
 
             AppResult.Success(PayPalOrderResponseDto(orderId))
         } catch (e: Exception) {
-            logger.error("Failed to create PayPal order for user $userId: ${e.message}", e)
-            AppResult.Failure(HttpStatusCode.InternalServerError, e.message ?: "PayPal error")
+            logger.error("Failed to create PayPal order for user {}", userId, e)
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to create PayPal order.")
         }
     }
 
@@ -672,7 +689,7 @@ class PaymentService(
             val purchaseUnit = json["purchase_units"]?.jsonArray?.firstOrNull()?.jsonObject
             val referenceId = purchaseUnit?.get("reference_id")?.jsonPrimitive?.content
             if (referenceId != userId.toString()) {
-                logger.warn("PayPal order ${dto.orderId} reference mismatch for user $userId")
+                logger.warn("PayPal order {} reference mismatch for user {}", dto.orderId, userId)
                 return AppResult.Failure(HttpStatusCode.Forbidden, "PayPal order does not belong to this account")
             }
 
@@ -692,30 +709,32 @@ class PaymentService(
                     ?.let { kotlin.math.abs(it - paypalConfig.amount.toDouble()) < 0.005 } ?: false
                 val currencyMatches = capturedCurrency?.equals(paypalConfig.currency, ignoreCase = true) ?: false
                 if (!amountMatches || !currencyMatches) {
-                    logger.warn("PayPal order ${dto.orderId} captured amount/currency mismatch for user $userId")
+                    logger.warn("PayPal order {} captured amount/currency mismatch for user {}", dto.orderId, userId)
                     return AppResult.Failure(HttpStatusCode.PaymentRequired, "PayPal captured amount or currency mismatch")
                 }
             }
 
-            val existing = paymentRepository.findByPayPalOrderId(dto.orderId)
-            if (existing != null) {
-                paymentRepository.update(
-                    existing.copy(
-                        status = if (successful) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING,
-                        paypalCaptureId = captureId ?: existing.paypalCaptureId,
-                        updatedAt = Instant.now()
+            withTransaction {
+                val existing = paymentRepository.findByPayPalOrderId(dto.orderId)
+                if (existing != null) {
+                    paymentRepository.update(
+                        existing.copy(
+                            status = if (successful) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING,
+                            paypalCaptureId = captureId ?: existing.paypalCaptureId,
+                            updatedAt = Instant.now()
+                        )
                     )
-                )
-            } else {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.PAYPAL,
-                        paypalOrderId = dto.orderId,
-                        paypalCaptureId = captureId,
-                        status = if (successful) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING
+                } else {
+                    paymentRepository.create(
+                        Payment.createNew(
+                            userId = userId,
+                            provider = PaymentProvider.PAYPAL,
+                            paypalOrderId = dto.orderId,
+                            paypalCaptureId = captureId,
+                            status = if (successful) PaymentStatus.SUCCESSFUL else PaymentStatus.PENDING
+                        )
                     )
-                )
+                }
             }
 
             if (successful) {
@@ -727,50 +746,54 @@ class PaymentService(
                 )
             }
         } catch (e: Exception) {
-            logger.error("Failed to capture PayPal order ${dto.orderId} for user $userId: ${e.message}", e)
+            logger.error("Failed to capture PayPal order {} for user {}", dto.orderId, userId, e)
             try {
-                paymentRepository.create(
-                    Payment.createNew(
-                        userId = userId,
-                        provider = PaymentProvider.PAYPAL,
-                        paypalOrderId = dto.orderId,
-                        status = PaymentStatus.PENDING
+                withTransaction {
+                    paymentRepository.create(
+                        Payment.createNew(
+                            userId = userId,
+                            provider = PaymentProvider.PAYPAL,
+                            paypalOrderId = dto.orderId,
+                            status = PaymentStatus.PENDING
+                        )
                     )
-                )
+                }
             } catch (ignored: Exception) {}
-            AppResult.Failure(HttpStatusCode.InternalServerError, e.message ?: "PayPal error")
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to capture PayPal order.")
         }
     }
 
     override suspend fun getAll(): AppResult<List<Payment>> {
         return try {
-            AppResult.Success(paymentRepository.findAll())
+            withTransaction { AppResult.Success(paymentRepository.findAll()) }
         } catch (e: Exception) {
-            logger.error("Failed to fetch all payments: ${e.message}", e)
-            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to retrieve payments: ${e.message}")
+            logger.error("Failed to fetch all payments", e)
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to retrieve payments.")
         }
     }
 
     override suspend fun getById(id: UUID): AppResult<Payment> {
         return try {
-            val payment = paymentRepository.findById(id)
-            if (payment != null) {
-                AppResult.Success(payment)
-            } else {
-                AppResult.Failure(HttpStatusCode.NotFound, "Payment not found")
+            withTransaction {
+                val payment = paymentRepository.findById(id)
+                if (payment != null) {
+                    AppResult.Success(payment)
+                } else {
+                    AppResult.Failure(HttpStatusCode.NotFound, "Payment not found")
+                }
             }
         } catch (e: Exception) {
-            logger.error("Failed to fetch payment $id: ${e.message}", e)
-            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to retrieve payment: ${e.message}")
+            logger.error("Failed to fetch payment {}", id, e)
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to retrieve payment.")
         }
     }
 
     override suspend fun getByUserId(userId: UUID): AppResult<List<Payment>> {
         return try {
-            AppResult.Success(paymentRepository.findByUserId(userId))
+            withTransaction { AppResult.Success(paymentRepository.findByUserId(userId)) }
         } catch (e: Exception) {
-            logger.error("Failed to fetch payments for user $userId: ${e.message}", e)
-            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to retrieve payments for user: ${e.message}")
+            logger.error("Failed to fetch payments for user {}", userId, e)
+            AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to retrieve payments.")
         }
     }
 }

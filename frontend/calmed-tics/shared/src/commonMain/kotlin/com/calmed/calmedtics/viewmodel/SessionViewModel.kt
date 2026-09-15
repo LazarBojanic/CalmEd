@@ -15,7 +15,24 @@ import com.calmed.calmedtics.repository.IUserDao
 import com.calmed.calmedtics.repository.IUserInfoTicsDao
 import com.calmed.calmedtics.service.specification.IAuthService
 import com.calmed.calmedtics.store.ITokenDataStore
+import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.session_missing_user_id
+import calmedtics.shared.generated.resources.session_load_user_failed
+import calmedtics.shared.generated.resources.session_load_failed
+import calmedtics.shared.generated.resources.session_onboard_failed
+import calmedtics.shared.generated.resources.session_skip_onboarding_failed
+import calmedtics.shared.generated.resources.session_confirm_age_failed
+import calmedtics.shared.generated.resources.session_age_confirmation_failed
+import calmedtics.shared.generated.resources.session_missing_user
+import calmedtics.shared.generated.resources.session_missing_user_info
+import calmedtics.shared.generated.resources.session_update_user_info_failed
+import calmedtics.shared.generated.resources.session_update_profile_failed
+import calmedtics.shared.generated.resources.session_profile_image_upload_failed
+import calmedtics.shared.generated.resources.session_onboarding_failed
+import calmedtics.shared.generated.resources.session_delete_account_failed
+import org.jetbrains.compose.resources.getString
 import com.calmed.calmedtics.util.currentUserId
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -70,7 +87,7 @@ class SessionViewModel(
 			val userId = tokenStore.currentUserId()
 			if (userId == null) {
 				clearLocal()
-				_error.value = "Missing user id."
+				_error.value = getString(Res.string.session_missing_user_id)
 				return null
 			}
 
@@ -80,7 +97,7 @@ class SessionViewModel(
 			val remoteUser = api.getUser(userId)
 			if (remoteUser == null) {
 				clearLocal()
-				_error.value = "Failed to load user."
+				_error.value = getString(Res.string.session_load_user_failed)
 				return null
 			}
 			cacheUserDto(remoteUser)
@@ -93,8 +110,10 @@ class SessionViewModel(
 				userInfoDao.clearAll()
 			}
 			remoteUser
+		} catch (t: CancellationException) {
+			throw t
 		} catch (t: Throwable) {
-			_error.value = t.message ?: "Failed to load session."
+			_error.value = t.message ?: getString(Res.string.session_load_failed)
 			null
 		} finally {
 			_loading.value = false
@@ -107,7 +126,7 @@ class SessionViewModel(
 		return try {
 			val userId = tokenStore.currentUserId()
 			if (userId == null) {
-				_error.value = "Missing user id."
+				_error.value = getString(Res.string.session_missing_user_id)
 				false
 			} else {
 				val updatedUser = api.setOnboarded(
@@ -115,15 +134,17 @@ class SessionViewModel(
 					SetIsOnboardedDto(isOnboarded = true)
 				)
 				if (updatedUser == null) {
-					_error.value = "Failed to mark user as onboarded."
+					_error.value = getString(Res.string.session_onboard_failed)
 					false
 				} else {
 					cacheUserDto(updatedUser)
 					true
 				}
 			}
+		} catch (t: CancellationException) {
+			throw t
 		} catch (t: Throwable) {
-			_error.value = t.message ?: "Skip onboarding failed."
+			_error.value = t.message ?: getString(Res.string.session_skip_onboarding_failed)
 			false
 		} finally {
 			_loading.value = false
@@ -136,7 +157,7 @@ class SessionViewModel(
 		return try {
 			val userId = tokenStore.currentUserId()
 			if (userId == null) {
-				_error.value = "Missing user id."
+				_error.value = getString(Res.string.session_missing_user_id)
 				false
 			} else {
 				val updatedUser = api.confirmOverEighteen(
@@ -144,15 +165,17 @@ class SessionViewModel(
 					SetConfirmOverEighteenDto(confirmOverEighteen = true)
 				)
 				if (updatedUser == null) {
-					_error.value = "Failed to confirm age."
+					_error.value = getString(Res.string.session_confirm_age_failed)
 					false
 				} else {
 					cacheUserDto(updatedUser)
 					true
 				}
 			}
+		} catch (t: CancellationException) {
+			throw t
 		} catch (t: Throwable) {
-			_error.value = t.message ?: "Age confirmation failed."
+			_error.value = t.message ?: getString(Res.string.session_age_confirmation_failed)
 			false
 		} finally {
 			_loading.value = false
@@ -165,7 +188,7 @@ class SessionViewModel(
 		return try {
 			val currentUser = user.value
 			if (currentUser == null) {
-				_error.value = "Missing user."
+				_error.value = getString(Res.string.session_missing_user)
 				false
 			} else {
 				var currentUserInfo = userInfo.value
@@ -179,12 +202,12 @@ class SessionViewModel(
 				}
 				val resolved = currentUserInfo
 				if (resolved == null) {
-					_error.value = "Missing user info."
+					_error.value = getString(Res.string.session_missing_user_info)
 					false
 				} else {
 					val updatedInfo = api.updateUserInfoTics(resolved.id, update)
 					if (updatedInfo == null) {
-						_error.value = "Failed to update user info."
+						_error.value = getString(Res.string.session_update_user_info_failed)
 						false
 					} else {
 						cacheUserDto(updatedInfo.user)
@@ -193,8 +216,10 @@ class SessionViewModel(
 					}
 				}
 			}
+		} catch (t: CancellationException) {
+			throw t
 		} catch (t: Throwable) {
-			_error.value = t.message ?: "Update profile failed."
+			_error.value = t.message ?: getString(Res.string.session_update_profile_failed)
 			false
 		} finally {
 			_loading.value = false
@@ -211,8 +236,10 @@ class SessionViewModel(
 			)
 			cacheUserDto(updatedUser)
 			true
+		} catch (t: CancellationException) {
+			throw t
 		} catch (t: Throwable) {
-			_error.value = t.message ?: "Profile image upload failed."
+			_error.value = t.message ?: getString(Res.string.session_profile_image_upload_failed)
 			false
 		} finally {
 			_loading.value = false
@@ -226,12 +253,12 @@ class SessionViewModel(
 			val userId = tokenStore.currentUserId()
 			val currentUserInfo = userInfo.value
 			if (userId == null || currentUserInfo == null || currentUserInfo.user.id != userId) {
-				_error.value = "Missing user info."
+				_error.value = getString(Res.string.session_missing_user_info)
 				false
 			} else {
 				val updatedInfo = api.updateUserInfoTics(currentUserInfo.id, update)
 				if (updatedInfo == null) {
-					_error.value = "Failed to update user info."
+					_error.value = getString(Res.string.session_update_user_info_failed)
 					false
 				} else {
 					cacheUserDto(updatedInfo.user)
@@ -242,7 +269,7 @@ class SessionViewModel(
 						SetIsOnboardedDto(isOnboarded = true)
 					)
 					if (updatedUser == null) {
-						_error.value = "Failed to mark user as onboarded."
+						_error.value = getString(Res.string.session_onboard_failed)
 						false
 					} else {
 						cacheUserDto(updatedUser)
@@ -250,8 +277,10 @@ class SessionViewModel(
 					}
 				}
 			}
+		} catch (t: CancellationException) {
+			throw t
 		} catch (t: Throwable) {
-			_error.value = t.message ?: "Onboarding failed."
+			_error.value = t.message ?: getString(Res.string.session_onboarding_failed)
 			false
 		} finally {
 			_loading.value = false
@@ -275,7 +304,7 @@ class SessionViewModel(
 		return try {
 			val userId = tokenStore.currentUserId()
 			if (userId == null) {
-				_error.value = "Missing user id."
+				_error.value = getString(Res.string.session_missing_user_id)
 				false
 			} else {
 				val deleted = api.deleteAccount(userId)
@@ -284,12 +313,14 @@ class SessionViewModel(
 					authService.logout()
 					true
 				} else {
-					_error.value = "Failed to delete the account. Please try again."
+					_error.value = getString(Res.string.session_delete_account_failed)
 					false
 				}
 			}
+		} catch (t: CancellationException) {
+			throw t
 		} catch (t: Throwable) {
-			_error.value = t.message ?: "Failed to delete the account."
+			_error.value = t.message ?: getString(Res.string.session_delete_account_failed)
 			false
 		} finally {
 			_loading.value = false

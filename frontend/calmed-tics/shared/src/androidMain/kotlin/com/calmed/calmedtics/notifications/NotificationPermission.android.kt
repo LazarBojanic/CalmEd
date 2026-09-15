@@ -3,8 +3,11 @@ package com.calmed.calmedtics.notifications
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import androidx.core.content.ContextCompat
+import com.calmed.calmedtics.logging.AppLog
+import com.calmed.calmedtics.logging.LogTags
+
+private val log = AppLog(LogTags.NOTIFICATIONS)
 
 private var permissionRequester: ((String) -> Unit)? = null
 
@@ -26,11 +29,11 @@ fun requestNotificationPermissionIfNeeded(context: android.content.Context): Boo
 
 	val requester = permissionRequester
 	if (requester == null) {
-		Log.w("NOTIFICATIONS", "Permission requester not set; cannot request POST_NOTIFICATIONS.")
+		log.warn("Permission requester not set; cannot request POST_NOTIFICATIONS.")
 		return false
 	}
 
 	requester(Manifest.permission.POST_NOTIFICATIONS)
-	Log.d("NOTIFICATIONS", "Requested POST_NOTIFICATIONS permission.")
+	log.debug("Requested POST_NOTIFICATIONS permission.")
 	return false
 }

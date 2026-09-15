@@ -37,17 +37,6 @@ interface IVideoDownloadManager {
     fun remove(url: String)
 }
 
-expect object LocalVideoDownloadManager : IVideoDownloadManager {
-    override val states: StateFlow<Map<String, VideoDownloadState>>
-    override val downloadedUrls: StateFlow<List<String>>
-    override val events: SharedFlow<DownloadEvent>
-
-    override fun refresh(url: String)
-    override fun refreshDownloaded()
-    override fun download(url: String, title: String?)
-    override fun remove(url: String)
-}
-
 
 fun downloadKey(url: String): String = url.substringBefore('?')
 

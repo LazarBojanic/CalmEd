@@ -9,6 +9,7 @@ interface IPaymentRepository {
 	suspend fun findByUserId(userId: UUID): List<Payment>
 	suspend fun findByGoogleOrderId(googleOrderId: String): Payment?
 	suspend fun findByAppleTransactionId(appleTransactionId: String): Payment?
+	suspend fun findByAppleOriginalTransactionId(appleOriginalTransactionId: String): Payment?
 	suspend fun findByStripeCheckoutSessionId(stripeCheckoutSessionId: String): Payment?
 	suspend fun findByPayPalOrderId(paypalOrderId: String): Payment?
 	suspend fun create(payment: Payment): Payment?

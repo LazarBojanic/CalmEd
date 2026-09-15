@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.routing
 
+import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.service.specification.IExerciseGroupService
 import io.ktor.http.HttpStatusCode
@@ -18,7 +19,7 @@ fun Route.exerciseGroupRoutes() {
 			get("") {
 				when (val res = service.getAll()) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
-					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+					is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
 				}
 			}
 		}

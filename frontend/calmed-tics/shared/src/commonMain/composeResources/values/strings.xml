@@ -1,35 +1,24 @@
 <resources>
-    <string name="app_name">CalmEd Tics</string>
-    <string name="download_channel_name">Video Downloads</string>
     <string name="login_title">Login</string>
     <string name="email_label">Email</string>
     <string name="password_label">Password</string>
-    <string name="login_button">Login</string>
     <string name="logging_in">Logging in...</string>
     <string name="create_account">Create account</string>
     <string name="use_offline_mode">Use offline mode</string>
     <string name="forgot_password">Forgot password?</string>
-    <string name="week_title">Week %1$d</string>
-    <string name="exercise_locked_message">It's not time for this exercise yet.</string>
-    <string name="exercise_locked_dialog_message">This screen is meant to be a full overview of the course, however it is not yet time for this exercise, are you sure you still want to view it?</string>
-    <string name="i_am_sure">I am sure</string>
-    <string name="locked">Locked</string>
     <string name="forgot_password_title">Forgot Password?</string>
     <string name="sending">Sending...</string>
     <string name="send_reset_email">Send reset email</string>
     <string name="back">Back</string>
-    <string name="help_support_title">Help &amp; Support</string>
     <string name="help_support_heading">How can we help?</string>
     <string name="help_support_description">Send us your question and we’ll get back to you as soon as possible.</string>
     <string name="subject_label">Subject</string>
     <string name="message_label">Message</string>
     <string name="send_message_button">Send message</string>
     <string name="message_success">Your message has been prepared successfully.</string>
-    <string name="back_button">Back</string>
+    <string name="support_send_failed">Couldn\'t send your message. Please try again.</string>
     <string name="turn_your_phone">Turn your phone</string>
-    <string name="home_title">Home</string>
     <string name="home_welcome">Welcome to CalmEd Tics.</string>
-    <string name="calendar_loading">Calendar loading...</string>
     <string name="select_video">Select a video</string>
     <string name="no_image">No image</string>
     <string name="onboarding_error">We couldn’t load your onboarding profile data.</string>
@@ -37,7 +26,6 @@
     <string name="tab_home">Home</string>
     <string name="tab_exercises">Exercises</string>
     <string name="tab_profile">Profile</string>
-    <string name="offline_title">Offline Library</string>
     <string name="offline_label">Offline</string>
     <string name="you_are_offline">You are offline</string>
     <string name="offline_description">Only videos already downloaded to this device are available.</string>
@@ -55,37 +43,28 @@
     <string name="welcome_user">Welcome %1$s</string>
     <string name="personalize_experience">Let’s personalize your experience.</string>
     <string name="start">Start</string>
-    <string name="preferred_name_title">Preferred name</string>
-    <string name="preferred_name_label">Preferred name</string>
-    <string name="age_title">Age</string>
-    <string name="age_label">Age</string>
     <string name="next">Next</string>
-    <string name="stress_level_title">Stress level</string>
-    <string name="tics_type_title">Tics type</string>
     <string name="tics_motor">Motor</string>
     <string name="tics_vocal">Vocal</string>
     <string name="tics_both">Both</string>
-    <string name="tics_frequency_title">Tics frequency</string>
     <string name="frequency_rare">Rare</string>
     <string name="frequency_moderate">Moderate</string>
     <string name="frequency_daily">Daily</string>
-    <string name="goal_title">Goal</string>
     <string name="finish">Finish</string>
-    <string name="payment_title">Unlock Premium</string>
     <string name="payment_heading">Get full CalmEd access</string>
     <string name="payment_description">One-time payment. Securely handled via your %1$s account.</string>
     <string name="premium_access">Premium Program Access</string>
     <string name="amount_label">Amount: %1$s</string>
+    <string name="payment_amount_unknown">Amount shown at checkout</string>
     <string name="secure_payment">Secure payment via %1$s</string>
     <string name="opening_payment">Opening payment...</string>
     <string name="pay_button">Pay %1$s</string>
+    <string name="pay_button_generic">Pay</string>
+    <string name="restore_purchase">Restore Purchase</string>
     <string name="processing">Processing...</string>
-    <string name="skip_payment">Skip Payment (Dev Only)</string>
     <string name="error_init_payment">Unable to initialize payment.</string>
-    <string name="error_skip_payment">Skip payment failed.</string>
     <string name="error_payment_not_confirmed">Payment not confirmed yet.</string>
     <string name="error_payment_verification">Payment verification failed.</string>
-    <string name="profile_title">Profile</string>
     <string name="personal_details">Personal Details</string>
     <string name="edit_personal_details">Edit Personal Details</string>
     <string name="edit_condition_info">Edit Condition Info</string>
@@ -104,12 +83,9 @@
     <string name="tics_frequency">Tics frequency</string>
     <string name="goal_label">Your goal</string>
     <string name="account_info">Account Information</string>
-    <string name="email">Email</string>
     <string name="username">Username</string>
     <string name="stress_level">Stress Level</string>
     <string name="goal">Goal</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
     <string name="support">Support</string>
     <string name="help_support">Help &amp; Support</string>
     <string name="privacy_policy">Privacy Policy</string>
@@ -122,7 +98,6 @@
     <string name="default_user">User</string>
     <string name="condition_info">Condition Info</string>
     <string name="register_title">Register</string>
-    <string name="username_label">Username</string>
     <string name="confirm_password">Confirm password</string>
     <string name="password_min_length">Password must be at least 8 characters long.</string>
     <string name="password_uppercase">Password must contain at least one uppercase letter.</string>
@@ -130,14 +105,11 @@
     <string name="password_digit">Password must contain at least one digit.</string>
     <string name="passwords_do_not_match">Passwords do not match.</string>
     <string name="creating">Creating...</string>
-    <string name="back_to_login">Back to login</string>
-    <string name="welcome_video_title">Welcome Video</string>
     <string name="loading_video">Loading video...</string>
-    <string name="error_video_not_available">The video is not available.</string>
     <string name="error_video_no_source">The video has no valid playback source.</string>
     <string name="error_video_failed">Failed to load the video.</string>
     <string name="dont_show_again">Don't show again</string>
-    <string name="continue">Continue</string>
+    <string name="continue_button">Continue</string>
     <string name="its_not_yet_time">It's not yet time for this exercise.</string>
     <string name="its_not_yet_time_week">It's not yet time for this week.</string>
     <string name="upcoming">Upcoming</string>
@@ -166,9 +138,7 @@
     <string name="tics_frequency_moderate_description">They happen from time to time</string>
     <string name="tics_frequency_daily_description">They are present every day</string>
     <string name="goal_question">What would you like to improve or achieve?</string>
-    <string name="goal_input_label">Your goal</string>
     <string name="goal_example">Example: I want to better understand my tics and track how often they happen.</string>
-    <string name="can_change_later">You can change this later in settings.</string>
 
     <!-- Home Screen -->
     <string name="hello_user">Hello, %1$s</string>
@@ -182,14 +152,10 @@
     <string name="age_confirmation_title">Age confirmation</string>
     <string name="age_confirmation_subtitle">You must be at least 18 years old to use CalmEd.</string>
     <string name="not_over_eighteen">I am not over 18</string>
-    <string name="res_continue">Continue</string>
     <string name="download_video">Download video</string>
-    <string name="delete_video">Delete download</string>
     <string name="delete_confirm_title">Delete Downloaded Video</string>
     <string name="delete_confirm_message">Are you sure you want to remove this video from your offline downloads?</string>
     <string name="delete">Delete</string>
-    <string name="download_for_offline">Download for offline</string>
-    <string name="offline_available">Available offline</string>
     <string name="downloading_video">Downloading video…</string>
 
     <!-- Video Download Quality -->
@@ -206,7 +172,108 @@
     <string name="download_wifi_only_description">When enabled, videos download only when connected to Wi-Fi.</string>
     <string name="download_wifi_only_blocked">Downloads are only available over Wi-Fi.</string>
     <string name="download_completed">Download complete</string>
-    <string name="download_failed">Download failed</string>
     <string name="download_completed_title">Downloaded: %1$s</string>
     <string name="download_failed_title">Download failed: %1$s</string>
+
+    <!-- Auth Buttons & Password -->
+    <string name="continue_with_apple">Continue with Apple</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="retry_video_download">Retry video download</string>
+    <string name="invalid_email_message">Please enter a valid email address.</string>
+
+    <!-- Home Screen (extracted) -->
+    <string name="home_current_exercise">CURRENT EXERCISE</string>
+    <string name="home_great_start">Great start!</string>
+    <string name="home_start_your_day">Start your day</string>
+    <string name="home_well_done">Well done!</string>
+    <string name="home_keep_going">Keep going!</string>
+    <string name="completed">Completed</string>
+    <string name="pending">Pending</string>
+    <string name="morning">Morning</string>
+    <string name="evening">Evening</string>
+    <string name="next_week">Next week</string>
+    <string name="duration_min">%1$s min</string>
+    <string name="duration_placeholder">--:-- min</string>
+
+    <!-- Exercises Screen (extracted) -->
+    <string name="collapse">Collapse</string>
+    <string name="expand">Expand</string>
+    <string name="play">Play</string>
+    <string name="week_upper">WEEK %1$d</string>
+
+    <!-- Tic Duration -->
+    <string name="tic_duration_question">How long have you had tics?</string>
+    <string name="tic_duration_0_1">0–1 year</string>
+    <string name="tic_duration_1_3">1–3 years</string>
+    <string name="tic_duration_3_plus">3+ years</string>
+
+    <!-- Profile Screen (extracted) -->
+    <string name="selected_profile_photo">Selected profile photo</string>
+    <string name="choose_profile_photo">Choose profile photo</string>
+    <string name="profile_photo">Profile photo</string>
+    <string name="danger_zone">Danger zone</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="delete_account_message">This will permanently delete your account and all of your personal data. Purchases made through the App Store or Google Play can be restored if you sign in again with the same account. This action cannot be undone.</string>
+    <string name="delete_confirm_hint">Type DELETE to confirm</string>
+    <string name="delete_confirm_word">DELETE</string>
+    <string name="deleting">Deleting…</string>
+    <string name="refund_policy">Refund Policy</string>
+
+    <!-- Payment Screen (extracted) -->
+    <string name="store_google_play">Google Play</string>
+    <string name="store_app_store">App Store</string>
+    <string name="nothing_to_restore">No previous purchases found to restore.</string>
+
+    <!-- Video Screen (extracted) -->
+    <string name="resolution">Resolution</string>
+    <string name="close">Close</string>
+    <string name="mute">Mute</string>
+    <string name="unmute">Unmute</string>
+
+    <!-- App -->
+    <string name="user_info_missing">UserInfo is missing (backend doesn\'t return it).</string>
+
+    <!-- ViewModel messages -->
+    <string name="auth_login_failed_credentials">Login failed. Check your credentials.</string>
+    <string name="auth_login_failed">Login failed.</string>
+    <string name="auth_registration_success">Registration successful! Please check your email to verify your account before logging in.</string>
+    <string name="auth_registration_failed_input">Registration failed. Please review your input.</string>
+    <string name="auth_registration_failed">Registration failed.</string>
+    <string name="auth_reset_email_sent">Password reset email sent (if the address exists).</string>
+    <string name="auth_request_failed">Request failed.</string>
+    <string name="auth_google_failed">Google login failed.</string>
+    <string name="auth_apple_failed">Apple login failed.</string>
+    <string name="session_missing_user_id">Missing user id.</string>
+    <string name="session_load_user_failed">Failed to load user.</string>
+    <string name="session_load_failed">Failed to load session.</string>
+    <string name="session_onboard_failed">Failed to mark user as onboarded.</string>
+    <string name="session_skip_onboarding_failed">Skip onboarding failed.</string>
+    <string name="session_confirm_age_failed">Failed to confirm age.</string>
+    <string name="session_age_confirmation_failed">Age confirmation failed.</string>
+    <string name="session_missing_user">Missing user.</string>
+    <string name="session_missing_user_info">Missing user info.</string>
+    <string name="session_update_user_info_failed">Failed to update user info.</string>
+    <string name="session_update_profile_failed">Update profile failed.</string>
+    <string name="session_profile_image_upload_failed">Profile image upload failed.</string>
+    <string name="session_onboarding_failed">Onboarding failed.</string>
+    <string name="session_delete_account_failed">Failed to delete the account. Please try again.</string>
+    <string name="exercises_load_failed">Failed to load exercises.</string>
+    <string name="home_load_failed">Failed to load home.</string>
+
+    <!-- Calendar weekday initials -->
+    <string-array name="weekday_initials">
+        <item>M</item>
+        <item>T</item>
+        <item>W</item>
+        <item>T</item>
+        <item>F</item>
+        <item>S</item>
+        <item>S</item>
+    </string-array>
+
+    <!-- Video player navigation -->
+    <string name="previous_exercise">Previous Exercise</string>
+    <string name="next_exercise">Next Exercise</string>
 </resources>

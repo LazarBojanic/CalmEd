@@ -68,9 +68,15 @@ class AppApi(private val appHttpClient: AppHttpClient) : IAppApi {
 		}
 	}
 	override suspend fun loginWithApple(dto: AppleLoginDto): TokenDto? {
-		return client.post("/auth/apple") {
-			setBody(dto)
-		}.body()
+		return try {
+			val resp = client.post("/auth/apple") { setBody(dto) }
+			when (resp.status) {
+				HttpStatusCode.OK, HttpStatusCode.Created -> resp.body<TokenDto>()
+				else -> null
+			}
+		} catch (_: Exception) {
+			null
+		}
 	}
 	override suspend fun refresh(dto: RefreshDto): TokenDto? {
 		val resp: HttpResponse = client.post("/auth/refresh") { setBody(dto) }
@@ -197,14 +203,14 @@ class AppApi(private val appHttpClient: AppHttpClient) : IAppApi {
 		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 	}
 
-	override suspend fun getAllProgramExercises(): List<ProgramExerciseDto> {
+	override suspend fun getAllProgramExercises(): List<ProgramExerciseDto>? {
 		val resp: HttpResponse = client.get(urlString = "/program-exercises")
-		return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
+		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 	}
 
-	override suspend fun getAllExerciseGroups(): List<ExerciseGroupDto> {
+	override suspend fun getAllExerciseGroups(): List<ExerciseGroupDto>? {
 		val resp: HttpResponse = client.get(urlString = "/exercise-groups")
-		return if (resp.status == HttpStatusCode.OK) resp.body() else emptyList()
+		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 	}
 
 	override suspend fun getWelcomeVideo(): ProgramExerciseDto? {
@@ -225,32 +231,21 @@ class AppApi(private val appHttpClient: AppHttpClient) : IAppApi {
 
 	override suspend fun verifyApplePurchase(dto: VerifyAppleReceiptDto): PaymentStatusDto? {
 		val resp: HttpResponse = client.post("/payment/apple/verify") { setBody(dto) }
-		return if (resp.status == HttpStatusCode.OK) {
-			resp.body()
-		} else {
-			error("Apple verification failed (${resp.status.value}).")
-		}
+		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 	}
 
 	override suspend fun verifyGooglePurchase(dto: VerifyGoogleReceiptDto): PaymentStatusDto? {
 		val resp: HttpResponse = client.post("/payment/google/verify") { setBody(dto) }
-		return if (resp.status == HttpStatusCode.OK) {
-			resp.body()
-		} else {
-			error("Google verification failed (${resp.status.value}).")
-		}
+		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 	}
 	override suspend fun sendSupportMessage(
 		request: SupportMessageRequestDto
-	): SupportMessageResponseDto {
+	): SupportMessageResponseDto? {
 		val resp: HttpResponse = client.post("/support/message") {
 			setBody(request)
 		}
 
-		return when (resp.status) {
-			HttpStatusCode.OK -> resp.body()
-			else -> error("Support message failed (${resp.status.value}).")
-		}
+		return if (resp.status == HttpStatusCode.OK) resp.body() else null
 	}
 }
 

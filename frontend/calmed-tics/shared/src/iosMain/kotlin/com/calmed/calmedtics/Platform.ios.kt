@@ -7,3 +7,10 @@ class IOSPlatform : Platform {
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()
+
+actual val appBaseUrl: String
+	get() = if (calmedtics.shared.BuildConfig.development) {
+		"http://127.0.0.1:8080"
+	} else {
+		calmedtics.shared.BuildConfig.baseUrl
+	}

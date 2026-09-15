@@ -47,14 +47,14 @@ interface IAppApi {
     suspend fun updateUserInfoTics(id: String, dto: UserInfoTicsUpdateDto): UserInfoTicsDto?
     suspend fun loginWithApple(dto: AppleLoginDto): TokenDto?
     suspend fun getHome(year: Int, month: Int): HomeDto?
-    suspend fun getAllProgramExercises(): List<ProgramExerciseDto>
-    suspend fun getAllExerciseGroups(): List<ExerciseGroupDto>
+    suspend fun getAllProgramExercises(): List<ProgramExerciseDto>?
+    suspend fun getAllExerciseGroups(): List<ExerciseGroupDto>?
     suspend fun getWelcomeVideo(): ProgramExerciseDto?
     suspend fun getCourseOverviewVideo(): ProgramExerciseDto?
     suspend fun getPaymentStatus(): PaymentStatusDto?
     suspend fun sendSupportMessage(
         request: SupportMessageRequestDto
-    ): SupportMessageResponseDto
+    ): SupportMessageResponseDto?
     suspend fun verifyApplePurchase(dto: VerifyAppleReceiptDto): PaymentStatusDto?
     suspend fun verifyGooglePurchase(dto: VerifyGoogleReceiptDto): PaymentStatusDto?
 }

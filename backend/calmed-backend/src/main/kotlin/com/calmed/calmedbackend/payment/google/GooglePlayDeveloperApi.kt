@@ -75,18 +75,19 @@ class GooglePlayDeveloperApi(private val serviceAccountJson: String) {
 
             val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
             if (response.statusCode() == 404) {
-                logger.warn("Google Play purchase token not found for product '$productId'")
+                logger.warn("Google Play purchase token not found for product '{}'", productId)
                 return@withContext null
             }
             if (response.statusCode() == 401) {
                 logger.error(
-                    "Google Play Developer API returned 401 (permission denied) for product '$productId'. " +
-                        "Grant this service account 'View financial data' in Google Play Console > Users and permissions > API access."
+                    "Google Play Developer API returned 401 (permission denied) for product '{}'. " +
+                        "Grant this service account 'View financial data' in Google Play Console > Users and permissions > API access.",
+                    productId
                 )
                 return@withContext null
             }
             if (response.statusCode() !in 200..299) {
-                logger.warn("Google Play Developer API returned ${response.statusCode()}: ${response.body()}")
+                logger.warn("Google Play Developer API returned {}: {}", response.statusCode(), response.body())
                 return@withContext null
             }
 

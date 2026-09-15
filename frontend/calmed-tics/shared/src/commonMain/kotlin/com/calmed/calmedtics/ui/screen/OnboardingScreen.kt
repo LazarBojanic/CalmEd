@@ -21,21 +21,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import calmedtics.shared.generated.resources.Res
-import calmedtics.shared.generated.resources.age_title
+import calmedtics.shared.generated.resources.tic_duration_question
+import calmedtics.shared.generated.resources.tic_duration_0_1
+import calmedtics.shared.generated.resources.tic_duration_1_3
+import calmedtics.shared.generated.resources.tic_duration_3_plus
+import calmedtics.shared.generated.resources.age
 import calmedtics.shared.generated.resources.back
 import calmedtics.shared.generated.resources.finish
 import calmedtics.shared.generated.resources.frequency_daily
 import calmedtics.shared.generated.resources.frequency_moderate
 import calmedtics.shared.generated.resources.frequency_rare
 import calmedtics.shared.generated.resources.goal_example
-import calmedtics.shared.generated.resources.goal_input_label
+import calmedtics.shared.generated.resources.goal_label
 import calmedtics.shared.generated.resources.goal_question
-import calmedtics.shared.generated.resources.goal_title
+import calmedtics.shared.generated.resources.goal
 import calmedtics.shared.generated.resources.next
 import calmedtics.shared.generated.resources.onboarding_questions_intro
 import calmedtics.shared.generated.resources.personalize_experience
 import calmedtics.shared.generated.resources.preferred_name_description
-import calmedtics.shared.generated.resources.preferred_name_title
+import calmedtics.shared.generated.resources.preferred_name
 import calmedtics.shared.generated.resources.skip
 import calmedtics.shared.generated.resources.start
 import calmedtics.shared.generated.resources.stress_level_question
@@ -46,10 +50,10 @@ import calmedtics.shared.generated.resources.tics_frequency_daily_description
 import calmedtics.shared.generated.resources.tics_frequency_moderate_description
 import calmedtics.shared.generated.resources.tics_frequency_question
 import calmedtics.shared.generated.resources.tics_frequency_rare_description
-import calmedtics.shared.generated.resources.tics_frequency_title
+import calmedtics.shared.generated.resources.tics_frequency
 import calmedtics.shared.generated.resources.tics_motor
 import calmedtics.shared.generated.resources.tics_motor_description
-import calmedtics.shared.generated.resources.tics_type_title
+import calmedtics.shared.generated.resources.tics_type
 import calmedtics.shared.generated.resources.tics_vocal
 import calmedtics.shared.generated.resources.tics_vocal_description
 import calmedtics.shared.generated.resources.welcome_user
@@ -303,7 +307,7 @@ fun OnboardingScreen(
                             Spacer(modifier = Modifier.height(48.dp))
 
                             Text(
-                                text = stringResource(Res.string.preferred_name_title),
+                                text = stringResource(Res.string.preferred_name),
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -430,7 +434,7 @@ fun OnboardingScreen(
                             Spacer(modifier = Modifier.height(24.dp))
 
                             Text(
-                                text = stringResource(Res.string.age_title),
+                                text = stringResource(Res.string.age),
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -781,7 +785,7 @@ fun OnboardingScreen(
                             Spacer(modifier = Modifier.height(40.dp))
 
                             Text(
-                                text = stringResource(Res.string.tics_type_title),
+                                text = stringResource(Res.string.tics_type),
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -1066,7 +1070,7 @@ fun OnboardingScreen(
                             Spacer(modifier = Modifier.height(40.dp))
 
                             Text(
-                                text = stringResource(Res.string.tics_frequency_title),
+                                text = stringResource(Res.string.tics_frequency),
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -1358,7 +1362,7 @@ fun OnboardingScreen(
                             Spacer(modifier = Modifier.height(40.dp))
 
                             Text(
-                                text = "How long have you had tics?",
+                                text = stringResource(Res.string.tic_duration_question),
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -1397,7 +1401,7 @@ fun OnboardingScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = "0–1 year",
+                                            text = stringResource(Res.string.tic_duration_0_1),
                                             style = MaterialTheme.typography.titleMedium.copy(
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -1450,7 +1454,7 @@ fun OnboardingScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = "1–3 years",
+                                            text = stringResource(Res.string.tic_duration_1_3),
                                             style = MaterialTheme.typography.titleMedium.copy(
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -1503,7 +1507,7 @@ fun OnboardingScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = "3+ years",
+                                            text = stringResource(Res.string.tic_duration_3_plus),
                                             style = MaterialTheme.typography.titleMedium.copy(
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -1607,7 +1611,7 @@ fun OnboardingScreen(
                         Spacer(modifier = Modifier.height(40.dp))
 
                         Text(
-                            text = stringResource(Res.string.goal_title),
+                            text = stringResource(Res.string.goal),
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -1637,7 +1641,7 @@ fun OnboardingScreen(
                                 modifier = Modifier.padding(18.dp)
                             ) {
                                 Text(
-                                    text = stringResource(Res.string.goal_input_label),
+                                    text = stringResource(Res.string.goal_label),
                                     style = MaterialTheme.typography.labelLarge.copy(
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                                     )

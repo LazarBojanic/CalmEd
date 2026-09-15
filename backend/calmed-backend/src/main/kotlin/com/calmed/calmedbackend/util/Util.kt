@@ -12,6 +12,7 @@ class Util {
 				prettyPrint = true
 				isLenient = true
 				encodeDefaults = true
+				ignoreUnknownKeys = true
 			}
 		}
 		fun printError(cause: Throwable) {

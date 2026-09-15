@@ -18,12 +18,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.hide_password
+import calmedtics.shared.generated.resources.password_label
+import calmedtics.shared.generated.resources.show_password
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PasswordTextField(
 	value: String,
 	onValueChange: (String) -> Unit,
-	label: String = "Password",
+	label: String? = null,
 	modifier: Modifier = Modifier,
 	singleLine: Boolean = true,
 	isError: Boolean = false,
@@ -36,18 +41,23 @@ fun PasswordTextField(
 	),
 ) {
 	val (showPassword, setShowPassword) = remember { mutableStateOf(false) }
+	val resolvedLabel = label ?: stringResource(Res.string.password_label)
 
 	OutlinedTextField(
 		value = value,
 		onValueChange = onValueChange,
-		label = { Text(label) },
+		label = { Text(resolvedLabel) },
 		singleLine = singleLine,
 		isError = isError,
 		supportingText = supportingText?.let { { Text(it) } },
 		visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
 		trailingIcon = {
 			val image = if (showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-			val description = if (showPassword) "Hide password" else "Show password"
+			val description = if (showPassword) {
+				stringResource(Res.string.hide_password)
+			} else {
+				stringResource(Res.string.show_password)
+			}
 			IconButton(onClick = { setShowPassword(!showPassword) }) {
 				Icon(imageVector = image, contentDescription = description)
 			}

@@ -28,7 +28,8 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.R as Media3R
-import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
+import com.calmed.calmedtics.video.download.AndroidVideoDownloadManager
+import org.koin.compose.koinInject
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
 import com.calmed.calmedtics.video.download.DownloadUtil
@@ -81,7 +82,8 @@ actual fun VideoPlayer(
         buildPlayer(context, cacheDataSourceFactory)
     }
 
-    val states by LocalVideoDownloadManager.states.collectAsState()
+    val videoDownloadManager: AndroidVideoDownloadManager = koinInject()
+    val states by videoDownloadManager.states.collectAsState()
 
     DisposableEffect(player) {
         val listener = object : Player.Listener {
@@ -136,12 +138,12 @@ actual fun VideoPlayer(
 
     LaunchedEffect(playlistItems, hlsUrl) {
         playlistItems.forEach { item ->
-            LocalVideoDownloadManager.refresh(item.url)
+            videoDownloadManager.refresh(item.url)
         }
 
         val mediaItems = playlistItems.map { item ->
             if (states.stateFor(item.url).status == VideoDownloadStatus.Downloaded) {
-                LocalVideoDownloadManager.downloadedMediaItem(item.url)
+                videoDownloadManager.downloadedMediaItem(item.url)
                     ?: MediaItem.fromUri(item.url.toUri())
             } else {
                 MediaItem.fromUri(item.url.toUri())

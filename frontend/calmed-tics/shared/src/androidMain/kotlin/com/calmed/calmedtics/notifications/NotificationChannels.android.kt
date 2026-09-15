@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import com.calmed.calmedtics.shared.R
 
 object NotificationChannels {
     const val REMINDERS_ID = "reminders"
@@ -13,10 +14,10 @@ object NotificationChannels {
 
         val channel = NotificationChannel(
             REMINDERS_ID,
-            "Exercise reminders",
+            context.getString(R.string.notification_channel_reminders),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Morning and evening exercise reminders"
+            description = context.getString(R.string.notification_channel_reminders_description)
         }
 
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

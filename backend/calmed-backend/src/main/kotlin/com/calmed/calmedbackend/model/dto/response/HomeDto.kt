@@ -15,7 +15,7 @@ data class HomeDto(
 @Serializable
 data class CalendarDayDto(
     val day: Int,
-    val status: String // "UNLOCKED" | "LOCKED" | "INACTIVE"
+    val status: String // "BEFORE_START" | "DONE" | "AVAILABLE" | "LOCKED"
 )
 
 @Serializable

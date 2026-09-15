@@ -17,7 +17,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,15 +64,15 @@ fun MainScreen(
 	val scope = rememberCoroutineScope()
 	val uriHandler = LocalUriHandler.current
 	val tokenStore: ITokenDataStore = koinInject()
-	val token by tokenStore.tokenDto.collectAsState()
+	val token by tokenStore.tokenDto.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
-	val loading by sessionViewModel.loading.collectAsState()
-	val error by sessionViewModel.error.collectAsState()
-	val user by sessionViewModel.user.collectAsState()
-	val userInfo by sessionViewModel.userInfo.collectAsState()
-	val home by homeViewModel.home.collectAsState()
-	val allExercises by exercisesViewModel.exercises.collectAsState()
-	val exerciseGroups by exercisesViewModel.groups.collectAsState()
+	val loading by sessionViewModel.loading.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val error by sessionViewModel.error.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val user by sessionViewModel.user.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val userInfo by sessionViewModel.userInfo.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val home by homeViewModel.home.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val allExercises by exercisesViewModel.exercises.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val exerciseGroups by exercisesViewModel.groups.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
 	val selectedTab = rememberSaveable { mutableStateOf(MainTab.Home) }
 

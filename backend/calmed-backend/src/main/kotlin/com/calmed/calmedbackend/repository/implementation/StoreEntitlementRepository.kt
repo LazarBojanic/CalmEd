@@ -1,6 +1,5 @@
 package com.calmed.calmedbackend.repository.implementation
 
-import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlement
 import com.calmed.calmedbackend.model.raw.storeentitlement.StoreEntitlementEntity
@@ -16,66 +15,50 @@ import java.util.UUID
 class StoreEntitlementRepository : IStoreEntitlementRepository {
 
     override suspend fun findById(id: UUID): StoreEntitlement? {
-        return withTransaction {
-            StoreEntitlementEntity.findById(id)?.toRaw()
-        }
+        return StoreEntitlementEntity.findById(id)?.toRaw()
     }
 
     override suspend fun findByUserId(userId: UUID): List<StoreEntitlement> {
-        return withTransaction {
-            StoreEntitlementEntity
-                .find { StoreEntitlementTable.userId eq userId }
-                .map { it.toRaw() }
-        }
+        return StoreEntitlementEntity
+            .find { StoreEntitlementTable.userId eq userId }
+            .map { it.toRaw() }
     }
 
     override suspend fun findByStoreTransactionId(
         store: StoreEntitlementProvider,
         storeTransactionId: String
     ): StoreEntitlement? {
-        return withTransaction {
-            StoreEntitlementEntity
-                .find {
-                    (StoreEntitlementTable.store eq store) and
-                        (StoreEntitlementTable.storeTransactionId eq storeTransactionId)
-                }
-                .firstOrNull()
-                ?.toRaw()
-        }
+        return StoreEntitlementEntity
+            .find {
+                (StoreEntitlementTable.store eq store) and
+                    (StoreEntitlementTable.storeTransactionId eq storeTransactionId)
+            }
+            .firstOrNull()
+            ?.toRaw()
     }
 
     override suspend fun create(entitlement: StoreEntitlement): StoreEntitlement? {
-        return withTransaction {
-            StoreEntitlementEntity.new(entitlement.id) {
-                setFrom(entitlement, MapMode.CREATE)
-            }.toRaw()
-        }
+        return StoreEntitlementEntity.new(entitlement.id) {
+            setFrom(entitlement, MapMode.CREATE)
+        }.toRaw()
     }
 
     override suspend fun update(entitlement: StoreEntitlement): StoreEntitlement? {
-        return withTransaction {
-            val e = StoreEntitlementEntity.findById(entitlement.id)
-            if (e != null) {
-                e.setFrom(entitlement, MapMode.UPDATE)
-                e.toRaw()
-            } else {
-                null
-            }
-        }
+        val e = StoreEntitlementEntity.findById(entitlement.id) ?: return null
+        e.setFrom(entitlement, MapMode.UPDATE)
+        return e.toRaw()
     }
 
     override suspend fun detachByUserId(userId: UUID): Boolean {
-        return withTransaction {
-            val entities = StoreEntitlementEntity.find { StoreEntitlementTable.userId eq userId }
-            var updated = false
-            for (e in entities) {
-                if (e.userId != null) {
-                    e.userId = null
-                    e.updatedAt = java.time.Instant.now()
-                    updated = true
-                }
+        val entities = StoreEntitlementEntity.find { StoreEntitlementTable.userId eq userId }
+        var updated = false
+        for (e in entities) {
+            if (e.userId != null) {
+                e.userId = null
+                e.updatedAt = java.time.Instant.now()
+                updated = true
             }
-            updated
         }
+        return updated
     }
 }

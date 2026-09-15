@@ -87,4 +87,5 @@ class IosBillingService : BillingService {
         NSNotificationCenter.defaultCenter.removeObserver(restoreCompleteObserver)
     }
     override suspend fun loadProduct(productId: String): Boolean = true // Assume loaded for now
+    override suspend fun productPrice(productId: String): String? = null
 }

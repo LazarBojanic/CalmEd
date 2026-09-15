@@ -2,7 +2,6 @@ package com.calmed.calmedtics
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
@@ -11,35 +10,41 @@ import com.calmed.calmedtics.auth.AppleAuthBridge
 import com.calmed.calmedtics.auth.AppleAuthStateStore
 import com.calmed.calmedtics.auth.setGoogleAuthActivityProvider
 import com.calmed.calmedtics.billing.BillingProducts
-import com.calmed.calmedtics.billing.initBilling
-import com.calmed.calmedtics.billing.provideBillingService
+import com.calmed.calmedtics.billing.BillingService
+import com.calmed.calmedtics.di.AndroidActivityHolder
+import com.calmed.calmedtics.logging.AppLog
+import com.calmed.calmedtics.logging.LogTags
 import com.calmed.calmedtics.notifications.setNotificationPermissionRequester
-import com.calmed.calmedtics.util.setImagePickerActivityProvider
 import kotlinx.coroutines.launch
+import org.koin.core.context.GlobalContext
 
 class MainActivity : FragmentActivity() {
 	companion object {
 		var appleSignInStarter: (() -> Unit)? = null
 		var appleAuthCodeReceiver: ((String) -> Unit)? = null
 	}
+
+	private val authLog = AppLog(LogTags.APPLE_AUTH)
+	private val billingLog = AppLog(LogTags.BILLING)
+	private val notificationLog = AppLog(LogTags.NOTIFICATIONS)
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		AndroidActivityHolder.set(this)
 		val notificationPermissionLauncher = registerForActivityResult(
 			ActivityResultContracts.RequestPermission()
 		) { granted ->
-			Log.d("NOTIFICATIONS", "POST_NOTIFICATIONS granted=$granted")
+			notificationLog.debug("POST_NOTIFICATIONS granted=$granted")
 		}
-		initBilling(this)
 		lifecycleScope.launch {
-			val billing = provideBillingService()
+			val billing = GlobalContext.get().get<BillingService>()
 			billing.connect()
 			val exists = billing.loadProduct(BillingProducts.APP_ACCESS)
-			Log.d("BILLING", "Product exists = $exists (id=${BillingProducts.APP_ACCESS})")
+			billingLog.debug("Product exists = $exists (id=${BillingProducts.APP_ACCESS})")
 		}
-		Log.d("APPLE_AUTH", "onCreate")
+		authLog.debug("onCreate")
 		handleDeepLink(intent)
 		setGoogleAuthActivityProvider { this }
-		setImagePickerActivityProvider { this }
 		setNotificationPermissionRequester { permission ->
 			notificationPermissionLauncher.launch(permission)
 		}
@@ -49,9 +54,14 @@ class MainActivity : FragmentActivity() {
 		}
 	}
 
+	override fun onDestroy() {
+		AndroidActivityHolder.clear()
+		super.onDestroy()
+	}
+
 	override fun onNewIntent(intent: Intent) {
 		super.onNewIntent(intent)
-		Log.d("APPLE_AUTH", "onNewIntent")
+		authLog.debug("onNewIntent")
 		handleDeepLink(intent)
 	}
 
@@ -64,7 +74,7 @@ class MainActivity : FragmentActivity() {
 		val expectedState = AppleAuthStateStore.consume(this)
 		val returnedState = data.getQueryParameter("state")
 		if (expectedState.isNullOrBlank() || returnedState != expectedState) {
-			Log.e("APPLE_AUTH", "Apple callback state mismatch; rejecting")
+			authLog.error("Apple callback state mismatch; rejecting")
 			AppleAuthBridge.onIdToken?.invoke(
 				Result.failure(IllegalStateException("Apple Sign-In failed: invalid state"))
 			)
@@ -78,7 +88,7 @@ class MainActivity : FragmentActivity() {
 
 
 		if (!error.isNullOrBlank()) {
-			Log.e("APPLE_AUTH", "Apple sign-in error=$error desc=$errorDesc")
+			authLog.error("Apple sign-in error=$error desc=$errorDesc")
 			val errorMessage = errorDesc ?: error
 			AppleAuthBridge.onIdToken?.invoke(Result.failure(IllegalStateException("Apple Sign-In failed: $errorMessage")))
 			return
@@ -86,7 +96,7 @@ class MainActivity : FragmentActivity() {
 
 
 		if (!idToken.isNullOrBlank()) {
-			Log.d("APPLE_AUTH", "id_token received len=${idToken.length}")
+			authLog.debug("id_token received len=${idToken.length}")
 			AppleAuthBridge.onIdToken?.invoke(Result.success(idToken))
 
 			return

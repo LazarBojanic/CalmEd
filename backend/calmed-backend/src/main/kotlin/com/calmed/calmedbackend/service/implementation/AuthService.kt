@@ -11,7 +11,7 @@ import com.calmed.calmedbackend.config.AppleConfig
 import com.calmed.calmedbackend.config.EmailConfig
 import com.calmed.calmedbackend.config.GoogleOAuthConfig
 import com.calmed.calmedbackend.config.JwtConfig
-import com.calmed.calmedbackend.database.withTransaction
+import com.calmed.calmedbackend.database.withResultTransaction
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.LoginDto
 import com.calmed.calmedbackend.model.dto.request.RefreshDto
@@ -96,7 +96,7 @@ class AuthService(private val userService: IUserService,
 				AppResult.Success(claims)
 			}
 		} catch (e: Exception) {
-			logger.warn("Apple identity token verification failed: {}", e.message)
+			logger.warn("Apple identity token verification failed", e)
 			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Apple token.")
 		}
 	}
@@ -131,7 +131,7 @@ class AuthService(private val userService: IUserService,
 
 			AppResult.Success(info)
 		} catch (e: Exception) {
-			logger.warn("Google ID token verification failed: {}", e.message)
+			logger.warn("Google ID token verification failed", e)
 			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token.")
 		}
 	}
@@ -173,13 +173,15 @@ class AuthService(private val userService: IUserService,
 			AppResult.Success(token)
 		}
 		catch (e: Exception) {
-			logger.warn("Failed to generate password reset token: {}", e.message)
+			logger.warn("Failed to generate password reset token", e)
 			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to generate password reset token.")
 		}
 	}
 
 	override suspend fun register(dto: RegisterDto): AppResult<Unit> {
-		return withTransaction {
+		var registeredUserId: UUID? = null
+		var registeredEmail: String? = null
+		val result = withResultTransaction {
 			val emailValidationResult = validateEmail(dto.email)
 			when(emailValidationResult){
 				is AppResult.Success -> {
@@ -207,20 +209,8 @@ class AuthService(private val userService: IUserService,
 														authCredentialService.create(authCredential)
 													when (createdAuthCredentialResult) {
 														is AppResult.Success -> {
-															CoroutineScope(Dispatchers.IO).launch {
-																val emailSentResult = sendVerificationEmail(
-																	createdUserResult.data.id, createdUserResult.data.email
-																)
-																when (emailSentResult) {
-																	is AppResult.Success -> {
-																		logger.info("Verification email sent for user {}", createdUserResult.data.id)
-																	}
-
-																	is AppResult.Failure -> {
-																		logger.warn("Failed to send verification email for user {}: {}", createdUserResult.data.id, emailSentResult.message)
-																	}
-																}
-															}
+															registeredUserId = createdUserResult.data.id
+															registeredEmail = createdUserResult.data.email
 															val newUserInfoTics = UserInfoTics.createNew(
 																userId = newUser.id,
 																preferredName = null,
@@ -245,10 +235,10 @@ class AuthService(private val userService: IUserService,
 																			val initProgressResult = userExerciseProgressService.initializeUserProgress(newUser.id, newUserProgram.startDate)
 																			when (initProgressResult) {
 																				is AppResult.Success -> {
-																					return@withTransaction AppResult.Success(Unit)
+																					return@withResultTransaction AppResult.Success(Unit)
 																				}
 																				is AppResult.Failure -> {
-																					return@withTransaction AppResult.Failure(
+																					return@withResultTransaction AppResult.Failure(
 																						initProgressResult.httpStatusCode,
 																						"Failed to initialize user progress. ${initProgressResult.message}"
 																					)
@@ -256,7 +246,7 @@ class AuthService(private val userService: IUserService,
 																			}
 																		}
 																		is AppResult.Failure -> {
-																			return@withTransaction AppResult.Failure(
+																			return@withResultTransaction AppResult.Failure(
 																				userProgramResult.httpStatusCode,
 																				"Failed to create user program. ${userProgramResult.message}"
 																			)
@@ -265,7 +255,7 @@ class AuthService(private val userService: IUserService,
 																}
 
 																is AppResult.Failure -> {
-																	return@withTransaction AppResult.Failure(
+																	return@withResultTransaction AppResult.Failure(
 																		userInfoTicsResult.httpStatusCode,
 																		"Failed to create user info tics. ${userInfoTicsResult.message}"
 																	)
@@ -274,7 +264,7 @@ class AuthService(private val userService: IUserService,
 														}
 
 														is AppResult.Failure -> {
-															return@withTransaction AppResult.Failure(
+															return@withResultTransaction AppResult.Failure(
 																createdAuthCredentialResult.httpStatusCode,
 																"Failed to create authentication credentials. ${createdAuthCredentialResult.message}"
 															)
@@ -284,7 +274,7 @@ class AuthService(private val userService: IUserService,
 												}
 
 												is AppResult.Failure -> {
-													return@withTransaction AppResult.Failure(
+													return@withResultTransaction AppResult.Failure(
 														passwordHashResult.httpStatusCode,
 														"Failed to hash password. ${passwordHashResult.message}"
 													)
@@ -293,7 +283,7 @@ class AuthService(private val userService: IUserService,
 										}
 
 										is AppResult.Failure -> {
-											return@withTransaction AppResult.Failure(
+											return@withResultTransaction AppResult.Failure(
 												createdUserResult.httpStatusCode,
 												"Failed to create user. ${createdUserResult.message}"
 											)
@@ -302,7 +292,7 @@ class AuthService(private val userService: IUserService,
 								}
 
 								is AppResult.Success -> {
-									return@withTransaction AppResult.Failure(
+									return@withResultTransaction AppResult.Failure(
 										HttpStatusCode.Unauthorized, "Email already exists. "
 									)
 								}
@@ -310,21 +300,35 @@ class AuthService(private val userService: IUserService,
 						}
 
 						is AppResult.Failure -> {
-							return@withTransaction AppResult.Failure(
+							return@withResultTransaction AppResult.Failure(
 								passwordValidationResult.httpStatusCode, "Invalid password. ${passwordValidationResult.message}"
 							)
 						}
 					}
 				}
 				is AppResult.Failure -> {
-					return@withTransaction AppResult.Failure(emailValidationResult.httpStatusCode, "Invalid email. ${emailValidationResult.message}")
+					return@withResultTransaction AppResult.Failure(emailValidationResult.httpStatusCode, "Invalid email. ${emailValidationResult.message}")
 				}
 			}
 		}
+		if (result is AppResult.Success) {
+			val userId = registeredUserId
+			val email = registeredEmail
+			if (userId != null && email != null) {
+				CoroutineScope(Dispatchers.IO).launch {
+					val emailSentResult = sendVerificationEmail(userId, email)
+					when (emailSentResult) {
+						is AppResult.Success -> logger.info("Verification email sent for user {}", userId)
+						is AppResult.Failure -> logger.warn("Failed to send verification email for user {}: {}", userId, emailSentResult.message)
+					}
+				}
+			}
+		}
+		return result
 	}
 
 	override suspend fun login(dto: LoginDto): AppResult<TokenPairDto> {
-		return withTransaction {
+		return withResultTransaction {
 			val userResult = userService.getByEmail(dto.email)
 			when (userResult) {
 				is AppResult.Success -> {
@@ -339,14 +343,14 @@ class AuthService(private val userService: IUserService,
 								)
 								when (verifyResult) {
 									is AppResult.Success -> {
-										return@withTransaction createTokenPair(
+										return@withResultTransaction createTokenPair(
 											userResult.data.id, userResult.data.email
 										)
 
 									}
 
 									is AppResult.Failure -> {
-										return@withTransaction AppResult.Failure(
+										return@withResultTransaction AppResult.Failure(
 											verifyResult.httpStatusCode, "Invalid password. ${verifyResult.message}"
 										)
 
@@ -355,7 +359,7 @@ class AuthService(private val userService: IUserService,
 							}
 
 							is AppResult.Failure -> {
-								return@withTransaction AppResult.Failure(
+								return@withResultTransaction AppResult.Failure(
 									authCredentialResult.httpStatusCode,
 									"No authentication credentials found. ${authCredentialResult.message}"
 								)
@@ -363,12 +367,12 @@ class AuthService(private val userService: IUserService,
 						}
 					}
 					else {
-						return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Email not verified.")
+						return@withResultTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Email not verified.")
 					}
 				}
 
 				is AppResult.Failure -> {
-					return@withTransaction AppResult.Failure(
+					return@withResultTransaction AppResult.Failure(
 						userResult.httpStatusCode, "Invalid email. ${userResult.message}"
 					)
 
@@ -378,8 +382,8 @@ class AuthService(private val userService: IUserService,
 	}
 
 	override suspend fun loginWithGoogle(idToken: String): AppResult<TokenPairDto> {
-		return withTransaction {
-			val tokenInfoResult = verifyGoogleIdToken(idToken)
+		val tokenInfoResult = verifyGoogleIdToken(idToken)
+		return withResultTransaction {
 			val result: AppResult<TokenPairDto> = when (tokenInfoResult) {
 				is AppResult.Success -> {
 					val tokenInfo = tokenInfoResult.data
@@ -518,9 +522,8 @@ class AuthService(private val userService: IUserService,
 	}
 
 	override suspend fun loginWithApple(identityToken: String): AppResult<TokenPairDto> {
-		return withTransaction {
-			val tokenInfoResult = verifyAppleIdentityToken(identityToken)
-
+		val tokenInfoResult = verifyAppleIdentityToken(identityToken)
+		return withResultTransaction {
 			when (tokenInfoResult) {
 				is AppResult.Success -> {
 					val tokenInfo = tokenInfoResult.data
@@ -535,7 +538,7 @@ class AuthService(private val userService: IUserService,
 
 					if (existingApple != null) {
 						val userRes = userService.getById(existingApple.userId)
-						return@withTransaction when (userRes) {
+						return@withResultTransaction when (userRes) {
 							is AppResult.Success -> {
 								val emailToUse = userRes.data.email.ifBlank { safeEmail }
 								createTokenPair(existingApple.userId, emailToUse)
@@ -664,13 +667,13 @@ class AuthService(private val userService: IUserService,
 
 
 	override suspend fun logout(userId: UUID): AppResult<Unit> {
-		return withTransaction {
+		return withResultTransaction {
 			refreshTokenService.revokeAllByUserId(userId, null)
 		}
 	}
 
 	override suspend fun createTokenPair(userId: UUID, email: String): AppResult<TokenPairDto> {
-		return withTransaction {
+		return withResultTransaction {
 			val now = Instant.now()
 			val accessTokenResult = generateAccessToken(userId, email, now)
 			when (accessTokenResult) {
@@ -686,7 +689,7 @@ class AuthService(private val userService: IUserService,
 										refreshVerifier().verify(refreshTokenJwt)
 									}
 									catch (e: JWTVerificationException) {
-										return@withTransaction AppResult.Failure(
+										return@withResultTransaction AppResult.Failure(
 											HttpStatusCode.Unauthorized, "Failed to verify refresh token."
 										)
 									}
@@ -703,7 +706,7 @@ class AuthService(private val userService: IUserService,
 									val storedRefreshTokenResult = refreshTokenService.create(refreshToken)
 									when (storedRefreshTokenResult) {
 										is AppResult.Success -> {
-											return@withTransaction AppResult.Success(
+											return@withResultTransaction AppResult.Success(
 												TokenPairDto(
 													access = accessTokenResult.data, refresh = refreshTokenJwt
 												)
@@ -711,7 +714,7 @@ class AuthService(private val userService: IUserService,
 										}
 
 										is AppResult.Failure -> {
-											return@withTransaction AppResult.Failure(
+											return@withResultTransaction AppResult.Failure(
 												storedRefreshTokenResult.httpStatusCode,
 												"Failed to store refresh token. ${storedRefreshTokenResult.message}"
 											)
@@ -721,7 +724,7 @@ class AuthService(private val userService: IUserService,
 								}
 
 								is AppResult.Failure -> {
-									return@withTransaction AppResult.Failure(
+									return@withResultTransaction AppResult.Failure(
 										tokenHashResult.httpStatusCode,
 										"Failed to hash refresh token. ${tokenHashResult.message}"
 									)
@@ -731,7 +734,7 @@ class AuthService(private val userService: IUserService,
 						}
 
 						is AppResult.Failure -> {
-							return@withTransaction AppResult.Failure(
+							return@withResultTransaction AppResult.Failure(
 								refreshTokenResult.httpStatusCode,
 								"Failed to generate refresh token. ${refreshTokenResult.message}"
 							)
@@ -741,7 +744,7 @@ class AuthService(private val userService: IUserService,
 				}
 
 				is AppResult.Failure -> {
-					return@withTransaction AppResult.Failure(
+					return@withResultTransaction AppResult.Failure(
 						accessTokenResult.httpStatusCode,
 						"Failed to generate access token. ${accessTokenResult.message}"
 					)
@@ -762,7 +765,8 @@ class AuthService(private val userService: IUserService,
 			AppResult.Success(token)
 		}
 		catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to generate access token: ${e.message}.")
+			logger.error("Failed to generate access token", e)
+			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to generate access token.")
 		}
 	}
 
@@ -779,17 +783,19 @@ class AuthService(private val userService: IUserService,
 			AppResult.Success(token)
 		}
 		catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to generate refresh token: ${e.message}.")
+			logger.error("Failed to generate refresh token", e)
+			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to generate refresh token.")
 		}
 	}
 
 	override suspend fun refresh(dto: RefreshDto): AppResult<TokenPairDto> {
-		return withTransaction {
+		return try {
+			withResultTransaction {
 			val decodedRefreshToken = try {
 				refreshVerifier().verify(dto.refresh)
 			}
 			catch (e: JWTVerificationException) {
-				return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid refresh token.")
+				return@withResultTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid refresh token.")
 			}
 			val tokenType = decodedRefreshToken.getClaim("typ").asString()
 			if (tokenType == TokenType.REFRESH.name) {
@@ -817,7 +823,7 @@ class AuthService(private val userService: IUserService,
 														refreshVerifier().verify(newTokenPairResult.data.refresh)
 													}
 													catch (e: JWTVerificationException) {
-														return@withTransaction AppResult.Failure(
+														return@withResultTransaction AppResult.Failure(
 															HttpStatusCode.Unauthorized,
 															"Failed to decode new refresh token"
 														)
@@ -831,11 +837,11 @@ class AuthService(private val userService: IUserService,
 													val updateResult = refreshTokenService.update(revokedToken)
 													when (updateResult) {
 														is AppResult.Success -> {
-															return@withTransaction newTokenPairResult
+															return@withResultTransaction newTokenPairResult
 														}
 
 														is AppResult.Failure -> {
-															return@withTransaction AppResult.Failure(
+															return@withResultTransaction AppResult.Failure(
 																HttpStatusCode.NotFound,
 																"Failed to revoke old refresh token."
 															)
@@ -844,7 +850,7 @@ class AuthService(private val userService: IUserService,
 												}
 
 												is AppResult.Failure -> {
-													return@withTransaction AppResult.Failure(
+													return@withResultTransaction AppResult.Failure(
 														newTokenPairResult.httpStatusCode,
 														"Failed to create new tokens. ${newTokenPairResult.message}"
 													)
@@ -853,14 +859,14 @@ class AuthService(private val userService: IUserService,
 
 										}
 										else {
-											return@withTransaction AppResult.Failure(
+											return@withResultTransaction AppResult.Failure(
 												HttpStatusCode.Unauthorized, "Token hash mismatch."
 											)
 										}
 									}
 
 									is AppResult.Failure -> {
-										return@withTransaction AppResult.Failure(
+										return@withResultTransaction AppResult.Failure(
 											incomingHashResult.httpStatusCode,
 											"Failed to hash incoming token. ${incomingHashResult.message}"
 										)
@@ -869,15 +875,12 @@ class AuthService(private val userService: IUserService,
 
 							}
 							else {
-								logout(userUuid)
-								return@withTransaction AppResult.Failure(
-									HttpStatusCode.Unauthorized, "Refresh token is no longer active."
-								)
+								throw InactiveRefreshTokenException(userUuid)
 							}
 						}
 
 						is AppResult.Failure -> {
-							return@withTransaction AppResult.Failure(
+							return@withResultTransaction AppResult.Failure(
 								storedTokenResult.httpStatusCode,
 								"Refresh token not found. ${storedTokenResult.message}"
 							)
@@ -887,12 +890,16 @@ class AuthService(private val userService: IUserService,
 
 				}
 				else {
-					return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token claims.")
+					return@withResultTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token claims.")
 				}
 			}
 			else {
-				return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token type.")
+				return@withResultTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token type.")
 			}
+		}
+		} catch (e: InactiveRefreshTokenException) {
+			logout(e.userId)
+			AppResult.Failure(HttpStatusCode.Unauthorized, "Refresh token is no longer active.")
 		}
 	}
 	override suspend fun validateEmail(email: String?): AppResult<Unit> {
@@ -952,7 +959,8 @@ class AuthService(private val userService: IUserService,
 				AppResult.Success(hash)
 			}
 			catch (e: Exception) {
-				AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to hash text: ${e.message}.")
+				logger.error("Failed to hash text with BCrypt", e)
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to hash text.")
 			}
 		}
 		else {
@@ -973,7 +981,8 @@ class AuthService(private val userService: IUserService,
 				}
 			}
 			catch (e: Exception) {
-				AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to verify text. ${e.message}")
+				logger.error("Failed to verify text with BCrypt", e)
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to verify text.")
 			}
 		}
 		else {
@@ -990,7 +999,8 @@ class AuthService(private val userService: IUserService,
 				AppResult.Success(hashString)
 			}
 			catch (e: Exception) {
-				AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to hash text. ${e.message}")
+				logger.error("Failed to hash text with SHA-512", e)
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to hash text.")
 			}
 		}
 		else {
@@ -1023,23 +1033,24 @@ class AuthService(private val userService: IUserService,
 			}
 		}
 		catch (e: Exception) {
-			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to send verification email. ${e.message}")
+			logger.error("Failed to send verification email", e)
+			AppResult.Failure(HttpStatusCode.InternalServerError, "Failed to send verification email.")
 		}
 	}
 
 	override suspend fun verifyEmail(token: String): AppResult<Unit> {
-		return withTransaction {
+		return withResultTransaction {
 			try {
 				val now = Instant.now()
 				val decodedToken = try {
 					emailVerificationVerifier().verify(token)
 				}
 				catch (e: JWTVerificationException) {
-					return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Token verification failed.")
+					return@withResultTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Token verification failed.")
 				}
 				if (decodedToken != null) {
 					if (decodedToken.getClaim("typ").asString() != TokenType.EMAIL_VERIFICATION.name) {
-						return@withTransaction AppResult.Failure(
+						return@withResultTransaction AppResult.Failure(
 							HttpStatusCode.Unauthorized, "Invalid verification token."
 						)
 					}
@@ -1069,11 +1080,11 @@ class AuthService(private val userService: IUserService,
 											val updateResult = userService.update(updatedUser)
 											when (updateResult) {
 												is AppResult.Success -> {
-													return@withTransaction AppResult.Success(Unit)
+													return@withResultTransaction AppResult.Success(Unit)
 												}
 
 												is AppResult.Failure -> {
-													return@withTransaction AppResult.Failure(
+													return@withResultTransaction AppResult.Failure(
 														updateResult.httpStatusCode,
 														"Failed to update user verification status. ${updateResult.message}"
 													)
@@ -1082,7 +1093,7 @@ class AuthService(private val userService: IUserService,
 
 										}
 										else {
-											return@withTransaction AppResult.Failure(
+											return@withResultTransaction AppResult.Failure(
 												HttpStatusCode.Unauthorized,
 												"Email already verified."
 											)
@@ -1090,70 +1101,78 @@ class AuthService(private val userService: IUserService,
 
 									}
 									else {
-										return@withTransaction AppResult.Failure(
+										return@withResultTransaction AppResult.Failure(
 											HttpStatusCode.Unauthorized, "Email does not match."
 										)
 									}
 								}
 
 								is AppResult.Failure -> {
-									return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
+									return@withResultTransaction AppResult.Failure(HttpStatusCode.NotFound, "User not found.")
 
 								}
 							}
 
 						}
 						else {
-							return@withTransaction AppResult.Failure(
+							return@withResultTransaction AppResult.Failure(
 								HttpStatusCode.Unauthorized, "Invalid verification token."
 							)
 						}
 					}
 					else {
-						return@withTransaction AppResult.Failure(
+						return@withResultTransaction AppResult.Failure(
 							HttpStatusCode.Unauthorized, "Email verification expired."
 						)
 					}
 
 				}
 				else {
-					return@withTransaction AppResult.Failure(
+					return@withResultTransaction AppResult.Failure(
 						HttpStatusCode.NotFound, "Invalid or expired verification token."
 					)
 				}
 
 			}
 			catch (e: Exception) {
-				AppResult.Failure(HttpStatusCode.InternalServerError, "Email verification failed: ${e.message}.")
+				logger.error("Email verification failed", e)
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Email verification failed.")
 			}
 		}
 	}
 
 	override suspend fun resendVerificationEmail(email: String): AppResult<Unit> {
-		return withTransaction {
+		var targetUserId: UUID? = null
+		var targetEmail: String? = null
+		val result = withResultTransaction {
 			val userResult = userService.getByEmail(email)
 			when (userResult) {
 				is AppResult.Success -> {
 					val user = userResult.data
 
 					if (!user.isEmailVerified) {
-						return@withTransaction sendVerificationEmail(user.id, user.email)
+						targetUserId = user.id
+						targetEmail = user.email
+						AppResult.Success(Unit)
 					}
 					else {
-						return@withTransaction AppResult.Failure(
+						AppResult.Failure(
 							HttpStatusCode.BadRequest, "Email is already verified."
 						)
 					}
 				}
 
 				is AppResult.Failure -> {
-					return@withTransaction AppResult.Failure(
+					AppResult.Failure(
 						userResult.httpStatusCode, "User not found. ${userResult.message}"
 					)
-
 				}
 			}
 		}
+		if (result is AppResult.Failure) return result
+		val userId = targetUserId ?: return AppResult.Success(Unit)
+		val address = targetEmail ?: return AppResult.Success(Unit)
+		return sendVerificationEmail(userId, address)
 	}
 
 	override suspend fun generateEmailVerificationToken(userId: UUID, email: String): AppResult<String> {
@@ -1168,8 +1187,9 @@ class AuthService(private val userService: IUserService,
 			AppResult.Success(token)
 		}
 		catch (e: Exception) {
+			logger.error("Failed to generate email verification token", e)
 			AppResult.Failure(
-				HttpStatusCode.InternalServerError, "Failed to generate email verification token. ${e.message}"
+				HttpStatusCode.InternalServerError, "Failed to generate email verification token."
 			)
 		}
 	}
@@ -1243,9 +1263,10 @@ class AuthService(private val userService: IUserService,
 			.build()
 
 		try {
-			println(client.send(mail))
+			client.send(mail)
+			logger.debug("Email sent to {}", to)
 		} catch (e: Exception) {
-			println("Caught exception : $e")
+			logger.error("Failed to send email to {}", to, e)
 		}
 	}
 
@@ -1288,14 +1309,15 @@ class AuthService(private val userService: IUserService,
 
 	override suspend fun resetPassword(token: String, newPassword: String
 	): AppResult<Unit> {
-		return withTransaction {
+		return withResultTransaction {
 			try {
 				val decodedToken = try {
 					passwordResetVerifier().verify(token)
 				}
 				catch (e: JWTVerificationException) {
-					return@withTransaction AppResult.Failure(
-						HttpStatusCode.Unauthorized, "Failed to verify token. ${e.message}"
+					logger.debug("Password reset token verification failed", e)
+					return@withResultTransaction AppResult.Failure(
+						HttpStatusCode.Unauthorized, "Failed to verify token."
 					)
 				}
 
@@ -1303,7 +1325,7 @@ class AuthService(private val userService: IUserService,
 					val userId = UUID.fromString(decodedToken.subject)
 					val validation = validatePassword(newPassword, newPassword)
 					if (validation is AppResult.Failure) {
-						return@withTransaction validation
+						return@withResultTransaction validation
 					}
 					val credentialResult = authCredentialService.getByUserIdAndType(userId, AuthCredentialType.BASIC)
 
@@ -1347,14 +1369,17 @@ class AuthService(private val userService: IUserService,
 					}
 				}
 				else {
-					return@withTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token.")
+					return@withResultTransaction AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid token.")
 				}
 
 			}
 			catch (e: Exception) {
-				AppResult.Failure(HttpStatusCode.InternalServerError, "Reset failed. ${e.message}")
+				logger.error("Password reset failed", e)
+				AppResult.Failure(HttpStatusCode.InternalServerError, "Reset failed.")
 			}
 		}
 	}
 
 }
+
+private class InactiveRefreshTokenException(val userId: UUID) : Exception("Refresh token is no longer active.")

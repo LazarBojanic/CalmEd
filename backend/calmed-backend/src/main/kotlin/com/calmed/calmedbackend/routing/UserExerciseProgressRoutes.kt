@@ -1,6 +1,7 @@
 package com.calmed.calmedbackend.routing
 
 import com.calmed.calmedbackend.config.MuxConfig
+import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.UserExerciseProgressUpdateDto
 import com.calmed.calmedbackend.model.toDto
@@ -26,25 +27,25 @@ fun Route.userExerciseProgressRoutes() {
 		route("/user-exercise-progress") {
 			post("/sync") {
 				val principal = call.principal<JWTPrincipal>()
-				val userIdStr = principal?.payload?.subject ?: return@post call.respond(HttpStatusCode.Unauthorized)
+				val userIdStr = principal?.payload?.subject
+					?: throw BusinessException(HttpStatusCode.Unauthorized, "Invalid authentication")
 				val userId = UUID.fromString(userIdStr)
 				val dto = call.receive<UserExerciseProgressUpdateDto>()
 				when (val res = service.syncProgress(userId, dto)) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, "Synced")
-					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+					is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
 				}
 			}
 			get("/{id}") {
 				val idParam = call.parameters["id"]
 				if (idParam == null) {
-					call.respond(HttpStatusCode.BadRequest, "Missing id parameter")
-					return@get
+					throw BusinessException(HttpStatusCode.BadRequest, "Missing id parameter")
 				}
 				val id = UUID.fromString(idParam)
 				call.requireSelf(id)
 				when (val res = service.getById(id)) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
-					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+					is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
 				}
 			}
 		}
@@ -52,14 +53,13 @@ fun Route.userExerciseProgressRoutes() {
 			get("/{userId}") {
 				val userIdParam = call.parameters["userId"]
 				if (userIdParam == null) {
-					call.respond(HttpStatusCode.BadRequest, "Missing userId parameter")
-					return@get
+					throw BusinessException(HttpStatusCode.BadRequest, "Missing userId parameter")
 				}
 				val userId = UUID.fromString(userIdParam)
 				call.requireSelf(userId)
 				when (val res = service.getAllByUserId(userId)) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.map { it.toDto() })
-					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+					is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
 				}
 			}
 		}

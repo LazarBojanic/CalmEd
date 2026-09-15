@@ -1,6 +1,5 @@
 package com.calmed.calmedbackend.repository.implementation
 
-import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.userexerciseprogress.ExerciseSession
 import com.calmed.calmedbackend.model.raw.userexerciseprogress.UserExerciseProgress
@@ -11,66 +10,70 @@ import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.repository.specification.IUserExerciseProgressRepository
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.greaterEq
-import org.jetbrains.exposed.v1.core.lessEq
-import java.time.LocalDate
 import java.util.UUID
 
 class UserExerciseProgressRepository : IUserExerciseProgressRepository {
-	override suspend fun findAll(): List<UserExerciseProgress> = withTransaction {
+	override suspend fun findAll(): List<UserExerciseProgress> =
 		UserExerciseProgressEntity.all().map { it.toRaw() }
-	}
 
-	override suspend fun findById(id: UUID): UserExerciseProgress? = withTransaction {
+	override suspend fun findById(id: UUID): UserExerciseProgress? =
 		UserExerciseProgressEntity.findById(id)?.toRaw()
-	}
 
-	override suspend fun findAllByUserId(userId: UUID): List<UserExerciseProgress> = withTransaction {
+	override suspend fun findAllByUserId(userId: UUID): List<UserExerciseProgress> =
 		UserExerciseProgressEntity.find { UserExerciseProgressTable.userId eq userId }.map { it.toRaw() }
+
+	override suspend fun create(progress: UserExerciseProgress): UserExerciseProgress? {
+		if (UserExerciseProgressEntity.findById(progress.id) != null) return null
+		return UserExerciseProgressEntity.new(progress.id) { setFrom(progress, MapMode.CREATE) }.toRaw()
 	}
 
-	override suspend fun create(progress: UserExerciseProgress): UserExerciseProgress? = withTransaction {
-		val existing = UserExerciseProgressEntity.findById(progress.id)
-		if (existing == null) {
-			UserExerciseProgressEntity.new(progress.id) { setFrom(progress, MapMode.CREATE) }.toRaw()
-		} else null
+	override suspend fun createBatch(progresses: List<UserExerciseProgress>): Int {
+		var inserted = 0
+		for (progress in progresses) {
+			if (UserExerciseProgressEntity.findById(progress.id) == null) {
+				UserExerciseProgressEntity.new(progress.id) { setFrom(progress, MapMode.CREATE) }
+				inserted++
+			}
+		}
+		return inserted
 	}
 
-	override suspend fun update(progress: UserExerciseProgress): UserExerciseProgress? = withTransaction {
-		val e = UserExerciseProgressEntity.findById(progress.id)
-		e?.apply { setFrom(progress, MapMode.UPDATE) }?.toRaw()
+	override suspend fun update(progress: UserExerciseProgress): UserExerciseProgress? {
+		val e = UserExerciseProgressEntity.findById(progress.id) ?: return null
+		e.setFrom(progress, MapMode.UPDATE)
+		return e.toRaw()
 	}
 
-	override suspend fun delete(id: UUID): Boolean = withTransaction {
-		UserExerciseProgressEntity.findById(id)?.let { it.delete(); true } ?: false
+	override suspend fun delete(id: UUID): Boolean {
+		val e = UserExerciseProgressEntity.findById(id) ?: return false
+		e.delete()
+		return true
 	}
 
-	override suspend fun deleteByUserId(userId: UUID): Boolean = withTransaction {
+	override suspend fun deleteByUserId(userId: UUID): Boolean {
 		val entities = UserExerciseProgressEntity.find { UserExerciseProgressTable.userId eq userId }
 		var deleted = false
 		for (e in entities) {
 			e.delete()
 			deleted = true
 		}
-		deleted
+		return deleted
 	}
 
-	override suspend fun deleteByCriteria(userId: UUID, week: Int, day: Int, session: ExerciseSession): Boolean = withTransaction {
+	override suspend fun deleteByCriteria(userId: UUID, week: Int, day: Int, session: ExerciseSession): Boolean {
 		val found = UserExerciseProgressEntity.find {
 			(UserExerciseProgressTable.userId eq userId) and
 					(UserExerciseProgressTable.week eq week) and
 					(UserExerciseProgressTable.day eq day) and
 					(UserExerciseProgressTable.exerciseSession eq session)
 		}
-		if (found.empty()) false
-		else {
-			found.forEach { it.delete() }
-			true
-		}
+		if (found.empty()) return false
+		found.forEach { it.delete() }
+		return true
 	}
 
-	override suspend fun findByCriteria(userId: UUID, week: Int, day: Int, session: ExerciseSession): UserExerciseProgress? = withTransaction {
-		UserExerciseProgressEntity.find {
+	override suspend fun findByCriteria(userId: UUID, week: Int, day: Int, session: ExerciseSession): UserExerciseProgress? {
+		return UserExerciseProgressEntity.find {
 			(UserExerciseProgressTable.userId eq userId) and
 					(UserExerciseProgressTable.week eq week) and
 					(UserExerciseProgressTable.day eq day) and
@@ -78,8 +81,8 @@ class UserExerciseProgressRepository : IUserExerciseProgressRepository {
 		}.firstOrNull()?.toRaw()
 	}
 
-	override suspend fun findAllByUserIdAndWeek(userId: UUID, week: Int): List<UserExerciseProgress> = withTransaction {
-		UserExerciseProgressEntity.find {
+	override suspend fun findAllByUserIdAndWeek(userId: UUID, week: Int): List<UserExerciseProgress> {
+		return UserExerciseProgressEntity.find {
 			(UserExerciseProgressTable.userId eq userId) and
 					(UserExerciseProgressTable.week eq week)
 		}.map { it.toRaw() }

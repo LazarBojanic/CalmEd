@@ -9,10 +9,8 @@ import com.calmed.calmedtics.model.dto.request.LoginUserDto
 import com.calmed.calmedtics.model.dto.request.RefreshDto
 import com.calmed.calmedtics.model.dto.request.RegisterUserDto
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
-import com.calmed.calmedtics.model.dto.response.SupportMessageResponseDto
 import com.calmed.calmedtics.service.specification.IAuthService
 import com.calmed.calmedtics.store.ITokenDataStore
-import io.ktor.client.utils.EmptyContent.contentType
 
 class AuthService(
     private val api: IAppApi,
@@ -117,7 +115,7 @@ class AuthService(
 
     override suspend fun sendSupportMessage(
         request: SupportMessageRequestDto
-    ): SupportMessageResponseDto {
-        return api.sendSupportMessage(request)
+    ): Boolean {
+        return api.sendSupportMessage(request) != null
     }
 }

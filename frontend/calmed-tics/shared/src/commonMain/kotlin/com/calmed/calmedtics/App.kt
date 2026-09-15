@@ -37,15 +37,18 @@ import com.calmed.calmedtics.viewmodel.HomeViewModel
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import com.calmed.calmedtics.auth.launchAppleSignIn
 import androidx.compose.material3.Text
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.loading
+import calmedtics.shared.generated.resources.user_info_missing
 import calmedtics.shared.generated.resources.download_completed
 import calmedtics.shared.generated.resources.download_completed_title
-import calmedtics.shared.generated.resources.download_failed
+import calmedtics.shared.generated.resources.status_failed
 import calmedtics.shared.generated.resources.download_failed_title
 import calmedtics.shared.generated.resources.no_internet_connection
 import com.calmed.calmedtics.service.specification.DownloadEventType
-import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
+import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.ui.component.ToastCenter
 import com.calmed.calmedtics.ui.component.ToastKind
 import org.jetbrains.compose.resources.stringResource
@@ -60,8 +63,13 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import com.calmed.calmedtics.localization.AppLocaleProvider
+import com.calmed.calmedtics.logging.AppLog
+import com.calmed.calmedtics.logging.LogTags
+import com.calmed.calmedtics.logging.isDevelopment
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
+
+private val log = AppLog(LogTags.APP)
 
 object Routes {
     const val Splash = "splash"
@@ -88,7 +96,7 @@ fun App() {
                 add(KtorNetworkFetcherFactory(httpClient))
             }
             .crossfade(true)
-            .logger(DebugLogger())
+            .apply { if (isDevelopment) logger(DebugLogger()) }
             .build()
     }
 
@@ -103,19 +111,17 @@ fun App() {
     val authService: IAuthService = koinInject()
     val appApi: IAppApi = koinInject()
 
-    val authViewModel = remember { AuthViewModel(authService) }
+    val authViewModel: AuthViewModel = koinViewModel()
 
     val appSettings: AppSettings = koinInject()
     val sessionViewModel: SessionViewModel = koinViewModel()
     val homeViewModel: HomeViewModel = koinViewModel()
     val exercisesViewModel: ExercisesViewModel = koinViewModel()
-    val user by sessionViewModel.user.collectAsState()
-    val userInfo by sessionViewModel.userInfo.collectAsState()
-    val sessionLoading by sessionViewModel.loading.collectAsState()
-    val sessionError by sessionViewModel.error.collectAsState()
-
-    LaunchedEffect(Unit) {
-    }
+    val videoDownloadManager: IVideoDownloadManager = koinInject()
+    val user by sessionViewModel.user.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+    val userInfo by sessionViewModel.userInfo.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+    val sessionLoading by sessionViewModel.loading.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+    val sessionError by sessionViewModel.error.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
     suspend fun resolveNextAuthenticatedRoute(): String? {
         val remoteUser = sessionViewModel.loadSession() ?: return null
@@ -167,7 +173,7 @@ fun App() {
     AppLocaleProvider {
         AppTheme {
             LaunchedEffect(Unit) {
-                LocalVideoDownloadManager.events.collect { event ->
+                videoDownloadManager.events.collect { event ->
                     val title = event.title?.takeIf { it.isNotBlank() }
                     when (event.type) {
                         DownloadEventType.Completed ->
@@ -193,7 +199,7 @@ fun App() {
                                 )
                             } else {
                                 ToastCenter.show(
-                                    Res.string.download_failed,
+                                    Res.string.status_failed,
                                     kind = ToastKind.Error
                                 )
                             }
@@ -310,8 +316,7 @@ fun App() {
                                         }
                                     }
                                 } catch (t: Throwable) {
-                                    println("GoogleSignIn failed: ${t.message}")
-                                    t.printStackTrace()
+                                    log.error("GoogleSignIn failed", t)
                                 }
                             }
                         }
@@ -440,10 +445,7 @@ fun App() {
                                         }
                                     }
                                 } catch (t: Throwable) {
-                                    println(
-                                        "GoogleSignIn Register failed: ${t.message}"
-                                    )
-                                    t.printStackTrace()
+                                    log.error("GoogleSignIn Register failed", t)
                                 }
                             }
                         },
@@ -524,12 +526,12 @@ fun App() {
                                 sessionViewModel.loadSession()
                             }
                         }
-                        Text(sessionError ?: "Loading...")
+                        Text(sessionError ?: stringResource(Res.string.loading))
                         return@composable
                     }
 
                     if (info == null) {
-                        Text("UserInfo is missing (backend doesn't return it).")
+                        Text(stringResource(Res.string.user_info_missing))
                         return@composable
                     }
 
@@ -606,14 +608,15 @@ fun App() {
                         HelpSupportScreen(
                             onBack = { navController.popBackStack() },
                             onSendMessage = { subject, message ->
-                                scope.launch {
+                                try {
                                     authService.sendSupportMessage(
                                         SupportMessageRequestDto(
                                             subject = subject,
-                                            message = message,
-                                            userEmail = user?.email ?: ""
+                                            message = message
                                         )
                                     )
+                                } catch (t: Throwable) {
+                                    false
                                 }
                             }
                         )

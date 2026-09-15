@@ -18,16 +18,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.continue_with_google
 import calmedtics.shared.generated.resources.ic_google_logo
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GoogleSignInButton(
 	onClick: () -> Unit,
 	modifier: Modifier = Modifier,
 	enabled: Boolean = true,
-	text: String = "Continue with Google",
+	text: String? = null,
 ) {
+	val label = text ?: stringResource(Res.string.continue_with_google)
 	OutlinedButton(
 		onClick = onClick,
 		enabled = enabled,
@@ -60,7 +63,7 @@ fun GoogleSignInButton(
 			)
 			Spacer(Modifier.width(12.dp))
 			Text(
-				text = text,
+				text = label,
 				style = MaterialTheme.typography.labelLarge,
 				fontWeight = FontWeight.Medium
 			)

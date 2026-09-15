@@ -28,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.logo
-import calmedtics.shared.generated.resources.logo
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import org.jetbrains.compose.resources.painterResource
 

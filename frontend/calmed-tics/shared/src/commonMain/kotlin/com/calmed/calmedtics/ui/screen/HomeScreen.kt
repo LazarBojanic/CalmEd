@@ -21,7 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +41,18 @@ import calmedtics.shared.generated.resources.previous_week
 import calmedtics.shared.generated.resources.week_number
 import calmedtics.shared.generated.resources.no_image
 import calmedtics.shared.generated.resources.select_video
+import calmedtics.shared.generated.resources.home_current_exercise
+import calmedtics.shared.generated.resources.home_great_start
+import calmedtics.shared.generated.resources.home_start_your_day
+import calmedtics.shared.generated.resources.home_well_done
+import calmedtics.shared.generated.resources.home_keep_going
+import calmedtics.shared.generated.resources.completed
+import calmedtics.shared.generated.resources.pending
+import calmedtics.shared.generated.resources.morning
+import calmedtics.shared.generated.resources.evening
+import calmedtics.shared.generated.resources.next_week
+import calmedtics.shared.generated.resources.duration_min
+import calmedtics.shared.generated.resources.duration_placeholder
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
@@ -49,6 +62,8 @@ import com.calmed.calmedtics.viewmodel.ExercisesViewModel
 import com.calmed.calmedtics.viewmodel.HomeViewModel
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
+import calmedtics.shared.generated.resources.weekday_initials
+import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -76,11 +91,11 @@ fun HomeScreen(
     exercisesViewModel: ExercisesViewModel,
     onExerciseClick: (ProgramExerciseDto) -> Unit,
 ) {
-    val home by homeViewModel.home.collectAsState(initial = null)
-    val user by sessionViewModel.user.collectAsState()
-    val userInfo by sessionViewModel.userInfo.collectAsState()
-    val allExercises by exercisesViewModel.exercises.collectAsState()
-    val allCompletions by homeViewModel.allCompletions.collectAsState()
+    val home by homeViewModel.home.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+    val user by sessionViewModel.user.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+    val userInfo by sessionViewModel.userInfo.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+    val allExercises by exercisesViewModel.exercises.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+    val allCompletions by homeViewModel.allCompletions.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
 
     val ymd = currentYmd()
@@ -386,7 +401,7 @@ fun HomeScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.ChevronRight,
-                                        contentDescription = "Next week",
+                                        contentDescription = stringResource(Res.string.next_week),
                                         tint =
                                             if (
                                                 displayWeek <
@@ -403,7 +418,7 @@ fun HomeScreen(
                         }
 
                         val daysOfWeekFull =
-                            listOf("M", "T", "W", "T", "F", "S", "S")
+                            stringArrayResource(Res.array.weekday_initials)
 
                         val daysOfWeek =
                             List(7) { index ->
@@ -698,7 +713,7 @@ fun HomeScreen(
                                     )
                             ) {
                                 Text(
-                                    text = "CURRENT EXERCISE",
+                                    text = stringResource(Res.string.home_current_exercise),
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimary
@@ -724,8 +739,11 @@ fun HomeScreen(
                                         val minutes = totalSeconds / 60
                                         val seconds = totalSeconds % 60
 
-                                        "${minutes}:${seconds.toString().padStart(2, '0')} min"
-                                    } ?: "--:-- min",
+                                        stringResource(
+                                            Res.string.duration_min,
+                                            "$minutes:${seconds.toString().padStart(2, '0')}"
+                                        )
+                                    } ?: stringResource(Res.string.duration_placeholder),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.90f)
@@ -741,7 +759,7 @@ fun HomeScreen(
                                 )
 
                                 Text(
-                                    text = "Week $displayWeek",
+                                    text = stringResource(Res.string.week_number, displayWeek),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.90f)
@@ -850,7 +868,7 @@ fun HomeScreen(
                                     verticalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
                                     Text(
-                                        text = "Morning",
+                                        text = stringResource(Res.string.morning),
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -863,9 +881,9 @@ fun HomeScreen(
                                         Text(
                                             text =
                                                 if (morningCompleted) {
-                                                    "Completed"
+                                                    stringResource(Res.string.completed)
                                                 } else {
-                                                    "Pending"
+                                                    stringResource(Res.string.pending)
                                                 },
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Medium,
@@ -925,9 +943,9 @@ fun HomeScreen(
                             Text(
                                 text =
                                     if (morningCompleted) {
-                                        "Great start!"
+                                        stringResource(Res.string.home_great_start)
                                     } else {
-                                        "Start your day"
+                                        stringResource(Res.string.home_start_your_day)
                                     },
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Medium,
@@ -991,7 +1009,7 @@ fun HomeScreen(
                                     verticalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
                                     Text(
-                                        text = "Evening",
+                                        text = stringResource(Res.string.evening),
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -1004,9 +1022,9 @@ fun HomeScreen(
                                         Text(
                                             text =
                                                 if (eveningCompleted) {
-                                                    "Completed"
+                                                    stringResource(Res.string.completed)
                                                 } else {
-                                                    "Pending"
+                                                    stringResource(Res.string.pending)
                                                 },
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Medium,
@@ -1066,9 +1084,9 @@ fun HomeScreen(
                             Text(
                                 text =
                                     if (eveningCompleted) {
-                                        "Well done!"
+                                        stringResource(Res.string.home_well_done)
                                     } else {
-                                        "Keep going!"
+                                        stringResource(Res.string.home_keep_going)
                                     },
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Medium,

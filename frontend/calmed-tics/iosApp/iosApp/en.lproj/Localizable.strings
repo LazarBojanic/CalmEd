@@ -1,0 +1,10 @@
+/* CalmEd iOS localized notification strings (English) */
+
+"reminder_morning_title" = "Morning exercise";
+"reminder_morning_body" = "Time for your morning practice.";
+"reminder_evening_title" = "Evening exercise";
+"reminder_evening_body" = "Time for your evening practice.";
+"reminder_test_title_1" = "TEST iOS 1";
+"reminder_test_body_10s" = "Should arrive after 10 seconds";
+"reminder_test_title_2" = "TEST iOS 2";
+"reminder_test_body_20s" = "Should arrive after 20 seconds";

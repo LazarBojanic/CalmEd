@@ -6,7 +6,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,18 +25,22 @@ import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import com.calmed.calmedtics.auth.AppleAuthBridge
 import com.calmed.calmedtics.auth.GoogleAuthBridge
+import com.calmed.calmedtics.logging.AppLog
+import com.calmed.calmedtics.logging.LogTags
 import org.jetbrains.compose.resources.stringResource
 import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.create_account
 import calmedtics.shared.generated.resources.email_label
 import calmedtics.shared.generated.resources.forgot_password
 import calmedtics.shared.generated.resources.logging_in
-import calmedtics.shared.generated.resources.login_button
 import calmedtics.shared.generated.resources.login_title
 import calmedtics.shared.generated.resources.password_label
 import calmedtics.shared.generated.resources.use_offline_mode
+
+private val log = AppLog(LogTags.AUTH)
 
 @Composable
 fun LoginScreen(
@@ -45,18 +50,17 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onGoogleSignIn: () -> Unit,
     onAppleSignIn: () -> Unit,
-    viewModel: AuthViewModel = koinInject()
+    viewModel: AuthViewModel = koinViewModel()
 ) {
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         AppleAuthBridge.onIdToken = { idToken ->
             if(idToken.isSuccess){
-                println("APPLE_AUTH LoginScreen received id_token len=${idToken.getOrNull()}")
+                log.debug("Apple id_token received len=${idToken.getOrNull()?.length ?: 0}")
                 scope.launch {
-                    println("APPLE_AUTH LoginScreen CALLING VM...")
                     val ok = viewModel.loginWithApple(identityToken = idToken.getOrNull() ?: "")
-                    println("APPLE_AUTH LoginScreen VM result=$ok")
+                    log.debug("Apple login result=$ok")
                     if (ok) onLoginSuccess()
                 }
             }
@@ -75,8 +79,8 @@ fun LoginScreen(
         }
     }
 
-    val loading by viewModel.loading.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val loading by viewModel.loading.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+    val error by viewModel.error.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
     val appSettings: AppSettings = koinInject()
 
     var email by remember { mutableStateOf("") }
@@ -104,7 +108,7 @@ fun LoginScreen(
             )
 
             PrimaryButton(
-                text = if (loading) stringResource(Res.string.logging_in) else stringResource(Res.string.login_button),
+                text = if (loading) stringResource(Res.string.logging_in) else stringResource(Res.string.login_title),
                 onClick = {
                     scope.launch {
                         val success = viewModel.login(email, password)

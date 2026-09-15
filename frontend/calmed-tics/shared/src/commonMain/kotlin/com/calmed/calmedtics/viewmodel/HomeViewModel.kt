@@ -12,11 +12,15 @@ import com.calmed.calmedtics.repository.IExerciseCompletionDao
 import com.calmed.calmedtics.store.ITokenDataStore
 import com.calmed.calmedtics.util.currentTimeMillis
 import com.calmed.calmedtics.util.currentUserId
+import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.home_load_failed
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 class HomeViewModel(
 	private val api: IAppApi,
@@ -47,8 +51,10 @@ class HomeViewModel(
 			if (result != null) {
 				syncCompletions(result)
 			}
+		} catch (t: CancellationException) {
+			throw t
 		} catch (t: Throwable) {
-			_error.value = t.message ?: "Failed to load home."
+			_error.value = getString(Res.string.home_load_failed)
 		} finally {
 			_loading.value = false
 		}
@@ -115,6 +121,8 @@ class HomeViewModel(
 						completed = completed
 					)
 				)
+			} catch (e: CancellationException) {
+				throw e
 			} catch (e: Exception) {
 				// Progress sync is best-effort; local state is already persisted.
 			}

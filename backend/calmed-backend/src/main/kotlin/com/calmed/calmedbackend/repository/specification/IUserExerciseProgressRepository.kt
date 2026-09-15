@@ -10,6 +10,7 @@ interface IUserExerciseProgressRepository {
 	suspend fun findById(id: UUID): UserExerciseProgress?
 	suspend fun findAllByUserId(userId: UUID): List<UserExerciseProgress>
 	suspend fun create(progress: UserExerciseProgress): UserExerciseProgress?
+	suspend fun createBatch(progresses: List<UserExerciseProgress>): Int
 	suspend fun update(progress: UserExerciseProgress): UserExerciseProgress?
 	suspend fun delete(id: UUID): Boolean
 	suspend fun deleteByUserId(userId: UUID): Boolean

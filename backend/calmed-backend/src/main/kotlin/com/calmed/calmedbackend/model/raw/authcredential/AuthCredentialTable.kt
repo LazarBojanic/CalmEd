@@ -14,4 +14,9 @@ object AuthCredentialTable : UUIDTable("auth_credential") {
 	val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 	val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
 	val providerUserId = text(name = "provider_user_id").nullable()
+
+	init{
+		uniqueIndex(userId, type)
+		uniqueIndex(providerUserId)
+	}
 }

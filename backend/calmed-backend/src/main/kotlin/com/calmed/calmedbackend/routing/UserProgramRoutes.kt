@@ -1,5 +1,6 @@
 package com.calmed.calmedbackend.routing
 
+import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.toDto
 import com.calmed.calmedbackend.service.specification.IUserProgramService
@@ -19,30 +20,37 @@ fun Route.userProgramRoutes() {
 		route("/user-programs") {
 			get("/{id}") {
 				val idParam = call.parameters["id"]
-				if (idParam == null) {
-					call.respond(HttpStatusCode.BadRequest, "Missing id parameter")
-					return@get
+					?: throw BusinessException(HttpStatusCode.BadRequest, "Missing id parameter")
+				val id = try {
+					UUID.fromString(idParam)
+				} catch (e: IllegalArgumentException) {
+					throw BusinessException(HttpStatusCode.BadRequest, "Invalid id parameter")
 				}
-				val id = UUID.fromString(idParam)
-				call.requireSelf(id)
+				val subject = call.requireSubjectId()
 				when (val res = service.getById(id)) {
-					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
-					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+					is AppResult.Success -> {
+						if (res.data.user.id != subject) {
+							throw BusinessException(HttpStatusCode.Forbidden, "Forbidden")
+						}
+						call.respond(HttpStatusCode.OK, res.data.toDto())
+					}
+					is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
 				}
 			}
 		}
 		route("/user-programs/user") {
 			get("/{userId}") {
 				val userIdParam = call.parameters["userId"]
-				if (userIdParam == null) {
-					call.respond(HttpStatusCode.BadRequest, "Missing userId parameter")
-					return@get
+					?: throw BusinessException(HttpStatusCode.BadRequest, "Missing userId parameter")
+				val userId = try {
+					UUID.fromString(userIdParam)
+				} catch (e: IllegalArgumentException) {
+					throw BusinessException(HttpStatusCode.BadRequest, "Invalid userId parameter")
 				}
-				val userId = UUID.fromString(userIdParam)
 				call.requireSelf(userId)
 				when (val res = service.getByUserId(userId)) {
 					is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data.toDto())
-					is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+					is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
 				}
 			}
 		}

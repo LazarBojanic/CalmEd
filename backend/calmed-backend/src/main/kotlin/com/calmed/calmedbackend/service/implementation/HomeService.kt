@@ -1,6 +1,9 @@
 package com.calmed.calmedbackend.service.implementation
 
+import com.calmed.calmedbackend.database.withTransaction
+import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
+import com.calmed.calmedbackend.model.ProgramConstants
 import com.calmed.calmedbackend.model.dto.response.CalendarDayDto
 import com.calmed.calmedbackend.model.dto.response.CalendarMonthDto
 import com.calmed.calmedbackend.model.dto.response.HomeDto
@@ -8,6 +11,7 @@ import com.calmed.calmedbackend.service.specification.IHomeService
 import com.calmed.calmedbackend.service.specification.IUserProgramService
 import com.calmed.calmedbackend.service.specification.IUserService
 import com.calmed.calmedbackend.repository.specification.IUserExerciseProgressRepository
+import io.ktor.http.HttpStatusCode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
@@ -22,12 +26,19 @@ class HomeService(
 ) : IHomeService {
 
     override suspend fun getHome(userId: String, year: Int, month: Int): HomeDto {
-        val uid = UUID.fromString(userId)
+        return withTransaction {
+        val uid = try {
+            UUID.fromString(userId)
+        } catch (e: IllegalArgumentException) {
+            throw BusinessException(HttpStatusCode.BadRequest, "Invalid user id.")
+        }
         val today: LocalDate = LocalDate.now(ZoneOffset.UTC)
-        val totalWeeks = 25
+        val totalWeeks = ProgramConstants.TOTAL_WEEKS
 
-        val userResult = userService.getById(uid)
-        val user = (userResult as AppResult.Success).data
+        val user = when (val userResult = userService.getById(uid)) {
+            is AppResult.Success -> userResult.data
+            is AppResult.Failure -> throw BusinessException(HttpStatusCode.NotFound, "User not found.")
+        }
 
         val userProgram = (userProgramService.getByUserId(user.id) as? AppResult.Success)?.data
         val startDate: LocalDate = userProgram?.startDate ?: user.createdAt
@@ -77,7 +88,7 @@ class HomeService(
             )
         }
 
-        return HomeDto(
+        HomeDto(
             greetingName = null,
             avatarUrl = null,
             calendar = CalendarMonthDto(
@@ -89,6 +100,7 @@ class HomeService(
             programStartDate = startDate.toString(),
             completions = completions
         )
+        }
     }
 
     fun calculateUnlockedWeeks(programStart: LocalDateTime, now: LocalDateTime): Int {

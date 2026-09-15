@@ -3,12 +3,12 @@ package com.calmed.calmedtics.auth
 import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
-import com.calmed.calmedtics.di.appContext
 import java.util.UUID
 import calmedtics.shared.BuildConfig
+import org.koin.core.context.GlobalContext
 
 actual fun launchAppleSignIn() {
-    val context = appContext
+    val context = GlobalContext.get().get<android.content.Context>()
 
     val clientId = BuildConfig.appleWebClientId
     val redirectUri = BuildConfig.appleCallbackURI

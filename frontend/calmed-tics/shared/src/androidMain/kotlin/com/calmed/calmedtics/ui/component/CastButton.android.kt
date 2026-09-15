@@ -29,11 +29,14 @@ import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import android.net.Uri
-import android.util.Log
 import android.os.Handler
 import android.os.Looper
+import com.calmed.calmedtics.logging.AppLog
+import com.calmed.calmedtics.logging.LogTags
 import com.google.android.gms.cast.HlsSegmentFormat
 import com.google.android.gms.cast.HlsVideoSegmentFormat
+
+private val log = AppLog(LogTags.CAST)
 
 @Composable
 actual fun CastButton(
@@ -72,20 +75,18 @@ actual fun CastButton(
         val client = session.remoteMediaClient
 
         if (client == null) {
-            Log.e("CAST_DEBUG", "RemoteMediaClient is null")
+            log.error("RemoteMediaClient is null")
             return
         }
 
         val uri = Uri.parse(currentUrl)
 
-        Log.d(
-            "CAST_DEBUG",
+        log.debug(
             "Trying to cast host=${uri.host}, path=${uri.path}"
         )
 
         client.load(request).setResultCallback { result ->
-            Log.d(
-                "CAST_DEBUG",
+            log.debug(
                 "LOAD RESULT success=${result.status.isSuccess}, " +
                         "code=${result.status.statusCode}, " +
                         "message=${result.status.statusMessage}, " +
@@ -95,8 +96,7 @@ actual fun CastButton(
         Handler(Looper.getMainLooper()).postDelayed({
             val status = client.mediaStatus
 
-            Log.d(
-                "CAST_DEBUG",
+            log.debug(
                 "AFTER 3s: " +
                         "playerState=${status?.playerState}, " +
                         "idleReason=${status?.idleReason}, " +

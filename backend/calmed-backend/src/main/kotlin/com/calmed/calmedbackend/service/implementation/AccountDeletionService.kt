@@ -1,6 +1,6 @@
 package com.calmed.calmedbackend.service.implementation
 
-import com.calmed.calmedbackend.database.withTransaction
+import com.calmed.calmedbackend.database.withResultTransaction
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.repository.specification.IAuthCredentialRepository
 import com.calmed.calmedbackend.repository.specification.IRefreshTokenRepository
@@ -30,9 +30,9 @@ class AccountDeletionService(
 
     override suspend fun deleteAccount(userId: UUID): AppResult<Unit> {
         return try {
-            withTransaction {
+            val deleted = withResultTransaction {
                 val user = userRepository.findById(userId)
-                    ?: return@withTransaction AppResult.Failure(
+                    ?: return@withResultTransaction AppResult.Failure(
                         HttpStatusCode.NotFound,
                         "User not found."
                     )
@@ -46,19 +46,23 @@ class AccountDeletionService(
 
                 storeEntitlementRepository.detachByUserId(userId)
 
-                user.profileImageUrl?.let { profileImageUrl ->
-                    deleteProfileImageFile(profileImageUrl)
-                }
-
                 userRepository.delete(userId)
 
-                AppResult.Success(Unit)
+                AppResult.Success(user.profileImageUrl)
             }
+
+            if (deleted is AppResult.Failure) return deleted
+
+            (deleted as AppResult.Success).data?.let { profileImageUrl ->
+                deleteProfileImageFile(profileImageUrl)
+            }
+
+            AppResult.Success(Unit)
         } catch (e: Exception) {
-            logger.error("Failed to delete account for user $userId: ${e.message}", e)
+            logger.error("Failed to delete account for user {}", userId, e)
             AppResult.Failure(
                 HttpStatusCode.InternalServerError,
-                "Failed to delete account: ${e.message}"
+                "Failed to delete account."
             )
         }
     }
@@ -76,8 +80,7 @@ class AccountDeletionService(
                 file.delete()
             }
         } catch (e: Exception) {
-            logger.warn("Could not delete profile image '$profileImageUrl': ${e.message}")
+            logger.warn("Could not delete profile image '{}'", profileImageUrl, e)
         }
     }
 }
-

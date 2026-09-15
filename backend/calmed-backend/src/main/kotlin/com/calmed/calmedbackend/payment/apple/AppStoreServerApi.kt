@@ -88,7 +88,7 @@ class AppStoreServerApi(
                 return@withContext null
             }
             if (response.statusCode() !in 200..299) {
-                logger.warn("App Store Server API returned ${response.statusCode()}: ${response.body()}")
+                logger.warn("App Store Server API returned {}: {}", response.statusCode(), response.body())
                 return@withContext null
             }
             val obj = json.parseToJsonElement(response.body()).jsonObject
@@ -101,7 +101,7 @@ class AppStoreServerApi(
             val signedJWT = SignedJWT.parse(jws)
             val header = signedJWT.header
             if (header.algorithm != JWSAlgorithm.ES256) {
-                logger.warn("Unexpected Apple JWS algorithm: ${header.algorithm}")
+                logger.warn("Unexpected Apple JWS algorithm: {}", header.algorithm)
                 return null
             }
 
@@ -126,7 +126,7 @@ class AppStoreServerApi(
                 revocationDate = (claims.getClaim("revocationDate") as? Number)?.toLong()
             )
         } catch (e: Exception) {
-            logger.warn("Failed to verify Apple transaction JWS: ${e.message}")
+            logger.warn("Failed to verify Apple transaction JWS", e)
             null
         }
     }
@@ -144,7 +144,7 @@ class AppStoreServerApi(
             val cf = CertificateFactory.getInstance("X.509")
             chain.map { cf.generateCertificate(ByteArrayInputStream(it.decode())) as X509Certificate }
         } catch (e: Exception) {
-            logger.warn("Failed to parse Apple JWS certificate chain: ${e.message}")
+            logger.warn("Failed to parse Apple JWS certificate chain", e)
             null
         }
     }
@@ -161,12 +161,12 @@ class AppStoreServerApi(
             val isSelfSignedAppleRoot = subject == issuer && subject.contains("Apple Root CA")
             val isIssuedByAppleRoot = issuer.contains("Apple Root CA")
             if (!isSelfSignedAppleRoot && !isIssuedByAppleRoot) {
-                logger.warn("Apple JWS chain does not anchor to an Apple Root CA: subject=$subject issuer=$issuer")
+                logger.warn("Apple JWS chain does not anchor to an Apple Root CA: subject={} issuer={}", subject, issuer)
                 return false
             }
             true
         } catch (e: Exception) {
-            logger.warn("Apple JWS certificate chain verification failed: ${e.message}")
+            logger.warn("Apple JWS certificate chain verification failed", e)
             false
         }
     }

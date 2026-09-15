@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,6 +45,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.resolution
+import calmedtics.shared.generated.resources.close
+import calmedtics.shared.generated.resources.mute
+import calmedtics.shared.generated.resources.unmute
 import calmedtics.shared.generated.resources.exercise_counter
 import calmedtics.shared.generated.resources.mobile_rotate
 import calmedtics.shared.generated.resources.no_exercises_available
@@ -101,7 +106,9 @@ fun VideoScreen(
     var controlsVisible by remember { mutableStateOf(true) }
 
     var showResolutionPicker by remember { mutableStateOf(false) }
-    var selectedResolution by rememberSaveable { mutableStateOf(VideoResolution.R1080) }
+    var selectedResolution by rememberSaveable(stateSaver = VideoResolutionSaver) {
+        mutableStateOf(VideoResolution.R1080)
+    }
 
     val appSettings: AppSettings = koinInject()
     val keepScreenAwake = appSettings.isKeepScreenAwake()
@@ -268,7 +275,7 @@ fun VideoScreen(
 
                             VideoOverlayButton(
                                 icon = Icons.Default.Hd,
-                                contentDescription = "Resolution",
+                                contentDescription = stringResource(Res.string.resolution),
                                 onClick = { showResolutionPicker = true }
                             )
 
@@ -279,7 +286,11 @@ fun VideoScreen(
                                     } else {
                                         Icons.AutoMirrored.Filled.VolumeUp
                                     },
-                                    contentDescription = if (isMuted) "Unmute" else "Mute",
+                                    contentDescription = if (isMuted) {
+                                        stringResource(Res.string.unmute)
+                                    } else {
+                                        stringResource(Res.string.mute)
+                                    },
                                     onClick = { isMuted = !isMuted }
                                 )
                             }
@@ -342,11 +353,11 @@ fun VideoScreen(
             onDismissRequest = { showResolutionPicker = false },
             confirmButton = {
                 TextButton(onClick = { showResolutionPicker = false }) {
-                    Text("Close")
+                    Text(stringResource(Res.string.close))
                 }
             },
             title = {
-                Text("Resolution")
+                Text(stringResource(Res.string.resolution))
             },
             text = {
                 Column(
@@ -430,3 +441,8 @@ private fun ResolutionOptionRow(
         )
     }
 }
+
+private val VideoResolutionSaver: Saver<VideoResolution, String> = Saver(
+    save = { it.name },
+    restore = { VideoResolution.fromName(it) }
+)

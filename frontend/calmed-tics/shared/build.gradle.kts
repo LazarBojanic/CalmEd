@@ -143,6 +143,7 @@ val local = localProps()
 buildConfig{
 	buildConfigField("development", (local.getProperty("DEVELOPMENT") ?: "false").toBoolean())
 	buildConfigField("adbReverse", (local.getProperty("ADB_REVERSE") ?: "false").toBoolean())
+	buildConfigField("baseUrl", (local.getProperty("BASE_URL") ?: "https://api.calm-ed.com"))
 	buildConfigField("googleWebClientId", local.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "")
 	buildConfigField("googleIosClientId", local.getProperty("GOOGLE_IOS_CLIENT_ID") ?: "")
 	buildConfigField("googleAndroidClientId", local.getProperty("GOOGLE_ANDROID_CLIENT_ID") ?: "")

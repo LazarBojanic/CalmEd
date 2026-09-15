@@ -1,5 +1,7 @@
 package com.calmed.calmedbackend.service.implementation
 
+import com.calmed.calmedbackend.database.withResultTransaction
+import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.join
 import com.calmed.calmedbackend.model.joined.ProgramExerciseJoined
@@ -11,53 +13,66 @@ import java.util.UUID
 
 class ProgramExerciseService(private val repository: IProgramExerciseRepository) : IProgramExerciseService {
 	override suspend fun getAll(): AppResult<List<ProgramExerciseJoined>> {
-		val list = repository.findAll().map { it.join() }
-		return AppResult.Success(list)
+		return withTransaction {
+			AppResult.Success(repository.findAll().map { it.join() })
+		}
 	}
 
 	override suspend fun getById(id: UUID): AppResult<ProgramExerciseJoined> {
-		val found = repository.findById(id) ?: return AppResult.Failure(HttpStatusCode.NotFound, "Program exercise not found.")
-		return AppResult.Success(found.join())
+		return withTransaction {
+			val found = repository.findById(id)
+				?: return@withTransaction AppResult.Failure(HttpStatusCode.NotFound, "Program exercise not found.")
+			AppResult.Success(found.join())
+		}
 	}
 
 	override suspend fun getWelcomeVideo(): AppResult<ProgramExerciseJoined> {
-		val found = repository.findWelcomeVideo()
-		return if (found != null) {
-			AppResult.Success(found.join())
-		} else {
-			AppResult.Failure(HttpStatusCode.NotFound, "Welcome video not found.")
+		return withTransaction {
+			val found = repository.findWelcomeVideo()
+			if (found != null) AppResult.Success(found.join())
+			else AppResult.Failure(HttpStatusCode.NotFound, "Welcome video not found.")
 		}
 	}
 	override suspend fun getCourseOverviewVideo(): AppResult<ProgramExerciseJoined> {
-		val found = repository.findCourseOverviewVideo()
-		return if (found != null) {
-			AppResult.Success(found.join())
-		} else {
-			AppResult.Failure(HttpStatusCode.NotFound, "Course overview video not found.")
+		return withTransaction {
+			val found = repository.findCourseOverviewVideo()
+			if (found != null) AppResult.Success(found.join())
+			else AppResult.Failure(HttpStatusCode.NotFound, "Course overview video not found.")
 		}
 	}
 
 	override suspend fun getByWeek(week: Int): AppResult<List<ProgramExerciseJoined>> {
-		val list = repository.findByWeek(week).map { it.join() }
-		return AppResult.Success(list)
+		return withTransaction {
+			AppResult.Success(repository.findByWeek(week).map { it.join() })
+		}
 	}
 
 	override suspend fun getByGroup(group: Int): AppResult<List<ProgramExerciseJoined>> {
-		val list = repository.findByGroup(group).map { it.join() }
-		return AppResult.Success(list)
+		return withTransaction {
+			AppResult.Success(repository.findByGroup(group).map { it.join() })
+		}
 	}
 
 	override suspend fun create(programExercise: ProgramExercise): AppResult<ProgramExerciseJoined> {
-		val created = repository.create(programExercise) ?: return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to create program exercise.")
-		return AppResult.Success(created.join())
+		return withResultTransaction {
+			val created = repository.create(programExercise)
+				?: return@withResultTransaction AppResult.Failure(HttpStatusCode.BadRequest, "Failed to create program exercise.")
+			AppResult.Success(created.join())
+		}
 	}
 
 	override suspend fun update(programExercise: ProgramExercise): AppResult<ProgramExerciseJoined> {
-		val updated = repository.update(programExercise) ?: return AppResult.Failure(HttpStatusCode.BadRequest, "Failed to update program exercise.")
-		return AppResult.Success(updated.join())
+		return withResultTransaction {
+			val updated = repository.update(programExercise)
+				?: return@withResultTransaction AppResult.Failure(HttpStatusCode.BadRequest, "Failed to update program exercise.")
+			AppResult.Success(updated.join())
+		}
 	}
 
 	override suspend fun delete(id: UUID): AppResult<Unit> {
-		return if (repository.delete(id)) AppResult.Success(Unit) else AppResult.Failure(HttpStatusCode.NotFound, "Failed to delete program exercise.")
+		return withResultTransaction {
+			if (repository.delete(id)) AppResult.Success(Unit)
+			else AppResult.Failure(HttpStatusCode.NotFound, "Failed to delete program exercise.")
+		}
 	}
 }

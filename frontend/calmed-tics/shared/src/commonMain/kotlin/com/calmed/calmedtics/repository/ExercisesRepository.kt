@@ -20,14 +20,11 @@ class ExercisesRepository(
 		exerciseGroupDao.getAll().map { list -> list.map { it.toDto() } }
 
 	suspend fun refresh() {
-		val remoteExercises = api.getAllProgramExercises()
-		val remoteGroups = api.getAllExerciseGroups()
-
-		if (remoteExercises.isNotEmpty()) {
+		api.getAllProgramExercises()?.let { remoteExercises ->
 			programExerciseDao.clearAll()
 			programExerciseDao.upsertAll(remoteExercises.map { it.toEntity() })
 		}
-		if (remoteGroups.isNotEmpty()) {
+		api.getAllExerciseGroups()?.let { remoteGroups ->
 			exerciseGroupDao.clearAll()
 			exerciseGroupDao.upsertAll(remoteGroups.map { it.toEntity() })
 		}

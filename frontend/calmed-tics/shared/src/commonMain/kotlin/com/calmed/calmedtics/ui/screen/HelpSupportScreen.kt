@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.calmed.calmedtics.theme.appBackgroundGradient
@@ -35,19 +36,25 @@ import calmedtics.shared.generated.resources.help_support_heading
 import calmedtics.shared.generated.resources.message_label
 import calmedtics.shared.generated.resources.message_success
 import calmedtics.shared.generated.resources.send_message_button
+import calmedtics.shared.generated.resources.sending
 import calmedtics.shared.generated.resources.subject_label
+import calmedtics.shared.generated.resources.support_send_failed
 import com.calmed.calmedtics.ui.component.BackButton
 import com.calmed.calmedtics.ui.component.PrimaryButton
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun HelpSupportScreen(
     onBack: () -> Unit,
-    onSendMessage: (String, String) -> Unit
+    onSendMessage: suspend (String, String) -> Boolean
 ) {
+    val scope = rememberCoroutineScope()
     val subject = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
     val showSuccessMessage = remember { mutableStateOf(false) }
+    val showFailureMessage = remember { mutableStateOf(false) }
+    val isSending = remember { mutableStateOf(false) }
 
     val isFormValid = subject.value.isNotBlank() && message.value.isNotBlank()
 
@@ -102,6 +109,7 @@ fun HelpSupportScreen(
                         onValueChange = {
                             subject.value = it
                             showSuccessMessage.value = false
+                            showFailureMessage.value = false
                         },
                         modifier = Modifier.fillMaxWidth(),
                         label = {
@@ -130,6 +138,7 @@ fun HelpSupportScreen(
                         onValueChange = {
                             message.value = it
                             showSuccessMessage.value = false
+                            showFailureMessage.value = false
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -155,13 +164,29 @@ fun HelpSupportScreen(
                     )
 
                     PrimaryButton(
-                        text = stringResource(Res.string.send_message_button),
-                        enabled = isFormValid,
+                        text = if (isSending.value) {
+                            stringResource(Res.string.sending)
+                        } else {
+                            stringResource(Res.string.send_message_button)
+                        },
+                        enabled = isFormValid && !isSending.value,
                         onClick = {
-                            onSendMessage(subject.value, message.value)
-                            showSuccessMessage.value = true
-                            subject.value = ""
-                            message.value = ""
+                            val currentSubject = subject.value
+                            val currentMessage = message.value
+                            scope.launch {
+                                isSending.value = true
+                                showSuccessMessage.value = false
+                                showFailureMessage.value = false
+                                val sent = onSendMessage(currentSubject, currentMessage)
+                                isSending.value = false
+                                if (sent) {
+                                    showSuccessMessage.value = true
+                                    subject.value = ""
+                                    message.value = ""
+                                } else {
+                                    showFailureMessage.value = true
+                                }
+                            }
                         }
                     )
 
@@ -170,6 +195,15 @@ fun HelpSupportScreen(
                             text = stringResource(Res.string.message_success),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    if (showFailureMessage.value) {
+                        Text(
+                            text = stringResource(Res.string.support_send_failed),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.SemiBold
                         )
                     }

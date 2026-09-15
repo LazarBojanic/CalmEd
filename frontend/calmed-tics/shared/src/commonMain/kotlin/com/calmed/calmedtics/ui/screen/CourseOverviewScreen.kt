@@ -46,7 +46,7 @@ import org.koin.compose.koinInject
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
-import calmedtics.shared.generated.resources.res_continue
+import calmedtics.shared.generated.resources.continue_button
 
 @Composable
 fun CourseOverviewScreen(
@@ -269,7 +269,7 @@ fun CourseOverviewScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = stringResource(Res.string.res_continue),
+                            text = stringResource(Res.string.continue_button),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )

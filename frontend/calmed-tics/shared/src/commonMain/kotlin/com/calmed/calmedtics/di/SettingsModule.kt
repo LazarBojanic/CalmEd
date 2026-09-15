@@ -4,9 +4,6 @@ import com.calmed.calmedtics.settings.AppSettings
 import com.russhwolf.settings.Settings
 import org.koin.dsl.module
 
-expect fun provideSettings(): Settings
-
-val settingsModule = module {
-    single { provideSettings() }
+val appSettingsModule = module {
     single { AppSettings(get()) }
 }

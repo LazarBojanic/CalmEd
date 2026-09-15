@@ -23,17 +23,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.calmed.calmedtics.appBaseUrl
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TicFrequency
 import com.calmed.calmedtics.model.raw.TicType
-import com.calmed.calmedtics.reminders.ReminderManager
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.TextField
 import com.calmed.calmedtics.ui.component.ThumbnailImage
 import com.calmed.calmedtics.ui.component.TimeSlider
-import com.calmed.calmedtics.util.createImagePicker
 import com.calmed.calmedtics.util.decodeImage
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
@@ -43,6 +44,22 @@ import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.account_info
 import calmedtics.shared.generated.resources.age
 import calmedtics.shared.generated.resources.cancel
+import calmedtics.shared.generated.resources.tic_duration_question
+import calmedtics.shared.generated.resources.tic_duration_0_1
+import calmedtics.shared.generated.resources.tic_duration_1_3
+import calmedtics.shared.generated.resources.tic_duration_3_plus
+import calmedtics.shared.generated.resources.danger_zone
+import calmedtics.shared.generated.resources.delete_account
+import calmedtics.shared.generated.resources.delete_account_message
+import calmedtics.shared.generated.resources.delete_confirm_hint
+import calmedtics.shared.generated.resources.delete_confirm_word
+import calmedtics.shared.generated.resources.deleting
+import calmedtics.shared.generated.resources.delete
+import calmedtics.shared.generated.resources.refund_policy
+import calmedtics.shared.generated.resources.selected_profile_photo
+import calmedtics.shared.generated.resources.choose_profile_photo
+import calmedtics.shared.generated.resources.profile_photo
+import calmedtics.shared.generated.resources.session_delete_account_failed
 import calmedtics.shared.generated.resources.condition_info
 import calmedtics.shared.generated.resources.default_user
 import calmedtics.shared.generated.resources.download_quality
@@ -50,7 +67,7 @@ import calmedtics.shared.generated.resources.download_quality_description
 import calmedtics.shared.generated.resources.edit_condition_info
 import calmedtics.shared.generated.resources.edit_personal_details
 import calmedtics.shared.generated.resources.edit_profile
-import calmedtics.shared.generated.resources.email
+import calmedtics.shared.generated.resources.email_label
 import calmedtics.shared.generated.resources.error_prefix
 import calmedtics.shared.generated.resources.evening_reminder_label
 import calmedtics.shared.generated.resources.frequency_daily
@@ -99,25 +116,26 @@ fun ProfileScreen(
 	onTermsClick: () -> Unit = {},
 	onRefundPolicyClick: () -> Unit = {},
 	appSettings: com.calmed.calmedtics.settings.AppSettings = koinInject(),
-	sessionViewModel: SessionViewModel
+	sessionViewModel: SessionViewModel,
+	reminderManager: com.calmed.calmedtics.reminders.ReminderManager = koinInject(),
+	imagePickerProvider: com.calmed.calmedtics.util.ImagePickerProvider = koinInject()
 ){
 	val scope = rememberCoroutineScope()
-	val reminderManager = remember { ReminderManager() }
 
 	var remindersEnabled by remember { mutableStateOf(appSettings.isRemindersEnabled()) }
 	var downloadResolution by remember { mutableStateOf(appSettings.getDownloadResolution()) }
 	var keepScreenAwake by remember { mutableStateOf(appSettings.isKeepScreenAwake()) }
 	var downloadWifiOnly by remember { mutableStateOf(appSettings.isDownloadWifiOnly()) }
 
-	val loading by sessionViewModel.loading.collectAsState()
-	val error by sessionViewModel.error.collectAsState()
+	val loading by sessionViewModel.loading.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val error by sessionViewModel.error.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
 	var isEditing by remember { mutableStateOf(false) }
 	var showDeleteDialog by remember { mutableStateOf(false) }
 	var isDeleting by remember { mutableStateOf(false) }
 	var deleteError by remember { mutableStateOf<String?>(null) }
 	var deleteConfirmText by remember { mutableStateOf("") }
-	val imagePicker = remember { createImagePicker() }
+	val imagePicker = remember { imagePickerProvider.create() }
 
 	var profileImageBytes by remember {
 		mutableStateOf<ByteArray?>(null)
@@ -235,7 +253,7 @@ fun ProfileScreen(
 										if (url.startsWith("http")) {
 											url
 										} else {
-											"https://api.calm-ed.com$url"
+											"$appBaseUrl$url"
 										}
 									}
 
@@ -250,7 +268,7 @@ fun ProfileScreen(
 									if (profileImageBitmap != null) {
 										Image(
 											bitmap = profileImageBitmap,
-											contentDescription = "Selected profile photo",
+											contentDescription = stringResource(Res.string.selected_profile_photo),
 											modifier = Modifier
 												.fillMaxSize()
 												.clip(CircleShape)
@@ -285,7 +303,7 @@ fun ProfileScreen(
 									)
 								) {
 									Text(
-										text = "Choose profile photo",
+										text = stringResource(Res.string.choose_profile_photo),
 										modifier = Modifier.padding(
 											horizontal = 16.dp,
 											vertical = 10.dp
@@ -399,23 +417,23 @@ fun ProfileScreen(
 							}
 
 							Text(
-								text = "How long have you had tics?",
+								text = stringResource(Res.string.tic_duration_question),
 								color = MaterialTheme.colorScheme.onSurface
 							)
 
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 								RadioOptionRow(
-									text = "0–1 year",
+									text = stringResource(Res.string.tic_duration_0_1),
 									selected = ticDuration.value == TicDuration.ZERO_TO_ONE_YEAR,
 									onClick = { ticDuration.value = TicDuration.ZERO_TO_ONE_YEAR }
 								)
 								RadioOptionRow(
-									text = "1–3 years",
+									text = stringResource(Res.string.tic_duration_1_3),
 									selected = ticDuration.value == TicDuration.ONE_TO_THREE_YEARS,
 									onClick = { ticDuration.value = TicDuration.ONE_TO_THREE_YEARS }
 								)
 								RadioOptionRow(
-									text = "3+ years",
+									text = stringResource(Res.string.tic_duration_3_plus),
 									selected = ticDuration.value == TicDuration.THREE_PLUS_YEARS,
 									onClick = { ticDuration.value = TicDuration.THREE_PLUS_YEARS }
 								)
@@ -483,7 +501,7 @@ fun ProfileScreen(
 					InfoSection(title = stringResource(Res.string.account_info)) {
 						InfoRow(
 							icon = Icons.Default.Email,
-							label = stringResource(Res.string.email),
+							label = stringResource(Res.string.email_label),
 							value = user.email
 						)
 						InfoRow(
@@ -521,14 +539,22 @@ fun ProfileScreen(
 							InfoRow(
 								icon = Icons.Default.Info,
 								label = stringResource(Res.string.tics_type),
-								value = it.name
+								value = when (it) {
+									TicType.MOTOR -> stringResource(Res.string.tics_motor)
+									TicType.VOCAL -> stringResource(Res.string.tics_vocal)
+									TicType.BOTH -> stringResource(Res.string.tics_both)
+								}
 							)
 						}
 						userInfo.ticFrequency?.let {
 							InfoRow(
 								icon = Icons.Default.Refresh,
 								label = stringResource(Res.string.tics_frequency),
-								value = it.name
+								value = when (it) {
+									TicFrequency.RARE -> stringResource(Res.string.frequency_rare)
+									TicFrequency.MODERATE -> stringResource(Res.string.frequency_moderate)
+									TicFrequency.DAILY -> stringResource(Res.string.frequency_daily)
+								}
 							)
 						}
 						userInfo.goal?.let {
@@ -541,11 +567,11 @@ fun ProfileScreen(
 						userInfo.ticDuration?.let {
 							InfoRow(
 								icon = Icons.Default.DateRange,
-								label = "How long have you had tics?",
+								label = stringResource(Res.string.tic_duration_question),
 								value = when (it) {
-									TicDuration.ZERO_TO_ONE_YEAR -> "0–1 year"
-									TicDuration.ONE_TO_THREE_YEARS -> "1–3 years"
-									TicDuration.THREE_PLUS_YEARS -> "3+ years"
+									TicDuration.ZERO_TO_ONE_YEAR -> stringResource(Res.string.tic_duration_0_1)
+									TicDuration.ONE_TO_THREE_YEARS -> stringResource(Res.string.tic_duration_1_3)
+									TicDuration.THREE_PLUS_YEARS -> stringResource(Res.string.tic_duration_3_plus)
 								}
 							)
 						}
@@ -574,7 +600,7 @@ fun ProfileScreen(
 
 					SettingsRow(
 						icon = Icons.Default.Refresh,
-						label = "Refund Policy",
+						label = stringResource(Res.string.refund_policy),
 						onClick = onRefundPolicyClick
 					)
 				}
@@ -760,10 +786,10 @@ fun ProfileScreen(
 			}
 
 			item {
-				InfoSection(title = "Danger zone") {
+				InfoSection(title = stringResource(Res.string.danger_zone)) {
 					SettingsRow(
 						icon = Icons.Default.Delete,
-						label = "Delete Account",
+						label = stringResource(Res.string.delete_account),
 						onClick = {
 							deleteError = null
 							deleteConfirmText = ""
@@ -782,38 +808,25 @@ fun ProfileScreen(
 	}
 
 	if (showDeleteDialog) {
+		val deleteFailedMessage = stringResource(Res.string.session_delete_account_failed)
 		AlertDialog(
 			onDismissRequest = { if (!isDeleting) showDeleteDialog = false },
-			title = { Text("Delete Account") },
+			title = { Text(stringResource(Res.string.delete_account)) },
 			text = {
 				Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-					Text(
-						"This will permanently delete your account and all of your " +
-							"personal data. "
-					)
-					Text(
-						"Purchases made through the App Store or Google Play can be " +
-							"restored if you sign in again with the same account.",
-						style = MaterialTheme.typography.bodySmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant
-					)
-					Text(
-						"This action cannot be undone.",
-						fontWeight = FontWeight.Bold,
-						color = MaterialTheme.colorScheme.error
-					)
+					Text(stringResource(Res.string.delete_account_message))
 					Spacer(modifier = Modifier.height(6.dp))
 					TextField(
 						value = deleteConfirmText,
 						onValueChange = { deleteConfirmText = it },
-						label = "Type DELETE to confirm",
+						label = stringResource(Res.string.delete_confirm_hint),
 						singleLine = true
 					)
 				}
 			},
 			confirmButton = {
 				TextButton(
-					enabled = !isDeleting && deleteConfirmText == "DELETE",
+					enabled = !isDeleting && deleteConfirmText == stringResource(Res.string.delete_confirm_word),
 					onClick = {
 						scope.launch {
 							isDeleting = true
@@ -824,12 +837,12 @@ fun ProfileScreen(
 								showDeleteDialog = false
 								onAccountDeleted()
 							} else {
-								deleteError = sessionViewModel.error.value ?: "Could not delete the account."
+								deleteError = sessionViewModel.error.value ?: deleteFailedMessage
 							}
 						}
 					}
 				) {
-					Text(if (isDeleting) "Deleting..." else "Delete")
+					Text(if (isDeleting) stringResource(Res.string.deleting) else stringResource(Res.string.delete))
 				}
 			},
 			dismissButton = {
@@ -837,7 +850,7 @@ fun ProfileScreen(
 					enabled = !isDeleting,
 					onClick = { showDeleteDialog = false }
 				) {
-					Text("Cancel")
+					Text(stringResource(Res.string.cancel))
 				}
 			}
 		)
@@ -920,7 +933,7 @@ fun ProfileHeader(
 			if (url.startsWith("http")) {
 				url
 			} else {
-				"https://api.calm-ed.com$url"
+				"$appBaseUrl$url"
 			}
 		}
 
@@ -958,7 +971,7 @@ fun ProfileHeader(
 
 					ThumbnailImage(
 						url = profileImageUrl,
-						contentDescription = "Profile photo",
+						contentDescription = stringResource(Res.string.profile_photo),
 						modifier = Modifier
 							.fillMaxSize()
 							.clip(CircleShape)

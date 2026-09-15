@@ -17,6 +17,7 @@ import com.calmed.calmedbackend.model.raw.refreshtoken.RefreshTokenTable
 import com.calmed.calmedbackend.model.raw.user.UserTable
 import com.calmed.calmedbackend.model.raw.userexerciseprogress.UserExerciseProgressTable
 import com.calmed.calmedbackend.model.raw.userinfo.tics.UserInfoTicsTable
+import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.raw.userprogram.UserProgramTable
 import com.calmed.calmedbackend.model.setFrom
 import com.zaxxer.hikari.HikariConfig
@@ -26,6 +27,7 @@ import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.koin.ktor.ext.inject
@@ -480,6 +482,23 @@ private fun hikariDataSource(databaseConfig: DatabaseConfig): HikariDataSource {
 
 suspend fun <T> withTransaction(block: suspend () -> T): T {
 	return suspendTransaction { block() }
+}
+
+private class TransactionRollback(val result: AppResult.Failure) : RuntimeException()
+
+suspend fun <T> withResultTransaction(block: suspend () -> AppResult<T>): AppResult<T> {
+	if (TransactionManager.currentOrNull() != null) {
+		return block()
+	}
+	try {
+		return suspendTransaction {
+			val result = block()
+			if (result is AppResult.Failure) throw TransactionRollback(result)
+			result
+		}
+	} catch (e: TransactionRollback) {
+		return e.result
+	}
 }
 
 

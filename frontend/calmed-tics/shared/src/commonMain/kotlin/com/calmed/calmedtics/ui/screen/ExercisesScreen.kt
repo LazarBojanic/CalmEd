@@ -47,6 +47,14 @@ import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.hourglass
 import calmedtics.shared.generated.resources.its_not_yet_time
 import calmedtics.shared.generated.resources.upcoming
+import calmedtics.shared.generated.resources.collapse
+import calmedtics.shared.generated.resources.expand
+import calmedtics.shared.generated.resources.no_image
+import calmedtics.shared.generated.resources.play
+import calmedtics.shared.generated.resources.week_upper
+import calmedtics.shared.generated.resources.week_number
+import calmedtics.shared.generated.resources.duration_min
+import calmedtics.shared.generated.resources.duration_placeholder
 import com.calmed.calmedtics.model.dto.response.ExerciseGroupDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.theme.appBackgroundGradient
@@ -128,8 +136,9 @@ fun ExercisesScreen(
                             ExerciseCard(
                                 exercise = ex,
                                 currentWeek = currentWeek,
-                                snackbarHostState = snackbarHostState,
-                                scope = scope,
+                                onLockedClick = { message ->
+                                    scope.launch { snackbarHostState.showSnackbar(message) }
+                                },
                                 onExerciseClick = onExerciseClick
                             )
                         }
@@ -202,7 +211,11 @@ private fun GroupHeader(
 
             Icon(
                 imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (isExpanded) "Collapse" else "Expand",
+                contentDescription = if (isExpanded) {
+                    stringResource(Res.string.collapse)
+                } else {
+                    stringResource(Res.string.expand)
+                },
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
@@ -214,8 +227,7 @@ private fun GroupHeader(
 private fun ExerciseCard(
     exercise: ProgramExerciseDto,
     currentWeek: Int,
-    snackbarHostState: SnackbarHostState,
-    scope: CoroutineScope,
+    onLockedClick: (String) -> Unit,
     onExerciseClick: (ProgramExerciseDto) -> Unit
 ) {
     val locked = exercise.weekNumber > currentWeek
@@ -226,8 +238,8 @@ private fun ExerciseCard(
         val minutes = totalSeconds / 60
         val seconds = totalSeconds % 60
 
-        "${minutes}:${seconds.toString().padStart(2, '0')} min"
-    } ?: "--:-- min"
+        stringResource(Res.string.duration_min, "$minutes:${seconds.toString().padStart(2, '0')}")
+    } ?: stringResource(Res.string.duration_placeholder)
 
     Card(
         modifier = Modifier
@@ -237,9 +249,7 @@ private fun ExerciseCard(
             .alpha(if (locked) 0.5f else 1f)
             .clickable {
                 if (locked) {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(lockedMessage)
-                    }
+                    onLockedClick(lockedMessage)
                 } else {
                     onExerciseClick(exercise)
                 }
@@ -267,7 +277,7 @@ private fun ExerciseCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No image",
+                        text = stringResource(Res.string.no_image),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -320,7 +330,7 @@ private fun ExerciseCard(
                         .padding(horizontal = 9.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "WEEK ${exercise.weekNumber}",
+                        text = stringResource(Res.string.week_upper, exercise.weekNumber),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
@@ -358,7 +368,7 @@ private fun ExerciseCard(
                     )
 
                     Text(
-                        text = "Week ${exercise.weekNumber}",
+                        text = stringResource(Res.string.week_number, exercise.weekNumber),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.90f)
@@ -381,7 +391,7 @@ private fun ExerciseCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Play",
+                        contentDescription = stringResource(Res.string.play),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(28.dp)
                     )

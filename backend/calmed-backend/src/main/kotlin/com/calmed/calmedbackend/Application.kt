@@ -5,6 +5,7 @@ import com.calmed.calmedbackend.database.configureDatabase
 import com.calmed.calmedbackend.di.configureFrameworks
 import com.calmed.calmedbackend.error.configureStatusPages
 import com.calmed.calmedbackend.http.configureHTTP
+import com.calmed.calmedbackend.requestvalidation.configureRequestValidation
 import com.calmed.calmedbackend.routing.configureRouting
 import com.calmed.calmedbackend.routing.configureStaticRouting
 import com.calmed.calmedbackend.util.configureMonitoring
@@ -22,6 +23,7 @@ suspend fun Application.module() {
 	configureSerialization()
 	configureMonitoring()
 	configureDatabase()
+	configureRequestValidation()
 	configureRouting()
 	configureStaticRouting()
 	configureStatusPages()

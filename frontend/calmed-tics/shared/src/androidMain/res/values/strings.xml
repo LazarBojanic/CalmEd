@@ -1,12 +1,20 @@
 <resources>
- <string name="app_name">CalmEd Tics</string>
     <string name="download_channel_name">Video Downloads</string>
-    <string name="login_title">Login</string>
-    <string name="email_label">Email</string>
-    <string name="password_label">Password</string>
-    <string name="login_button">Login</string>
-    <string name="logging_in">Logging in...</string>
-    <string name="create_account">Create account</string>
-    <string name="use_offline_mode">Use offline mode</string>
-    <string name="forgot_password">Forgot password?</string>
+
+    <!-- Notification channel -->
+    <string name="notification_channel_reminders">Exercise reminders</string>
+    <string name="notification_channel_reminders_description">Morning and evening exercise reminders</string>
+
+    <!-- Reminder notifications -->
+    <string name="reminder_morning_title">Morning exercise</string>
+    <string name="reminder_morning_body">Time for your morning practice.</string>
+    <string name="reminder_evening_title">Evening exercise</string>
+    <string name="reminder_evening_body">Time for your evening practice.</string>
+    <string name="reminder_default_title">Exercise</string>
+    <string name="reminder_default_body">Time for your practice.</string>
+
+    <!-- Developer test reminders -->
+    <string name="reminder_test_title_1">TEST Android 1</string>
+    <string name="reminder_test_title_2">TEST Android 2</string>
+    <string name="reminder_test_body_delay">Should arrive after %1$d seconds</string>
 </resources>

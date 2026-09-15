@@ -19,8 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.continue_with_apple
 import calmedtics.shared.generated.resources.ic_apple_logo
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 
 @Composable
@@ -28,8 +30,9 @@ fun AppleSignInButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    text: String = "Continue with Apple",
+    text: String? = null,
 ) {
+    val label = text ?: stringResource(Res.string.continue_with_apple)
     Button(
         onClick = onClick,
         enabled = enabled,
@@ -59,7 +62,7 @@ fun AppleSignInButton(
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                text = text,
+                text = label,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Medium
             )

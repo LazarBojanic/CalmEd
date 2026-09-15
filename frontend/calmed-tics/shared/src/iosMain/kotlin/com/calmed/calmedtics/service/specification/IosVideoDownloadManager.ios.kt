@@ -24,7 +24,7 @@ private const val OFFLINE_URL_PREFIX = "offline_video_url::"
 private const val OFFLINE_TITLE_PREFIX = "offline_video_title::"
 private const val DOWNLOAD_SESSION_ID = "com.tagware.calmedtics.video.download"
 
-actual object LocalVideoDownloadManager : IVideoDownloadManager {
+class IosVideoDownloadManager : IVideoDownloadManager {
 	private val defaults = NSUserDefaults.standardUserDefaults
     private val pendingTaskIds = mutableMapOf<Long, String>()
 
@@ -85,20 +85,20 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
             delegateQueue = NSOperationQueue.mainQueue()
         )
     }
-	actual override val states: StateFlow<Map<String, VideoDownloadState>>
+	override val states: StateFlow<Map<String, VideoDownloadState>>
 		field = MutableStateFlow<Map<String, VideoDownloadState>>(emptyMap())
-	actual override val downloadedUrls: StateFlow<List<String>>
+	override val downloadedUrls: StateFlow<List<String>>
 		field = MutableStateFlow<List<String>>(emptyList())
 
     private val _events = MutableSharedFlow<DownloadEvent>(extraBufferCapacity = 32)
-    actual override val events: SharedFlow<DownloadEvent>
+    override val events: SharedFlow<DownloadEvent>
         get() = _events
 
 	init {
         refreshDownloaded()
     }
 
-    actual override fun refresh(url: String) {
+    override fun refresh(url: String) {
         val key = downloadKey(url)
         val local = localFileUrl(key)
         val title = defaults.stringForKey(titleKeyFor(key))
@@ -110,7 +110,7 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         states.update { it + (key to state) }
     }
 
-    actual override fun refreshDownloaded() {
+    override fun refreshDownloaded() {
         val allKeys = (defaults.dictionaryRepresentation() as Map<Any?, *>).keys
         val urls = allKeys.mapNotNull { key: Any? ->
             (key as? String)
@@ -123,7 +123,7 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
         downloadedUrls.value = urls
     }
 
-    actual override fun download(url: String, title: String?) {
+    override fun download(url: String, title: String?) {
         val key = downloadKey(url)
         val remote = NSURL(string = url)
         if (localFileUrl(key) != null) {
@@ -154,7 +154,7 @@ actual object LocalVideoDownloadManager : IVideoDownloadManager {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    actual override fun remove(url: String) {
+    override fun remove(url: String) {
         val key = downloadKey(url)
         localFileUrl(key)?.let { localUrl ->
             NSFileManager.defaultManager.removeItemAtURL(localUrl, error = null)

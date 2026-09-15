@@ -3,6 +3,8 @@ package com.calmed.calmedtics.ui.screen
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import calmedtics.shared.generated.resources.*
@@ -13,7 +15,7 @@ import com.calmed.calmedtics.util.PasswordValidationError
 import com.calmed.calmedtics.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun RegisterScreen(
@@ -21,12 +23,12 @@ fun RegisterScreen(
 	onRegisterSuccess: () -> Unit,
 	onGoogleSignIn: () -> Unit,
 	onAppleSignIn: () -> Unit,
-	viewModel: AuthViewModel = koinInject()
+	viewModel: AuthViewModel = koinViewModel()
 ) {
 	val scope = rememberCoroutineScope()
-	val loading by viewModel.loading.collectAsState()
-	val error by viewModel.error.collectAsState()
-	val info by viewModel.info.collectAsState()
+	val loading by viewModel.loading.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val error by viewModel.error.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val info by viewModel.info.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
 	var email by remember { mutableStateOf("") }
 	var username by remember { mutableStateOf("") }
@@ -60,7 +62,7 @@ fun RegisterScreen(
 				email = it
 				emailError = false
 			},
-			label = stringResource(Res.string.email),
+			label = stringResource(Res.string.email_label),
 			singleLine = true,
 			isError = emailError,
 			modifier = Modifier.onFocusChanged { focusState ->
@@ -72,7 +74,7 @@ fun RegisterScreen(
 
 		if (emailError) {
 			Text(
-				text = "Please enter a valid email address.",
+				text = stringResource(Res.string.invalid_email_message),
 				color = MaterialTheme.colorScheme.error
 			)
 		}
@@ -80,7 +82,7 @@ fun RegisterScreen(
 		TextField(
 			value = username,
 			onValueChange = { username = it },
-			label = stringResource(Res.string.username_label),
+			label = stringResource(Res.string.username),
 			singleLine = true,
 		)
 

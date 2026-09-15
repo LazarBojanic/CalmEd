@@ -17,6 +17,7 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.Requirements
 import com.calmed.calmedtics.service.specification.DownloadEvent
 import com.calmed.calmedtics.service.specification.DownloadEventType
+import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadState
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.downloadKey
@@ -33,7 +34,7 @@ import org.json.JSONObject
 class AndroidVideoDownloadManager(
     context: Context,
     private val wifiOnlyProvider: () -> Boolean = { false }
-) {
+) : IVideoDownloadManager {
 
     private val applicationContext = context.applicationContext
 
@@ -43,19 +44,18 @@ class AndroidVideoDownloadManager(
     private val _states =
         MutableStateFlow<Map<String, VideoDownloadState>>(emptyMap())
 
-    val states: StateFlow<Map<String, VideoDownloadState>> = _states
+    override val states: StateFlow<Map<String, VideoDownloadState>> = _states
 
     private val _downloadedUrls =
         MutableStateFlow<List<String>>(emptyList())
 
-    val downloadedUrls: StateFlow<List<String>> = _downloadedUrls
+    override val downloadedUrls: StateFlow<List<String>> = _downloadedUrls
 
     private val _events = MutableSharedFlow<DownloadEvent>(
         extraBufferCapacity = 32
     )
 
-    val events: SharedFlow<DownloadEvent> = _events
-
+    override val events: SharedFlow<DownloadEvent> = _events
     private val progressHandler = Handler(Looper.getMainLooper())
 
     private var progressLoopScheduled = false
@@ -108,7 +108,7 @@ class AndroidVideoDownloadManager(
         ensureProgressLoop()
     }
 
-    fun refresh(url: String) {
+    override fun refresh(url: String) {
         val key = downloadKey(url)
         val download = runCatching {
             manager.downloadIndex.getDownload(downloadId(key))
@@ -134,7 +134,7 @@ class AndroidVideoDownloadManager(
         updateState(download, key)
     }
 
-    fun download(url: String, title: String? = null) {
+    override fun download(url: String, title: String?) {
         applyNetworkRequirements()
 
         val key = downloadKey(url)
@@ -254,7 +254,7 @@ class AndroidVideoDownloadManager(
         )
     }
 
-    fun remove(url: String) {
+    override fun remove(url: String) {
         val key = downloadKey(url)
         DownloadService.sendRemoveDownload(
             applicationContext,
@@ -287,7 +287,7 @@ class AndroidVideoDownloadManager(
         return download.request.toMediaItem()
     }
 
-    fun refreshDownloaded() {
+    override fun refreshDownloaded() {
         synchronizeWithDownloadIndex()
     }
 

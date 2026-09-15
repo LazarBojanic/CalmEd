@@ -1,37 +1,42 @@
 package com.calmed.calmedtics.reminders
 
 import calmedtics.shared.BuildConfig
+import com.calmed.calmedtics.logging.AppLog
+import com.calmed.calmedtics.logging.LogTags
 import com.calmed.calmedtics.settings.AppSettings
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
+import platform.Foundation.NSBundle
 import platform.Foundation.NSDateComponents
-import platform.Foundation.NSLog
 import platform.UserNotifications.*
 
-actual class ReminderManager actual constructor() : KoinComponent {
+class IosReminderManager(
+    private val appSettings: AppSettings,
+) : ReminderManager {
 
     private val center = UNUserNotificationCenter.currentNotificationCenter()
+    private val log = AppLog(LogTags.REMINDERS)
 
-    actual fun enableMorningAndEvening() {
+    private fun localized(key: String): String =
+        NSBundle.mainBundle.localizedStringForKey(key, null, null)
+
+    override fun enableMorningAndEvening() {
         requestPermissionIfNeeded()
         disableMorningAndEvening()
 
         if (BuildConfig.notificationDebug) {
-            NSLog("REMINDERS: scheduling test notifications (10s, 20s)")
+            log.debug("scheduling test notifications (10s, 20s)")
             scheduleAfterSeconds(
                 id = "test_morning_10s",
                 seconds = 10,
-                title = "TEST iOS 1",
-                body = "Should arrive after 10 seconds"
+                title = localized("reminder_test_title_1"),
+                body = localized("reminder_test_body_10s")
             )
             scheduleAfterSeconds(
                 id = "test_evening_20s",
                 seconds = 20,
-                title = "TEST iOS 2",
-                body = "Should arrive after 20 seconds"
+                title = localized("reminder_test_title_2"),
+                body = localized("reminder_test_body_20s")
             )
         } else {
-            val appSettings: AppSettings = get()
             val morningTime = appSettings.getMorningReminderTime().split(":")
             val eveningTime = appSettings.getEveningReminderTime().split(":")
 
@@ -40,33 +45,33 @@ actual class ReminderManager actual constructor() : KoinComponent {
             val eHour = eveningTime.getOrNull(0)?.toIntOrNull() ?: 20
             val eMin = eveningTime.getOrNull(1)?.toIntOrNull() ?: 0
 
-            NSLog("REMINDERS: scheduling daily notifications $mHour:$mMin and $eHour:$eMin")
+            log.debug("scheduling daily notifications $mHour:$mMin and $eHour:$eMin")
             scheduleDaily(
                 id = "morning_reminder",
                 hour = mHour,
                 minute = mMin,
-                title = "Morning exercise",
-                body = "Time for your morning practice."
+                title = localized("reminder_morning_title"),
+                body = localized("reminder_morning_body")
             )
             scheduleDaily(
                 id = "evening_reminder",
                 hour = eHour,
                 minute = eMin,
-                title = "Evening exercise",
-                body = "Time for your evening practice."
+                title = localized("reminder_evening_title"),
+                body = localized("reminder_evening_body")
             )
         }
 
     }
 
-    actual fun disableMorningAndEvening() {
+    override fun disableMorningAndEvening() {
         center.removePendingNotificationRequestsWithIdentifiers(
             listOf("morning_reminder", "evening_reminder", "test_morning_10s", "test_evening_20s")
         )
         center.removeDeliveredNotificationsWithIdentifiers(
             listOf("morning_reminder", "evening_reminder", "test_morning_10s", "test_evening_20s")
         )
-        NSLog("REMINDERS: cleared pending and delivered reminders")
+        log.debug("cleared pending and delivered reminders")
     }
 
     private fun requestPermissionIfNeeded() {
@@ -74,10 +79,10 @@ actual class ReminderManager actual constructor() : KoinComponent {
             options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge
         ) { granted, error ->
             if (error != null) {
-            NSLog("REMINDERS: permission error ${error.localizedDescription ?: "unknown"}")
-        } else {
-            NSLog("REMINDERS: permission granted=${if (granted) "true" else "false"}")
-        }
+                log.warn("permission error ${error.localizedDescription ?: "unknown"}")
+            } else {
+                log.debug("permission granted=${if (granted) "true" else "false"}")
+            }
         }
     }
 
@@ -111,7 +116,7 @@ actual class ReminderManager actual constructor() : KoinComponent {
         )
 
         center.addNotificationRequest(request) { _ -> }
-        NSLog("REMINDERS: scheduled daily id=$id at ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}")
+        log.debug("scheduled daily id=$id at ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}")
     }
     private fun scheduleAfterSeconds(
         id: String,
@@ -137,6 +142,6 @@ actual class ReminderManager actual constructor() : KoinComponent {
         )
 
         center.addNotificationRequest(request) { _ -> }
-        NSLog("REMINDERS: scheduled test id=$id in ${seconds}s")
+        log.debug("scheduled test id=$id in ${seconds}s")
     }
 }

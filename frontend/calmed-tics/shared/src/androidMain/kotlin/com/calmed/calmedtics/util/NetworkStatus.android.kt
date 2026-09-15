@@ -3,9 +3,10 @@ package com.calmed.calmedtics.util
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import com.calmed.calmedtics.di.appContext
+import org.koin.core.context.GlobalContext
 
 actual fun currentNetworkType(): NetworkType {
+    val appContext = GlobalContext.get().get<Context>()
     val connectivityManager =
         appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
             ?: return NetworkType.None

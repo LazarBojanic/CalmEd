@@ -4,14 +4,6 @@ import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 
-private var imagePickerActivityProvider: (() -> ComponentActivity)? = null
-
-fun setImagePickerActivityProvider(
-    provider: () -> ComponentActivity
-) {
-    imagePickerActivityProvider = provider
-}
-
 class AndroidImagePicker(
     private val activity: ComponentActivity
 ) : ImagePicker {
@@ -44,12 +36,4 @@ class AndroidImagePicker(
 
         launcher.launch("image/*")
     }
-}
-
-actual fun createImagePicker(): ImagePicker {
-    val activity =
-        imagePickerActivityProvider?.invoke()
-            ?: error("ImagePicker Activity provider is not set")
-
-    return AndroidImagePicker(activity)
 }

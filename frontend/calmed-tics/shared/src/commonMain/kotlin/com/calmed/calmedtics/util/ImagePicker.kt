@@ -4,4 +4,6 @@ interface ImagePicker {
     fun pickImage(onImageSelected: (ByteArray?) -> Unit)
 }
 
-expect fun createImagePicker(): ImagePicker
+fun interface ImagePickerProvider {
+    fun create(): ImagePicker
+}

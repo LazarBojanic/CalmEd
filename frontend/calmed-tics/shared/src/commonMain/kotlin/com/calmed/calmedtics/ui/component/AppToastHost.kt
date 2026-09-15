@@ -21,7 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -96,7 +97,7 @@ object ToastCenter {
 
 @Composable
 fun AppToastHost(modifier: Modifier = Modifier) {
-    val toasts by ToastCenter.toasts.collectAsState()
+    val toasts by ToastCenter.toasts.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
     Column(
         modifier = modifier

@@ -1,6 +1,5 @@
 package com.calmed.calmedbackend.repository.implementation
 
-import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExercise
 import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseEntity
@@ -8,21 +7,16 @@ import com.calmed.calmedbackend.model.raw.programexercise.ProgramExerciseTable
 import com.calmed.calmedbackend.model.setFrom
 import com.calmed.calmedbackend.model.toRaw
 import com.calmed.calmedbackend.repository.specification.IProgramExerciseRepository
-import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import java.util.UUID
 
 class ProgramExerciseRepository : IProgramExerciseRepository {
-	override suspend fun findAll(): List<ProgramExercise>  {
-		return withTransaction {
-			ProgramExerciseEntity.all().map { it.toRaw() }
-		}
+	override suspend fun findAll(): List<ProgramExercise> {
+		return ProgramExerciseEntity.all().map { it.toRaw() }
 	}
 
 	override suspend fun findById(id: UUID): ProgramExercise? {
-		return withTransaction {
-			ProgramExerciseEntity.findById(id)?.toRaw()
-		}
+		return ProgramExerciseEntity.findById(id)?.toRaw()
 	}
 
 	override suspend fun findWelcomeVideo(): ProgramExercise? {
@@ -33,60 +27,34 @@ class ProgramExerciseRepository : IProgramExerciseRepository {
 	}
 
 	override suspend fun findByWeek(week: Int): List<ProgramExercise> {
-		return withTransaction {
-			ProgramExerciseEntity
-				.find { ProgramExerciseTable.weekNumber eq week }
-				.map { it.toRaw() }
-		}
+		return ProgramExerciseEntity
+			.find { ProgramExerciseTable.weekNumber eq week }
+			.map { it.toRaw() }
 	}
 
 	override suspend fun findByGroup(group: Int): List<ProgramExercise> {
-		return withTransaction {
-			ProgramExerciseEntity
-				.find { ProgramExerciseTable.groupId eq group }
-				.map { it.toRaw() }
-				.sortedBy { it.weekNumber }
-		}
+		return ProgramExerciseEntity
+			.find { ProgramExerciseTable.groupId eq group }
+			.map { it.toRaw() }
+			.sortedBy { it.weekNumber }
 	}
 
 	override suspend fun create(programExercise: ProgramExercise): ProgramExercise? {
-		return withTransaction {
-			val existing = ProgramExerciseEntity.findById(programExercise.id)
-			if (existing == null) {
-				return@withTransaction ProgramExerciseEntity.new(programExercise.id) {
-					setFrom(programExercise, MapMode.CREATE)
-				}.toRaw()
-			}
-			else {
-				return@withTransaction null
-			}
-		}
+		if (ProgramExerciseEntity.findById(programExercise.id) != null) return null
+		return ProgramExerciseEntity.new(programExercise.id) {
+			setFrom(programExercise, MapMode.CREATE)
+		}.toRaw()
 	}
 
 	override suspend fun update(programExercise: ProgramExercise): ProgramExercise? {
-		return withTransaction {
-			val e = ProgramExerciseEntity.findById(programExercise.id)
-			if (e != null) {
-				e.setFrom(programExercise, MapMode.UPDATE)
-				return@withTransaction e.toRaw()
-			}
-			else {
-				return@withTransaction null
-			}
-		}
+		val e = ProgramExerciseEntity.findById(programExercise.id) ?: return null
+		e.setFrom(programExercise, MapMode.UPDATE)
+		return e.toRaw()
 	}
 
-
 	override suspend fun delete(id: UUID): Boolean {
-		return withTransaction {
-			val e = ProgramExerciseEntity.findById(id)
-			if (e != null) {
-				e.delete()
-				return@withTransaction true
-			}
-			else {
-				return@withTransaction false
-			}
-		}
+		val e = ProgramExerciseEntity.findById(id) ?: return false
+		e.delete()
+		return true
 	}
 }

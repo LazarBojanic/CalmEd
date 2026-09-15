@@ -15,7 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
-import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
+import com.calmed.calmedtics.service.specification.IosVideoDownloadManager
+import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.next_exercise
+import calmedtics.shared.generated.resources.previous_exercise
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.useContents
@@ -71,6 +76,7 @@ actual fun VideoPlayer(
     val currentOnControllerVisibilityChanged by rememberUpdatedState(onControllerVisibilityChanged)
 
     val player = remember { AVPlayer() }
+    val videoDownloadManager: IosVideoDownloadManager = koinInject()
     val controller = remember {
         AVPlayerViewController().apply {
             this.player = player
@@ -120,12 +126,12 @@ actual fun VideoPlayer(
     }
 
     LaunchedEffect(hlsUrl) {
-        LocalVideoDownloadManager.refresh(hlsUrl)
+        videoDownloadManager.refresh(hlsUrl)
 
         endToken?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
         endToken = null
 
-        val playback = LocalVideoDownloadManager.playbackUrl(hlsUrl)
+        val playback = videoDownloadManager.playbackUrl(hlsUrl)
         val nsUrl = NSURL(string = playback)
 
 	    val item = AVPlayerItem(uRL = nsUrl)
@@ -282,7 +288,7 @@ actual fun VideoPlayer(
             if (visible && useController && onPrevious != null) {
                 VideoOverlayButton(
                     icon = Icons.Filled.SkipPrevious,
-                    contentDescription = "Previous Exercise",
+                    contentDescription = stringResource(Res.string.previous_exercise),
                     onClick = { onPrevious?.invoke() },
                     modifier = Modifier.padding(start = 8.dp),
                     enabled = canGoPrevious
@@ -298,7 +304,7 @@ actual fun VideoPlayer(
             if (visible && useController && onNext != null) {
                 VideoOverlayButton(
                     icon = Icons.Filled.SkipNext,
-                    contentDescription = "Next Exercise",
+                    contentDescription = stringResource(Res.string.next_exercise),
                     onClick = { onNext?.invoke() },
                     modifier = Modifier.padding(end = 8.dp),
                     enabled = canGoNext

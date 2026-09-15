@@ -55,10 +55,7 @@ fun Route.userRoutes() {
 					}
 
 					is AppResult.Failure -> {
-						call.respond(
-							res.httpStatusCode,
-							res.message
-						)
+						throw BusinessException(res.httpStatusCode, res.message)
 					}
 				}
 			}
@@ -162,10 +159,7 @@ fun Route.userRoutes() {
 					}
 
 					is AppResult.Failure -> {
-						call.respond(
-							result.httpStatusCode,
-							result.message
-						)
+						throw BusinessException(result.httpStatusCode, result.message)
 					}
 				}
 			}
@@ -188,10 +182,7 @@ fun Route.userRoutes() {
 						}
 
 						is AppResult.Failure -> {
-							call.respond(
-								res.httpStatusCode,
-								res.message
-							)
+							throw BusinessException(res.httpStatusCode, res.message)
 						}
 					}
 			} else {
@@ -232,10 +223,7 @@ fun Route.userRoutes() {
 				}
 
 				is AppResult.Failure -> {
-					call.respond(
-						res.httpStatusCode,
-						res.message
-					)
+					throw BusinessException(res.httpStatusCode, res.message)
 				}
 			}
 		}
@@ -270,10 +258,7 @@ fun Route.userRoutes() {
 				}
 
 				is AppResult.Failure -> {
-					call.respond(
-						res.httpStatusCode,
-						res.message
-					)
+					throw BusinessException(res.httpStatusCode, res.message)
 				}
 			}
 		}
@@ -303,10 +288,7 @@ fun Route.userRoutes() {
 					}
 
 					is AppResult.Failure -> {
-						call.respond(
-							res.httpStatusCode,
-							res.message
-						)
+						throw BusinessException(res.httpStatusCode, res.message)
 					}
 				}
 			}

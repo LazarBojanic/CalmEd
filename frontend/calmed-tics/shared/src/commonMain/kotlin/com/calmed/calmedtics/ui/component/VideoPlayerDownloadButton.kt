@@ -8,7 +8,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,7 +21,11 @@ import calmedtics.shared.generated.resources.delete
 import calmedtics.shared.generated.resources.delete_confirm_message
 import calmedtics.shared.generated.resources.delete_confirm_title
 import calmedtics.shared.generated.resources.download_wifi_only_blocked
-import com.calmed.calmedtics.service.specification.LocalVideoDownloadManager
+import calmedtics.shared.generated.resources.download_video
+import calmedtics.shared.generated.resources.downloading_video
+import calmedtics.shared.generated.resources.remove_downloaded_video
+import calmedtics.shared.generated.resources.retry_video_download
+import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
 import com.calmed.calmedtics.settings.AppSettings
@@ -38,7 +43,8 @@ fun VideoPlayerDownloadButton(
     modifier: Modifier = Modifier
 ) {
     val appSettings: AppSettings = koinInject()
-    val states by LocalVideoDownloadManager.states.collectAsState()
+    val videoDownloadManager: IVideoDownloadManager = koinInject()
+    val states by videoDownloadManager.states.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
     val state = states.stateFor(hlsUrl)
     val status = state.status
 
@@ -54,10 +60,10 @@ fun VideoPlayerDownloadButton(
     }
 
     val description = when (status) {
-        VideoDownloadStatus.NotDownloaded -> "Download video"
-        VideoDownloadStatus.Downloading -> "Downloading video"
-        VideoDownloadStatus.Downloaded -> "Remove downloaded video"
-        VideoDownloadStatus.Failed -> "Retry video download"
+        VideoDownloadStatus.NotDownloaded -> stringResource(Res.string.download_video)
+        VideoDownloadStatus.Downloading -> stringResource(Res.string.downloading_video)
+        VideoDownloadStatus.Downloaded -> stringResource(Res.string.remove_downloaded_video)
+        VideoDownloadStatus.Failed -> stringResource(Res.string.retry_video_download)
     }
 
     fun tryDownload() {
@@ -71,7 +77,7 @@ fun VideoPlayerDownloadButton(
 
         val resolved =
             applyMaxResolution(hlsUrl, appSettings.getDownloadResolution())
-        LocalVideoDownloadManager.download(resolved, title)
+        videoDownloadManager.download(resolved, title)
     }
 
     val onClick = {
@@ -111,7 +117,7 @@ fun VideoPlayerDownloadButton(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        LocalVideoDownloadManager.remove(hlsUrl)
+                        videoDownloadManager.remove(hlsUrl)
                         showDeleteConfirm = false
                     }
                 ) {

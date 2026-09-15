@@ -1,20 +1,27 @@
 package com.calmed.calmedtics.reminders
 
-import android.util.Log
+import android.content.Context
 import calmedtics.shared.BuildConfig
+import com.calmed.calmedtics.logging.AppLog
+import com.calmed.calmedtics.logging.LogTags
 import com.calmed.calmedtics.notifications.ReminderScheduler
 import com.calmed.calmedtics.notifications.requestNotificationPermissionIfNeeded
+import com.calmed.calmedtics.settings.AppSettings
 
-actual class ReminderManager actual constructor() {
+class AndroidReminderManager(
+    private val context: Context,
+    private val appSettings: AppSettings,
+) : ReminderManager {
 
-    actual fun enableMorningAndEvening() {
-        val permissionGranted = requestNotificationPermissionIfNeeded(androidAppContext)
-        Log.d("REMINDERS", "enableMorningAndEvening permissionGranted=$permissionGranted debug=${BuildConfig.notificationDebug}")
+    private val log = AppLog(LogTags.REMINDERS)
 
-        val appSettings = org.koin.core.context.GlobalContext.get().get<com.calmed.calmedtics.settings.AppSettings>()
+    override fun enableMorningAndEvening() {
+        val permissionGranted = requestNotificationPermissionIfNeeded(context)
+        log.debug("enableMorningAndEvening permissionGranted=$permissionGranted debug=${BuildConfig.notificationDebug}")
+
         val morningTime = appSettings.getMorningReminderTime().split(":")
         val eveningTime = appSettings.getEveningReminderTime().split(":")
-        
+
         val mHour = morningTime.getOrNull(0)?.toIntOrNull() ?: 9
         val mMin = morningTime.getOrNull(1)?.toIntOrNull() ?: 0
         val eHour = eveningTime.getOrNull(0)?.toIntOrNull() ?: 20
@@ -22,11 +29,11 @@ actual class ReminderManager actual constructor() {
 
         if (BuildConfig.notificationDebug) {
             ReminderScheduler.scheduleTestReminders(
-                context = androidAppContext
+                context = context
             )
         } else {
             ReminderScheduler.scheduleMorningAndEvening(
-                context = androidAppContext,
+                context = context,
                 morningHour = mHour,
                 morningMinute = mMin,
                 eveningHour = eHour,
@@ -35,9 +42,7 @@ actual class ReminderManager actual constructor() {
         }
     }
 
-    actual fun disableMorningAndEvening() {
-        ReminderScheduler.cancelMorningAndEvening(androidAppContext)
+    override fun disableMorningAndEvening() {
+        ReminderScheduler.cancelMorningAndEvening(context)
     }
-
-
 }

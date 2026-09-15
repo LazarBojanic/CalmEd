@@ -1,6 +1,5 @@
 package com.calmed.calmedbackend.repository.implementation
 
-import com.calmed.calmedbackend.database.withTransaction
 import com.calmed.calmedbackend.model.MapMode
 import com.calmed.calmedbackend.model.raw.user.User
 import com.calmed.calmedbackend.model.raw.user.UserEntity
@@ -15,106 +14,50 @@ import java.util.UUID
 class UserRepository : IUserRepository {
 
 	override suspend fun findAll(): List<User> {
-		return withTransaction {
-			UserEntity.all().map { it.toRaw() }
-		}
+		return UserEntity.all().map { it.toRaw() }
 	}
 
 	override suspend fun findById(id: UUID): User? {
-		return withTransaction {
-			val e = UserEntity.findById(id)
-			if (e != null) {
-				return@withTransaction e.toRaw()
-			}
-			else {
-				return@withTransaction null
-			}
-		}
+		return UserEntity.findById(id)?.toRaw()
 	}
 
 	override suspend fun findByEmail(email: String): User? {
-		return withTransaction {
-			val e = UserEntity
-				.find { UserTable.email eq email }
-				.firstOrNull()
-
-			if (e != null) {
-				return@withTransaction e.toRaw()
-			}
-			else {
-				return@withTransaction null
-			}
-		}
+		return UserEntity
+			.find { UserTable.email eq email }
+			.firstOrNull()
+			?.toRaw()
 	}
 
 	override suspend fun create(user: User): User? {
-		return withTransaction {
-			val existing = UserEntity.findById(user.id)
-			if (existing == null) {
-				return@withTransaction UserEntity.new(user.id) {
-					setFrom(user, MapMode.CREATE)
-				}.toRaw()
-			}
-			else {
-				return@withTransaction null
-			}
-		}
+		if (UserEntity.findById(user.id) != null) return null
+		return UserEntity.new(user.id) {
+			setFrom(user, MapMode.CREATE)
+		}.toRaw()
 	}
 
 	override suspend fun update(user: User): User? {
-		return withTransaction {
-			val e = UserEntity.findById(user.id)
-			if (e != null) {
-				e.setFrom(user, MapMode.UPDATE)
-				return@withTransaction e.toRaw()
-			}
-			else {
-				return@withTransaction null
-			}
-		}
+		val e = UserEntity.findById(user.id) ?: return null
+		e.setFrom(user, MapMode.UPDATE)
+		return e.toRaw()
 	}
 
 	override suspend fun delete(id: UUID): Boolean {
-		return withTransaction {
-			val e = UserEntity.findById(id)
-			if (e != null) {
-				e.delete()
-				return@withTransaction true
-			}
-			else {
-				return@withTransaction false
-			}
-		}
+		val e = UserEntity.findById(id) ?: return false
+		e.delete()
+		return true
 	}
 
-	override suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean
-	): User? {
-		return withTransaction {
-			val e = UserEntity.findById(id)
-			if(e != null) {
-				e.isOnboarded = isOnboarded
-				e.updatedAt = Instant.now()
-				return@withTransaction e.toRaw()
-			}
-			else{
-				return@withTransaction null
-			}
-		}
+	override suspend fun setIsOnboarded(id: UUID, isOnboarded: Boolean): User? {
+		val e = UserEntity.findById(id) ?: return null
+		e.isOnboarded = isOnboarded
+		e.updatedAt = Instant.now()
+		return e.toRaw()
 	}
 
-	override suspend fun setConfirmOverEighteen(id: UUID, confirmOverEighteen: Boolean
-	): User? {
-		return withTransaction {
-			val e = UserEntity.findById(id)
-			if(e != null) {
-				e.confirmOverEighteen = confirmOverEighteen
-				e.updatedAt = Instant.now()
-				return@withTransaction e.toRaw()
-			}
-			else{
-				return@withTransaction null
-			}
-		}
+	override suspend fun setConfirmOverEighteen(id: UUID, confirmOverEighteen: Boolean): User? {
+		val e = UserEntity.findById(id) ?: return null
+		e.confirmOverEighteen = confirmOverEighteen
+		e.updatedAt = Instant.now()
+		return e.toRaw()
 	}
-
 }

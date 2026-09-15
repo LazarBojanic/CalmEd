@@ -13,13 +13,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import calmedtics.shared.generated.resources.Res
+import calmedtics.shared.generated.resources.back
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BackButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    contentDescription: String? = "Back"
+    contentDescription: String? = null
 ) {
+    val description = contentDescription ?: stringResource(Res.string.back)
     Surface(
         onClick = onClick,
         modifier = modifier.size(42.dp),
@@ -36,7 +40,7 @@ fun BackButton(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = contentDescription,
+                contentDescription = description,
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp)
             )

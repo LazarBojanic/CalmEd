@@ -7,15 +7,15 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okio.ByteString.Companion.decodeBase64
 
-fun jwtDecode(token: String): JsonObject {
-	val payload = token.split(".")[1]
-	val decoded = payload.decodeBase64()!!.utf8()
-	return Json.parseToJsonElement(decoded).jsonObject
+fun jwtDecode(token: String): JsonObject? {
+	val payload = token.split(".").getOrNull(1) ?: return null
+	val decoded = payload.decodeBase64()?.utf8() ?: return null
+	return runCatching { Json.parseToJsonElement(decoded).jsonObject }.getOrNull()
 }
 
 suspend fun ITokenDataStore.currentUserId(): String? {
 	val access = getToken()?.access ?: return null
-	val payload = jwtDecode(access)
+	val payload = jwtDecode(access) ?: return null
 	return payload["sub"]?.jsonPrimitive?.content
 }
 

@@ -1,6 +1,6 @@
 package com.calmed.calmedtics
 
-import com.calmed.calmedtics.di.settingsModule
+import com.calmed.calmedtics.di.appSettingsModule
 import com.calmed.calmedtics.http.AppApi
 import com.calmed.calmedtics.http.AppHttpClient
 import com.calmed.calmedtics.http.IAppApi
@@ -27,7 +27,7 @@ fun commonModule(baseUrl: String, development: Boolean) = module {
     single { HomeRepository(api = get()) }
     single { ExercisesRepository(get(), get(), get()) }
     single<IAuthService> { AuthService(get(), get()) }
-    factory { AuthViewModel(get()) }
+    viewModel { AuthViewModel(get()) }
     viewModel { SessionViewModel(get(), get(), get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get(), get()) }
     viewModel { ExercisesViewModel(get()) }
@@ -35,6 +35,6 @@ fun commonModule(baseUrl: String, development: Boolean) = module {
 
 fun initKoin(baseUrl: String, development: Boolean, vararg platformModules: Module) {
     startKoin {
-        modules(listOf(commonModule(baseUrl, development),settingsModule) + platformModules)
+        modules(listOf(commonModule(baseUrl, development),appSettingsModule) + platformModules)
     }
 }

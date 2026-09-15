@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory
 import java.util.UUID
 import com.calmed.calmedbackend.model.dto.request.CapturePayPalOrderDto
 
-private val paymentLogger = LoggerFactory.getLogger("PaymentRoutes")
+private val paymentLogger = LoggerFactory.getLogger("com.calmed.calmedbackend.routing.PaymentRoutes")
 
 fun Route.paymentRoutes() {
     val paymentService by inject<IPaymentService>()
@@ -43,7 +43,7 @@ fun Route.paymentRoutes() {
                 }
                 is AppResult.Failure -> {
                     paymentLogger.warn("Stripe webhook processing failed: {}", res.message)
-                    call.respond(res.httpStatusCode, res.message)
+                    throw BusinessException(res.httpStatusCode, res.message)
                 }
             }
         }
@@ -57,7 +57,7 @@ fun Route.paymentRoutes() {
                 val userId = UUID.fromString(jwt.subject)
                 when (val status = paymentService.paymentStatus(userId)) {
                     is AppResult.Success -> call.respond(HttpStatusCode.OK, status.data)
-                    is AppResult.Failure -> call.respond(status.httpStatusCode, status.message)
+                    is AppResult.Failure -> throw BusinessException(status.httpStatusCode, status.message)
                 }
             }
 
@@ -70,7 +70,7 @@ fun Route.paymentRoutes() {
                 val dto = call.receive<CreateCheckoutSessionDto>()
                 when (val res = paymentService.createCheckoutSession(userId, dto)) {
                     is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
-                    is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+                    is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
                 }
             }
             post("/paypal/create-order") {
@@ -83,7 +83,7 @@ fun Route.paymentRoutes() {
 
                 when (val res = paymentService.createPayPalOrder(userId)) {
                     is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
-                    is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+                    is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
                 }
             }
 
@@ -98,7 +98,7 @@ fun Route.paymentRoutes() {
 
                 when (val res = paymentService.capturePayPalOrder(userId, dto)) {
                     is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
-                    is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+                    is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
                 }
             }
 
@@ -111,7 +111,7 @@ fun Route.paymentRoutes() {
                 val dto = call.receive<VerifyAppleReceiptDto>()
                 when (val res = paymentService.verifyApplePurchase(userId, dto)) {
                     is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
-                    is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+                    is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
                 }
             }
 
@@ -124,7 +124,7 @@ fun Route.paymentRoutes() {
                 val dto = call.receive<VerifyGoogleReceiptDto>()
                 when (val res = paymentService.verifyGooglePurchase(userId, dto)) {
                     is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
-                    is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+                    is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
                 }
             }
 
@@ -139,7 +139,7 @@ fun Route.paymentRoutes() {
                 
                 when (val res = paymentService.verifyStripeSession(userId, sessionId)) {
                     is AppResult.Success -> call.respond(HttpStatusCode.OK, res.data)
-                    is AppResult.Failure -> call.respond(res.httpStatusCode, res.message)
+                    is AppResult.Failure -> throw BusinessException(res.httpStatusCode, res.message)
                 }
             }
         }

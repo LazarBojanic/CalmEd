@@ -86,9 +86,6 @@ fun Route.authRoutes() {
 		post {
 			val dto = call.receive<GoogleLoginDto>()
 
-			if (dto.idToken.isBlank()) {
-				throw BusinessException(HttpStatusCode.BadRequest, "Missing idToken")
-			}
 			val result = authService.loginWithGoogle(dto.idToken)
 
 			when (result) {
@@ -102,9 +99,6 @@ fun Route.authRoutes() {
 		post {
 			val dto = call.receive<AppleLoginDto>()
 
-			if (dto.identityToken.isBlank()) {
-				throw BusinessException(HttpStatusCode.BadRequest, "Missing identityToken")
-			}
 			val result: AppResult<TokenPairDto> = authService.loginWithApple(dto.identityToken)
 
 			when (result) {

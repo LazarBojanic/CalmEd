@@ -1,7 +1,6 @@
 package com.calmed.calmedtics.reminders
 
-expect class ReminderManager() {
+interface ReminderManager {
     fun enableMorningAndEvening()
     fun disableMorningAndEvening()
-
 }

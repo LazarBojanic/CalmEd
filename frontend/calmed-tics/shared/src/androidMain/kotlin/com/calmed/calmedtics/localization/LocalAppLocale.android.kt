@@ -3,6 +3,7 @@ package com.calmed.calmedtics.localization
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidedValue
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -24,11 +25,13 @@ actual object LocalAppLocale {
         } else {
             Locale.forLanguageTag(value)
         }
-        Locale.setDefault(newLocale)
         configuration.setLocale(newLocale)
 
         val resources = LocalContext.current.resources
-        resources.updateConfiguration(configuration, resources.displayMetrics)
+        SideEffect {
+            Locale.setDefault(newLocale)
+            resources.updateConfiguration(configuration, resources.displayMetrics)
+        }
 
         return LocalAppLocaleState.provides(newLocale.toLanguageTag())
     }

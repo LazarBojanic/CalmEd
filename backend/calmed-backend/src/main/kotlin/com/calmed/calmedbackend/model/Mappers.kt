@@ -393,6 +393,7 @@ fun ProgramExerciseEntity.setFrom(d: ProgramExercise, mapMode: MapMode) {
 	playbackId = d.playbackId
 	previewPlaybackId = d.previewPlaybackId
 	thumbnailURL = d.thumbnailURL
+	durationSeconds = d.durationSeconds
 	visibility = d.visibility
 	when (mapMode) {
 		MapMode.CREATE -> {

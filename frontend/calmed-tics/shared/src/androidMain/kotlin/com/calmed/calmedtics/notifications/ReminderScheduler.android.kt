@@ -4,8 +4,12 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import com.calmed.calmedtics.logging.AppLog
+import com.calmed.calmedtics.logging.LogTags
+import com.calmed.calmedtics.shared.R
 import java.util.Calendar
+
+private val log = AppLog(LogTags.REMINDERS)
 
 object ReminderScheduler {
 
@@ -51,8 +55,7 @@ object ReminderScheduler {
             cal.timeInMillis,
             pendingIntent
         )
-        Log.d(
-            "REMINDERS",
+        log.debug(
             "Scheduled daily id=$notificationId at ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
         )
     }
@@ -69,8 +72,8 @@ object ReminderScheduler {
             hour = morningHour,
             minute = morningMinute,
             notificationId = 4001,
-            title = "Morning exercise",
-            text = "Time for your morning practice."
+            title = context.getString(R.string.reminder_morning_title),
+            text = context.getString(R.string.reminder_morning_body)
         )
 
         scheduleReminder(
@@ -78,8 +81,8 @@ object ReminderScheduler {
             hour = eveningHour,
             minute = eveningMinute,
             notificationId = 4002,
-            title = "Evening exercise",
-            text = "Time for your evening practice."
+            title = context.getString(R.string.reminder_evening_title),
+            text = context.getString(R.string.reminder_evening_body)
         )
     }
 
@@ -92,18 +95,18 @@ object ReminderScheduler {
             context = context,
             seconds = firstDelaySeconds,
             notificationId = 4101,
-            title = "TEST Android 1",
-            text = "Should arrive after $firstDelaySeconds seconds"
+            title = context.getString(R.string.reminder_test_title_1),
+            text = context.getString(R.string.reminder_test_body_delay, firstDelaySeconds)
         )
 
         scheduleReminderAfterSeconds(
             context = context,
             seconds = secondDelaySeconds,
             notificationId = 4102,
-            title = "TEST Android 2",
-            text = "Should arrive after $secondDelaySeconds seconds"
+            title = context.getString(R.string.reminder_test_title_2),
+            text = context.getString(R.string.reminder_test_body_delay, secondDelaySeconds)
         )
-        Log.d("REMINDERS", "Scheduled test reminders after ${firstDelaySeconds}s and ${secondDelaySeconds}s")
+        log.debug("Scheduled test reminders after ${firstDelaySeconds}s and ${secondDelaySeconds}s")
     }
 
     fun cancelReminder(context: Context, notificationId: Int) {
@@ -155,6 +158,6 @@ object ReminderScheduler {
             triggerAtMillis,
             pendingIntent
         )
-        Log.d("REMINDERS", "Scheduled test id=$notificationId in ${seconds}s")
+        log.debug("Scheduled test id=$notificationId in ${seconds}s")
     }
 }

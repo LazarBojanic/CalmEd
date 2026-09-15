@@ -15,7 +15,7 @@ import calmedtics.shared.generated.resources.age_confirmation_subtitle
 import calmedtics.shared.generated.resources.age_confirmation_title
 import calmedtics.shared.generated.resources.confirm_over_eighteen
 import calmedtics.shared.generated.resources.not_over_eighteen
-import calmedtics.shared.generated.resources.res_continue
+import calmedtics.shared.generated.resources.continue_button
 import com.calmed.calmedtics.ui.component.AuthScaffold
 import com.calmed.calmedtics.ui.component.CheckboxWithLabel
 import com.calmed.calmedtics.ui.component.PrimaryButton
@@ -45,7 +45,7 @@ fun AgeConfirmScreen(
 		)
 
 		PrimaryButton(
-			text = stringResource(Res.string.res_continue),
+			text = stringResource(Res.string.continue_button),
 			onClick = onConfirm,
 			enabled = confirmed && !loading,
 		)

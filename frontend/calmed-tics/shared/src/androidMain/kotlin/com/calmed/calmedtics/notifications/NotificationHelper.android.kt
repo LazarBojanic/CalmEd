@@ -6,11 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import android.annotation.SuppressLint
+import com.calmed.calmedtics.logging.AppLog
+import com.calmed.calmedtics.logging.LogTags
+
+private val log = AppLog(LogTags.NOTIFICATIONS)
 
 object NotificationHelper {
 
@@ -35,8 +38,7 @@ object NotificationHelper {
             }
 
         if (launchIntent == null) {
-            Log.e(
-                "NOTIFICATIONS",
+            log.error(
                 "Could not create launch intent for package ${context.packageName}"
             )
             return
@@ -72,8 +74,7 @@ object NotificationHelper {
             ) == PackageManager.PERMISSION_GRANTED
 
             if (!granted) {
-                Log.w(
-                    "NOTIFICATIONS",
+                log.warn(
                     "POST_NOTIFICATIONS not granted; dropping notification id=$notificationId"
                 )
                 return
@@ -84,8 +85,7 @@ object NotificationHelper {
             .from(context)
             .notify(notificationId, notification)
 
-        Log.d(
-            "NOTIFICATIONS",
+        log.debug(
             "Notification shown id=$notificationId title=$title"
         )
     }

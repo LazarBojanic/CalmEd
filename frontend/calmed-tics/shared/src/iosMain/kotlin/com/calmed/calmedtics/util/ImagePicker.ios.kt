@@ -94,5 +94,3 @@ private fun NSData.toByteArray(): ByteArray {
         }
     }
 }
-
-actual fun createImagePicker(): ImagePicker = IosImagePicker()
