@@ -2,7 +2,8 @@ import Foundation
 import MuxPlayerSwift
 import Shared
 
-final class MuxOfflineDownloadBridge: NSObject, IosOfflineDownloadBridge {
+@MainActor
+final class MuxOfflineDownloadBridge: NSObject, @preconcurrency IosOfflineDownloadBridge {
 
     private weak var listener: IosOfflineDownloadListener?
     private var tasks: [String: Task<Void, Never>] = [:]
@@ -71,7 +72,6 @@ final class MuxOfflineDownloadBridge: NSObject, IosOfflineDownloadBridge {
         }
     }
 
-    @MainActor
     private func publishDownloadedAssets() async {
         let assets = await MuxOfflineAccessManager.shared.allDownloadedAssets()
         for asset in assets {
@@ -92,13 +92,6 @@ final class MuxOfflineDownloadBridge: NSObject, IosOfflineDownloadBridge {
                     title: title
                 )
             case .redownloadWhenOnline:
-                listener?.onDownloadState(
-                    playbackId: asset.playbackID,
-                    status: "Failed",
-                    progress: -1,
-                    title: title
-                )
-            default:
                 listener?.onDownloadState(
                     playbackId: asset.playbackID,
                     status: "Failed",

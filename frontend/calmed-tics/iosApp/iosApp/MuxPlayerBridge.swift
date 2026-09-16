@@ -4,7 +4,8 @@ import MuxPlayerSwift
 import Shared
 import UIKit
 
-final class MuxPlayerBridge: NSObject, IosVideoPlayerBridge {
+@MainActor
+final class MuxPlayerBridge: NSObject, @preconcurrency IosVideoPlayerBridge {
 
     func createController(
         items: [VideoItem],
@@ -13,17 +14,15 @@ final class MuxPlayerBridge: NSObject, IosVideoPlayerBridge {
         muted: Bool,
         listener: IosVideoPlayerListener
     ) -> UIViewController {
-        MainActor.assumeIsolated {
-            let controller = MuxPlayerViewController()
-            controller.load(
-                items: items,
-                startIndex: Int(startIndex),
-                quality: quality,
-                muted: muted,
-                listener: listener
-            )
-            return controller
-        }
+        let controller = MuxPlayerViewController()
+        controller.load(
+            items: items,
+            startIndex: Int(startIndex),
+            quality: quality,
+            muted: muted,
+            listener: listener
+        )
+        return controller
     }
 
     func update(
@@ -33,20 +32,16 @@ final class MuxPlayerBridge: NSObject, IosVideoPlayerBridge {
         quality: VideoQuality,
         muted: Bool
     ) {
-        MainActor.assumeIsolated {
-            (controller as? MuxPlayerViewController)?.update(
-                items: items,
-                startIndex: Int(startIndex),
-                quality: quality,
-                muted: muted
-            )
-        }
+        (controller as? MuxPlayerViewController)?.update(
+            items: items,
+            startIndex: Int(startIndex),
+            quality: quality,
+            muted: muted
+        )
     }
 
     func releaseController(controller: UIViewController) {
-        MainActor.assumeIsolated {
-            (controller as? MuxPlayerViewController)?.teardown()
-        }
+        (controller as? MuxPlayerViewController)?.teardown()
     }
 }
 
