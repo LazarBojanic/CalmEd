@@ -63,7 +63,8 @@ kotlin{
 			implementation(libs.androidxLifecycleViewModelSavedState)
 			implementation(libs.androidxLifecycleViewmodelCompose)
 			implementation(libs.androidxLifecycleRuntimeCompose)
-			implementation(libs.androidxNavigationCompose)
+			implementation(libs.jetbrainsNavigation3Ui)
+			implementation(libs.jetbrainsLifecycleViewmodelNavigation3)
 			implementation(libs.androidxDatastore)
 			implementation(libs.androidxDatastorePreferences)
 
@@ -71,6 +72,7 @@ kotlin{
 			api(libs.koinAnnotations)
 			implementation(libs.koinCompose)
 			implementation(libs.koinComposeViewModel)
+			implementation(libs.koinComposeNavigation3)
 
 			implementation(libs.roomRuntime)
 			implementation(libs.sqliteBundled)

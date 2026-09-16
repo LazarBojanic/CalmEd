@@ -1,6 +1,10 @@
 package com.calmed.calmedtics.ui.screen
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -28,6 +32,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +42,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +72,7 @@ import com.calmed.calmedtics.ui.component.VideoOverlayButton
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
 import com.calmed.calmedtics.video.VideoQuality
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -120,6 +128,21 @@ fun VideoScreen(
 	}
 	var isFullscreen by remember { mutableStateOf(false) }
 	var showQualityPicker by remember { mutableStateOf(false) }
+	var isPlaying by remember { mutableStateOf(false) }
+	var controlsVisible by remember { mutableStateOf(true) }
+	var interactionNonce by remember { mutableStateOf(0) }
+
+	fun revealControls() {
+		controlsVisible = true
+		interactionNonce++
+	}
+
+	LaunchedEffect(controlsVisible, interactionNonce, isPlaying) {
+		if (controlsVisible && isPlaying) {
+			delay(3_000)
+			controlsVisible = false
+		}
+	}
 
 	val items = remember(playable) {
 		playable.map { exercise ->
@@ -147,6 +170,7 @@ fun VideoScreen(
 				.then(if (expanded) Modifier else Modifier.statusBarsPadding()),
 			horizontalAlignment = Alignment.CenterHorizontally,
 		) {
+			val playerShape = RoundedCornerShape(20.dp)
 			Box(
 				modifier = if (expanded) {
 					Modifier.fillMaxSize()
@@ -156,7 +180,10 @@ fun VideoScreen(
 						.padding(horizontal = 12.dp)
 						.padding(top = 56.dp)
 						.height(340.dp)
+						.shadow(elevation = 12.dp, shape = playerShape, clip = false)
+						.clip(playerShape)
 						.background(Color.Black)
+						.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.20f), playerShape)
 				},
 			) {
 				VideoPlayer(
@@ -172,18 +199,36 @@ fun VideoScreen(
 							currentIndex = index
 						}
 					},
+					onControlsVisibilityChanged = { visible ->
+						if (visible) {
+							revealControls()
+						} else if (isPlaying) {
+							controlsVisible = false
+						}
+					},
+					onIsPlayingChanged = { playing ->
+						isPlaying = playing
+						if (!playing) revealControls()
+					},
 				)
 
-				PlayerOverlayControls(
-					exercise = current,
-					quality = quality,
-					muted = muted,
-					onToggleMute = { muted = !muted },
-					onShowQualityPicker = { showQualityPicker = true },
+				androidx.compose.animation.AnimatedVisibility(
+					visible = controlsVisible,
+					enter = fadeIn(),
+					exit = fadeOut(),
 					modifier = Modifier
 						.align(Alignment.TopEnd)
 						.padding(8.dp),
-				)
+				) {
+					PlayerOverlayControls(
+						exercise = current,
+						quality = quality,
+						muted = muted,
+						onToggleMute = { muted = !muted },
+						onShowQualityPicker = { showQualityPicker = true },
+						onInteraction = { revealControls() },
+					)
+				}
 			}
 
 			if (!expanded) {
@@ -233,13 +278,15 @@ fun VideoScreen(
 			}
 		}
 
-		BackButton(
-			onClick = onBack,
-			modifier = Modifier
-				.align(Alignment.TopStart)
-				.statusBarsPadding()
-				.padding(start = 16.dp, top = 8.dp),
-		)
+		if (!expanded) {
+			BackButton(
+				onClick = onBack,
+				modifier = Modifier
+					.align(Alignment.TopStart)
+					.statusBarsPadding()
+					.padding(start = 16.dp, top = 8.dp),
+			)
+		}
 
 		AppToastHost(
 			modifier = Modifier
@@ -303,9 +350,17 @@ private fun PlayerOverlayControls(
 	onToggleMute: () -> Unit,
 	onShowQualityPicker: () -> Unit,
 	modifier: Modifier = Modifier,
+	onInteraction: () -> Unit = {},
 ) {
 	Column(
-		modifier = modifier,
+		modifier = modifier.pointerInput(Unit) {
+			awaitPointerEventScope {
+				while (true) {
+					awaitFirstDown(requireUnconsumed = false)
+					onInteraction()
+				}
+			}
+		},
 		verticalArrangement = Arrangement.spacedBy(4.dp),
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {

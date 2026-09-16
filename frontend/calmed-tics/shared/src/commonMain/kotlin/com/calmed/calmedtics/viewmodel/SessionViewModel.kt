@@ -3,18 +3,14 @@ package com.calmed.calmedtics.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.calmed.calmedtics.http.IAppApi
-import com.calmed.calmedtics.model.dto.request.SetIsOnboardedDto
-import com.calmed.calmedtics.model.dto.request.SetConfirmOverEighteenDto
 import com.calmed.calmedtics.model.dto.request.UserInfoTicsUpdateDto
 import com.calmed.calmedtics.model.dto.response.UserDto
 import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
-import com.calmed.calmedtics.model.toEntity
-import com.calmed.calmedtics.model.toJoined
-import com.calmed.calmedtics.repository.IUserDao
-import com.calmed.calmedtics.repository.IUserInfoTicsDao
-import com.calmed.calmedtics.service.specification.IAuthService
-import com.calmed.calmedtics.store.ITokenDataStore
+import com.calmed.calmedtics.repository.SessionException
+import com.calmed.calmedtics.repository.SessionFailure
+import com.calmed.calmedtics.repository.SessionRepository
+import com.calmed.calmedtics.settings.AppSettings
 import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.session_missing_user_id
 import calmedtics.shared.generated.resources.session_load_user_failed
@@ -31,21 +27,16 @@ import calmedtics.shared.generated.resources.session_profile_image_upload_failed
 import calmedtics.shared.generated.resources.session_onboarding_failed
 import calmedtics.shared.generated.resources.session_delete_account_failed
 import org.jetbrains.compose.resources.getString
-import com.calmed.calmedtics.util.currentUserId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class SessionViewModel(
+	private val repository: SessionRepository,
 	private val api: IAppApi,
-	private val tokenStore: ITokenDataStore,
-	private val authService: IAuthService,
-	private val userDao: IUserDao,
-	private val userInfoDao: IUserInfoTicsDao,
+	private val appSettings: AppSettings,
 ) : ViewModel() {
 
 	private val _loading = MutableStateFlow(false)
@@ -55,273 +46,153 @@ class SessionViewModel(
 	val error: StateFlow<String?> = _error
 
 	val user: StateFlow<UserJoined?> =
-		userDao.findFirst().map { it?.toJoined() }
-			.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+		repository.user.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-	val userInfo: StateFlow<UserInfoTicsJoined?> = combine(
-		userDao.findFirst(),
-		userInfoDao.findFirst()
-	) { uEntity, uiEntity ->
-		if (uEntity == null || uiEntity == null) return@combine null
-		if (uiEntity.userId != uEntity.id) return@combine null
-		uiEntity.toJoined(uEntity.toJoined())
-	}.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+	val userInfo: StateFlow<UserInfoTicsJoined?> =
+		repository.userInfo.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-	private suspend fun clearLocal() {
-		userInfoDao.clearAll()
-		userDao.clearAll()
+	private var welcomeHandledUserId: String? = null
+	private var courseOverviewHandledUserId: String? = null
+
+	suspend fun resolveRouting(): SessionRouting? {
+		val remoteUser = loadSession() ?: return null
+		return SessionRouting(
+			confirmOverEighteen = remoteUser.confirmOverEighteen,
+			isOnboarded = remoteUser.isOnboarded,
+			isPaid = api.getPaymentStatus()?.hasAccess ?: false,
+			shouldShowWelcomeVideo =
+				appSettings.getShowWelcomeVideo(remoteUser.id) &&
+					welcomeHandledUserId != remoteUser.id,
+			shouldShowCourseOverview =
+				appSettings.getShowCourseOverview(remoteUser.id) &&
+					courseOverviewHandledUserId != remoteUser.id,
+		)
 	}
 
-	private suspend fun cacheUserDto(u: UserDto) {
-		userDao.upsert(u.toEntity())
+	fun onWelcomeHandled(userId: String?) {
+		welcomeHandledUserId = userId
 	}
 
-	private suspend fun cacheUserInfoDto(ui: com.calmed.calmedtics.model.dto.response.UserInfoTicsDto) {
-		userInfoDao.upsert(ui.toEntity())
+	fun onCourseOverviewHandled(userId: String?) {
+		courseOverviewHandledUserId = userId
 	}
 
-	suspend fun loadSession(): UserDto? {
-		_error.value = null
-		_loading.value = true
-		return try {
-			val userId = tokenStore.currentUserId()
-			if (userId == null) {
-				clearLocal()
-				_error.value = getString(Res.string.session_missing_user_id)
-				return null
+	fun resetRoutingFlags() {
+		welcomeHandledUserId = null
+		courseOverviewHandledUserId = null
+	}
+
+	suspend fun loadSession(): UserDto? = runSession(
+		onFailure = { failure ->
+			when (failure) {
+				SessionFailure.MissingUserId -> getString(Res.string.session_missing_user_id)
+				SessionFailure.UserNotFound -> getString(Res.string.session_load_user_failed)
+				else -> getString(Res.string.session_load_failed)
 			}
-
-			userDao.deleteAllExcept(userId)
-			userInfoDao.deleteAllExcept(userId)
-
-			val remoteUser = api.getUser(userId)
-			if (remoteUser == null) {
-				clearLocal()
-				_error.value = getString(Res.string.session_load_user_failed)
-				return null
-			}
-			cacheUserDto(remoteUser)
-
-			val remoteInfo = api.getUserInfoTicsByUserId(userId)
-			if (remoteInfo != null) {
-				cacheUserDto(remoteInfo.user)
-				cacheUserInfoDto(remoteInfo)
-			} else {
-				userInfoDao.clearAll()
-			}
-			remoteUser
-		} catch (t: CancellationException) {
-			throw t
-		} catch (t: Throwable) {
-			_error.value = t.message ?: getString(Res.string.session_load_failed)
-			null
-		} finally {
-			_loading.value = false
-		}
+		},
+		onThrowable = { it.message ?: getString(Res.string.session_load_failed) },
+	) {
+		repository.loadSession()
 	}
 
-	suspend fun skipOnboarding(): Boolean {
-		_error.value = null
-		_loading.value = true
-		return try {
-			val userId = tokenStore.currentUserId()
-			if (userId == null) {
-				_error.value = getString(Res.string.session_missing_user_id)
-				false
-			} else {
-				val updatedUser = api.setOnboarded(
-					userId,
-					SetIsOnboardedDto(isOnboarded = true)
-				)
-				if (updatedUser == null) {
-					_error.value = getString(Res.string.session_onboard_failed)
-					false
-				} else {
-					cacheUserDto(updatedUser)
-					true
-				}
+	suspend fun skipOnboarding(): Boolean = runSession(
+		onFailure = { failure ->
+			when (failure) {
+				SessionFailure.MissingUserId -> getString(Res.string.session_missing_user_id)
+				else -> getString(Res.string.session_onboard_failed)
 			}
-		} catch (t: CancellationException) {
-			throw t
-		} catch (t: Throwable) {
-			_error.value = t.message ?: getString(Res.string.session_skip_onboarding_failed)
-			false
-		} finally {
-			_loading.value = false
-		}
-	}
+		},
+		onThrowable = { it.message ?: getString(Res.string.session_skip_onboarding_failed) },
+	) {
+		repository.skipOnboarding()
+	} != null
 
-	suspend fun confirmOverEighteen(): Boolean {
-		_error.value = null
-		_loading.value = true
-		return try {
-			val userId = tokenStore.currentUserId()
-			if (userId == null) {
-				_error.value = getString(Res.string.session_missing_user_id)
-				false
-			} else {
-				val updatedUser = api.confirmOverEighteen(
-					userId,
-					SetConfirmOverEighteenDto(confirmOverEighteen = true)
-				)
-				if (updatedUser == null) {
-					_error.value = getString(Res.string.session_confirm_age_failed)
-					false
-				} else {
-					cacheUserDto(updatedUser)
-					true
-				}
+	suspend fun confirmOverEighteen(): Boolean = runSession(
+		onFailure = { failure ->
+			when (failure) {
+				SessionFailure.MissingUserId -> getString(Res.string.session_missing_user_id)
+				else -> getString(Res.string.session_confirm_age_failed)
 			}
-		} catch (t: CancellationException) {
-			throw t
-		} catch (t: Throwable) {
-			_error.value = t.message ?: getString(Res.string.session_age_confirmation_failed)
-			false
-		} finally {
-			_loading.value = false
-		}
-	}
+		},
+		onThrowable = { it.message ?: getString(Res.string.session_age_confirmation_failed) },
+	) {
+		repository.confirmOverEighteen()
+	} != null
 
-	suspend fun updateProfileUserInfoTics(update: UserInfoTicsUpdateDto): Boolean {
-		_error.value = null
-		_loading.value = true
-		return try {
-			val currentUser = user.value
-			if (currentUser == null) {
-				_error.value = getString(Res.string.session_missing_user)
-				false
-			} else {
-				var currentUserInfo = userInfo.value
-				if (currentUserInfo == null) {
-					val fetched = api.getUserInfoTicsByUserId(currentUser.id)
-					if (fetched != null) {
-						cacheUserDto(fetched.user)
-						cacheUserInfoDto(fetched)
-						currentUserInfo = fetched.toEntity().toJoined(fetched.user.toEntity().toJoined())
-					}
-				}
-				val resolved = currentUserInfo
-				if (resolved == null) {
-					_error.value = getString(Res.string.session_missing_user_info)
-					false
-				} else {
-					val updatedInfo = api.updateUserInfoTics(resolved.id, update)
-					if (updatedInfo == null) {
-						_error.value = getString(Res.string.session_update_user_info_failed)
-						false
-					} else {
-						cacheUserDto(updatedInfo.user)
-						cacheUserInfoDto(updatedInfo)
-						true
-					}
-				}
+	suspend fun updateProfileUserInfoTics(update: UserInfoTicsUpdateDto): Boolean = runSession(
+		onFailure = { failure ->
+			when (failure) {
+				SessionFailure.MissingUser -> getString(Res.string.session_missing_user)
+				SessionFailure.MissingUserInfo -> getString(Res.string.session_missing_user_info)
+				else -> getString(Res.string.session_update_user_info_failed)
 			}
-		} catch (t: CancellationException) {
-			throw t
-		} catch (t: Throwable) {
-			_error.value = t.message ?: getString(Res.string.session_update_profile_failed)
-			false
-		} finally {
-			_loading.value = false
-		}
-	}
+		},
+		onThrowable = { it.message ?: getString(Res.string.session_update_profile_failed) },
+	) {
+		repository.updateProfileUserInfoTics(update)
+	} != null
 
-	suspend fun uploadProfileImage(imageBytes: ByteArray): Boolean {
-		_error.value = null
-		_loading.value = true
-		return try {
-			val updatedUser = api.uploadProfileImage(
-				imageBytes = imageBytes,
-				fileName = "profile.jpg"
-			)
-			cacheUserDto(updatedUser)
-			true
-		} catch (t: CancellationException) {
-			throw t
-		} catch (t: Throwable) {
-			_error.value = t.message ?: getString(Res.string.session_profile_image_upload_failed)
-			false
-		} finally {
-			_loading.value = false
-		}
-	}
+	suspend fun uploadProfileImage(imageBytes: ByteArray): Boolean = runSession(
+		onFailure = { getString(Res.string.session_profile_image_upload_failed) },
+		onThrowable = { it.message ?: getString(Res.string.session_profile_image_upload_failed) },
+	) {
+		repository.uploadProfileImage(imageBytes)
+	} != null
 
-	suspend fun completeOnboarding(update: UserInfoTicsUpdateDto): Boolean {
-		_error.value = null
-		_loading.value = true
-		return try {
-			val userId = tokenStore.currentUserId()
-			val currentUserInfo = userInfo.value
-			if (userId == null || currentUserInfo == null || currentUserInfo.user.id != userId) {
-				_error.value = getString(Res.string.session_missing_user_info)
-				false
-			} else {
-				val updatedInfo = api.updateUserInfoTics(currentUserInfo.id, update)
-				if (updatedInfo == null) {
-					_error.value = getString(Res.string.session_update_user_info_failed)
-					false
-				} else {
-					cacheUserDto(updatedInfo.user)
-					cacheUserInfoDto(updatedInfo)
-
-					val updatedUser = api.setOnboarded(
-						userId,
-						SetIsOnboardedDto(isOnboarded = true)
-					)
-					if (updatedUser == null) {
-						_error.value = getString(Res.string.session_onboard_failed)
-						false
-					} else {
-						cacheUserDto(updatedUser)
-						true
-					}
-				}
+	suspend fun completeOnboarding(update: UserInfoTicsUpdateDto): Boolean = runSession(
+		onFailure = { failure ->
+			when (failure) {
+				SessionFailure.MissingUserInfo -> getString(Res.string.session_missing_user_info)
+				SessionFailure.UserInfoUpdateFailed ->
+					getString(Res.string.session_update_user_info_failed)
+				SessionFailure.OnboardFailed -> getString(Res.string.session_onboard_failed)
+				else -> getString(Res.string.session_onboarding_failed)
 			}
-		} catch (t: CancellationException) {
-			throw t
-		} catch (t: Throwable) {
-			_error.value = t.message ?: getString(Res.string.session_onboarding_failed)
-			false
-		} finally {
-			_loading.value = false
-		}
-	}
+		},
+		onThrowable = { it.message ?: getString(Res.string.session_onboarding_failed) },
+	) {
+		repository.completeOnboarding(update)
+	} != null
 
 	suspend fun logout() {
 		_error.value = null
 		_loading.value = true
 		try {
-			authService.logout()
+			repository.logout()
 		} finally {
-			clearLocal()
 			_loading.value = false
 		}
 	}
 
-	suspend fun deleteAccount(): Boolean {
+	suspend fun deleteAccount(): Boolean = runSession(
+		onFailure = { failure ->
+			when (failure) {
+				SessionFailure.MissingUserId -> getString(Res.string.session_missing_user_id)
+				else -> getString(Res.string.session_delete_account_failed)
+			}
+		},
+		onThrowable = { it.message ?: getString(Res.string.session_delete_account_failed) },
+	) {
+		repository.deleteAccount()
+	} != null
+
+	private suspend fun <T> runSession(
+		onFailure: suspend (SessionFailure) -> String,
+		onThrowable: suspend (Throwable) -> String,
+		block: suspend () -> T,
+	): T? {
 		_error.value = null
 		_loading.value = true
 		return try {
-			val userId = tokenStore.currentUserId()
-			if (userId == null) {
-				_error.value = getString(Res.string.session_missing_user_id)
-				false
-			} else {
-				val deleted = api.deleteAccount(userId)
-				if (deleted) {
-					clearLocal()
-					authService.logout()
-					true
-				} else {
-					_error.value = getString(Res.string.session_delete_account_failed)
-					false
-				}
-			}
+			block()
 		} catch (t: CancellationException) {
 			throw t
+		} catch (t: SessionException) {
+			_error.value = onFailure(t.failure)
+			null
 		} catch (t: Throwable) {
-			_error.value = t.message ?: getString(Res.string.session_delete_account_failed)
-			false
+			_error.value = onThrowable(t)
+			null
 		} finally {
 			_loading.value = false
 		}

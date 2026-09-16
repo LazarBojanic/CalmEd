@@ -28,6 +28,8 @@ actual fun VideoPlayer(
 	isFullscreen: Boolean,
 	onFullscreenToggle: (Boolean) -> Unit,
 	onIndexChanged: (Int) -> Unit,
+	onControlsVisibilityChanged: (Boolean) -> Unit,
+	onIsPlayingChanged: (Boolean) -> Unit,
 ) {
 	val bridge = IosVideoPlayerRegistry.bridge
 	if (bridge == null || items.isEmpty()) {
@@ -36,10 +38,20 @@ actual fun VideoPlayer(
 	}
 
 	val currentOnIndexChanged by rememberUpdatedState(onIndexChanged)
+	val currentOnControlsVisibilityChanged by rememberUpdatedState(onControlsVisibilityChanged)
+	val currentOnIsPlayingChanged by rememberUpdatedState(onIsPlayingChanged)
 	val listener = remember {
 		object : IosVideoPlayerListener {
 			override fun onIndexChanged(index: Int) {
 				currentOnIndexChanged(index)
+			}
+
+			override fun onControlsVisibilityChanged(visible: Boolean) {
+				currentOnControlsVisibilityChanged(visible)
+			}
+
+			override fun onIsPlayingChanged(isPlaying: Boolean) {
+				currentOnIsPlayingChanged(isPlaying)
 			}
 		}
 	}

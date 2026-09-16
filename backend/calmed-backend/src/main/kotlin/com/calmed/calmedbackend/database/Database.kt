@@ -87,7 +87,7 @@ fun seed() {
 			weekNumber = 1,
 			title = "Week 1",
 			description = null,
-			playbackId = "hrLiR6lbX5nhB7vkeGAq6pjLkPv4ue2rYYvfMNUVAkI",
+			playbackId = "nr00548DGIXJq9ek9IuABQ4oV7hdIenQRvsWYA7DKGk4",
 			previewPlaybackId = "hrLiR6lbX5nhB7vkeGAq6pjLkPv4ue2rYYvfMNUVAkI",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
@@ -500,7 +500,3 @@ suspend fun <T> withResultTransaction(block: suspend () -> AppResult<T>): AppRes
 		return e.result
 	}
 }
-
-
-
-

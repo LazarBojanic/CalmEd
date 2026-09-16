@@ -1,57 +1,19 @@
 package com.calmed.calmedtics
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.calmed.calmedtics.auth.getGoogleIdToken
-import com.calmed.calmedtics.http.IAppApi
-import com.calmed.calmedtics.service.specification.IAuthService
-import com.calmed.calmedtics.settings.AppSettings
-import com.calmed.calmedtics.store.ITokenDataStore
-import com.calmed.calmedtics.theme.AppTheme
-import com.calmed.calmedtics.ui.screen.ForgotPasswordScreen
-import com.calmed.calmedtics.ui.screen.VideoScreen
-import com.calmed.calmedtics.ui.screen.LoginScreen
-import com.calmed.calmedtics.ui.screen.MainScreen
-import com.calmed.calmedtics.ui.screen.OfflineModeScreen
-import com.calmed.calmedtics.ui.screen.PaymentScreen
-import com.calmed.calmedtics.ui.screen.RegisterScreen
-import com.calmed.calmedtics.ui.screen.SplashScreen
-import com.calmed.calmedtics.ui.screen.WelcomeVideoScreen
-import com.calmed.calmedtics.ui.screen.CourseOverviewScreen
-import com.calmed.calmedtics.ui.screen.OnboardingScreen
-import com.calmed.calmedtics.ui.screen.AgeConfirmScreen
-import com.calmed.calmedtics.ui.screen.HelpSupportScreen
-import com.calmed.calmedtics.util.isBackendReachable
-import com.calmed.calmedtics.viewmodel.AuthViewModel
-import com.calmed.calmedtics.viewmodel.ExercisesViewModel
-import com.calmed.calmedtics.viewmodel.HomeViewModel
-import com.calmed.calmedtics.viewmodel.SessionViewModel
-import com.calmed.calmedtics.auth.launchAppleSignIn
-import androidx.compose.material3.Text
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import calmedtics.shared.generated.resources.Res
-import calmedtics.shared.generated.resources.loading
-import calmedtics.shared.generated.resources.user_info_missing
 import calmedtics.shared.generated.resources.download_completed
 import calmedtics.shared.generated.resources.download_completed_title
-import calmedtics.shared.generated.resources.status_failed
 import calmedtics.shared.generated.resources.download_failed_title
-import calmedtics.shared.generated.resources.no_internet_connection
-import com.calmed.calmedtics.service.specification.DownloadEventType
-import com.calmed.calmedtics.service.specification.IVideoDownloadManager
-import com.calmed.calmedtics.ui.component.ToastCenter
-import com.calmed.calmedtics.ui.component.ToastKind
-import org.jetbrains.compose.resources.stringResource
+import calmedtics.shared.generated.resources.status_failed
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.annotation.ExperimentalCoilApi
@@ -59,627 +21,109 @@ import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
-import io.ktor.client.HttpClient
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 import com.calmed.calmedtics.localization.AppLocaleProvider
-import com.calmed.calmedtics.logging.AppLog
-import com.calmed.calmedtics.logging.LogTags
 import com.calmed.calmedtics.logging.isDevelopment
-import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
-import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
+import com.calmed.calmedtics.navigation.AppNavigator
+import com.calmed.calmedtics.navigation.AppRoute
+import com.calmed.calmedtics.navigation.LocalAppViewModelStoreOwner
+import com.calmed.calmedtics.navigation.appRouteConfig
+import com.calmed.calmedtics.service.specification.DownloadEventType
+import com.calmed.calmedtics.service.specification.IVideoDownloadManager
+import com.calmed.calmedtics.theme.AppTheme
+import com.calmed.calmedtics.ui.component.ToastCenter
+import com.calmed.calmedtics.ui.component.ToastKind
+import io.ktor.client.HttpClient
+import org.koin.compose.koinInject
+import org.koin.compose.navigation3.koinEntryProvider
+import org.koin.core.annotation.KoinExperimentalAPI
 
-private val log = AppLog(LogTags.APP)
-
-object Routes {
-    const val Splash = "splash"
-    const val Login = "auth/login"
-    const val Register = "auth/register"
-    const val ForgotPassword = "auth/forgot-password"
-    const val WelcomeVideo = "welcome-video"
-    const val CourseOverview = "course-overview"
-    const val Video = "video"
-    const val Main = "main"
-    const val Onboarding = "onboarding"
-    const val AgeConfirm = "age-confirm"
-    const val Payment = "payment"
-    const val Offline = "offline"
-    const val HelpSupport = "help-support"
-}
-
-@OptIn(ExperimentalCoilApi::class)
+@OptIn(ExperimentalCoilApi::class, KoinExperimentalAPI::class)
 @Composable
 fun App() {
-    val httpClient: HttpClient = koinInject()
-    setSingletonImageLoaderFactory { context ->
-        ImageLoader.Builder(context)
-            .components {
-                add(KtorNetworkFetcherFactory(httpClient))
-            }
-            .crossfade(true)
-            .apply { if (isDevelopment) logger(DebugLogger()) }
-            .build()
-    }
+	val httpClient: HttpClient = koinInject()
+	setSingletonImageLoaderFactory { context ->
+		ImageLoader.Builder(context)
+			.components {
+				add(KtorNetworkFetcherFactory(httpClient))
+			}
+			.crossfade(true)
+			.apply { if (isDevelopment) logger(DebugLogger()) }
+			.build()
+	}
 
-    val navController = rememberNavController()
-    val scope = rememberCoroutineScope()
-    var videoExercises by remember { mutableStateOf<List<ProgramExerciseDto>?>(null) }
-    var videoIndex by remember { mutableStateOf(0) }
-    var welcomeHandledUserId by rememberSaveable { mutableStateOf<String?>(null) }
-    var courseOverviewHandledUserId by rememberSaveable { mutableStateOf<String?>(null) }
+	val navigator: AppNavigator = koinInject()
+	val videoDownloadManager: IVideoDownloadManager = koinInject()
 
-    val tokenStore: ITokenDataStore = koinInject()
-    val authService: IAuthService = koinInject()
-    val appApi: IAppApi = koinInject()
+	val hostViewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
+		"No host ViewModelStoreOwner was provided"
+	}
 
-    val authViewModel: AuthViewModel = koinViewModel()
+	val backStack = rememberNavBackStack(appRouteConfig, AppRoute.Splash)
+	navigator.attach(backStack)
+	val entryProvider = koinEntryProvider<NavKey>()
 
-    val appSettings: AppSettings = koinInject()
-    val sessionViewModel: SessionViewModel = koinViewModel()
-    val homeViewModel: HomeViewModel = koinViewModel()
-    val exercisesViewModel: ExercisesViewModel = koinViewModel()
-    val videoDownloadManager: IVideoDownloadManager = koinInject()
-    val user by sessionViewModel.user.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
-    val userInfo by sessionViewModel.userInfo.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
-    val sessionLoading by sessionViewModel.loading.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
-    val sessionError by sessionViewModel.error.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	AppLocaleProvider {
+		AppTheme {
+			LaunchedEffect(Unit) {
+				videoDownloadManager.events.collect { event ->
+					val title = event.title?.takeIf { it.isNotBlank() }
+					when (event.type) {
+						DownloadEventType.Completed ->
+							if (title != null) {
+								ToastCenter.show(
+									Res.string.download_completed_title,
+									title,
+									kind = ToastKind.Success
+								)
+							} else {
+								ToastCenter.show(
+									Res.string.download_completed,
+									kind = ToastKind.Success
+								)
+							}
 
-    suspend fun resolveNextAuthenticatedRoute(): String? {
-        val remoteUser = sessionViewModel.loadSession() ?: return null
-        val isOnboarded = remoteUser.isOnboarded
-        val isPaid = appApi.getPaymentStatus()?.hasAccess ?: false
-        val showWelcomeVideo = appSettings.getShowWelcomeVideo(remoteUser.id)
-        val shouldShowWelcomeVideo = showWelcomeVideo && welcomeHandledUserId != remoteUser.id
-        val showCourseOverview = appSettings.getShowCourseOverview(remoteUser.id)
-        val shouldShowCourseOverview =
-            showCourseOverview && courseOverviewHandledUserId != remoteUser.id
-        return when {
-            !remoteUser.confirmOverEighteen -> Routes.AgeConfirm
-            shouldShowWelcomeVideo -> Routes.WelcomeVideo
-            shouldShowCourseOverview -> Routes.CourseOverview
-            !isPaid -> Routes.Payment
-            !isOnboarded -> Routes.Onboarding
-            else -> Routes.Main
-        }
-    }
+						DownloadEventType.Failed ->
+							if (title != null) {
+								ToastCenter.show(
+									Res.string.download_failed_title,
+									title,
+									kind = ToastKind.Error
+								)
+							} else {
+								ToastCenter.show(
+									Res.string.status_failed,
+									kind = ToastKind.Error
+								)
+							}
 
-    fun openDownload(playbackId: String, title: String? = null) {
-        if (playbackId.isBlank()) return
-        videoExercises = listOf(
-            ProgramExerciseDto(
-                id = playbackId,
-                weekNumber = 1,
-                groupId = null,
-                title = title.orEmpty(),
-                description = "",
-                token = "",
-                previewToken = "",
-                thumbnailToken = "",
-                previewThumbnailToken = "",
-                playbackId = playbackId,
-                previewPlaybackId = "",
-                url = "",
-                previewURL = "",
-                thumbnailURL = "",
-                previewThumbnailURL = "",
-                durationSeconds = null,
-                visibility = "PUBLIC",
-                createdAt = "",
-                updatedAt = "",
-            )
-        )
-        videoIndex = 0
-        navController.navigate(Routes.Video) {
-            launchSingleTop = true
-        }
-    }
+						DownloadEventType.Expired ->
+							if (title != null) {
+								ToastCenter.show(
+									Res.string.download_failed_title,
+									title,
+									kind = ToastKind.Error
+								)
+							} else {
+								ToastCenter.show(
+									Res.string.status_failed,
+									kind = ToastKind.Error
+								)
+							}
+					}
+				}
+			}
 
-    fun openVideoFromList(
-        exercises: List<ProgramExerciseDto>,
-        startIndex: Int,
-    ) {
-        videoExercises = exercises
-        videoIndex = startIndex
-
-        navController.navigate(Routes.Video) {
-            launchSingleTop = true
-        }
-    }
-    AppLocaleProvider {
-        AppTheme {
-            LaunchedEffect(Unit) {
-                videoDownloadManager.events.collect { event ->
-                    val title = event.title?.takeIf { it.isNotBlank() }
-                    when (event.type) {
-                        DownloadEventType.Completed ->
-                            if (title != null) {
-                                ToastCenter.show(
-                                    Res.string.download_completed_title,
-                                    title,
-                                    kind = ToastKind.Success
-                                )
-                            } else {
-                                ToastCenter.show(
-                                    Res.string.download_completed,
-                                    kind = ToastKind.Success
-                                )
-                            }
-
-                        DownloadEventType.Failed ->
-                            if (title != null) {
-                                ToastCenter.show(
-                                    Res.string.download_failed_title,
-                                    title,
-                                    kind = ToastKind.Error
-                                )
-                            } else {
-                                ToastCenter.show(
-                                    Res.string.status_failed,
-                                    kind = ToastKind.Error
-                                )
-                            }
-
-                        DownloadEventType.Expired ->
-                            if (title != null) {
-                                ToastCenter.show(
-                                    Res.string.download_failed_title,
-                                    title,
-                                    kind = ToastKind.Error
-                                )
-                            } else {
-                                ToastCenter.show(
-                                    Res.string.status_failed,
-                                    kind = ToastKind.Error
-                                )
-                            }
-                    }
-                }
-            }
-            NavHost(navController, startDestination = Routes.Splash) {
-
-                composable(Routes.Splash) {
-                    SplashScreen()
-
-                    LaunchedEffect(Unit) {
-                        val online = isBackendReachable(appApi)
-                        if (!online) {
-                            navController.navigate(Routes.Offline) {
-                                popUpTo(Routes.Splash) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                            return@LaunchedEffect
-                        }
-
-                        val currentToken = tokenStore.getToken()
-                        if (currentToken == null) {
-                            navController.navigate(Routes.Login) {
-                                popUpTo(Routes.Splash) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                            return@LaunchedEffect
-                        }
-
-                        val access = currentToken.access
-                        val refresh = currentToken.refresh
-
-                        if (access.isNullOrBlank() || refresh.isNullOrBlank()) {
-                            navController.navigate(Routes.Login) {
-                                popUpTo(Routes.Splash) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                            return@LaunchedEffect
-                        }
-
-                        val refreshSuccess = authService.tryRefresh()
-                        if (!refreshSuccess) {
-                            navController.navigate(Routes.Login) {
-                                popUpTo(Routes.Splash) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                            return@LaunchedEffect
-                        }
-
-                        val nextRoute = resolveNextAuthenticatedRoute()
-                        if (nextRoute == null) {
-                            navController.navigate(Routes.Login) {
-                                popUpTo(Routes.Splash) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                            return@LaunchedEffect
-                        }
-                        navController.navigate(nextRoute) {
-                            popUpTo(Routes.Splash) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                }
-
-                composable(Routes.Login) {
-                    LoginScreen(
-                        onNavigateRegister = { navController.navigate(Routes.Register) },
-                        onNavigateForgotPassword = { navController.navigate(Routes.ForgotPassword) },
-                        onNavigateOffline = {
-                            navController.navigate(Routes.Offline) {
-                                popUpTo(Routes.Login) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-
-                        onLoginSuccess = {
-                            scope.launch {
-                                val nextRoute = resolveNextAuthenticatedRoute()
-                                if (nextRoute == null) {
-                                    navController.navigate(Routes.Login) {
-                                        popUpTo(Routes.Login) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                    return@launch
-                                }
-                                navController.navigate(nextRoute) {
-                                    popUpTo(Routes.Login) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        },
-                        onAppleSignIn = {
-                            launchAppleSignIn()
-
-                        },
-                        onGoogleSignIn = {
-                            scope.launch {
-                                try {
-                                    val googleToken = getGoogleIdToken()
-                                    val ok = authViewModel.loginWithGoogle(googleToken)
-                                    if (ok) {
-                                        val nextRoute = resolveNextAuthenticatedRoute()
-                                        if (nextRoute == null) {
-                                            navController.navigate(Routes.Login) {
-                                                popUpTo(Routes.Login) { inclusive = true }
-                                                launchSingleTop = true
-                                            }
-                                            return@launch
-                                        }
-                                        navController.navigate(nextRoute) {
-                                            popUpTo(Routes.Login) { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                    }
-                                } catch (t: Throwable) {
-                                    log.error("GoogleSignIn failed", t)
-                                }
-                            }
-                        }
-                    )
-                }
-
-                composable(Routes.AgeConfirm) {
-                    AgeConfirmScreen(
-                        loading = sessionLoading,
-                        error = sessionError,
-                        onConfirm = {
-                            scope.launch {
-                                val ok = sessionViewModel.confirmOverEighteen()
-                                if (ok) {
-                                    val nextRoute = resolveNextAuthenticatedRoute()
-                                        ?: Routes.Login
-                                    navController.navigate(nextRoute) {
-                                        popUpTo(Routes.AgeConfirm) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                }
-                            }
-                        },
-                        onDecline = {
-                            scope.launch {
-                                sessionViewModel.logout()
-                                navController.navigate(Routes.Login) {
-                                    popUpTo(Routes.AgeConfirm) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
-                    )
-                }
-
-                composable(Routes.Offline) {
-                    val noInternetMessage =
-                        stringResource(Res.string.no_internet_connection)
-
-                    OfflineModeScreen(
-                        onTryOnline = {
-                            scope.launch {
-                                val online = isBackendReachable(appApi)
-                                if (!online) {
-                                    ToastCenter.show(
-                                        noInternetMessage,
-                                        ToastKind.Error
-                                    )
-                                    return@launch
-                                }
-
-                                val currentToken = tokenStore.getToken()
-                                val access = currentToken?.access
-                                val refresh = currentToken?.refresh
-
-                                if (access.isNullOrBlank() || refresh.isNullOrBlank()) {
-                                    navController.navigate(Routes.Login) {
-                                        popUpTo(Routes.Offline) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                    return@launch
-                                }
-
-                                val refreshSuccess = authService.tryRefresh()
-                                if (!refreshSuccess) {
-                                    navController.navigate(Routes.Login) {
-                                        popUpTo(Routes.Offline) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                    return@launch
-                                }
-
-                                val nextRoute = resolveNextAuthenticatedRoute()
-                                if (nextRoute == null) {
-                                    navController.navigate(Routes.Login) {
-                                        popUpTo(Routes.Offline) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                    return@launch
-                                }
-                                navController.navigate(nextRoute) {
-                                    popUpTo(Routes.Offline) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        },
-                        onOpenDownload = { playbackId, title -> openDownload(playbackId, title) }
-                    )
-                }
-
-                composable(Routes.Register) {
-                    RegisterScreen(
-                        onNavigateLogin = {
-                            navController.navigate(Routes.Login) {
-                                popUpTo(Routes.Register) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-
-                        onRegisterSuccess = {
-                            navController.navigate(Routes.Login) {
-                                popUpTo(Routes.Register) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-
-                        onGoogleSignIn = {
-                            scope.launch {
-                                try {
-                                    val googleToken = getGoogleIdToken()
-
-                                    val ok = authViewModel.loginWithGoogle(
-                                        googleToken
-                                    )
-
-                                    if (ok) {
-                                        val nextRoute =
-                                            resolveNextAuthenticatedRoute()
-                                                ?: Routes.Login
-
-                                        navController.navigate(nextRoute) {
-                                            popUpTo(Routes.Register) {
-                                                inclusive = true
-                                            }
-                                            launchSingleTop = true
-                                        }
-                                    }
-                                } catch (t: Throwable) {
-                                    log.error("GoogleSignIn Register failed", t)
-                                }
-                            }
-                        },
-
-                        onAppleSignIn = {
-                            launchAppleSignIn()
-                        }
-                    )
-                }
-
-                composable(Routes.ForgotPassword) {
-                    ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
-                }
-
-                composable(Routes.WelcomeVideo) {
-                    val settings: AppSettings = koinInject()
-
-                    WelcomeVideoScreen(
-                        onSkip = {
-                            welcomeHandledUserId = sessionViewModel.user.value?.id
-                            navController.navigate(Routes.CourseOverview) {
-                                popUpTo(Routes.WelcomeVideo) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-                        onContinue = { dontShowAgain ->
-                            welcomeHandledUserId = sessionViewModel.user.value?.id
-                            if (dontShowAgain) settings.setShowWelcomeVideo(
-                                sessionViewModel.user.value?.id,
-                                false
-                            )
-                            navController.navigate(Routes.CourseOverview) {
-                                popUpTo(Routes.WelcomeVideo) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    )
-                }
-
-                composable(Routes.CourseOverview) {
-                    val settings: AppSettings = koinInject()
-
-                    CourseOverviewScreen(
-                        onSkip = {
-                            courseOverviewHandledUserId = sessionViewModel.user.value?.id
-                            scope.launch {
-                                val nextRoute = resolveNextAuthenticatedRoute() ?: Routes.Payment
-                                navController.navigate(nextRoute) {
-                                    popUpTo(Routes.CourseOverview) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        },
-                        onContinue = { dontShowAgain ->
-                            courseOverviewHandledUserId = sessionViewModel.user.value?.id
-                            if (dontShowAgain) settings.setShowCourseOverview(
-                                sessionViewModel.user.value?.id,
-                                false
-                            )
-                            scope.launch {
-                                val nextRoute = resolveNextAuthenticatedRoute() ?: Routes.Payment
-                                navController.navigate(nextRoute) {
-                                    popUpTo(Routes.CourseOverview) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
-                    )
-                }
-
-                composable(Routes.Onboarding) {
-                    val u = user
-                    val info = userInfo
-
-                    if (u == null) {
-                        LaunchedEffect(Unit) {
-                            if (!sessionLoading && sessionError == null) {
-                                sessionViewModel.loadSession()
-                            }
-                        }
-                        Text(sessionError ?: stringResource(Res.string.loading))
-                        return@composable
-                    }
-
-                    if (info == null) {
-                        Text(stringResource(Res.string.user_info_missing))
-                        return@composable
-                    }
-
-                    OnboardingScreen(
-                        user = u,
-                        userInfo = info,
-                        onSkip = {
-                            scope.launch {
-                                val ok = sessionViewModel.skipOnboarding()
-                                if (ok) {
-                                    navController.navigate(Routes.Main) {
-                                        popUpTo(Routes.Onboarding) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                }
-                            }
-                        },
-                        onFinished = { dto ->
-                            scope.launch {
-                                val ok = sessionViewModel.completeOnboarding(dto)
-                                if (ok) {
-                                    navController.navigate(Routes.Main) {
-                                        popUpTo(Routes.Onboarding) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                }
-                            }
-                        }
-                    )
-                }
-
-                composable(Routes.Payment) {
-                    PaymentScreen(
-                        onPaid = {
-                            scope.launch {
-                                val nextRoute = resolveNextAuthenticatedRoute() ?: Routes.Login
-                                navController.navigate(nextRoute) {
-                                    popUpTo(Routes.Payment) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        },
-                        onLogout = {
-                            navController.navigate(Routes.Login) {
-                                popUpTo(Routes.Payment) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-                        sessionViewModel = sessionViewModel
-                    )
-                }
-
-
-                composable(Routes.Video) {
-                    val exercises = videoExercises
-
-                    if (exercises == null || exercises.isEmpty()) {
-                        LaunchedEffect(Unit) {
-                            navController.popBackStack()
-                        }
-                        return@composable
-                    }
-
-                    VideoScreen(
-                        exercises = exercises,
-                        startIndex = videoIndex,
-                        currentWeek = homeViewModel.home.value?.currentWeek ?: 1,
-                        onBack = {
-                            navController.popBackStack()
-                        }
-                    )
-                }
-                    composable(Routes.HelpSupport) {
-                        HelpSupportScreen(
-                            onBack = { navController.popBackStack() },
-                            onSendMessage = { subject, message ->
-                                try {
-                                    authService.sendSupportMessage(
-                                        SupportMessageRequestDto(
-                                            subject = subject,
-                                            message = message
-                                        )
-                                    )
-                                } catch (t: Throwable) {
-                                    false
-                                }
-                            }
-                        )
-                    }
-                    composable(Routes.Main) {
-                        MainScreen(
-                            sessionViewModel = sessionViewModel,
-                            homeViewModel = homeViewModel,
-                            exercisesViewModel = exercisesViewModel,
-                            onLogoutToLogin = {
-                                welcomeHandledUserId = null
-                                navController.navigate(Routes.Login) {
-                                    popUpTo(Routes.Main) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
-                            onAccountDeleted = {
-                                welcomeHandledUserId = null
-                                courseOverviewHandledUserId = null
-                                navController.navigate(Routes.Login) {
-                                    popUpTo(Routes.Splash) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
-                            onOpenVideoFromList = { exercises, startIndex ->
-                                openVideoFromList(exercises, startIndex)
-                            },
-                            onOpenHelpSupport = {
-                                navController.navigate(Routes.HelpSupport)
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
+			CompositionLocalProvider(LocalAppViewModelStoreOwner provides hostViewModelStoreOwner) {
+				NavDisplay(
+					backStack = backStack,
+					onBack = { navigator.goBack() },
+					entryDecorators = listOf(
+						rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
+						rememberViewModelStoreNavEntryDecorator<NavKey>(hostViewModelStoreOwner)
+					),
+					entryProvider = entryProvider
+				)
+			}
+		}
+	}
+}

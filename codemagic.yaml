@@ -5,6 +5,7 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       xcode: 26.4
+      java: 21
     scripts:
       - name: "Resolve Swift packages and print Package.resolved"
         script: |
@@ -32,6 +33,7 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       xcode: 26.4
+      java: 21
     scripts:
       - name: "debug-script"
         script: "cd $CM_BUILD_DIR/frontend/calmed-tics && chmod +x ./gradlew && ARCHS=arm64 && SDK_NAME=iphoneos && CONFIGURATION=Release && ./gradlew :shared:compileKotlinIosArm64 --stacktrace --info --console=plain"
@@ -43,6 +45,7 @@ workflows:
       app_store_connect: CodemagicAPI
     environment:
       xcode: 26.4
+      java: 21
       vars:
         APP_STORE_APPLE_ID: 6803588201
         XCODE_WORKSPACE: "iosApp.xcworkspace"

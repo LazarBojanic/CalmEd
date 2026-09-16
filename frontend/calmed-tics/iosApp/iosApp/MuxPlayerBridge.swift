@@ -53,6 +53,7 @@ final class MuxPlayerViewController: UIViewController {
     private var index: Int = 0
     private weak var listener: IosVideoPlayerListener?
     private var endObserver: NSObjectProtocol?
+    private var timeControlObserver: NSKeyValueObservation?
 
     private lazy var previousButton: UIButton = makeOverlayButton(
         systemName: "backward.end.fill",
@@ -75,6 +76,7 @@ final class MuxPlayerViewController: UIViewController {
         playerViewController.didMove(toParent: self)
 
         setupOverlayControls()
+        setupTapRecognizer()
     }
 
     func load(
@@ -115,6 +117,8 @@ final class MuxPlayerViewController: UIViewController {
 
     func teardown() {
         removeEndObserver()
+        timeControlObserver?.invalidate()
+        timeControlObserver = nil
         playerViewController.player?.pause()
         playerViewController.player = nil
         playerViewController.stopMonitoring()
@@ -168,6 +172,7 @@ final class MuxPlayerViewController: UIViewController {
         }
 
         observeEnd()
+        observeTimeControlStatus()
         updateOverlayControls()
         preferOfflineIfAvailable(item: item, muted: muted)
     }
@@ -212,6 +217,28 @@ final class MuxPlayerViewController: UIViewController {
             NotificationCenter.default.removeObserver(endObserver)
             self.endObserver = nil
         }
+    }
+
+    private func observeTimeControlStatus() {
+        timeControlObserver?.invalidate()
+        guard let player = playerViewController.player else { return }
+        timeControlObserver = player.observe(\.timeControlStatus, options: [.initial, .new]) { [weak self] player, _ in
+            let isPlaying = player.timeControlStatus != .paused
+            Task { @MainActor in
+                self?.listener?.onIsPlayingChanged(isPlaying: isPlaying)
+            }
+        }
+    }
+
+    private func setupTapRecognizer() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handlePlayerTap))
+        tap.cancelsTouchesInView = false
+        tap.delegate = self
+        view.addGestureRecognizer(tap)
+    }
+
+    @objc private func handlePlayerTap() {
+        listener?.onControlsVisibilityChanged(visible: true)
     }
 
     private func clamp(_ requested: Int) -> Int {
@@ -273,5 +300,14 @@ final class MuxPlayerViewController: UIViewController {
         button.heightAnchor.constraint(equalToConstant: 44).isActive = true
         button.addTarget(self, action: action, for: .touchUpInside)
         return button
+    }
+}
+
+extension MuxPlayerViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        true
     }
 }

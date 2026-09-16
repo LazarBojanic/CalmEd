@@ -22,4 +22,6 @@ expect fun VideoPlayer(
 	isFullscreen: Boolean = false,
 	onFullscreenToggle: (Boolean) -> Unit = {},
 	onIndexChanged: (Int) -> Unit = {},
+	onControlsVisibilityChanged: (Boolean) -> Unit = {},
+	onIsPlayingChanged: (Boolean) -> Unit = {},
 )

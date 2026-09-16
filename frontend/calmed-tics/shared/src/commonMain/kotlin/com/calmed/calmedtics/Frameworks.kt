@@ -4,13 +4,17 @@ import com.calmed.calmedtics.di.appSettingsModule
 import com.calmed.calmedtics.http.AppApi
 import com.calmed.calmedtics.http.AppHttpClient
 import com.calmed.calmedtics.http.IAppApi
+import com.calmed.calmedtics.navigation.appNavigationModule
 import com.calmed.calmedtics.repository.ExercisesRepository
 import com.calmed.calmedtics.repository.HomeRepository
+import com.calmed.calmedtics.repository.ProgressRepository
+import com.calmed.calmedtics.repository.SessionRepository
 import com.calmed.calmedtics.service.implementation.AuthService
 import com.calmed.calmedtics.service.specification.IAuthService
 import com.calmed.calmedtics.viewmodel.AuthViewModel
 import com.calmed.calmedtics.viewmodel.ExercisesViewModel
 import com.calmed.calmedtics.viewmodel.HomeViewModel
+import com.calmed.calmedtics.viewmodel.PaymentViewModel
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import io.ktor.client.engine.HttpClientEngineFactory
 import org.koin.core.context.startKoin
@@ -26,15 +30,21 @@ fun commonModule(baseUrl: String, development: Boolean) = module {
     single<IAppApi> { AppApi(get()) }
     single { HomeRepository(api = get()) }
     single { ExercisesRepository(get(), get(), get()) }
+    single { ProgressRepository(get(), get(), get()) }
+    single { SessionRepository(get(), get(), get(), get(), get()) }
     single<IAuthService> { AuthService(get(), get()) }
     viewModel { AuthViewModel(get()) }
-    viewModel { SessionViewModel(get(), get(), get(), get(), get()) }
-    viewModel { HomeViewModel(get(), get(), get(), get()) }
+    viewModel { SessionViewModel(get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get()) }
     viewModel { ExercisesViewModel(get()) }
+    viewModel { PaymentViewModel(get(), get(), get()) }
 }
 
 fun initKoin(baseUrl: String, development: Boolean, vararg platformModules: Module) {
     startKoin {
-        modules(listOf(commonModule(baseUrl, development),appSettingsModule) + platformModules)
+        modules(
+            listOf(commonModule(baseUrl, development), appSettingsModule, appNavigationModule) +
+                platformModules
+        )
     }
 }

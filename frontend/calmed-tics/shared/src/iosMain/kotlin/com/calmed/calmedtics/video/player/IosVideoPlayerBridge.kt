@@ -33,6 +33,8 @@ interface IosVideoPlayerBridge {
 @ObjCName("IosVideoPlayerListener")
 interface IosVideoPlayerListener {
 	fun onIndexChanged(index: Int)
+	fun onControlsVisibilityChanged(visible: Boolean)
+	fun onIsPlayingChanged(isPlaying: Boolean)
 }
 
 @OptIn(ExperimentalObjCName::class)

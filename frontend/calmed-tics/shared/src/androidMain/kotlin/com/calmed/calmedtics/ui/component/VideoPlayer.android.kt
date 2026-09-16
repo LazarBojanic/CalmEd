@@ -1,6 +1,7 @@
 package com.calmed.calmedtics.ui.component
 
 import android.content.pm.ActivityInfo
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.compose.LocalActivity
@@ -53,6 +54,8 @@ actual fun VideoPlayer(
 	isFullscreen: Boolean,
 	onFullscreenToggle: (Boolean) -> Unit,
 	onIndexChanged: (Int) -> Unit,
+	onControlsVisibilityChanged: (Boolean) -> Unit,
+	onIsPlayingChanged: (Boolean) -> Unit,
 ) {
 	val context = LocalContext.current
 	val activity = LocalActivity.current
@@ -61,6 +64,8 @@ actual fun VideoPlayer(
 	val isCasting by castController.isCasting.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 	val currentOnIndexChanged by rememberUpdatedState(onIndexChanged)
 	val currentOnFullscreenToggle by rememberUpdatedState(onFullscreenToggle)
+	val currentOnControlsVisibilityChanged by rememberUpdatedState(onControlsVisibilityChanged)
+	val currentOnIsPlayingChanged by rememberUpdatedState(onIsPlayingChanged)
 	val latestStartIndex by rememberUpdatedState(startIndex)
 
 	val muxPlayer = remember {
@@ -192,6 +197,10 @@ actual fun VideoPlayer(
 			override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
 				currentOnIndexChanged(activePlayer.currentMediaItemIndex)
 			}
+
+			override fun onIsPlayingChanged(isPlaying: Boolean) {
+				currentOnIsPlayingChanged(isPlaying)
+			}
 		}
 		activePlayer.addListener(listener)
 		onDispose { activePlayer.removeListener(listener) }
@@ -207,7 +216,15 @@ actual fun VideoPlayer(
 				setBackgroundColor(android.graphics.Color.BLACK)
 				setShutterBackgroundColor(android.graphics.Color.BLACK)
 				useController = true
+				controllerAutoShow = true
+				controllerShowTimeoutMs = 3000
+				controllerHideOnTouch = true
 				setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
+				setControllerVisibilityListener(
+					PlayerView.ControllerVisibilityListener { visibility ->
+						currentOnControlsVisibilityChanged(visibility == View.VISIBLE)
+					}
+				)
 				if (allowFullscreen) {
 					setFullscreenButtonClickListener { shouldBeFullscreen ->
 						currentOnFullscreenToggle(shouldBeFullscreen)
