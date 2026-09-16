@@ -13,15 +13,17 @@ final class MuxPlayerBridge: NSObject, IosVideoPlayerBridge {
         muted: Bool,
         listener: IosVideoPlayerListener
     ) -> UIViewController {
-        let controller = MuxPlayerViewController()
-        controller.load(
-            items: items,
-            startIndex: Int(startIndex),
-            quality: quality,
-            muted: muted,
-            listener: listener
-        )
-        return controller
+        MainActor.assumeIsolated {
+            let controller = MuxPlayerViewController()
+            controller.load(
+                items: items,
+                startIndex: Int(startIndex),
+                quality: quality,
+                muted: muted,
+                listener: listener
+            )
+            return controller
+        }
     }
 
     func update(
@@ -31,16 +33,20 @@ final class MuxPlayerBridge: NSObject, IosVideoPlayerBridge {
         quality: VideoQuality,
         muted: Bool
     ) {
-        (controller as? MuxPlayerViewController)?.update(
-            items: items,
-            startIndex: Int(startIndex),
-            quality: quality,
-            muted: muted
-        )
+        MainActor.assumeIsolated {
+            (controller as? MuxPlayerViewController)?.update(
+                items: items,
+                startIndex: Int(startIndex),
+                quality: quality,
+                muted: muted
+            )
+        }
     }
 
     func releaseController(controller: UIViewController) {
-        (controller as? MuxPlayerViewController)?.teardown()
+        MainActor.assumeIsolated {
+            (controller as? MuxPlayerViewController)?.teardown()
+        }
     }
 }
 
@@ -200,7 +206,9 @@ final class MuxPlayerViewController: UIViewController {
             object: current,
             queue: .main
         ) { [weak self] _ in
-            self?.advance()
+            MainActor.assumeIsolated {
+                self?.advance()
+            }
         }
     }
 

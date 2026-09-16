@@ -40,6 +40,7 @@ kotlin{
 		iosTarget.binaries.framework {
 			baseName = "Shared"
 			isStatic = true
+			binaryOption("bundleId", "com.tagware.calmedtics")
 			linkerOpts("-lsqlite3")
 		}
 	}

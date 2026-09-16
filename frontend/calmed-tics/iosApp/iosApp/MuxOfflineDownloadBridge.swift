@@ -22,7 +22,7 @@ final class MuxOfflineDownloadBridge: NSObject, IosOfflineDownloadBridge {
 
             let inProgress = await MuxOfflineAccessManager.shared.allInProcessTasks()
             for (playbackID, stream) in inProgress {
-                observe(playbackId: playbackID, stream: stream)
+                observeDownload(playbackId: playbackID, stream: stream)
             }
         }
     }
@@ -57,7 +57,7 @@ final class MuxOfflineDownloadBridge: NSObject, IosOfflineDownloadBridge {
                 playbackOptions: playbackOptions,
                 downloadOptions: downloadOptions
             )
-            observe(playbackId: playbackId, stream: stream)
+            observeDownload(playbackId: playbackId, stream: stream)
         }
     }
 
@@ -109,9 +109,9 @@ final class MuxOfflineDownloadBridge: NSObject, IosOfflineDownloadBridge {
         }
     }
 
-    private func observe(
+    private func observeDownload(
         playbackId: String,
-        stream: AsyncThrowingStream<DownloadEvent, Error>
+        stream: AsyncThrowingStream<MuxPlayerSwift.DownloadEvent, Error>
     ) {
         tasks[playbackId]?.cancel()
         tasks[playbackId] = Task { @MainActor in
@@ -175,9 +175,9 @@ final class MuxOfflineDownloadBridge: NSObject, IosOfflineDownloadBridge {
 
     private func maxTier(for resolution: String) -> MaxResolutionTier {
         switch resolution {
+        case "480p": return .default
+        case "720p": return .upTo720p
         case "1080p": return .upTo1080p
-        case "1440p": return .upTo1440p
-        case "2160p": return .upTo2160p
         default: return .upTo720p
         }
     }
