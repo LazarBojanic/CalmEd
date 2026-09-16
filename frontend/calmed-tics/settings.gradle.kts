@@ -27,6 +27,9 @@ dependencyResolutionManagement {
 				includeGroupAndSubgroups("com.google")
 			}
 		}
+		maven{
+			url = uri("https://muxinc.jfrog.io/artifactory/default-maven-release-local")
+		}
 		mavenCentral()
 	}
 }

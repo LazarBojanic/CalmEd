@@ -1,333 +1,73 @@
 package com.calmed.calmedtics.ui.component
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
-import androidx.compose.ui.viewinterop.UIKitView
-import com.calmed.calmedtics.service.specification.IosVideoDownloadManager
-import calmedtics.shared.generated.resources.Res
-import calmedtics.shared.generated.resources.next_exercise
-import calmedtics.shared.generated.resources.previous_exercise
-import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import androidx.compose.ui.viewinterop.UIKitViewController
+import com.calmed.calmedtics.video.VideoQuality
+import com.calmed.calmedtics.video.player.IosVideoPlayerListener
+import com.calmed.calmedtics.video.player.IosVideoPlayerRegistry
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ObjCAction
-import kotlinx.cinterop.useContents
-import kotlinx.coroutines.delay
-import platform.AVFAudio.AVAudioSession
-import platform.AVFAudio.AVAudioSessionCategoryPlayback
-import platform.AVFAudio.setActive
-import platform.AVFoundation.*
-import platform.AVKit.AVPlayerViewController
-import platform.CoreMedia.CMTimeGetSeconds
-import platform.CoreMedia.CMTimeMakeWithSeconds
-import platform.Foundation.NSNotificationCenter
-import platform.Foundation.NSSelectorFromString
-import platform.Foundation.NSURL
-import platform.UIKit.*
-import platform.darwin.NSEC_PER_SEC
-import platform.darwin.NSObject
-import platform.darwin.NSObjectProtocol
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalForeignApi::class)
 @Composable
 actual fun VideoPlayer(
-    hlsUrl: String,
-    title: String?,
-    modifier: Modifier,
-    isFullscreen: Boolean,
-    isPlaying: Boolean,
-    isMuted: Boolean,
-    useController: Boolean,
-    showFullscreenButton: Boolean,
-    showPrevNextButtons: Boolean,
-    showRewindFastForwardButtons: Boolean,
-    playlist: List<VideoPlaylistItem>?,
-    onPositionChanged: ((Long) -> Unit)?,
-    onDurationChanged: ((Long) -> Unit)?,
-    onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
-    onFullscreenToggle: ((Boolean) -> Unit)?,
-    onControllerVisibilityChanged: ((Boolean) -> Unit)?,
-    onPlaybackEnded: (() -> Unit)?,
-    onPlayPauseChange: ((Boolean) -> Unit)?,
-    onPlaylistIndexChanged: ((Int) -> Unit)?,
-    onPrevious: (() -> Unit)?,
-    onNext: (() -> Unit)?,
-    canGoPrevious: Boolean,
-    canGoNext: Boolean,
-    repeatCurrentExercise: Boolean
+	items: List<VideoItem>,
+	startIndex: Int,
+	modifier: Modifier,
+	quality: VideoQuality,
+	muted: Boolean,
+	autoPlay: Boolean,
+	allowFullscreen: Boolean,
+	isFullscreen: Boolean,
+	onFullscreenToggle: (Boolean) -> Unit,
+	onIndexChanged: (Int) -> Unit,
 ) {
-    val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
-    val currentOnDurationChanged by rememberUpdatedState(onDurationChanged)
-    val currentOnVideoOrientationChanged by rememberUpdatedState(onVideoOrientationChanged)
-    val currentOnPlaybackEnded by rememberUpdatedState(onPlaybackEnded)
-    val currentOnPlayPauseChange by rememberUpdatedState(onPlayPauseChange)
-    val currentOnControllerVisibilityChanged by rememberUpdatedState(onControllerVisibilityChanged)
+	val bridge = IosVideoPlayerRegistry.bridge
+	if (bridge == null || items.isEmpty()) {
+		Box(modifier.fillMaxSize())
+		return
+	}
 
-    val player = remember { AVPlayer() }
-    val videoDownloadManager: IosVideoDownloadManager = koinInject()
-    val controller = remember {
-        AVPlayerViewController().apply {
-            this.player = player
-            this.showsPlaybackControls = useController
-            this.allowsPictureInPicturePlayback = true
-            this.canStartPictureInPictureAutomaticallyFromInline = true
-        }
-    }
-    var endToken by remember { mutableStateOf<NSObjectProtocol?>(null) }
-    var controlsVisible by remember { mutableStateOf(true) }
-    var controlsRestart by remember { mutableStateOf(0) }
+	val currentOnIndexChanged by rememberUpdatedState(onIndexChanged)
+	val listener = remember {
+		object : IosVideoPlayerListener {
+			override fun onIndexChanged(index: Int) {
+				currentOnIndexChanged(index)
+			}
+		}
+	}
 
-    val tapHandler = remember { TapHandler { controlsRestart++ } }
-    val tapRecognizer = remember(tapHandler) {
-        UITapGestureRecognizer(
-            target = tapHandler,
-            action = NSSelectorFromString("handleTap")
-        ).apply {
-            cancelsTouchesInView = false
-            delegate = SimultaneousGestureDelegate()
-        }
-    }
-
-    /*
-     * Tracks the last play state reported to the screen so we only fire
-     * onPlayPauseChange on actual transitions (the periodic observer runs
-     * several times per second).
-     */
-    var lastReportedPlaying by remember {
-        mutableStateOf(
-            player.timeControlStatus != AVPlayerTimeControlStatusPaused
-        )
-    }
-
-    LaunchedEffect(Unit) {
-        val session = AVAudioSession.sharedInstance()
-        session.setCategory(AVAudioSessionCategoryPlayback, error = null)
-        session.setActive(true, error = null)
-    }
-
-    LaunchedEffect(useController) {
-        controller.showsPlaybackControls = useController
-    }
-
-    LaunchedEffect(isMuted) {
-        player.muted = isMuted
-    }
-
-    LaunchedEffect(hlsUrl) {
-        videoDownloadManager.refresh(hlsUrl)
-
-        endToken?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
-        endToken = null
-
-        val playback = videoDownloadManager.playbackUrl(hlsUrl)
-        val nsUrl = NSURL(string = playback)
-
-	    val item = AVPlayerItem(uRL = nsUrl)
-        player.replaceCurrentItemWithPlayerItem(item)
-
-        val size = item.presentationSize
-        size.useContents {
-            if (width > 0.0 && height > 0.0) {
-                val isPortrait = height >= width
-                currentOnVideoOrientationChanged?.invoke(isPortrait)
-            }
-        }
-
-        if (isPlaying) {
-            player.play()
-        }
-
-        endToken = NSNotificationCenter.defaultCenter.addObserverForName(
-            name = AVPlayerItemDidPlayToEndTimeNotification,
-            `object` = item,
-            queue = null
-        ) {
-            currentOnPlaybackEnded?.invoke()
-        }
-    }
-
-    LaunchedEffect(isPlaying) {
-        if (isPlaying) {
-            player.play()
-        } else {
-            player.pause()
-        }
-    }
-
-    DisposableEffect(controller, tapRecognizer) {
-        controller.view.addGestureRecognizer(tapRecognizer)
-        onDispose {
-            controller.view.removeGestureRecognizer(tapRecognizer)
-        }
-    }
-
-    LaunchedEffect(controlsRestart) {
-        controlsVisible = true
-        currentOnControllerVisibilityChanged?.invoke(true)
-        delay(3000)
-        controlsVisible = false
-        currentOnControllerVisibilityChanged?.invoke(false)
-    }
-
-    DisposableEffect(player) {
-        val interval = CMTimeMakeWithSeconds(0.5, NSEC_PER_SEC.toInt())
-        val timeObserver = player.addPeriodicTimeObserverForInterval(interval, queue = null) { time ->
-            val seconds = CMTimeGetSeconds(time)
-            val posMs = (seconds * 1000.0).toLong()
-            currentOnPositionChanged?.invoke(posMs)
-
-            val currentItem = player.currentItem
-            if (currentItem != null) {
-                val durSec = CMTimeGetSeconds(currentItem.duration)
-                if (!durSec.isNaN() && durSec > 0.0) {
-                    currentOnDurationChanged?.invoke((durSec * 1000.0).toLong())
-                }
-            }
-
-            /*
-             * Keep the screen's play/pause state in sync with the native
-             * transport controls. Anything that is not explicitly paused
-             * (playing or buffering/waiting) counts as "playing".
-             */
-            val nowPlaying = player.timeControlStatus != AVPlayerTimeControlStatusPaused
-            if (nowPlaying != lastReportedPlaying) {
-                lastReportedPlaying = nowPlaying
-                currentOnPlayPauseChange?.invoke(nowPlaying)
-            }
-        }
-
-        onDispose {
-            player.removeTimeObserver(timeObserver)
-            player.pause()
-            player.replaceCurrentItemWithPlayerItem(null)
-            controller.player = null
-            endToken?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
-            endToken = null
-        }
-    }
-
-    Box(modifier = modifier.background(Color.Black)) {
-        UIKitView(
-            modifier = Modifier.fillMaxSize(),
-            factory = {
-                val container = UIView()
-                val playerView = controller.view
-                playerView.translatesAutoresizingMaskIntoConstraints = false
-
-                container.addSubview(playerView)
-
-                val leading = NSLayoutConstraint.constraintWithItem(
-                    playerView,
-                    NSLayoutAttributeLeading,
-                    NSLayoutRelationEqual,
-                    container,
-                    NSLayoutAttributeLeading,
-                    1.0,
-                    0.0
-                )
-                val trailing = NSLayoutConstraint.constraintWithItem(
-                    playerView,
-                    NSLayoutAttributeTrailing,
-                    NSLayoutRelationEqual,
-                    container,
-                    NSLayoutAttributeTrailing,
-                    1.0,
-                    0.0
-                )
-                val top = NSLayoutConstraint.constraintWithItem(
-                    playerView,
-                    NSLayoutAttributeTop,
-                    NSLayoutRelationEqual,
-                    container,
-                    NSLayoutAttributeTop,
-                    1.0,
-                    0.0
-                )
-                val bottom = NSLayoutConstraint.constraintWithItem(
-                    playerView,
-                    NSLayoutAttributeBottom,
-                    NSLayoutRelationEqual,
-                    container,
-                    NSLayoutAttributeBottom,
-                    1.0,
-                    0.0
-                )
-
-                NSLayoutConstraint.activateConstraints(listOf(leading, trailing, top, bottom))
-                container
-            },
-            update = {},
-            properties = UIKitInteropProperties(
-                isInteractive = true,
-                isNativeAccessibilityEnabled = true
-            )
-        )
-
-        /*
-         * AVPlayerViewController does not expose native previous/next
-         * transport controls, so we render our own overlay buttons on iOS
-         * (Android uses the native playlist prev/next instead).
-         */
-        Crossfade(
-            targetState = controlsVisible,
-            modifier = Modifier.align(Alignment.CenterStart),
-            label = "previousVisibility"
-        ) { visible ->
-            if (visible && useController && onPrevious != null) {
-                VideoOverlayButton(
-                    icon = Icons.Filled.SkipPrevious,
-                    contentDescription = stringResource(Res.string.previous_exercise),
-                    onClick = { onPrevious?.invoke() },
-                    modifier = Modifier.padding(start = 8.dp),
-                    enabled = canGoPrevious
-                )
-            }
-        }
-
-        Crossfade(
-            targetState = controlsVisible,
-            modifier = Modifier.align(Alignment.CenterEnd),
-            label = "nextVisibility"
-        ) { visible ->
-            if (visible && useController && onNext != null) {
-                VideoOverlayButton(
-                    icon = Icons.Filled.SkipNext,
-                    contentDescription = stringResource(Res.string.next_exercise),
-                    onClick = { onNext?.invoke() },
-                    modifier = Modifier.padding(end = 8.dp),
-                    enabled = canGoNext
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
-private class TapHandler(
-    private val onTap: () -> Unit
-) : NSObject() {
-    @ObjCAction
-    fun handleTap() {
-        onTap()
-    }
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private class SimultaneousGestureDelegate : NSObject(), UIGestureRecognizerDelegateProtocol {
-    override fun gestureRecognizer(
-        gestureRecognizer: UIGestureRecognizer,
-        shouldRecognizeSimultaneouslyWithGestureRecognizer: UIGestureRecognizer
-    ): Boolean = true
+	UIKitViewController(
+		factory = {
+			bridge.createController(
+				items = items,
+				startIndex = startIndex,
+				quality = quality,
+				muted = muted,
+				listener = listener,
+			)
+		},
+		modifier = modifier,
+		update = { controller ->
+			bridge.update(
+				controller = controller,
+				items = items,
+				startIndex = startIndex,
+				quality = quality,
+				muted = muted,
+			)
+		},
+		onRelease = { controller -> bridge.releaseController(controller) },
+		properties = UIKitInteropProperties(
+			isInteractive = true,
+			isNativeAccessibilityEnabled = true,
+		),
+	)
 }

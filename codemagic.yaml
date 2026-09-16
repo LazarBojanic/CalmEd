@@ -1,4 +1,31 @@
 workflows:
+  resolve-swift-packages:
+    name: resolve-swift-packages
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      xcode: 26.4
+    scripts:
+      - name: "Resolve Swift packages and print Package.resolved"
+        script: |
+          set -e
+          cd $CM_BUILD_DIR/frontend/calmed-tics/iosApp
+          xcodebuild -resolvePackageDependencies \
+            -workspace iosApp.xcworkspace \
+            -scheme iosApp
+          echo ""
+          echo "============================================================"
+          echo "COPY EVERYTHING BETWEEN THE MARKERS BELOW INTO"
+          echo "frontend/calmed-tics/iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          echo "and also into"
+          echo "frontend/calmed-tics/iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          echo "============================================================"
+          echo "----- BEGIN project Package.resolved -----"
+          cat iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved 2>/dev/null || echo "(not found)"
+          echo "----- END project Package.resolved -----"
+          echo "----- BEGIN workspace Package.resolved -----"
+          cat iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved 2>/dev/null || echo "(not found)"
+          echo "----- END workspace Package.resolved -----"
   debug-workflow:
     name: ios-build
     max_build_duration: 120

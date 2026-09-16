@@ -3,6 +3,7 @@ package com.calmed.calmedtics
 import android.content.Context
 import com.calmed.calmedtics.billing.AndroidBillingService
 import com.calmed.calmedtics.billing.BillingService
+import com.calmed.calmedtics.cast.AndroidCastController
 import com.calmed.calmedtics.database.AppDatabase
 import com.calmed.calmedtics.database.getAppDatabase
 import com.calmed.calmedtics.database.getDatabaseBuilder
@@ -17,14 +18,16 @@ import com.calmed.calmedtics.store.SettingsTokenDataStore
 import com.calmed.calmedtics.store.provideTokenStoreSettings
 import com.calmed.calmedtics.util.AndroidImagePicker
 import com.calmed.calmedtics.util.ImagePickerProvider
-import com.calmed.calmedtics.video.download.AndroidVideoDownloadManager
+import com.calmed.calmedtics.video.download.MuxVideoDownloadManager
 import com.russhwolf.settings.Settings
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.okhttp.OkHttp
+import androidx.media3.common.util.UnstableApi
 import org.koin.dsl.module
 
 actual fun platformEngine(): HttpClientEngineFactory<*> = OkHttp
 
+@OptIn(UnstableApi::class)
 fun androidModule(appContext: Context) = module {
     single<Context> { appContext }
     single<Settings> { provideSettings(appContext) }
@@ -51,8 +54,8 @@ fun androidModule(appContext: Context) = module {
         }
     }
     single<ReminderManager> { AndroidReminderManager(appContext, get()) }
+    single { AndroidCastController(appContext) }
     single<IVideoDownloadManager> {
-        AndroidVideoDownloadManager(appContext) { get<AppSettings>().isDownloadWifiOnly() }
+        MuxVideoDownloadManager(appContext) { get<AppSettings>().isDownloadWifiOnly() }
     }
-    single { get<IVideoDownloadManager>() as AndroidVideoDownloadManager }
 }

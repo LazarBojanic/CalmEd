@@ -111,9 +111,11 @@ kotlin{
 			implementation(libs.media3ExoplayerDash)
 			implementation(libs.media3Database)
 			implementation(libs.media3Datasource)
+			implementation(libs.media3Cast)
 			implementation(libs.media3ExoplayerWorkmanager)
 			implementation(libs.androidxBrowser)
 			implementation(libs.billingClient)
+			implementation(libs.mux)
 		}
 		iosMain.dependencies {
 			implementation(libs.roomRuntime)

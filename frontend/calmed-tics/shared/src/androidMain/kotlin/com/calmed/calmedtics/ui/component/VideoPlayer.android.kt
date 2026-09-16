@@ -1,327 +1,255 @@
 package com.calmed.calmedtics.ui.component
 
-import android.content.Context
-import android.view.View
+import android.content.pm.ActivityInfo
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import androidx.activity.compose.LocalActivity
 import androidx.annotation.OptIn
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.net.toUri
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
-import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.R as Media3R
-import com.calmed.calmedtics.video.download.AndroidVideoDownloadManager
-import org.koin.compose.koinInject
+import com.calmed.calmedtics.cast.AndroidCastController
+import com.calmed.calmedtics.cast.CastLocalState
+import com.calmed.calmedtics.logging.isDevelopment
+import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
-import com.calmed.calmedtics.video.download.DownloadUtil
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
+import com.calmed.calmedtics.video.VideoQuality
+import com.mux.player.MuxPlayer
+import com.mux.player.media.MediaItems
+import com.mux.player.media.PlaybackResolution
+import org.koin.compose.koinInject
 
 @OptIn(UnstableApi::class)
 @Composable
 actual fun VideoPlayer(
-    hlsUrl: String,
-    title: String?,
-    modifier: Modifier,
-    isFullscreen: Boolean,
-    isPlaying: Boolean,
-    isMuted: Boolean,
-    useController: Boolean,
-    showFullscreenButton: Boolean,
-    showPrevNextButtons: Boolean,
-    showRewindFastForwardButtons: Boolean,
-    playlist: List<VideoPlaylistItem>?,
-    onPositionChanged: ((Long) -> Unit)?,
-    onDurationChanged: ((Long) -> Unit)?,
-    onVideoOrientationChanged: ((isPortrait: Boolean) -> Unit)?,
-    onFullscreenToggle: ((Boolean) -> Unit)?,
-    onControllerVisibilityChanged: ((Boolean) -> Unit)?,
-    onPlaybackEnded: (() -> Unit)?,
-    onPlayPauseChange: ((Boolean) -> Unit)?,
-    onPlaylistIndexChanged: ((Int) -> Unit)?,
-    onPrevious: (() -> Unit)?,
-    onNext: (() -> Unit)?,
-    canGoPrevious: Boolean,
-    canGoNext: Boolean,
-    repeatCurrentExercise: Boolean
+	items: List<VideoItem>,
+	startIndex: Int,
+	modifier: Modifier,
+	quality: VideoQuality,
+	muted: Boolean,
+	autoPlay: Boolean,
+	allowFullscreen: Boolean,
+	isFullscreen: Boolean,
+	onFullscreenToggle: (Boolean) -> Unit,
+	onIndexChanged: (Int) -> Unit,
 ) {
-    val context = LocalContext.current
+	val context = LocalContext.current
+	val activity = LocalActivity.current
+	val downloadManager: IVideoDownloadManager = koinInject()
+	val castController: AndroidCastController = koinInject()
+	val isCasting by castController.isCasting.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val currentOnIndexChanged by rememberUpdatedState(onIndexChanged)
+	val currentOnFullscreenToggle by rememberUpdatedState(onFullscreenToggle)
+	val latestStartIndex by rememberUpdatedState(startIndex)
 
-    val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
-    val currentOnDurationChanged by rememberUpdatedState(onDurationChanged)
-    val currentOnVideoOrientationChanged by rememberUpdatedState(onVideoOrientationChanged)
-    val currentOnPlaybackEnded by rememberUpdatedState(onPlaybackEnded)
-    val currentOnPlayPauseChange by rememberUpdatedState(onPlayPauseChange)
-    val currentOnPlaylistIndexChanged by rememberUpdatedState(onPlaylistIndexChanged)
-    val currentOnControllerVisibilityChanged by rememberUpdatedState(onControllerVisibilityChanged)
+	val muxPlayer = remember {
+		MuxPlayer.Builder(context = context)
+			.enableLogcat(isDevelopment)
+			.enableSmartCache(true)
+			.applyExoConfig {
+				setHandleAudioBecomingNoisy(true)
+			}
+			.build()
+	}
 
-    val cacheDataSourceFactory = remember {
-        DownloadUtil.getPlaybackDataSourceFactory(context)
-    }
+	DisposableEffect(muxPlayer) {
+		onDispose { muxPlayer.release() }
+	}
 
-    val player = remember(cacheDataSourceFactory) {
-        buildPlayer(context, cacheDataSourceFactory)
-    }
+	LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+		muxPlayer.pause()
+		castController.remotePlayer.pause()
+	}
 
-    val videoDownloadManager: AndroidVideoDownloadManager = koinInject()
-    val states by videoDownloadManager.states.collectAsState()
+	val windowInfo = LocalWindowInfo.current
 
-    DisposableEffect(player) {
-        val listener = object : Player.Listener {
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                val duration = player.duration
-                if (duration > 0) {
-                    currentOnDurationChanged?.invoke(duration)
-                }
+	LaunchedEffect(
+		isFullscreen,
+		activity,
+		windowInfo.containerSize,
+		windowInfo.isWindowFocused,
+	) {
+		val window = activity?.window ?: return@LaunchedEffect
+		val controller = WindowCompat.getInsetsController(window, window.decorView)
 
-                if (playbackState == Player.STATE_ENDED) {
-                    currentOnPlaybackEnded?.invoke()
-                }
-            }
+		if (isFullscreen) {
+			activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+			controller.systemBarsBehavior =
+				WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+			controller.hide(WindowInsetsCompat.Type.systemBars())
+		} else {
+			activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+			controller.show(WindowInsetsCompat.Type.systemBars())
+		}
+	}
 
-            override fun onVideoSizeChanged(videoSize: VideoSize) {
-                val isRotated =
-                    videoSize.unappliedRotationDegrees == 90 ||
-                        videoSize.unappliedRotationDegrees == 270
+	DisposableEffect(activity) {
+		onDispose {
+			if (activity != null && !activity.isFinishing && !activity.isDestroyed) {
+				activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+				activity.window?.let { window ->
+					WindowCompat.getInsetsController(window, window.decorView)
+						.show(WindowInsetsCompat.Type.systemBars())
+				}
+			}
+		}
+	}
 
-                val effectiveWidth = if (isRotated) videoSize.height else videoSize.width
-                val effectiveHeight = if (isRotated) videoSize.width else videoSize.height
+	val mediaItems = remember(items, quality) {
+		items.map { item ->
+			val downloaded =
+				downloadManager.states.value.stateFor(item.playbackId).status ==
+					VideoDownloadStatus.Downloaded
 
-                if (effectiveWidth > 0 && effectiveHeight > 0) {
-                    currentOnVideoOrientationChanged?.invoke(effectiveHeight >= effectiveWidth)
-                }
-            }
+			if (downloaded) {
+				MediaItems.forMuxDownload(item.playbackId, item.title)
+			} else {
+				item.toMuxMediaItem(quality)
+			}
+		}
+	}
 
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                currentOnPlayPauseChange?.invoke(isPlaying)
+	val castMediaItems = remember(items, quality) {
+		items.map { item -> item.toMuxMediaItem(quality, forCast = true) }
+	}
 
-                if (!isPlaying) {
-                    currentOnPositionChanged?.invoke(player.currentPosition)
-                }
-            }
+	LaunchedEffect(muxPlayer, mediaItems) {
+		if (mediaItems.isEmpty()) return@LaunchedEffect
 
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                currentOnPlaylistIndexChanged?.invoke(player.currentMediaItemIndex)
-            }
-        }
+		val resuming = muxPlayer.mediaItemCount > 0 &&
+			muxPlayer.playbackState != Player.STATE_IDLE
+		val index = if (resuming) muxPlayer.currentMediaItemIndex else latestStartIndex
+		val position = if (resuming) muxPlayer.currentPosition else 0L
 
-        player.addListener(listener)
+		muxPlayer.setMediaItems(mediaItems, index.coerceIn(0, mediaItems.lastIndex), position)
+		muxPlayer.prepare()
+		muxPlayer.playWhenReady = autoPlay
+	}
 
-        onDispose {
-            player.removeListener(listener)
-            player.release()
-        }
-    }
+	LaunchedEffect(muxPlayer, muted) {
+		muxPlayer.volume = if (muted) 0f else 1f
+	}
 
-    val playlistItems = remember(playlist) {
-        playlist ?: listOf(VideoPlaylistItem(url = hlsUrl, title = title))
-    }
+	DisposableEffect(castMediaItems, muxPlayer) {
+		castController.localStateProvider = {
+			CastLocalState(
+				items = castMediaItems,
+				index = if (muxPlayer.mediaItemCount > 0) {
+					muxPlayer.currentMediaItemIndex
+				} else {
+					latestStartIndex
+				},
+				positionMs = if (muxPlayer.mediaItemCount > 0) {
+					muxPlayer.currentPosition.coerceAtLeast(0L)
+				} else {
+					0L
+				},
+			)
+		}
+		onDispose { castController.localStateProvider = null }
+	}
 
-    LaunchedEffect(playlistItems, hlsUrl) {
-        playlistItems.forEach { item ->
-            videoDownloadManager.refresh(item.url)
-        }
+	LaunchedEffect(isCasting) {
+		if (isCasting) {
+			muxPlayer.pause()
+		} else {
+			val target = castController.consumeResumeTarget()
+			if (target != null && muxPlayer.mediaItemCount > 0) {
+				muxPlayer.seekTo(
+					target.index.coerceIn(0, muxPlayer.mediaItemCount - 1),
+					target.positionMs,
+				)
+				muxPlayer.play()
+			}
+		}
+	}
 
-        val mediaItems = playlistItems.map { item ->
-            if (states.stateFor(item.url).status == VideoDownloadStatus.Downloaded) {
-                videoDownloadManager.downloadedMediaItem(item.url)
-                    ?: MediaItem.fromUri(item.url.toUri())
-            } else {
-                MediaItem.fromUri(item.url.toUri())
-            }
-        }
+	val activePlayer: Player = if (isCasting) castController.remotePlayer else muxPlayer
 
-        val startIndex = playlistItems.indexOfFirst { it.url == hlsUrl }.coerceAtLeast(0)
+	DisposableEffect(activePlayer, currentOnIndexChanged) {
+		val listener = object : Player.Listener {
+			override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+				currentOnIndexChanged(activePlayer.currentMediaItemIndex)
+			}
+		}
+		activePlayer.addListener(listener)
+		onDispose { activePlayer.removeListener(listener) }
+	}
 
-        val needsReload =
-            player.mediaItemCount != mediaItems.size ||
-                player.currentMediaItem?.localConfiguration?.uri !=
-                mediaItems[startIndex].localConfiguration?.uri
-
-        if (needsReload) {
-            player.setMediaItems(mediaItems, startIndex, 0)
-            player.prepare()
-        }
-    }
-
-    LaunchedEffect(isPlaying, isMuted, repeatCurrentExercise) {
-        player.pauseAtEndOfMediaItems = !repeatCurrentExercise
-        player.repeatMode =
-            if (repeatCurrentExercise) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
-
-        player.playWhenReady = isPlaying
-        if (isPlaying) player.play() else player.pause()
-
-        player.volume = if (isMuted) 0f else 1f
-    }
-
-    LaunchedEffect(player) {
-        while (true) {
-            if (player.isPlaying) {
-                currentOnPositionChanged?.invoke(player.currentPosition)
-            }
-            delay(500.milliseconds)
-        }
-    }
-
-    PlayerContent(
-        modifier = modifier,
-        player = player,
-        useController = useController,
-        isFullscreen = isFullscreen,
-        showFullscreenButton = showFullscreenButton,
-        showPrevNextButtons = showPrevNextButtons,
-        showRewindFastForwardButtons = showRewindFastForwardButtons,
-        onFullscreenToggle = onFullscreenToggle,
-        onControllerVisibilityChanged = currentOnControllerVisibilityChanged
-    )
+	AndroidView(
+		factory = { ctx ->
+			PlayerView(ctx).apply {
+				layoutParams = FrameLayout.LayoutParams(
+					ViewGroup.LayoutParams.MATCH_PARENT,
+					ViewGroup.LayoutParams.MATCH_PARENT
+				)
+				setBackgroundColor(android.graphics.Color.BLACK)
+				setShutterBackgroundColor(android.graphics.Color.BLACK)
+				useController = true
+				setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
+				if (allowFullscreen) {
+					setFullscreenButtonClickListener { shouldBeFullscreen ->
+						currentOnFullscreenToggle(shouldBeFullscreen)
+					}
+				} else {
+					setFullscreenButtonClickListener(null)
+				}
+				player = activePlayer
+			}
+		},
+		update = { view ->
+			view.player = activePlayer
+			view.setFullscreenButtonState(isFullscreen)
+		},
+		modifier = modifier,
+	)
 }
 
-@OptIn(UnstableApi::class)
-@Composable
-private fun PlayerContent(
-    modifier: Modifier,
-    player: ExoPlayer,
-    useController: Boolean,
-    isFullscreen: Boolean,
-    showFullscreenButton: Boolean,
-    showPrevNextButtons: Boolean,
-    showRewindFastForwardButtons: Boolean,
-    onFullscreenToggle: ((Boolean) -> Unit)?,
-    onControllerVisibilityChanged: ((Boolean) -> Unit)?
-) {
-    Box(
-        modifier = modifier.background(Color.Black)
-    ) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { ctx ->
-                createPlayerView(
-                    ctx = ctx,
-                    player = player,
-                    useController = useController,
-                    isFullscreen = isFullscreen,
-                    showFullscreenButton = showFullscreenButton,
-                    showPrevNextButtons = showPrevNextButtons,
-                    showRewindFastForwardButtons = showRewindFastForwardButtons,
-                    onFullscreenToggle = onFullscreenToggle,
-                    onControllerVisibilityChanged = onControllerVisibilityChanged
-                )
-            },
-            update = { playerView ->
-                playerView.configureController(
-                    useController = useController,
-                    isFullscreen = isFullscreen,
-                    showFullscreenButton = showFullscreenButton,
-                    showPrevNextButtons = showPrevNextButtons,
-                    showRewindFastForwardButtons = showRewindFastForwardButtons,
-                    onFullscreenToggle = onFullscreenToggle,
-                    onControllerVisibilityChanged = onControllerVisibilityChanged
-                )
-            }
-        )
-    }
+private fun VideoItem.toMuxMediaItem(
+	quality: VideoQuality,
+	forCast: Boolean = false,
+): MediaItem {
+	val builder = MediaItems.builderFromMuxPlaybackId(
+		playbackId = playbackId,
+		maxResolution = quality.toPlaybackResolution(),
+		playbackToken = playbackToken,
+	)
+		.setMediaMetadata(
+			MediaMetadata.Builder()
+				.setTitle(title)
+				.build()
+		)
+
+	if (forCast) {
+		builder.setMimeType(MimeTypes.APPLICATION_M3U8)
+	}
+
+	return builder.build()
 }
 
-@OptIn(UnstableApi::class)
-private fun buildPlayer(
-    context: Context,
-    cacheFactory: CacheDataSource.Factory
-): ExoPlayer {
-    return ExoPlayer.Builder(context)
-        .setMediaSourceFactory(DefaultMediaSourceFactory(cacheFactory))
-        .build()
-}
-
-@OptIn(UnstableApi::class)
-private fun createPlayerView(
-    ctx: Context,
-    player: ExoPlayer,
-    useController: Boolean,
-    isFullscreen: Boolean,
-    showFullscreenButton: Boolean,
-    showPrevNextButtons: Boolean,
-    showRewindFastForwardButtons: Boolean,
-    onFullscreenToggle: ((Boolean) -> Unit)?,
-    onControllerVisibilityChanged: ((Boolean) -> Unit)?
-): PlayerView {
-    return PlayerView(ctx).apply {
-        this.player = player
-
-        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-        setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
-        setShowSubtitleButton(false)
-
-        controllerAutoShow = true
-        controllerShowTimeoutMs = 3000
-        controllerHideOnTouch = true
-
-        findViewById<View>(Media3R.id.exo_settings)?.visibility = View.GONE
-
-        configureController(
-            useController = useController,
-            isFullscreen = isFullscreen,
-            showFullscreenButton = showFullscreenButton,
-            showPrevNextButtons = showPrevNextButtons,
-            showRewindFastForwardButtons = showRewindFastForwardButtons,
-            onFullscreenToggle = onFullscreenToggle,
-            onControllerVisibilityChanged = onControllerVisibilityChanged
-        )
-
-        post {
-            if (useController) {
-                showController()
-            }
-        }
-    }
-}
-
-@OptIn(UnstableApi::class)
-private fun PlayerView.configureController(
-    useController: Boolean,
-    isFullscreen: Boolean,
-    showFullscreenButton: Boolean,
-    showPrevNextButtons: Boolean,
-    showRewindFastForwardButtons: Boolean,
-    onFullscreenToggle: ((Boolean) -> Unit)?,
-    onControllerVisibilityChanged: ((Boolean) -> Unit)?
-) {
-    this.useController = useController
-
-    setShowPreviousButton(showPrevNextButtons)
-    setShowNextButton(showPrevNextButtons)
-    setShowRewindButton(showRewindFastForwardButtons)
-    setShowFastForwardButton(showRewindFastForwardButtons)
-
-    setControllerVisibilityListener(
-        PlayerView.ControllerVisibilityListener { visibility ->
-            onControllerVisibilityChanged?.invoke(visibility == View.VISIBLE)
-        }
-    )
-
-    if (showFullscreenButton && onFullscreenToggle != null) {
-        setFullscreenButtonClickListener { isFullScreen ->
-            onFullscreenToggle(isFullScreen)
-        }
-        setFullscreenButtonState(isFullscreen)
-    }
+private fun VideoQuality.toPlaybackResolution(): PlaybackResolution = when (this) {
+	VideoQuality.R480 -> PlaybackResolution.LD_480
+	VideoQuality.R720 -> PlaybackResolution.HD_720
+	VideoQuality.R1080 -> PlaybackResolution.FHD_1080
 }

@@ -8,7 +8,7 @@ import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
  
 @Composable
-fun ThumbnailImage(
+fun Thumbnail(
     url: String,
     contentDescription: String?,
     modifier: Modifier

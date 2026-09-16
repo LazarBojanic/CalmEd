@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,18 +25,16 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +47,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.cancel
 import calmedtics.shared.generated.resources.delete
@@ -61,365 +60,335 @@ import calmedtics.shared.generated.resources.offline_description
 import calmedtics.shared.generated.resources.offline_label
 import calmedtics.shared.generated.resources.play_offline_video
 import calmedtics.shared.generated.resources.remove_downloaded_video
-import com.calmed.calmedtics.service.specification.IVideoDownloadManager
-import com.calmed.calmedtics.service.specification.VideoDownloadState
-import com.calmed.calmedtics.service.specification.VideoDownloadStatus
-import com.calmed.calmedtics.service.specification.stateFor
-import com.calmed.calmedtics.ui.component.AppToastHost
 import calmedtics.shared.generated.resources.status_downloaded
 import calmedtics.shared.generated.resources.status_downloading
 import calmedtics.shared.generated.resources.status_failed
 import calmedtics.shared.generated.resources.status_not_downloaded
+import com.calmed.calmedtics.repository.ExercisesRepository
+import com.calmed.calmedtics.service.specification.DownloadedVideo
+import com.calmed.calmedtics.service.specification.IVideoDownloadManager
+import com.calmed.calmedtics.service.specification.VideoDownloadState
+import com.calmed.calmedtics.service.specification.VideoDownloadStatus
+import com.calmed.calmedtics.service.specification.stateFor
 import com.calmed.calmedtics.theme.appBackgroundGradient
 import calmedtics.shared.generated.resources.try_online
 import calmedtics.shared.generated.resources.you_are_offline
+import com.calmed.calmedtics.ui.component.AppToastHost
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
 fun OfflineModeScreen(
-    onTryOnline: () -> Unit,
-    onOpenVideo: (url: String, title: String?) -> Unit
+	onTryOnline: () -> Unit,
+	onOpenDownload: (playbackId: String, title: String?) -> Unit,
 ) {
-    val videoDownloadManager: IVideoDownloadManager = koinInject()
-    val downloadedUrls by
-    videoDownloadManager.downloadedUrls.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val videoDownloadManager: IVideoDownloadManager = koinInject()
+	val exercisesRepository: ExercisesRepository = koinInject()
+	val downloadedVideos by videoDownloadManager.downloadedVideos
+		.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
-    val states by
-    videoDownloadManager.states.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+	val states by videoDownloadManager.states
+		.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
-    var pendingDeleteUrl by remember { mutableStateOf<String?>(null) }
+	val exercises by exercisesRepository.exercises
+		.collectAsStateWithLifecycle(
+			initialValue = emptyList(),
+			lifecycleOwner = LocalLifecycleOwner.current,
+		)
 
-    LaunchedEffect(Unit) {
-        videoDownloadManager.refreshDownloaded()
-    }
+	val titlesByPlaybackId = remember(exercises) {
+		exercises.mapNotNull { exercise ->
+			exercise.title.takeIf { it.isNotBlank() }?.let { exercise.playbackId to it }
+		}.toMap()
+	}
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(appBackgroundGradient()),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                top = 18.dp,
-                end = 16.dp,
-                bottom = 96.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
+	var pendingDelete by remember { mutableStateOf<DownloadedVideo?>(null) }
 
-        item {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
+	LaunchedEffect(Unit) {
+		videoDownloadManager.refresh()
+	}
 
-                Text(
-                    text = stringResource(Res.string.you_are_offline),
-                    fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+	Box(modifier = Modifier.fillMaxSize()) {
+		LazyColumn(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(appBackgroundGradient()),
+			contentPadding = PaddingValues(
+				start = 16.dp,
+				top = 18.dp,
+				end = 16.dp,
+				bottom = 96.dp,
+			),
+			verticalArrangement = Arrangement.spacedBy(18.dp),
+		) {
+			item {
+				Text(
+					text = stringResource(Res.string.you_are_offline),
+					fontSize = 15.sp,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+				)
+			}
 
+			item {
+				Card(
+					modifier = Modifier.fillMaxWidth(),
+					shape = RoundedCornerShape(24.dp),
+					colors = CardDefaults.cardColors(
+						containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+					),
+					elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
+				) {
+					Row(
+						modifier = Modifier.padding(18.dp),
+						verticalAlignment = Alignment.CenterVertically,
+					) {
+						Box(
+							modifier = Modifier
+								.size(48.dp)
+								.background(
+									brush = Brush.linearGradient(
+										colors = listOf(
+											MaterialTheme.colorScheme.primaryContainer,
+											MaterialTheme.colorScheme.secondaryContainer,
+										)
+									),
+									shape = RoundedCornerShape(15.dp),
+								),
+							contentAlignment = Alignment.Center,
+						) {
+							Icon(
+								imageVector = Icons.Default.CloudOff,
+								contentDescription = stringResource(Res.string.offline_label),
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(27.dp),
+							)
+						}
 
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(18.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.primaryContainer,
-                                        MaterialTheme.colorScheme.secondaryContainer
-                                    )
-                                ),
-                                shape = RoundedCornerShape(15.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CloudOff,
-                            contentDescription = stringResource(Res.string.offline_label),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(27.dp)
-                        )
-                    }
+						Spacer(modifier = Modifier.width(13.dp))
 
-                    Spacer(modifier = Modifier.width(13.dp))
+						Column(
+							modifier = Modifier.weight(1f),
+							verticalArrangement = Arrangement.spacedBy(2.dp),
+						) {
+							Text(
+								text = stringResource(Res.string.offline_label),
+								fontSize = 17.sp,
+								fontWeight = FontWeight.Bold,
+								color = MaterialTheme.colorScheme.onSurface,
+							)
 
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.offline_label),
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+							Text(
+								text = stringResource(Res.string.offline_description),
+								fontSize = 13.sp,
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
+							)
+						}
+					}
+				}
+			}
 
-                        Text(
-                            text = stringResource(Res.string.offline_description),
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
+			item {
+				Box(
+					modifier = Modifier
+						.fillMaxWidth()
+						.clip(RoundedCornerShape(18.dp))
+						.background(
+							brush = Brush.horizontalGradient(
+								colors = listOf(
+									MaterialTheme.colorScheme.primary,
+									MaterialTheme.colorScheme.secondary,
+								)
+							)
+						)
+						.clickable { onTryOnline() }
+						.padding(14.dp),
+					contentAlignment = Alignment.Center,
+				) {
+					Text(
+						text = stringResource(Res.string.try_online),
+						fontSize = 15.sp,
+						fontWeight = FontWeight.Bold,
+						color = MaterialTheme.colorScheme.onPrimary,
+					)
+				}
+			}
 
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.secondary
-                            )
-                        )
-                    )
-                    .clickable { onTryOnline() }
-                    .padding(14.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(Res.string.try_online),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        }
+			item {
+				Text(
+					text = stringResource(Res.string.downloaded_videos, downloadedVideos.size),
+					fontSize = 18.sp,
+					fontWeight = FontWeight.Bold,
+					color = MaterialTheme.colorScheme.onSurface,
+				)
+			}
 
-        item {
-            Text(
-                text = stringResource(
-                    Res.string.downloaded_videos,
-                    downloadedUrls.size
-                ),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
+			if (downloadedVideos.isEmpty()) {
+				item {
+					Card(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(18.dp),
+						colors = CardDefaults.cardColors(
+							containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+						),
+						elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+					) {
+						Text(
+							text = stringResource(Res.string.no_downloads),
+							modifier = Modifier.padding(16.dp),
+							style = MaterialTheme.typography.bodyMedium,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+						)
+					}
+				}
+			} else {
+				items(downloadedVideos, key = { it.playbackId }) { video ->
+					val state = states.stateFor(video.playbackId)
+					val displayTitle = titlesByPlaybackId[video.playbackId]
+						?: video.title
+						?: video.playbackId
 
-        if (downloadedUrls.isEmpty()) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Text(
-                        text = stringResource(Res.string.no_downloads),
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        } else {
-            items(
-                downloadedUrls,
-                key = { it }
-            ) { url ->
-                val state = states.stateFor(url)
-                val displayTitle = state.title ?: url.fileNameOrFallback()
+					Card(
+						modifier = Modifier
+							.fillMaxWidth()
+							.clickable { onOpenDownload(video.playbackId, video.title) },
+						shape = RoundedCornerShape(20.dp),
+						colors = CardDefaults.cardColors(
+							containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+						),
+						elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(12.dp),
+							verticalAlignment = Alignment.CenterVertically,
+						) {
+							Box(
+								modifier = Modifier
+									.size(44.dp)
+									.background(
+										brush = Brush.linearGradient(
+											colors = listOf(
+												MaterialTheme.colorScheme.primary,
+												MaterialTheme.colorScheme.secondary,
+											)
+										),
+										shape = CircleShape,
+									),
+								contentAlignment = Alignment.Center,
+							) {
+								Icon(
+									imageVector = Icons.Default.PlayArrow,
+									contentDescription = stringResource(Res.string.play_offline_video),
+									tint = MaterialTheme.colorScheme.onPrimary,
+									modifier = Modifier.size(22.dp),
+								)
+							}
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onOpenVideo(url, state.title)
-                        },
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .background(
-                                    brush = Brush.linearGradient(
-                                        colors = listOf(
-                                            MaterialTheme.colorScheme.primary,
-                                            MaterialTheme.colorScheme.secondary
-                                        )
-                                    ),
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = stringResource(Res.string.play_offline_video),
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
+							Spacer(modifier = Modifier.width(12.dp))
 
-                        Spacer(modifier = Modifier.width(12.dp))
+							Column(
+								modifier = Modifier.weight(1f),
+								verticalArrangement = Arrangement.spacedBy(4.dp),
+							) {
+								Text(
+									text = displayTitle,
+									fontSize = 15.sp,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.onSurface,
+									maxLines = 2,
+									overflow = TextOverflow.Ellipsis,
+								)
 
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = displayTitle,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
+								Text(
+									text = statusLabel(state),
+									fontSize = 11.sp,
+									fontWeight = FontWeight.Medium,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+								)
+							}
 
-                            Text(
-                                text = statusLabel(state),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+							Icon(
+								imageVector = statusIcon(state.status),
+								contentDescription = statusLabel(state),
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(20.dp),
+							)
 
-                        Icon(
-                            imageVector = statusIcon(state.status),
-                            contentDescription = statusLabel(state),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
+							Spacer(modifier = Modifier.width(6.dp))
 
-                        Spacer(modifier = Modifier.width(6.dp))
+							IconButton(onClick = { pendingDelete = video }) {
+								Icon(
+									imageVector = Icons.Default.Delete,
+									contentDescription = stringResource(Res.string.remove_downloaded_video),
+									tint = MaterialTheme.colorScheme.onSurfaceVariant,
+								)
+							}
+						}
+					}
+				}
+			}
+		}
 
-                        IconButton(
-                            onClick = {
-                                pendingDeleteUrl = url
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = stringResource(Res.string.remove_downloaded_video),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+		AppToastHost(
+			modifier = Modifier
+				.align(Alignment.BottomCenter)
+				.navigationBarsPadding(),
+		)
+	}
 
-        AppToastHost(
-            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding()
-        )
-    }
-
-    pendingDeleteUrl?.let { url ->
-        AlertDialog(
-            onDismissRequest = { pendingDeleteUrl = null },
-            title = {
-                Text(stringResource(Res.string.delete_confirm_title))
-            },
-            text = {
-                Text(stringResource(Res.string.delete_confirm_message))
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        videoDownloadManager.remove(url)
-                        pendingDeleteUrl = null
-                    }
-                ) {
-                    Text(stringResource(Res.string.delete))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { pendingDeleteUrl = null }
-                ) {
-                    Text(stringResource(Res.string.cancel))
-                }
-            }
-        )
-    }
+	pendingDelete?.let { video ->
+		AlertDialog(
+			onDismissRequest = { pendingDelete = null },
+			title = { Text(stringResource(Res.string.delete_confirm_title)) },
+			text = { Text(stringResource(Res.string.delete_confirm_message)) },
+			confirmButton = {
+				TextButton(
+					onClick = {
+						videoDownloadManager.remove(video.playbackId)
+						pendingDelete = null
+					}
+				) {
+					Text(stringResource(Res.string.delete))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { pendingDelete = null }) {
+					Text(stringResource(Res.string.cancel))
+				}
+			},
+		)
+	}
 }
 
 @Composable
-private fun statusLabel(
-    state: VideoDownloadState
-): String {
-    return when (state.status) {
-        VideoDownloadStatus.NotDownloaded ->
-            stringResource(Res.string.status_not_downloaded)
+private fun statusLabel(state: VideoDownloadState): String {
+	return when (state.status) {
+		VideoDownloadStatus.NotDownloaded,
+		VideoDownloadStatus.Stopped -> stringResource(Res.string.status_not_downloaded)
 
-        VideoDownloadStatus.Downloading -> {
-            val progress = state.progressPercent?.toInt()
+		VideoDownloadStatus.Starting,
+		VideoDownloadStatus.Queued,
+		VideoDownloadStatus.Downloading,
+		VideoDownloadStatus.Removing -> {
+			val progress = state.progressPercent?.toInt()
+			if (progress != null) {
+				"${stringResource(Res.string.status_downloading)} $progress%"
+			} else {
+				stringResource(Res.string.status_downloading)
+			}
+		}
 
-            if (progress != null) {
-                "${stringResource(Res.string.status_downloading)} $progress%"
-            } else {
-                stringResource(Res.string.status_downloading)
-            }
-        }
+		VideoDownloadStatus.Downloaded -> stringResource(Res.string.status_downloaded)
 
-        VideoDownloadStatus.Downloaded ->
-            stringResource(Res.string.status_downloaded)
-
-        VideoDownloadStatus.Failed ->
-            stringResource(Res.string.status_failed)
-    }
+		VideoDownloadStatus.Failed,
+		VideoDownloadStatus.Expired -> stringResource(Res.string.status_failed)
+	}
 }
 
-private fun statusIcon(
-    status: VideoDownloadStatus
-) = when (status) {
-    VideoDownloadStatus.NotDownloaded ->
-        Icons.Default.Download
-
-    VideoDownloadStatus.Downloading ->
-        Icons.Default.Download
-
-    VideoDownloadStatus.Downloaded ->
-        Icons.Default.CheckCircle
-
-    VideoDownloadStatus.Failed ->
-        Icons.Default.ErrorOutline
-}
-
-private fun String.fileNameOrFallback(): String {
-    val fileName =
-        substringAfterLast('/')
-            .substringBefore('?')
-
-    return if (fileName.isBlank()) {
-        this
-    } else {
-        fileName
-    }
+private fun statusIcon(status: VideoDownloadStatus) = when (status) {
+	VideoDownloadStatus.Downloaded -> Icons.Default.CheckCircle
+	VideoDownloadStatus.Failed,
+	VideoDownloadStatus.Expired -> Icons.Default.ErrorOutline
+	else -> Icons.Default.Download
 }

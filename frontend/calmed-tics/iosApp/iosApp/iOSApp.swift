@@ -39,6 +39,8 @@ struct iOSApp: App {
     @StateObject private var storeKitManager = StoreKitManager.shared
 	init(){
 		Frameworks_iosKt.doInitKoinIos()
+		IosVideoPlayerRegistry.shared.bridge = MuxPlayerBridge()
+		IosOfflineDownloadRegistry.shared.bridge = MuxOfflineDownloadBridge()
 		UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
         
         NotificationCenter.default.addObserver(

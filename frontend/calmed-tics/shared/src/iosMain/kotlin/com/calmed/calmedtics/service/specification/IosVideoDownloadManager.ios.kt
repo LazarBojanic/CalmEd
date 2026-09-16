@@ -1,182 +1,115 @@
 package com.calmed.calmedtics.service.specification
 
-import kotlinx.cinterop.ExperimentalForeignApi
+import com.calmed.calmedtics.video.VideoQuality
+import com.calmed.calmedtics.video.download.IosOfflineDownloadListener
+import com.calmed.calmedtics.video.download.IosOfflineDownloadRegistry
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import platform.AVFoundation.AVAssetDownloadDelegateProtocol
-import platform.AVFoundation.AVAssetDownloadTask
-import platform.AVFoundation.AVAssetDownloadURLSession
-import platform.AVFoundation.AVURLAsset
-import platform.Foundation.NSError
-import platform.Foundation.NSFileManager
-import platform.Foundation.NSOperationQueue
-import platform.Foundation.NSURL
-import platform.Foundation.NSURLSession
-import platform.Foundation.NSURLSessionConfiguration
-import platform.Foundation.NSURLSessionTask
-import platform.Foundation.NSUserDefaults
-import platform.darwin.NSObject
-
-private const val OFFLINE_URL_PREFIX = "offline_video_url::"
-private const val OFFLINE_TITLE_PREFIX = "offline_video_title::"
-private const val DOWNLOAD_SESSION_ID = "com.tagware.calmedtics.video.download"
 
 class IosVideoDownloadManager : IVideoDownloadManager {
-	private val defaults = NSUserDefaults.standardUserDefaults
-    private val pendingTaskIds = mutableMapOf<Long, String>()
 
-    private val delegate = object : NSObject(), AVAssetDownloadDelegateProtocol {
-        override fun URLSession(
-            session: NSURLSession,
-            assetDownloadTask: AVAssetDownloadTask,
-            didFinishDownloadingToURL: NSURL
-        ) {
-            val remoteKey = pendingTaskIds.remove(assetDownloadTask.taskIdentifier.toLong())
-                ?: assetDownloadTask.URLAsset.URL.absoluteString
-                ?: return
-            val key = downloadKey(remoteKey)
+	private val bridge get() = IosOfflineDownloadRegistry.bridge
 
-            defaults.setObject(didFinishDownloadingToURL.absoluteString, forKey = keyFor(key))
-            val title = defaults.stringForKey(titleKeyFor(key))
-            states.update {
-                it + (key to VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f, title = title))
-            }
-            _events.tryEmit(
-                DownloadEvent(
-                    DownloadEventType.Completed,
-                    title
-                )
-            )
-            refreshDownloaded()
-        }
+	private val _states = MutableStateFlow<Map<String, VideoDownloadState>>(emptyMap())
+	override val states: StateFlow<Map<String, VideoDownloadState>> = _states
 
-        override fun URLSession(
-            session: NSURLSession,
-            task: NSURLSessionTask,
-            didCompleteWithError: NSError?
-        ) {
-            val remoteKey = pendingTaskIds.remove(task.taskIdentifier.toLong()) ?: return
-            if (didCompleteWithError != null) {
-                val key = downloadKey(remoteKey)
-                val title = defaults.stringForKey(titleKeyFor(key))
-                states.update {
-                    it + (key to VideoDownloadState(VideoDownloadStatus.Failed, title = title))
-                }
-                _events.tryEmit(
-                    DownloadEvent(
-                        DownloadEventType.Failed,
-                        title
-                    )
-                )
-            }
-        }
-    }
+	private val _downloadedVideos = MutableStateFlow<List<DownloadedVideo>>(emptyList())
+	override val downloadedVideos: StateFlow<List<DownloadedVideo>> = _downloadedVideos
 
-    private val session: AVAssetDownloadURLSession by lazy {
-        val configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(
-            identifier = DOWNLOAD_SESSION_ID
-        )
-        AVAssetDownloadURLSession.sessionWithConfiguration(
-            configuration = configuration,
-            assetDownloadDelegate = delegate,
-            delegateQueue = NSOperationQueue.mainQueue()
-        )
-    }
-	override val states: StateFlow<Map<String, VideoDownloadState>>
-		field = MutableStateFlow<Map<String, VideoDownloadState>>(emptyMap())
-	override val downloadedUrls: StateFlow<List<String>>
-		field = MutableStateFlow<List<String>>(emptyList())
+	private val _events = MutableSharedFlow<DownloadEvent>(extraBufferCapacity = 32)
+	override val events: SharedFlow<DownloadEvent> = _events
 
-    private val _events = MutableSharedFlow<DownloadEvent>(extraBufferCapacity = 32)
-    override val events: SharedFlow<DownloadEvent>
-        get() = _events
+	private val listener = object : IosOfflineDownloadListener {
+		override fun onDownloadState(
+			playbackId: String,
+			status: String,
+			progress: Double,
+			title: String?,
+		) {
+			val previous = _states.value[playbackId]?.status
+			val mapped = status.toDownloadStatus()
+			val state = VideoDownloadState(
+				status = mapped,
+				progressPercent = progress.takeIf { it >= 0.0 }?.toFloat(),
+				title = title,
+			)
+
+			_states.update { it + (playbackId to state) }
+			recalculateDownloaded()
+			emitTransition(previous, mapped, title)
+		}
+
+		override fun onDownloadRemoved(playbackId: String) {
+			_states.update { it - playbackId }
+			recalculateDownloaded()
+		}
+	}
 
 	init {
-        refreshDownloaded()
-    }
+		bridge?.startObserving(listener)
+		bridge?.resumePendingDownloads()
+		refresh()
+	}
 
-    override fun refresh(url: String) {
-        val key = downloadKey(url)
-        val local = localFileUrl(key)
-        val title = defaults.stringForKey(titleKeyFor(key))
-        val state = if (local != null) {
-            VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f, title = title)
-        } else {
-            VideoDownloadState(VideoDownloadStatus.NotDownloaded)
-        }
-        states.update { it + (key to state) }
-    }
+	override fun startDownload(
+		playbackId: String,
+		token: String?,
+		title: String?,
+		quality: VideoQuality,
+	) {
+		if (playbackId.isBlank()) return
 
-    override fun refreshDownloaded() {
-        val allKeys = (defaults.dictionaryRepresentation() as Map<Any?, *>).keys
-        val urls = allKeys.mapNotNull { key: Any? ->
-            (key as? String)
-                ?.takeIf { it.startsWith(OFFLINE_URL_PREFIX) }
-                ?.removePrefix(OFFLINE_URL_PREFIX)
-        }.filter { url: String ->
-            localFileUrl(url) != null
-        }.distinct().sorted()
+		_states.update {
+			it + (playbackId to VideoDownloadState(VideoDownloadStatus.Starting, 0f, title))
+		}
 
-        downloadedUrls.value = urls
-    }
+		bridge?.startDownload(
+			playbackId = playbackId,
+			token = token,
+			title = title,
+			maxResolution = quality.maxResolution,
+		)
+	}
 
-    override fun download(url: String, title: String?) {
-        val key = downloadKey(url)
-        val remote = NSURL(string = url)
-        if (localFileUrl(key) != null) {
-            states.update {
-                it + (key to VideoDownloadState(VideoDownloadStatus.Downloaded, progressPercent = 100f, title = title))
-            }
-            return
-        }
+	override fun remove(playbackId: String) {
+		bridge?.removeDownload(playbackId)
+	}
 
-        title?.let { defaults.setObject(it, forKey = titleKeyFor(key)) }
+	override fun refresh() {
+		bridge?.refresh()
+	}
 
-        val asset = AVURLAsset(remote, options = null)
-        val task = session.assetDownloadTaskWithURLAsset(
-            asset,
-            "Offline Video",
-            null,
-            null
-        )
+	override fun setWifiOnly(wifiOnly: Boolean) {
+	}
 
-        if (task == null) {
-            states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Failed)) }
-            return
-        }
+	private fun emitTransition(
+		previous: VideoDownloadStatus?,
+		current: VideoDownloadStatus,
+		title: String?,
+	) {
+		if (previous == current) return
+		when (current) {
+			VideoDownloadStatus.Downloaded ->
+				_events.tryEmit(DownloadEvent(DownloadEventType.Completed, title))
+			VideoDownloadStatus.Expired ->
+				_events.tryEmit(DownloadEvent(DownloadEventType.Expired, title))
+			VideoDownloadStatus.Failed ->
+				_events.tryEmit(DownloadEvent(DownloadEventType.Failed, title))
+			else -> Unit
+		}
+	}
 
-        pendingTaskIds[task.taskIdentifier.toLong()] = key
-        states.update { it + (key to VideoDownloadState(VideoDownloadStatus.Downloading, progressPercent = 0f, title = title)) }
-        task.resume()
-    }
+	private fun recalculateDownloaded() {
+		_downloadedVideos.value = _states.value
+			.filterValues { it.status == VideoDownloadStatus.Downloaded }
+			.map { (playbackId, state) -> DownloadedVideo(playbackId, state.title) }
+			.sortedBy { it.playbackId }
+	}
 
-    @OptIn(ExperimentalForeignApi::class)
-    override fun remove(url: String) {
-        val key = downloadKey(url)
-        localFileUrl(key)?.let { localUrl ->
-            NSFileManager.defaultManager.removeItemAtURL(localUrl, error = null)
-        }
-        defaults.removeObjectForKey(keyFor(key))
-        defaults.removeObjectForKey(titleKeyFor(key))
-        states.update { it - key }
-        refreshDownloaded()
-    }
-
-    fun playbackUrl(url: String): String {
-        return localFileUrl(url)?.absoluteString ?: url
-    }
-
-    private fun keyFor(url: String): String = OFFLINE_URL_PREFIX + downloadKey(url)
-
-    private fun titleKeyFor(url: String): String = OFFLINE_TITLE_PREFIX + downloadKey(url)
-
-    private fun localFileUrl(url: String): NSURL? {
-        val stored = defaults.stringForKey(keyFor(url)) ?: return null
-        val local = NSURL(string = stored)
-        val path = local.path ?: return null
-        return if (NSFileManager.defaultManager.fileExistsAtPath(path)) local else null
-    }
+	private fun String.toDownloadStatus(): VideoDownloadStatus =
+		VideoDownloadStatus.entries.firstOrNull { it.name == this }
+			?: VideoDownloadStatus.NotDownloaded
 }

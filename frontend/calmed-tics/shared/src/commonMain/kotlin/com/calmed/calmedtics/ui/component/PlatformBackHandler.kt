@@ -1,7 +1,9 @@
 package com.calmed.calmedtics.ui.component
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 
 @Composable
-expect fun CastButton(modifier: Modifier = Modifier)
+expect fun PlatformBackHandler(
+	enabled: Boolean = true,
+	onBack: () -> Unit,
+)

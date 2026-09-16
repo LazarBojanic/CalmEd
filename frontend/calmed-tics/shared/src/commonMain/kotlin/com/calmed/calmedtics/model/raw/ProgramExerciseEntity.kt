@@ -14,16 +14,24 @@ data class ProgramExerciseEntity(
 	val groupId: Int?,
 	val title: String,
 	val description: String?,
+	val token: String,
+	@ColumnInfo(name = "preview_token")
+	val previewToken: String,
+	@ColumnInfo(name = "thumbnail_token")
+	val thumbnailToken: String,
+	@ColumnInfo(name = "preview_thumbnail_token")
+	val previewThumbnailToken: String,
 	@ColumnInfo(name = "playback_id")
-	val playbackId: String?,
+	val playbackId: String,
 	@ColumnInfo(name = "preview_playback_id")
-	val previewPlaybackId: String?,
-	@ColumnInfo(name = "preview_video_url")
-	val previewVideoURL: String?,
-	@ColumnInfo(name = "video_url")
-	val videoURL: String?,
+	val previewPlaybackId: String,
+	val url: String,
+	@ColumnInfo(name = "preview_url")
+	val previewURL: String,
 	@ColumnInfo(name = "thumbnail_url")
-	val thumbnailURL: String?,
+	val thumbnailURL: String,
+	@ColumnInfo(name = "preview_thumbnail_url")
+	val previewThumbnailURL: String,
 	@ColumnInfo(name = "duration_seconds")
 	val durationSeconds: Int?,
 	val visibility: String,

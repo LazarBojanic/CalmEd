@@ -43,7 +43,10 @@ import calmedtics.shared.generated.resources.osshr_method_title
 import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.settings.AppSettings
 import calmedtics.shared.generated.resources.skip
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.ui.component.VideoItem
 import com.calmed.calmedtics.ui.component.VideoPlayer
+import com.calmed.calmedtics.video.VideoQuality
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -61,7 +64,7 @@ fun WelcomeVideoScreen(
 
     var dontShowAgain by remember { mutableStateOf(false) }
 
-    var videoUrl by remember { mutableStateOf<String?>(null) }
+    var video by remember { mutableStateOf<ProgramExerciseDto?>(null) }
     var title by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -73,9 +76,9 @@ fun WelcomeVideoScreen(
         error = null
         try {
             val welcomeVideo = appApi.getWelcomeVideo()
-            videoUrl = welcomeVideo?.videoURL
+            video = welcomeVideo
             title = welcomeVideo?.title
-            if (videoUrl == null) {
+            if (welcomeVideo?.playbackId.isNullOrBlank()) {
                 error = errorNoSource
             }
         } catch (t: Throwable) {
@@ -114,18 +117,22 @@ fun WelcomeVideoScreen(
                         .clip(RoundedCornerShape(20.dp))
                         .background(Color.Black)
                 ) {
-                    val url = videoUrl
+                    val loaded = video
 
-                    if (url != null) {
+                    if (loaded != null && loaded.playbackId.isNotBlank()) {
                         VideoPlayer(
-                            hlsUrl = url,
-                            title = title,
+                            items = listOf(
+                                VideoItem(
+                                    playbackId = loaded.playbackId,
+                                    playbackToken = loaded.token.takeIf { it.isNotBlank() },
+                                    title = loaded.title,
+                                )
+                            ),
+                            startIndex = 0,
+                            quality = VideoQuality.R720,
+                            autoPlay = false,
+                            allowFullscreen = false,
                             modifier = Modifier.fillMaxSize(),
-                            isPlaying = false,
-                            useController = true,
-                            showFullscreenButton = false,
-                            showPrevNextButtons = false,
-                            showRewindFastForwardButtons = false
                         )
                     } else {
                         Box(

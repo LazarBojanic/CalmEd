@@ -54,7 +54,8 @@ import calmedtics.shared.generated.resources.next_week
 import calmedtics.shared.generated.resources.duration_min
 import calmedtics.shared.generated.resources.duration_placeholder
 import com.calmed.calmedtics.theme.appBackgroundGradient
-import com.calmed.calmedtics.ui.component.ThumbnailImage
+import com.calmed.calmedtics.settings.AppSettings
+import com.calmed.calmedtics.ui.component.Thumbnail
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.util.dateToEpochDay
@@ -82,7 +83,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.ui.unit.sp
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.util.epochDayToYmd
-import com.calmed.calmedtics.ui.component.VideoPlayer
+import org.koin.compose.koinInject
 
 @Composable
 fun HomeScreen(
@@ -96,6 +97,7 @@ fun HomeScreen(
     val userInfo by sessionViewModel.userInfo.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
     val allExercises by exercisesViewModel.exercises.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
     val allCompletions by homeViewModel.allCompletions.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
+    val appSettings: AppSettings = koinInject()
 
 
     val ymd = currentYmd()
@@ -603,7 +605,6 @@ fun HomeScreen(
 
             item {
                 val thumbnailUrl = selectedExercise?.thumbnailURL
-                val previewVideoUrl = selectedExercise?.previewVideoURL
 
                 Card(
                     modifier = Modifier
@@ -625,22 +626,8 @@ fun HomeScreen(
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        if (!previewVideoUrl.isNullOrBlank()) {
-                            VideoPlayer(
-                                hlsUrl = previewVideoUrl,
-                                title = null,
-                                modifier = Modifier.fillMaxSize(),
-                                isFullscreen = false,
-                                isPlaying = true,
-                                isMuted = true,
-                                useController = false,
-                                showFullscreenButton = false,
-                                showPrevNextButtons = false,
-                                showRewindFastForwardButtons = false,
-                                repeatCurrentExercise = true
-                            )
-                        } else if (!thumbnailUrl.isNullOrBlank()) {
-                            ThumbnailImage(
+                        if (!thumbnailUrl.isNullOrBlank()) {
+                            Thumbnail(
                                 url = thumbnailUrl,
                                 contentDescription = selectedTitle ?: "",
                                 modifier = Modifier.fillMaxSize()
@@ -673,12 +660,14 @@ fun HomeScreen(
                                 )
                         )
 
-                        selectedExercise?.videoURL
-                            ?.takeIf { it.isNotBlank() }
-                            ?.let { videoUrl ->
+                        selectedExercise
+                            ?.takeIf { it.playbackId.isNotBlank() }
+                            ?.let { exercise ->
                                 VideoPlayerDownloadButton(
-                                    hlsUrl = videoUrl,
+                                    playbackId = exercise.playbackId,
+                                    token = exercise.token.takeIf { it.isNotBlank() },
                                     title = selectedTitle,
+                                    quality = appSettings.getDownloadResolution(),
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
                                         .padding(10.dp)

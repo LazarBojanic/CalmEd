@@ -58,12 +58,13 @@ import calmedtics.shared.generated.resources.duration_placeholder
 import com.calmed.calmedtics.model.dto.response.ExerciseGroupDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.theme.appBackgroundGradient
-import com.calmed.calmedtics.ui.component.ThumbnailImage
+import com.calmed.calmedtics.settings.AppSettings
+import com.calmed.calmedtics.ui.component.Thumbnail
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.koinInject
 
 @Composable
 fun ExercisesScreen(
@@ -233,6 +234,7 @@ private fun ExerciseCard(
     val locked = exercise.weekNumber > currentWeek
 
     val lockedMessage = stringResource(Res.string.its_not_yet_time)
+    val appSettings: AppSettings = koinInject()
 
     val formattedDuration = exercise.durationSeconds?.let { totalSeconds ->
         val minutes = totalSeconds / 60
@@ -264,7 +266,7 @@ private fun ExerciseCard(
             modifier = Modifier.fillMaxSize()
         ) {
             if (!exercise.thumbnailURL.isNullOrBlank()) {
-                ThumbnailImage(
+                Thumbnail(
                     url = exercise.thumbnailURL ?: "",
                     contentDescription = exercise.title,
                     modifier = Modifier.fillMaxSize()
@@ -297,12 +299,14 @@ private fun ExerciseCard(
                     )
             )
 
-            exercise.videoURL
-                ?.takeIf { it.isNotBlank() }
-                ?.let { videoUrl ->
+            exercise.playbackId
+                .takeIf { it.isNotBlank() }
+                ?.let { playbackId ->
                     VideoPlayerDownloadButton(
-                        hlsUrl = videoUrl,
+                        playbackId = playbackId,
+                        token = exercise.token.takeIf { it.isNotBlank() },
                         title = exercise.title,
+                        quality = appSettings.getDownloadResolution(),
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(10.dp)

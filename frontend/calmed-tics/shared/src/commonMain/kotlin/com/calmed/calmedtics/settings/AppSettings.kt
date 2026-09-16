@@ -1,6 +1,6 @@
 package com.calmed.calmedtics.settings
 
-import com.calmed.calmedtics.video.VideoResolution
+import com.calmed.calmedtics.video.VideoQuality
 import com.russhwolf.settings.Settings
 
 class AppSettings(
@@ -53,10 +53,10 @@ class AppSettings(
     fun getEveningReminderTime(): String = settings.getString(KEY_EVENING_REMINDER_TIME, "17:00")
     fun setEveningReminderTime(value: String) = settings.putString(KEY_EVENING_REMINDER_TIME, value)
 
-    fun getDownloadResolution(): VideoResolution =
-        VideoResolution.fromName(settings.getStringOrNull(KEY_DOWNLOAD_RESOLUTION))
+    fun getDownloadResolution(): VideoQuality =
+        VideoQuality.fromName(settings.getStringOrNull(KEY_DOWNLOAD_RESOLUTION))
 
-    fun setDownloadResolution(value: VideoResolution) {
+    fun setDownloadResolution(value: VideoQuality) {
         settings.putString(KEY_DOWNLOAD_RESOLUTION, value.name)
     }
 

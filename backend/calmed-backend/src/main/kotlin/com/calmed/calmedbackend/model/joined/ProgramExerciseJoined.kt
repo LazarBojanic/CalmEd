@@ -15,9 +15,8 @@ data class ProgramExerciseJoined(
 	val groupId: Int?,
 	val title: String,
 	val description: String?,
-	val playbackId: String?,
-	val previewPlaybackId: String?,
-	val thumbnailURL: String?,
+	val playbackId: String,
+	val previewPlaybackId: String,
 	val durationSeconds: Int?,
 	val visibility: Visibility,
 	@Serializable(with = InstantSerializer::class)

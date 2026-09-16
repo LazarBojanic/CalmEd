@@ -1,45 +1,68 @@
 package com.calmed.calmedtics.service.specification
 
+import com.calmed.calmedtics.video.VideoQuality
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * Download lifecycle, mirroring the state set Mux Player reports. Downloads are keyed
+ * by Mux playback ID.
+ */
 enum class VideoDownloadStatus {
-    NotDownloaded,
-    Downloading,
-    Downloaded,
-    Failed
+	NotDownloaded,
+	Starting,
+	Queued,
+	Downloading,
+	Downloaded,
+	Expired,
+	Failed,
+	Removing,
+	Stopped,
 }
 
 data class VideoDownloadState(
-    val status: VideoDownloadStatus,
-    val progressPercent: Float? = null,
-    val title: String? = null
+	val status: VideoDownloadStatus,
+	val progressPercent: Float? = null,
+	val title: String? = null,
+)
+
+data class DownloadedVideo(
+	val playbackId: String,
+	val title: String? = null,
 )
 
 enum class DownloadEventType {
-    Completed,
-    Failed
+	Completed,
+	Failed,
+	Expired,
 }
 
 data class DownloadEvent(
-    val type: DownloadEventType,
-    val title: String?
+	val type: DownloadEventType,
+	val title: String? = null,
 )
 
 interface IVideoDownloadManager {
-    val states: StateFlow<Map<String, VideoDownloadState>>
-    val downloadedUrls: StateFlow<List<String>>
-    val events: SharedFlow<DownloadEvent>
+	val states: StateFlow<Map<String, VideoDownloadState>>
 
-    fun refresh(url: String)
-    fun refreshDownloaded()
-    fun download(url: String, title: String? = null)
-    fun remove(url: String)
+	val downloadedVideos: StateFlow<List<DownloadedVideo>>
+
+	val events: SharedFlow<DownloadEvent>
+
+	fun startDownload(
+		playbackId: String,
+		token: String? = null,
+		title: String? = null,
+		quality: VideoQuality = VideoQuality.R720,
+	)
+
+	fun remove(playbackId: String)
+
+	fun refresh()
+
+	fun setWifiOnly(wifiOnly: Boolean)
 }
 
-
-fun downloadKey(url: String): String = url.substringBefore('?')
-
-fun Map<String, VideoDownloadState>.stateFor(url: String): VideoDownloadState {
-    return this[downloadKey(url)] ?: VideoDownloadState(VideoDownloadStatus.NotDownloaded)
+fun Map<String, VideoDownloadState>.stateFor(playbackId: String): VideoDownloadState {
+	return this[playbackId] ?: VideoDownloadState(VideoDownloadStatus.NotDownloaded)
 }

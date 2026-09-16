@@ -40,6 +40,9 @@ import calmedtics.shared.generated.resources.error_video_no_source
 import calmedtics.shared.generated.resources.loading_video
 import calmedtics.shared.generated.resources.skip
 import com.calmed.calmedtics.ui.component.VideoPlayer
+import com.calmed.calmedtics.ui.component.VideoItem
+import com.calmed.calmedtics.video.VideoQuality
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.settings.AppSettings
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -57,7 +60,7 @@ fun CourseOverviewScreen(
     val appSettings: AppSettings = koinInject()
 
     var dontShowAgain by remember { mutableStateOf(false) }
-    var videoUrl by remember { mutableStateOf<String?>(null) }
+    var video by remember { mutableStateOf<ProgramExerciseDto?>(null) }
     var title by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -68,10 +71,10 @@ fun CourseOverviewScreen(
     LaunchedEffect(Unit) {
         error = null
         try {
-            val video = appApi.getCourseOverviewVideo()
-            videoUrl = video?.videoURL
-            title = video?.title
-            if (videoUrl == null) {
+            val loaded = appApi.getCourseOverviewVideo()
+            video = loaded
+            title = loaded?.title
+            if (loaded?.playbackId.isNullOrBlank()) {
                 error = errorNoSource
             }
         } catch (t: Throwable) {
@@ -109,18 +112,22 @@ fun CourseOverviewScreen(
                         .clip(RoundedCornerShape(20.dp))
                         .background(Color.Black)
                 ) {
-                    val url = videoUrl
+                    val loaded = video
 
-                    if (url != null) {
+                    if (loaded != null && loaded.playbackId.isNotBlank()) {
                         VideoPlayer(
-                            hlsUrl = url,
-                            title = title,
+                            items = listOf(
+                                VideoItem(
+                                    playbackId = loaded.playbackId,
+                                    playbackToken = loaded.token.takeIf { it.isNotBlank() },
+                                    title = loaded.title,
+                                )
+                            ),
+                            startIndex = 0,
+                            quality = VideoQuality.R720,
+                            autoPlay = false,
+                            allowFullscreen = false,
                             modifier = Modifier.fillMaxSize(),
-                            isPlaying = false,
-                            useController = true,
-                            showFullscreenButton = false,
-                            showPrevNextButtons = false,
-                            showRewindFastForwardButtons = false
                         )
                     } else {
                         Box(

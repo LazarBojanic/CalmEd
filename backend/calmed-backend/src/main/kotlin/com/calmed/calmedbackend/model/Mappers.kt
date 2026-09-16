@@ -377,7 +377,6 @@ fun ProgramExerciseEntity.toRaw(): ProgramExercise {
 		description = this.description,
 		playbackId = this.playbackId,
 		previewPlaybackId = this.previewPlaybackId,
-		thumbnailURL = this.thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
 		createdAt = this.createdAt,
@@ -392,7 +391,6 @@ fun ProgramExerciseEntity.setFrom(d: ProgramExercise, mapMode: MapMode) {
 	description = d.description
 	playbackId = d.playbackId
 	previewPlaybackId = d.previewPlaybackId
-	thumbnailURL = d.thumbnailURL
 	durationSeconds = d.durationSeconds
 	visibility = d.visibility
 	when (mapMode) {
@@ -415,7 +413,6 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 		description = this.description,
 		playbackId = this.playbackId,
 		previewPlaybackId = this.previewPlaybackId,
-		thumbnailURL = this.thumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
 		createdAt = this.createdAt,
@@ -426,48 +423,54 @@ fun ProgramExercise.join(): ProgramExerciseJoined {
 fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig, hasAccess: Boolean): ProgramExerciseDto {
 	val videoBaseURL = "https://stream.mux.com/"
 	val thumbnailBaseURL = "https://image.mux.com/"
-	val signingEnabled = muxConfig.signingKey.isNotBlank() && muxConfig.privateKey.isNotBlank()
 	val isSigned = this.visibility == Visibility.SIGNED
 	val canPlayFull = !isSigned || hasAccess
 
-	var videoURL = ""
-	var previewVideoURL = ""
-	var thumbnailURL = this.thumbnailURL
+	var token = ""
+	var previewToken = ""
+	var thumbnailToken = ""
+	var previewThumbnailToken = ""
+	var url = "$videoBaseURL${this.playbackId}.m3u8"
+	var previewURL = "$videoBaseURL${this.previewPlaybackId}.m3u8"
+	var thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
+	var previewThumbnailURL = "$thumbnailBaseURL${this.previewPlaybackId}/thumbnail.jpg"
 
-	if (!this.playbackId.isNullOrBlank() && canPlayFull) {
-		if (signingEnabled && isSigned) {
-			val videoToken = MuxTokenGenerator.generatePlaybackToken(
-				this.playbackId,
-				muxConfig.signingKey,
-				muxConfig.privateKey
-			)
-			videoURL = "$videoBaseURL${this.playbackId}.m3u8?token=$videoToken"
-
-			val thumbnailToken = MuxTokenGenerator.generateThumbnailToken(
-				this.playbackId,
-				muxConfig.signingKey,
-				muxConfig.privateKey
-			)
-			thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg?token=$thumbnailToken"
-		} else {
-			videoURL = "$videoBaseURL${this.playbackId}.m3u8"
-			if (thumbnailURL.isNullOrBlank()) {
-				thumbnailURL = "$thumbnailBaseURL${this.playbackId}/thumbnail.jpg"
-			}
-		}
+	if (isSigned) {
+		token = MuxTokenGenerator.generatePlaybackToken(
+			this.playbackId,
+			muxConfig.signingKey,
+			muxConfig.privateKey
+		)
+		previewToken = MuxTokenGenerator.generatePlaybackToken(
+			this.previewPlaybackId,
+			muxConfig.signingKey,
+			muxConfig.privateKey
+		)
+		thumbnailToken = MuxTokenGenerator.generateThumbnailToken(
+			this.playbackId,
+			muxConfig.signingKey,
+			muxConfig.privateKey
+		)
+		previewThumbnailToken = MuxTokenGenerator.generateThumbnailToken(
+			this.previewPlaybackId,
+			muxConfig.signingKey,
+			muxConfig.privateKey
+		)
+		url = "$url?token=$token"
+		previewURL = "$previewURL?token=$previewToken"
+		thumbnailURL = "$thumbnailURL?token=$thumbnailToken"
+		previewThumbnailURL = "$previewThumbnailURL?token=$previewThumbnailToken"
 	}
 
-	if (!this.previewPlaybackId.isNullOrBlank()) {
-		if (signingEnabled && isSigned) {
-			val previewToken = MuxTokenGenerator.generatePlaybackToken(
-				this.previewPlaybackId,
-				muxConfig.signingKey,
-				muxConfig.privateKey
-			)
-			previewVideoURL = "$videoBaseURL${this.previewPlaybackId}.m3u8?token=$previewToken"
-		} else {
-			previewVideoURL = "$videoBaseURL${this.previewPlaybackId}.m3u8"
-		}
+	if (!canPlayFull) {
+		token = ""
+		previewToken = ""
+		thumbnailToken = ""
+		previewThumbnailToken = ""
+		url = ""
+		previewURL = ""
+		thumbnailURL = ""
+		previewThumbnailURL = ""
 	}
 
 	return ProgramExerciseDto(
@@ -478,9 +481,14 @@ fun ProgramExerciseJoined.toDto(muxConfig: MuxConfig, hasAccess: Boolean): Progr
 		description = this.description,
 		playbackId = this.playbackId,
 		previewPlaybackId = this.previewPlaybackId,
-		previewVideoURL = previewVideoURL,
-		videoURL = videoURL,
+		token = token,
+		previewToken = previewToken,
+		thumbnailToken = thumbnailToken,
+		previewThumbnailToken = previewThumbnailToken,
+		url = url,
+		previewURL = previewURL,
 		thumbnailURL = thumbnailURL,
+		previewThumbnailURL = previewThumbnailURL,
 		durationSeconds = this.durationSeconds,
 		visibility = this.visibility,
 		createdAt = this.createdAt,

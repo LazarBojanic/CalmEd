@@ -58,7 +58,6 @@ fun seed() {
 			}
 		}
 	}
-
 	val seedExercises = listOf(
 		ProgramExercise(
 			id = UUID.fromString("3a420f83-c314-4731-b319-310c94e55752"),
@@ -66,7 +65,7 @@ fun seed() {
 			title = "Introduction",
 			description = null,
 			playbackId = "ST6mjycO5DUVrDTuhkIPLgeuRD00zw3VDWIce008N602s00",
-			thumbnailURL = null,
+			previewPlaybackId = "ST6mjycO5DUVrDTuhkIPLgeuRD00zw3VDWIce008N602s00",
 			visibility = Visibility.PUBLIC,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -77,7 +76,7 @@ fun seed() {
 			title = "Course overview",
 			description = null,
 			playbackId = "jsXyROFxOqJAzK2F1qA1bKjWkhJ00AwDg9OBI9S00FPLc",
-			thumbnailURL = null,
+			previewPlaybackId = "jsXyROFxOqJAzK2F1qA1bKjWkhJ00AwDg9OBI9S00FPLc",
 			visibility = Visibility.PUBLIC,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -89,7 +88,7 @@ fun seed() {
 			title = "Week 1",
 			description = null,
 			playbackId = "hrLiR6lbX5nhB7vkeGAq6pjLkPv4ue2rYYvfMNUVAkI",
-			thumbnailURL = null,
+			previewPlaybackId = "hrLiR6lbX5nhB7vkeGAq6pjLkPv4ue2rYYvfMNUVAkI",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -101,7 +100,7 @@ fun seed() {
 			title = "Week 2",
 			description = null,
 			playbackId = "bBK02sVARNWvAfL4nvRP3u7AB7AnRhrPyv3Muh7cxTBY",
-			thumbnailURL = null,
+			previewPlaybackId = "bBK02sVARNWvAfL4nvRP3u7AB7AnRhrPyv3Muh7cxTBY",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -113,7 +112,7 @@ fun seed() {
 			title = "Week 3",
 			description = null,
 			playbackId = "WlfiT5L699SeuwyMiFPMqeR02yosBGvM95npHQ00UFKns",
-			thumbnailURL = null,
+			previewPlaybackId = "WlfiT5L699SeuwyMiFPMqeR02yosBGvM95npHQ00UFKns",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -125,7 +124,7 @@ fun seed() {
 			title = "Week 4",
 			description = null,
 			playbackId = "P9mthzXwl00ZS17Afm02zsZDO02J3JqA7zQM1nM2LuuozM",
-			thumbnailURL = null,
+			previewPlaybackId = "P9mthzXwl00ZS17Afm02zsZDO02J3JqA7zQM1nM2LuuozM",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -137,7 +136,7 @@ fun seed() {
 			title = "Week 5",
 			description = null,
 			playbackId = "9H02da5tbO1AsMbU001qbNyZOVHHJqPrrdbUCJ02c01vnyw",
-			thumbnailURL = null,
+			previewPlaybackId = "9H02da5tbO1AsMbU001qbNyZOVHHJqPrrdbUCJ02c01vnyw",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -149,7 +148,7 @@ fun seed() {
 			title = "Week 6",
 			description = null,
 			playbackId = "bg5wgvkfM902baaRRISJGFjz3eHSkxsi8NkNAJCO00XPQ",
-			thumbnailURL = null,
+			previewPlaybackId = "bg5wgvkfM902baaRRISJGFjz3eHSkxsi8NkNAJCO00XPQ",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -161,7 +160,7 @@ fun seed() {
 			title = "Week 7",
 			description = null,
 			playbackId = "x4sA9eVQzp5007aoyDzL01hUWzwi5ECnCS3mhketZrcG8",
-			thumbnailURL = null,
+			previewPlaybackId = "x4sA9eVQzp5007aoyDzL01hUWzwi5ECnCS3mhketZrcG8",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -173,7 +172,7 @@ fun seed() {
 			title = "Week 8",
 			description = null,
 			playbackId = "QrEz8UFnp01nUNItvH7hLMoYyKwDyG2Vd1g68YNt7l4Q",
-			thumbnailURL = null,
+			previewPlaybackId = "QrEz8UFnp01nUNItvH7hLMoYyKwDyG2Vd1g68YNt7l4Q",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -185,7 +184,7 @@ fun seed() {
 			title = "Week 9",
 			description = null,
 			playbackId = "yCzM28EhWUWq1XIDg3IN00fsm5i00wGUtBcd9Zfvvqwag",
-			thumbnailURL = null,
+			previewPlaybackId = "yCzM28EhWUWq1XIDg3IN00fsm5i00wGUtBcd9Zfvvqwag",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -197,7 +196,7 @@ fun seed() {
 			title = "Week 10",
 			description = null,
 			playbackId = "GFKVMmv8bXvPY6kGnWQm7U9xvXJQ1dOK4o696701g9Tw",
-			thumbnailURL = null,
+			previewPlaybackId = "GFKVMmv8bXvPY6kGnWQm7U9xvXJQ1dOK4o696701g9Tw",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -209,7 +208,7 @@ fun seed() {
 			title = "Week 11",
 			description = null,
 			playbackId = "tKYGjH4ZhMrCHNRTwwULmlZxSSHIE1JuR1IR1cRStwg",
-			thumbnailURL = null,
+			previewPlaybackId = "tKYGjH4ZhMrCHNRTwwULmlZxSSHIE1JuR1IR1cRStwg",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -221,7 +220,7 @@ fun seed() {
 			title = "Week 12",
 			description = null,
 			playbackId = "vGhoG8c02O00HXV7Y4wtc7eNJerds00NA00FquxxRwOWx5E",
-			thumbnailURL = null,
+			previewPlaybackId = "vGhoG8c02O00HXV7Y4wtc7eNJerds00NA00FquxxRwOWx5E",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -233,7 +232,7 @@ fun seed() {
 			title = "Week 13",
 			description = null,
 			playbackId = "tqYcgoPSOXxjgF9JMoVvxisYLDzIpAQnJZD01FLAF00CE",
-			thumbnailURL = null,
+			previewPlaybackId = "tqYcgoPSOXxjgF9JMoVvxisYLDzIpAQnJZD01FLAF00CE",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -245,7 +244,7 @@ fun seed() {
 			title = "Week 14",
 			description = null,
 			playbackId = "HzPM7KW023tr2OIJ025PPhlVNwDp7d02pB6MQcWeaEfJDA",
-			thumbnailURL = null,
+			previewPlaybackId = "HzPM7KW023tr2OIJ025PPhlVNwDp7d02pB6MQcWeaEfJDA",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -257,7 +256,7 @@ fun seed() {
 			title = "Week 15",
 			description = null,
 			playbackId = "jREnOzo6Vqdqel2NVXMEq4QJJhG01E4phXHV6yYgfjOs",
-			thumbnailURL = null,
+			previewPlaybackId = "jREnOzo6Vqdqel2NVXMEq4QJJhG01E4phXHV6yYgfjOs",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -269,7 +268,7 @@ fun seed() {
 			title = "Week 16",
 			description = null,
 			playbackId = "mUAEFhJ9xy2ff1UsW6hu9s6YwzWYMEqhocj6MpRggeM",
-			thumbnailURL = null,
+			previewPlaybackId = "mUAEFhJ9xy2ff1UsW6hu9s6YwzWYMEqhocj6MpRggeM",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -281,7 +280,7 @@ fun seed() {
 			title = "Week 17",
 			description = null,
 			playbackId = "XUPGMm8b10101vqXbwsPNyNMXGqIiRwFs2vVVKi4fwr34",
-			thumbnailURL = null,
+			previewPlaybackId = "XUPGMm8b10101vqXbwsPNyNMXGqIiRwFs2vVVKi4fwr34",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -293,7 +292,7 @@ fun seed() {
 			title = "Week 18",
 			description = null,
 			playbackId = "iUMdS6AcSXFytAnayzbhO3p6fGaald4RJz4kJDI4yfA",
-			thumbnailURL = null,
+			previewPlaybackId = "iUMdS6AcSXFytAnayzbhO3p6fGaald4RJz4kJDI4yfA",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -305,7 +304,7 @@ fun seed() {
 			title = "Week 19",
 			description = null,
 			playbackId = "UVRDijD3yUX01WqWQbgH8HsrA4RcDTJzs01vIzIHagY8w",
-			thumbnailURL = null,
+			previewPlaybackId = "UVRDijD3yUX01WqWQbgH8HsrA4RcDTJzs01vIzIHagY8w",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -317,7 +316,7 @@ fun seed() {
 			title = "Week 20",
 			description = null,
 			playbackId = "B1obsuWimEHW6uIhzGC901uhkXPXsPjJk00fjftcRwS9I",
-			thumbnailURL = null,
+			previewPlaybackId = "B1obsuWimEHW6uIhzGC901uhkXPXsPjJk00fjftcRwS9I",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -329,7 +328,7 @@ fun seed() {
 			title = "Week 21",
 			description = null,
 			playbackId = "hWE01jv8k8s02EKuFB02wiSN01HyN02rXm5v00jcNy01SkTv9M",
-			thumbnailURL = null,
+			previewPlaybackId = "hWE01jv8k8s02EKuFB02wiSN01HyN02rXm5v00jcNy01SkTv9M",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -341,7 +340,7 @@ fun seed() {
 			title = "Week 22",
 			description = null,
 			playbackId = "f66WyzCxATwFzldyUif3abJytJmKbnUb1ZmHDHfJu02M",
-			thumbnailURL = null,
+			previewPlaybackId = "f66WyzCxATwFzldyUif3abJytJmKbnUb1ZmHDHfJu02M",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -353,7 +352,7 @@ fun seed() {
 			title = "Week 23",
 			description = null,
 			playbackId = "X7x6dGc93KN5WPSMt4kFhGpJzO4HW3esRQBelVQlB01k",
-			thumbnailURL = null,
+			previewPlaybackId = "X7x6dGc93KN5WPSMt4kFhGpJzO4HW3esRQBelVQlB01k",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -365,7 +364,7 @@ fun seed() {
 			title = "Week 24",
 			description = null,
 			playbackId = "xEqpOY01EYWxh9iS7J7uuIZrOFO6ucGOuUmyeoEn4SPk",
-			thumbnailURL = null,
+			previewPlaybackId = "xEqpOY01EYWxh9iS7J7uuIZrOFO6ucGOuUmyeoEn4SPk",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -377,7 +376,7 @@ fun seed() {
 			title = "Week 25",
 			description = null,
 			playbackId = "801d3IwybZAaI5HcTfiWEGIG02rL8FAkQLEOIrhZ48sx00",
-			thumbnailURL = null,
+			previewPlaybackId = "801d3IwybZAaI5HcTfiWEGIG02rL8FAkQLEOIrhZ48sx00",
 			visibility = Visibility.SIGNED,
 			createdAt = Instant.now(),
 			updatedAt = Instant.now()
@@ -409,6 +408,7 @@ private fun groupIdForWeek(week: Int): Int {
 		else -> 5
 	}
 }
+
 val databaseTables: Array<Table> = arrayOf(
 	UserTable,
 	AuthCredentialTable,
@@ -421,6 +421,7 @@ val databaseTables: Array<Table> = arrayOf(
 	StoreEntitlementTable,
 	ExerciseGroupTable
 )
+
 fun Application.configureDatabase() {
 	val databaseConfig by inject<DatabaseConfig>()
 	val ktorConfig by inject<KtorConfig>()
@@ -441,18 +442,17 @@ fun Application.configureDatabase() {
 			.dataSource(dataSource)
 			.load()
 		flyway.migrate()
-	}
-	else {
+	} else {
 		transaction {
 			SchemaUtils.createMissingTablesAndColumns(*databaseTables)
 		}
 	}
-	if(databaseConfig.recreate){
+	if (databaseConfig.recreate) {
 		seed()
 	}
 }
 
-fun dropAllTables(){
+fun dropAllTables() {
 	transaction {
 		exec("DROP SCHEMA IF EXISTS public CASCADE;")
 		exec("CREATE SCHEMA public;")
@@ -460,24 +460,24 @@ fun dropAllTables(){
 }
 
 private fun hikariDataSource(databaseConfig: DatabaseConfig): HikariDataSource {
-    val config = HikariConfig().apply {
-        driverClassName = databaseConfig.databaseDriver
-        jdbcUrl = databaseConfig.databaseUrl
+	val config = HikariConfig().apply {
+		driverClassName = databaseConfig.databaseDriver
+		jdbcUrl = databaseConfig.databaseUrl
 
-        username = databaseConfig.databaseUsername
-        password = databaseConfig.databasePassword
+		username = databaseConfig.databaseUsername
+		password = databaseConfig.databasePassword
 
-        maximumPoolSize = 5
-        minimumIdle = 1
+		maximumPoolSize = 5
+		minimumIdle = 1
 
-        isAutoCommit = false
-        transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+		isAutoCommit = false
+		transactionIsolation = "TRANSACTION_REPEATABLE_READ"
 
-        connectionTimeout = 10_000
-        initializationFailTimeout = 10_000
-    }
+		connectionTimeout = 10_000
+		initializationFailTimeout = 10_000
+	}
 
-    return HikariDataSource(config)
+	return HikariDataSource(config)
 }
 
 suspend fun <T> withTransaction(block: suspend () -> T): T {

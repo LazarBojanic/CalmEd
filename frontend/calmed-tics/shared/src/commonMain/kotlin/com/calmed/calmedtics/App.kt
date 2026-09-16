@@ -54,6 +54,7 @@ import com.calmed.calmedtics.ui.component.ToastKind
 import org.jetbrains.compose.resources.stringResource
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
@@ -87,6 +88,7 @@ object Routes {
     const val HelpSupport = "help-support"
 }
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun App() {
     val httpClient: HttpClient = koinInject()
@@ -142,15 +144,29 @@ fun App() {
         }
     }
 
-    fun openVideo(url: String, title: String? = null) {
-        if (url.isBlank()) return
+    fun openDownload(playbackId: String, title: String? = null) {
+        if (playbackId.isBlank()) return
         videoExercises = listOf(
             ProgramExerciseDto(
-                id = "",
-                videoURL = url,
+                id = playbackId,
+                weekNumber = 1,
+                groupId = null,
                 title = title.orEmpty(),
                 description = "",
-                weekNumber = 1
+                token = "",
+                previewToken = "",
+                thumbnailToken = "",
+                previewThumbnailToken = "",
+                playbackId = playbackId,
+                previewPlaybackId = "",
+                url = "",
+                previewURL = "",
+                thumbnailURL = "",
+                previewThumbnailURL = "",
+                durationSeconds = null,
+                visibility = "PUBLIC",
+                createdAt = "",
+                updatedAt = "",
             )
         )
         videoIndex = 0
@@ -191,6 +207,20 @@ fun App() {
                             }
 
                         DownloadEventType.Failed ->
+                            if (title != null) {
+                                ToastCenter.show(
+                                    Res.string.download_failed_title,
+                                    title,
+                                    kind = ToastKind.Error
+                                )
+                            } else {
+                                ToastCenter.show(
+                                    Res.string.status_failed,
+                                    kind = ToastKind.Error
+                                )
+                            }
+
+                        DownloadEventType.Expired ->
                             if (title != null) {
                                 ToastCenter.show(
                                     Res.string.download_failed_title,
@@ -403,7 +433,7 @@ fun App() {
                                 }
                             }
                         },
-                        onOpenVideo = { url, title -> openVideo(url, title) }
+                        onOpenDownload = { playbackId, title -> openDownload(playbackId, title) }
                     )
                 }
 

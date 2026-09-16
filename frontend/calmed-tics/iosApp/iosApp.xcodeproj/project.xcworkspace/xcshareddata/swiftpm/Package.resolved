@@ -20,6 +20,15 @@
       }
     },
     {
+      "identity" : "gcdwebserver",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/yene/GCDWebServer",
+      "state" : {
+        "revision" : "c2f837b30038ef716b77225f40cc8d104b6ff645",
+        "version" : "3.5.7"
+      }
+    },
+    {
       "identity" : "googlesignin-ios",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/GoogleSignIn-iOS",
@@ -56,6 +65,24 @@
       }
     },
     {
+      "identity" : "mux-player-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/muxinc/mux-player-swift",
+      "state" : {
+        "revision" : "0052397baa3552e6d9952694317cc5a66be85700",
+        "version" : "1.8.1"
+      }
+    },
+    {
+      "identity" : "mux-stats-sdk-avplayer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/muxinc/mux-stats-sdk-avplayer",
+      "state" : {
+        "revision" : "ed4e8a73372843ec4fe18822b0a8381519969162",
+        "version" : "4.10.0"
+      }
+    },
+    {
       "identity" : "promises",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/promises.git",
@@ -64,6 +91,33 @@
         "version" : "2.4.0"
       }
     },
+    {
+      "identity" : "stats-sdk-objc",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/muxinc/stats-sdk-objc.git",
+      "state" : {
+        "revision" : "645a23a8d8215ecdea2a557b04807a5a7ba6c554",
+        "version" : "5.7.0"
+      }
+    },
+    {
+      "identity" : "swift-docc-plugin",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-docc-plugin",
+      "state" : {
+        "revision" : "3e4f133a77e644a5812911a0513aeb7288b07d06",
+        "version" : "1.4.5"
+      }
+    },
+    {
+      "identity" : "swift-docc-symbolkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-docc-symbolkit",
+      "state" : {
+        "revision" : "b45d1f2ed151d057b54504d653e0da5552844e34",
+        "version" : "1.0.0"
+      }
+    }
   ],
   "version" : 3
 }

@@ -33,7 +33,7 @@ import com.calmed.calmedtics.model.raw.TicFrequency
 import com.calmed.calmedtics.model.raw.TicType
 import com.calmed.calmedtics.ui.component.PrimaryButton
 import com.calmed.calmedtics.ui.component.TextField
-import com.calmed.calmedtics.ui.component.ThumbnailImage
+import com.calmed.calmedtics.ui.component.Thumbnail
 import com.calmed.calmedtics.ui.component.TimeSlider
 import com.calmed.calmedtics.util.decodeImage
 import com.calmed.calmedtics.viewmodel.SessionViewModel
@@ -103,7 +103,7 @@ import calmedtics.shared.generated.resources.keep_screen_awake
 import calmedtics.shared.generated.resources.download_wifi_only
 import calmedtics.shared.generated.resources.download_wifi_only_description
 import com.calmed.calmedtics.model.raw.TicDuration
-import com.calmed.calmedtics.video.VideoResolution
+import com.calmed.calmedtics.video.VideoQuality
 
 @Composable
 fun ProfileScreen(
@@ -758,7 +758,7 @@ fun ProfileScreen(
 					)
 
 					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-						VideoResolution.entries.forEach { resolution ->
+						VideoQuality.entries.forEach { resolution ->
 							RadioOptionRow(
 								text = resolution.label,
 								selected = downloadResolution == resolution,
@@ -969,7 +969,7 @@ fun ProfileHeader(
 
 				if (!profileImageUrl.isNullOrBlank()) {
 
-					ThumbnailImage(
+					Thumbnail(
 						url = profileImageUrl,
 						contentDescription = stringResource(Res.string.profile_photo),
 						modifier = Modifier

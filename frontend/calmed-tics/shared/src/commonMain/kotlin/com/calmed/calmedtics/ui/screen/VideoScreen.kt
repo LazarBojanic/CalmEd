@@ -1,11 +1,9 @@
 package com.calmed.calmedtics.ui.screen
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
@@ -26,10 +24,10 @@ import androidx.compose.material.icons.filled.Hd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,409 +38,309 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import calmedtics.shared.generated.resources.Res
-import calmedtics.shared.generated.resources.resolution
 import calmedtics.shared.generated.resources.close
-import calmedtics.shared.generated.resources.mute
-import calmedtics.shared.generated.resources.unmute
 import calmedtics.shared.generated.resources.exercise_counter
 import calmedtics.shared.generated.resources.mobile_rotate
+import calmedtics.shared.generated.resources.mute
 import calmedtics.shared.generated.resources.no_exercises_available
+import calmedtics.shared.generated.resources.resolution
 import calmedtics.shared.generated.resources.turn_your_phone
+import calmedtics.shared.generated.resources.unmute
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.theme.appBackgroundGradient
+import com.calmed.calmedtics.ui.component.AppToastHost
 import com.calmed.calmedtics.ui.component.BackButton
 import com.calmed.calmedtics.ui.component.CastButton
-import com.calmed.calmedtics.ui.component.AppToastHost
-import com.calmed.calmedtics.ui.component.FullscreenEffect
 import com.calmed.calmedtics.ui.component.KeepScreenAwake
 import com.calmed.calmedtics.ui.component.PlatformBackHandler
-import com.calmed.calmedtics.ui.component.PlayerTopOverlayInset
-import com.calmed.calmedtics.ui.component.ShowMuteOverlayButton
+import com.calmed.calmedtics.ui.component.VideoItem
 import com.calmed.calmedtics.ui.component.VideoOverlayButton
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
-import com.calmed.calmedtics.ui.component.VideoPlaylistItem
-import com.calmed.calmedtics.video.VideoResolution
-import com.calmed.calmedtics.video.applyMaxResolution
+import com.calmed.calmedtics.video.VideoQuality
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
 fun VideoScreen(
-    exercises: List<ProgramExerciseDto>,
-    startIndex: Int = 0,
-    currentWeek: Int,
-    onBack: () -> Unit
+	exercises: List<ProgramExerciseDto>,
+	startIndex: Int = 0,
+	currentWeek: Int,
+	onBack: () -> Unit,
 ) {
-    val safeStartIndex = if (exercises.isNotEmpty()) {
-        val requestedIndex = startIndex.coerceIn(0, exercises.lastIndex)
+	val appSettings: AppSettings = koinInject()
+	KeepScreenAwake(enabled = appSettings.isKeepScreenAwake())
 
-        if (exercises[requestedIndex].weekNumber <= currentWeek) {
-            requestedIndex
-        } else {
-            exercises.indexOfLast {
-                it.weekNumber <= currentWeek
-            }.takeIf { it >= 0 } ?: 0
-        }
-    } else {
-        0
-    }
+	val playable = remember(exercises, currentWeek) {
+		exercises
+			.filter { it.weekNumber <= currentWeek }
+			.ifEmpty { exercises }
+	}
 
-    var currentIndex by remember(exercises, startIndex, currentWeek) {
-        mutableStateOf(safeStartIndex)
-    }
-    var isPlaying by remember { mutableStateOf(true) }
-    var isMuted by remember { mutableStateOf(false) }
+	if (playable.isEmpty()) {
+		Box(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(appBackgroundGradient())
+				.statusBarsPadding(),
+			contentAlignment = Alignment.Center,
+		) {
+			BackButton(
+				onClick = onBack,
+				modifier = Modifier
+					.align(Alignment.TopStart)
+					.padding(16.dp),
+			)
+			Text(
+				text = stringResource(Res.string.no_exercises_available),
+				color = MaterialTheme.colorScheme.onSurface,
+				fontSize = 18.sp,
+			)
+		}
+		return
+	}
 
-    var isFullscreen by rememberSaveable { mutableStateOf(false) }
-    var isVideoPortrait by remember { mutableStateOf(true) }
-    var controlsVisible by remember { mutableStateOf(true) }
+	val safeStartIndex = remember(playable, exercises, startIndex) {
+		val requestedId = exercises.getOrNull(startIndex)?.id
+		playable.indexOfFirst { it.id == requestedId }.takeIf { it >= 0 } ?: 0
+	}
 
-    var showResolutionPicker by remember { mutableStateOf(false) }
-    var selectedResolution by rememberSaveable(stateSaver = VideoResolutionSaver) {
-        mutableStateOf(VideoResolution.R1080)
-    }
+	var currentIndex by remember(playable) { mutableStateOf(safeStartIndex) }
+	var muted by rememberSaveable { mutableStateOf(false) }
+	var quality by rememberSaveable(stateSaver = VideoQualitySaver) {
+		mutableStateOf(appSettings.getDownloadResolution())
+	}
+	var isFullscreen by remember { mutableStateOf(false) }
+	var showQualityPicker by remember { mutableStateOf(false) }
 
-    val appSettings: AppSettings = koinInject()
-    val keepScreenAwake = appSettings.isKeepScreenAwake()
+	val items = remember(playable) {
+		playable.map { exercise ->
+			VideoItem(
+				playbackId = exercise.playbackId,
+				playbackToken = exercise.token.takeIf { it.isNotBlank() },
+				title = exercise.title,
+			)
+		}
+	}
 
-    PlatformBackHandler(enabled = isFullscreen) {
-        isFullscreen = false
-    }
+	val current = playable[currentIndex.coerceIn(0, playable.lastIndex)]
 
-    FullscreenEffect(
-        isFullscreen = isFullscreen,
-        isVideoPortrait = isVideoPortrait,
-        onDeviceOrientationChanged = { isLandscape ->
-            if (isLandscape && !isVideoPortrait) {
-                isFullscreen = true
-            } else if (!isLandscape && !isVideoPortrait && isFullscreen) {
-                isFullscreen = false
-            }
-        }
-    )
+	BoxWithConstraints(
+		modifier = Modifier
+			.fillMaxSize()
+			.background(appBackgroundGradient()),
+	) {
+		val isLandscape = maxWidth > maxHeight
+		val expanded = isFullscreen || isLandscape
 
-    KeepScreenAwake(enabled = keepScreenAwake)
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.then(if (expanded) Modifier else Modifier.statusBarsPadding()),
+			horizontalAlignment = Alignment.CenterHorizontally,
+		) {
+			Box(
+				modifier = if (expanded) {
+					Modifier.fillMaxSize()
+				} else {
+					Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 12.dp)
+						.padding(top = 56.dp)
+						.height(340.dp)
+						.background(Color.Black)
+				},
+			) {
+				VideoPlayer(
+					items = items,
+					startIndex = safeStartIndex,
+					quality = quality,
+					muted = muted,
+					isFullscreen = isFullscreen,
+					onFullscreenToggle = { isFullscreen = it },
+					modifier = Modifier.fillMaxSize(),
+					onIndexChanged = { index ->
+						if (index in playable.indices) {
+							currentIndex = index
+						}
+					},
+				)
 
-    if (exercises.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(appBackgroundGradient())
-                .statusBarsPadding(),
-            contentAlignment = Alignment.Center
-        ) {
-            BackButton(
-                onClick = onBack,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp)
-            )
-            Text(
-                text = stringResource(Res.string.no_exercises_available),
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 18.sp
-            )
-        }
-        return
-    }
+				PlayerOverlayControls(
+					exercise = current,
+					quality = quality,
+					muted = muted,
+					onToggleMute = { muted = !muted },
+					onShowQualityPicker = { showQualityPicker = true },
+					modifier = Modifier
+						.align(Alignment.TopEnd)
+						.padding(8.dp),
+				)
+			}
 
-    val currentExercise = exercises[currentIndex]
-    val currentUrl = currentExercise.videoURL ?: ""
-    val displayTitle = currentExercise.title
-    val resolvedUrl = remember(currentUrl, selectedResolution) {
-        applyMaxResolution(currentUrl, selectedResolution)
-    }
-    val canGoNext =
-        currentIndex < exercises.lastIndex &&
-                exercises[currentIndex + 1].weekNumber <= currentWeek
+			if (!expanded) {
+				Spacer(modifier = Modifier.height(20.dp))
 
-    val canGoPrevious = currentIndex > 0
+				Text(
+					text = current.title,
+					color = MaterialTheme.colorScheme.onSurface,
+					fontSize = 18.sp,
+					fontWeight = FontWeight.SemiBold,
+					textAlign = TextAlign.Center,
+					modifier = Modifier.padding(horizontal = 24.dp),
+				)
 
-    val playlistItems =
-        remember(exercises, selectedResolution) {
-            exercises.map { exercise ->
-                VideoPlaylistItem(
-                    url = applyMaxResolution(
-                        exercise.videoURL ?: "",
-                        selectedResolution
-                    ),
-                    title = exercise.title
-                )
-            }
-        }
+				Spacer(modifier = Modifier.height(16.dp))
 
-    LaunchedEffect(currentIndex) {
-        isPlaying = true
-    }
+				Icon(
+					painter = painterResource(Res.drawable.mobile_rotate),
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.onSurface,
+					modifier = Modifier.size(84.dp),
+				)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(appBackgroundGradient())
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .then(if (isFullscreen) Modifier else Modifier.statusBarsPadding()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = if (isFullscreen) {
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                } else {
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 56.dp)
-                        .height(340.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color.Black)
-                }
-            ) {
-                VideoPlayer(
-                    hlsUrl = resolvedUrl,
-                    title = displayTitle,
-                    modifier = Modifier.fillMaxSize(),
-                    isFullscreen = isFullscreen,
-                    isPlaying = isPlaying,
-                    isMuted = isMuted,
-                    useController = true,
-                    showFullscreenButton = true,
-                    showPrevNextButtons = true,
-                    showRewindFastForwardButtons = true,
-                    playlist = playlistItems,
-                    onVideoOrientationChanged = { isPortrait ->
-                        isVideoPortrait = isPortrait
-                    },
-                    onFullscreenToggle = { shouldBeFullscreen ->
-                        isFullscreen = shouldBeFullscreen
-                    },
-                    onControllerVisibilityChanged = { visible ->
-                        controlsVisible = visible
-                    },
-                    onPlayPauseChange = { isPlaying = it },
-                    onPlaylistIndexChanged = { index ->
-                        if (index in exercises.indices) {
-                            currentIndex = index
-                        }
-                    },
-                    onPrevious = {
-                        if (currentIndex > 0) currentIndex--
-                    },
-                    onNext = {
-                        if (canGoNext) currentIndex++
-                    },
-                    canGoPrevious = canGoPrevious,
-                    canGoNext = canGoNext
-                )
+				Spacer(modifier = Modifier.height(8.dp))
 
-                Crossfade(
-                    targetState = controlsVisible,
-                    modifier = Modifier.align(Alignment.TopEnd),
-                    label = "overlayVisibility"
-                ) { visible ->
-                    if (visible) {
-                        Column(
-                            modifier = Modifier.padding(
-                                start = 8.dp,
-                                top = PlayerTopOverlayInset,
-                                end = 8.dp,
-                                bottom = 8.dp
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            VideoPlayerDownloadButton(
-                                hlsUrl = currentUrl,
-                                title = displayTitle
-                            )
+				Text(
+					text = stringResource(Res.string.turn_your_phone),
+					color = MaterialTheme.colorScheme.onSurface,
+					fontSize = 18.sp,
+					fontWeight = FontWeight.Medium,
+					textAlign = TextAlign.Center,
+				)
 
-                            CastButton(
-                                hlsUrl = currentUrl,
-                                title = displayTitle,
-                                modifier = Modifier.size(28.dp)
-                            )
+				Spacer(modifier = Modifier.height(16.dp))
 
-                            VideoOverlayButton(
-                                icon = Icons.Default.Hd,
-                                contentDescription = stringResource(Res.string.resolution),
-                                onClick = { showResolutionPicker = true }
-                            )
+				Text(
+					text = stringResource(
+						Res.string.exercise_counter,
+						currentIndex + 1,
+						playable.size,
+					),
+					color = MaterialTheme.colorScheme.primary,
+					fontSize = 16.sp,
+					fontWeight = FontWeight.Medium,
+					textAlign = TextAlign.Center,
+				)
+			}
+		}
 
-                            if (ShowMuteOverlayButton) {
-                                VideoOverlayButton(
-                                    icon = if (isMuted) {
-                                        Icons.AutoMirrored.Filled.VolumeOff
-                                    } else {
-                                        Icons.AutoMirrored.Filled.VolumeUp
-                                    },
-                                    contentDescription = if (isMuted) {
-                                        stringResource(Res.string.unmute)
-                                    } else {
-                                        stringResource(Res.string.mute)
-                                    },
-                                    onClick = { isMuted = !isMuted }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+		BackButton(
+			onClick = onBack,
+			modifier = Modifier
+				.align(Alignment.TopStart)
+				.statusBarsPadding()
+				.padding(start = 16.dp, top = 8.dp),
+		)
 
-            if (!isFullscreen) {
-                Spacer(modifier = Modifier.height(48.dp))
+		AppToastHost(
+			modifier = Modifier
+				.align(Alignment.BottomCenter)
+				.navigationBarsPadding(),
+		)
+	}
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(Res.drawable.mobile_rotate),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(84.dp)
-                    )
+	PlatformBackHandler(enabled = isFullscreen) { isFullscreen = false }
 
-                    Text(
-                        text = stringResource(Res.string.turn_your_phone),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    text = stringResource(Res.string.exercise_counter, currentIndex + 1, exercises.size),
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-
-        if (!isFullscreen) {
-            BackButton(
-                onClick = onBack,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .statusBarsPadding()
-                    .padding(start = 16.dp, top = 8.dp)
-            )
-        }
-
-        AppToastHost(
-            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding()
-        )
-    }
-
-    if (showResolutionPicker) {
-        AlertDialog(
-            onDismissRequest = { showResolutionPicker = false },
-            confirmButton = {
-                TextButton(onClick = { showResolutionPicker = false }) {
-                    Text(stringResource(Res.string.close))
-                }
-            },
-            title = {
-                Text(stringResource(Res.string.resolution))
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    VideoResolution.entries.forEach { resolution ->
-                        ResolutionOptionRow(
-                            label = resolution.label,
-                            selected = selectedResolution == resolution,
-                            onClick = {
-                                selectedResolution = resolution
-                                showResolutionPicker = false
-                            }
-                        )
-                    }
-                }
-            }
-        )
-    }
+	if (showQualityPicker) {
+		AlertDialog(
+			onDismissRequest = { showQualityPicker = false },
+			confirmButton = {
+				TextButton(onClick = { showQualityPicker = false }) {
+					Text(stringResource(Res.string.close))
+				}
+			},
+			title = { Text(stringResource(Res.string.resolution)) },
+			text = {
+				Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+					VideoQuality.entries.forEach { option ->
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.clip(RoundedCornerShape(12.dp))
+								.selectable(
+									selected = quality == option,
+									role = Role.RadioButton,
+									onClick = {
+										quality = option
+										showQualityPicker = false
+									},
+								)
+								.padding(horizontal = 8.dp, vertical = 4.dp),
+							verticalAlignment = Alignment.CenterVertically,
+						) {
+							RadioButton(
+								selected = quality == option,
+								onClick = null,
+							)
+							Spacer(modifier = Modifier.width(8.dp))
+							Text(
+								text = option.label,
+								color = MaterialTheme.colorScheme.onSurface,
+								fontSize = 16.sp,
+							)
+						}
+					}
+				}
+			},
+		)
+	}
 }
 
 @Composable
-private fun ResolutionOptionRow(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
+private fun PlayerOverlayControls(
+	exercise: ProgramExerciseDto,
+	quality: VideoQuality,
+	muted: Boolean,
+	onToggleMute: () -> Unit,
+	onShowQualityPicker: () -> Unit,
+	modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(20.dp)
-                .background(
-                    color = if (selected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        Color.Transparent
-                    },
-                    shape = CircleShape
-                )
-                .border(
-                    width = 2.dp,
-                    color = if (selected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.outline
-                    },
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            if (selected) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(
-                            MaterialTheme.colorScheme.onPrimary,
-                            CircleShape
-                        )
-                )
-            }
-        }
+	Column(
+		modifier = modifier,
+		verticalArrangement = Arrangement.spacedBy(4.dp),
+		horizontalAlignment = Alignment.CenterHorizontally,
+	) {
+		VideoPlayerDownloadButton(
+			playbackId = exercise.playbackId,
+			token = exercise.token.takeIf { it.isNotBlank() },
+			title = exercise.title,
+			quality = quality,
+		)
 
-        Spacer(modifier = Modifier.width(12.dp))
+		CastButton()
 
-        Text(
-            text = label,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp,
-            fontWeight = if (selected) {
-                FontWeight.SemiBold
-            } else {
-                FontWeight.Normal
-            }
-        )
-    }
+		VideoOverlayButton(
+			icon = Icons.Default.Hd,
+			contentDescription = stringResource(Res.string.resolution),
+			onClick = onShowQualityPicker,
+		)
+
+		VideoOverlayButton(
+			icon = if (muted) {
+				Icons.AutoMirrored.Filled.VolumeOff
+			} else {
+				Icons.AutoMirrored.Filled.VolumeUp
+			},
+			contentDescription = if (muted) {
+				stringResource(Res.string.unmute)
+			} else {
+				stringResource(Res.string.mute)
+			},
+			onClick = onToggleMute,
+		)
+	}
 }
 
-private val VideoResolutionSaver: Saver<VideoResolution, String> = Saver(
-    save = { it.name },
-    restore = { VideoResolution.fromName(it) }
+private val VideoQualitySaver: Saver<VideoQuality, String> = Saver(
+	save = { it.name },
+	restore = { VideoQuality.fromName(it) },
 )
