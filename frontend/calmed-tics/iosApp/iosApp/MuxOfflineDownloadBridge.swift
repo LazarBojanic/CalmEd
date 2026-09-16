@@ -1,6 +1,6 @@
 import Foundation
-import MuxPlayerSwift
-import Shared
+@preconcurrency import MuxPlayerSwift
+@preconcurrency import Shared
 
 @MainActor
 final class MuxOfflineDownloadBridge: NSObject, @preconcurrency IosOfflineDownloadBridge {

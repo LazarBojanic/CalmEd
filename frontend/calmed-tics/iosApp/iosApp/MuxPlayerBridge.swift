@@ -1,7 +1,7 @@
 import AVFoundation
 import AVKit
-import MuxPlayerSwift
-import Shared
+@preconcurrency import MuxPlayerSwift
+@preconcurrency import Shared
 import UIKit
 
 @MainActor
