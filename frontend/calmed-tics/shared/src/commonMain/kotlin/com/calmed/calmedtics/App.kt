@@ -21,7 +21,6 @@ import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
-import com.calmed.calmedtics.localization.AppLocaleProvider
 import com.calmed.calmedtics.logging.isDevelopment
 import com.calmed.calmedtics.navigation.AppNavigator
 import com.calmed.calmedtics.navigation.AppRoute
@@ -62,68 +61,66 @@ fun App() {
 	navigator.attach(backStack)
 	val entryProvider = koinEntryProvider<NavKey>()
 
-	AppLocaleProvider {
-		AppTheme {
-			LaunchedEffect(Unit) {
-				videoDownloadManager.events.collect { event ->
-					val title = event.title?.takeIf { it.isNotBlank() }
-					when (event.type) {
-						DownloadEventType.Completed ->
-							if (title != null) {
-								ToastCenter.show(
-									Res.string.download_completed_title,
-									title,
-									kind = ToastKind.Success
-								)
-							} else {
-								ToastCenter.show(
-									Res.string.download_completed,
-									kind = ToastKind.Success
-								)
-							}
+	AppTheme {
+		LaunchedEffect(Unit) {
+			videoDownloadManager.events.collect { event ->
+				val title = event.title?.takeIf { it.isNotBlank() }
+				when (event.type) {
+					DownloadEventType.Completed ->
+						if (title != null) {
+							ToastCenter.show(
+								Res.string.download_completed_title,
+								title,
+								kind = ToastKind.Success
+							)
+						} else {
+							ToastCenter.show(
+								Res.string.download_completed,
+								kind = ToastKind.Success
+							)
+						}
 
-						DownloadEventType.Failed ->
-							if (title != null) {
-								ToastCenter.show(
-									Res.string.download_failed_title,
-									title,
-									kind = ToastKind.Error
-								)
-							} else {
-								ToastCenter.show(
-									Res.string.status_failed,
-									kind = ToastKind.Error
-								)
-							}
+					DownloadEventType.Failed ->
+						if (title != null) {
+							ToastCenter.show(
+								Res.string.download_failed_title,
+								title,
+								kind = ToastKind.Error
+							)
+						} else {
+							ToastCenter.show(
+								Res.string.status_failed,
+								kind = ToastKind.Error
+							)
+						}
 
-						DownloadEventType.Expired ->
-							if (title != null) {
-								ToastCenter.show(
-									Res.string.download_failed_title,
-									title,
-									kind = ToastKind.Error
-								)
-							} else {
-								ToastCenter.show(
-									Res.string.status_failed,
-									kind = ToastKind.Error
-								)
-							}
-					}
+					DownloadEventType.Expired ->
+						if (title != null) {
+							ToastCenter.show(
+								Res.string.download_failed_title,
+								title,
+								kind = ToastKind.Error
+							)
+						} else {
+							ToastCenter.show(
+								Res.string.status_failed,
+								kind = ToastKind.Error
+							)
+						}
 				}
 			}
+		}
 
-			CompositionLocalProvider(LocalAppViewModelStoreOwner provides hostViewModelStoreOwner) {
-				NavDisplay(
-					backStack = backStack,
-					onBack = { navigator.goBack() },
-					entryDecorators = listOf(
-						rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
-						rememberViewModelStoreNavEntryDecorator<NavKey>(hostViewModelStoreOwner)
-					),
-					entryProvider = entryProvider
-				)
-			}
+		CompositionLocalProvider(LocalAppViewModelStoreOwner provides hostViewModelStoreOwner) {
+			NavDisplay(
+				backStack = backStack,
+				onBack = { navigator.goBack() },
+				entryDecorators = listOf(
+					rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
+					rememberViewModelStoreNavEntryDecorator<NavKey>(hostViewModelStoreOwner)
+				),
+				entryProvider = entryProvider
+			)
 		}
 	}
 }
