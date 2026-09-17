@@ -38,9 +38,7 @@ final class MuxOfflineDownloadBridge: NSObject, @preconcurrency IosOfflineDownlo
         if let token, !token.isEmpty {
             playbackOptions = PlaybackOptions(playbackToken: token)
         } else {
-            playbackOptions = PlaybackOptions(
-                maximumResolutionTier: maxTier(for: maxResolution)
-            )
+            playbackOptions = makePlaybackOptions(for: maxResolution)
         }
 
         let downloadOptions = DownloadOptions(readableTitle: title ?? playbackId)
@@ -166,12 +164,19 @@ final class MuxOfflineDownloadBridge: NSObject, @preconcurrency IosOfflineDownlo
         }
     }
 
-    private func maxTier(for resolution: String) -> MaxResolutionTier {
-        switch resolution {
-        case "480p": return .default
-        case "720p": return .upTo720p
-        case "1080p": return .upTo1080p
-        default: return .upTo720p
+    private func makePlaybackOptions(for maxResolution: String) -> PlaybackOptions {
+        switch maxResolution {
+        case "480p":
+            return PlaybackOptions(
+                maximumResolutionTier: .upTo720p,
+                minimumResolutionTier: .atLeast480p
+            )
+        case "720p":
+            return PlaybackOptions(maximumResolutionTier: .upTo720p)
+        case "1080p":
+            return PlaybackOptions(maximumResolutionTier: .upTo1080p)
+        default:
+            return PlaybackOptions()
         }
     }
 }

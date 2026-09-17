@@ -76,10 +76,11 @@ class MuxVideoDownloadManager(
 			it + (playbackId to VideoDownloadState(VideoDownloadStatus.Starting, 0f))
 		}
 
+		val token = exercise.tokenFor(quality)
 		val mediaItem = MediaItems.builderFromMuxPlaybackId(
 			playbackId = playbackId,
-			maxResolution = quality.toPlaybackResolution(),
-			playbackToken = exercise.token.takeIf { it.isNotBlank() },
+			maxResolution = if (token.isNullOrBlank()) quality.toPlaybackResolution() else null,
+			playbackToken = token,
 		)
 			.setMediaMetadata(
 				MediaMetadata.Builder()

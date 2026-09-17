@@ -21,7 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 
 @Database(
-	version = 5,
+	version = 1,
 	entities = [
 		UserEntity::class,
 		UserInfoTicsEntity::class,

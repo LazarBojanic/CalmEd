@@ -1,0 +1,2 @@
+- video resolution settings dont actually change resolution
+- system navbar still visible in fullscreen

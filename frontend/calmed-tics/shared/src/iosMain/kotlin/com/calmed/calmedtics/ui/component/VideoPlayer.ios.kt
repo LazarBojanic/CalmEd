@@ -26,6 +26,7 @@ actual fun VideoPlayer(
 	autoPlay: Boolean,
 	allowFullscreen: Boolean,
 	isFullscreen: Boolean,
+	isImmersive: Boolean,
 	onFullscreenToggle: (Boolean) -> Unit,
 	onIndexChanged: (Int) -> Unit,
 	onControlsVisibilityChanged: (Boolean) -> Unit,

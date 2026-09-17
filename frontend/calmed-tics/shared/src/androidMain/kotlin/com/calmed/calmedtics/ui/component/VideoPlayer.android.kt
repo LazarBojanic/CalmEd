@@ -52,6 +52,7 @@ actual fun VideoPlayer(
 	autoPlay: Boolean,
 	allowFullscreen: Boolean,
 	isFullscreen: Boolean,
+	isImmersive: Boolean,
 	onFullscreenToggle: (Boolean) -> Unit,
 	onIndexChanged: (Int) -> Unit,
 	onControlsVisibilityChanged: (Boolean) -> Unit,
@@ -91,6 +92,7 @@ actual fun VideoPlayer(
 
 	LaunchedEffect(
 		isFullscreen,
+		isImmersive,
 		activity,
 		windowInfo.containerSize,
 		windowInfo.isWindowFocused,
@@ -100,12 +102,22 @@ actual fun VideoPlayer(
 
 		if (isFullscreen) {
 			activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+		} else {
+			activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+		}
+
+		if (isImmersive) {
+			WindowCompat.setDecorFitsSystemWindows(window, false)
 			controller.systemBarsBehavior =
 				WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 			controller.hide(WindowInsetsCompat.Type.systemBars())
+			window.decorView.post {
+				WindowCompat.getInsetsController(window, window.decorView)
+					.hide(WindowInsetsCompat.Type.systemBars())
+			}
 		} else {
-			activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 			controller.show(WindowInsetsCompat.Type.systemBars())
+			WindowCompat.setDecorFitsSystemWindows(window, true)
 		}
 	}
 
@@ -116,6 +128,7 @@ actual fun VideoPlayer(
 				activity.window?.let { window ->
 					WindowCompat.getInsetsController(window, window.decorView)
 						.show(WindowInsetsCompat.Type.systemBars())
+					WindowCompat.setDecorFitsSystemWindows(window, true)
 				}
 			}
 		}
@@ -247,10 +260,11 @@ private fun VideoItem.toMuxMediaItem(
 	quality: VideoQuality,
 	forCast: Boolean = false,
 ): MediaItem {
+	val token = tokenFor(quality)
 	val builder = MediaItems.builderFromMuxPlaybackId(
 		playbackId = playbackId,
-		maxResolution = quality.toPlaybackResolution(),
-		playbackToken = playbackToken,
+		maxResolution = if (token.isNullOrBlank()) quality.toPlaybackResolution() else null,
+		playbackToken = token,
 	)
 		.setMediaMetadata(
 			MediaMetadata.Builder()

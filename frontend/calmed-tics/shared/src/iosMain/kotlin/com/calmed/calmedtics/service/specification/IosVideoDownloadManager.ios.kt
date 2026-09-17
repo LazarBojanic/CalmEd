@@ -62,7 +62,7 @@ class IosVideoDownloadManager : IVideoDownloadManager {
 
 		bridge?.startDownload(
 			playbackId = playbackId,
-			token = exercise.token.takeIf { it.isNotBlank() },
+			token = exercise.tokenFor(quality),
 			title = exercise.title,
 			maxResolution = quality.maxResolution,
 		)

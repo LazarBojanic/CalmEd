@@ -146,7 +146,9 @@ fun VideoScreen(
 		playable.map { exercise ->
 			VideoItem(
 				playbackId = exercise.playbackId,
-				playbackToken = exercise.token.takeIf { it.isNotBlank() },
+				token480 = exercise.tokenFor(VideoQuality.R480),
+				token720 = exercise.tokenFor(VideoQuality.R720),
+				token1080 = exercise.tokenFor(VideoQuality.R1080),
 				title = exercise.title,
 			)
 		}
@@ -190,6 +192,7 @@ fun VideoScreen(
 					quality = quality,
 					muted = muted,
 					isFullscreen = isFullscreen,
+					isImmersive = expanded,
 					onFullscreenToggle = { isFullscreen = it },
 					modifier = Modifier.fillMaxSize(),
 					onIndexChanged = { index ->

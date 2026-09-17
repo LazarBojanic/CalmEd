@@ -119,7 +119,9 @@ fun CourseOverviewScreen(
                             items = listOf(
                                 VideoItem(
                                     playbackId = loaded.playbackId,
-                                    playbackToken = loaded.token.takeIf { it.isNotBlank() },
+                                    token480 = loaded.tokenFor(VideoQuality.R480),
+                                    token720 = loaded.tokenFor(VideoQuality.R720),
+                                    token1080 = loaded.tokenFor(VideoQuality.R1080),
                                     title = loaded.title,
                                 )
                             ),

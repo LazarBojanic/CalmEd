@@ -7,11 +7,17 @@ import java.security.interfaces.RSAPrivateKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Base64
 import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 
 object MuxTokenGenerator {
 
-    private fun loadPrivateKeyPkcs8(pem: String): RSAPrivateKey {
+    private val keyCache = ConcurrentHashMap<String, RSAPrivateKey>()
+
+    private fun loadPrivateKeyPkcs8(pem: String): RSAPrivateKey =
+        keyCache.getOrPut(pem) { parsePrivateKey(pem) }
+
+    private fun parsePrivateKey(pem: String): RSAPrivateKey {
         val normalizedPem = pem.replace("\\n", "\n").replace("\r", "")
         var cleaned = normalizedPem
             .replace("-----BEGIN PRIVATE KEY-----", "")
@@ -38,7 +44,8 @@ object MuxTokenGenerator {
         playbackId: String,
         kid: String,
         privateKeyPemPkcs8: String,
-        audience: String
+        audience: String,
+        maxResolution: String? = null
     ): String {
         val privateKey = loadPrivateKeyPkcs8(privateKeyPemPkcs8)
         val alg = Algorithm.RSA256(null, privateKey)
@@ -50,15 +57,20 @@ object MuxTokenGenerator {
             .withAudience(audience)
             .withSubject(playbackId)
             .withExpiresAt(exp)
+            .apply {
+                if (audience == "v") withClaim("redundant_streams", true)
+                maxResolution?.let { withClaim("max_resolution", it) }
+            }
             .sign(alg)
     }
 
     fun generatePlaybackToken(
         playbackId: String,
         kid: String,
-        privateKeyPemPkcs8: String
+        privateKeyPemPkcs8: String,
+        maxResolution: String? = null
     ): String {
-        return generateToken(playbackId, kid, privateKeyPemPkcs8, "v")
+        return generateToken(playbackId, kid, privateKeyPemPkcs8, "v", maxResolution)
     }
 
     fun generateThumbnailToken(

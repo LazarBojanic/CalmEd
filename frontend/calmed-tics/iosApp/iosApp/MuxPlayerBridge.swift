@@ -150,19 +150,10 @@ final class MuxPlayerViewController: UIViewController {
 
         removeEndObserver()
 
-        if let token = item.playbackToken, !token.isEmpty {
-            playerViewController.prepare(
-                playbackID: item.playbackId,
-                playbackOptions: PlaybackOptions(playbackToken: token)
-            )
-        } else {
-            playerViewController.prepare(
-                playbackID: item.playbackId,
-                playbackOptions: PlaybackOptions(
-                    maximumResolutionTier: maxTier(for: qualityName)
-                )
-            )
-        }
+        playerViewController.prepare(
+            playbackID: item.playbackId,
+            playbackOptions: playbackOptions(for: item)
+        )
 
         playerViewController.player?.isMuted = muted
         playerViewController.player?.play()
@@ -249,17 +240,39 @@ final class MuxPlayerViewController: UIViewController {
     private func sameItems(_ lhs: [VideoItem], _ rhs: [VideoItem]) -> Bool {
         guard lhs.count == rhs.count else { return false }
         for (left, right) in zip(lhs, rhs) {
-            if left.playbackId != right.playbackId || left.playbackToken != right.playbackToken {
+            if left.playbackId != right.playbackId
+                || left.token480 != right.token480
+                || left.token720 != right.token720
+                || left.token1080 != right.token1080 {
                 return false
             }
         }
         return true
     }
 
-    private func maxTier(for qualityName: String) -> MaxResolutionTier {
+    private func playbackOptions(for item: VideoItem) -> PlaybackOptions {
+        if let token = token(for: item), !token.isEmpty {
+            return PlaybackOptions(playbackToken: token)
+        }
         switch qualityName {
-        case "R1080": return .upTo1080p
-        default: return .upTo720p
+        case "R1080":
+            return PlaybackOptions(maximumResolutionTier: .upTo1080p)
+        case "R480":
+            return PlaybackOptions(
+                maximumResolutionTier: .upTo720p,
+                minimumResolutionTier: .atLeast480p
+            )
+        default:
+            return PlaybackOptions(maximumResolutionTier: .upTo720p)
+        }
+    }
+
+    private func token(for item: VideoItem) -> String? {
+        switch qualityName {
+        case "R480": return item.token480
+        case "R720": return item.token720
+        case "R1080": return item.token1080
+        default: return nil
         }
     }
 

@@ -6,9 +6,17 @@ import com.calmed.calmedtics.video.VideoQuality
 
 data class VideoItem(
 	val playbackId: String,
-	val playbackToken: String? = null,
+	val token480: String? = null,
+	val token720: String? = null,
+	val token1080: String? = null,
 	val title: String? = null,
-)
+) {
+	fun tokenFor(quality: VideoQuality): String? = when (quality) {
+		VideoQuality.R480 -> token480
+		VideoQuality.R720 -> token720
+		VideoQuality.R1080 -> token1080
+	}
+}
 
 @Composable
 expect fun VideoPlayer(
@@ -20,6 +28,7 @@ expect fun VideoPlayer(
 	autoPlay: Boolean = true,
 	allowFullscreen: Boolean = true,
 	isFullscreen: Boolean = false,
+	isImmersive: Boolean = false,
 	onFullscreenToggle: (Boolean) -> Unit = {},
 	onIndexChanged: (Int) -> Unit = {},
 	onControlsVisibilityChanged: (Boolean) -> Unit = {},
