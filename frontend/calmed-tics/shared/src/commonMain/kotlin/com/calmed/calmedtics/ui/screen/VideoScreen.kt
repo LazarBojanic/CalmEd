@@ -36,7 +36,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -71,6 +70,7 @@ import com.calmed.calmedtics.ui.component.VideoItem
 import com.calmed.calmedtics.ui.component.VideoOverlayButton
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
+import com.calmed.calmedtics.ui.component.rememberDeviceLandscape
 import com.calmed.calmedtics.video.VideoQuality
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
@@ -121,10 +121,10 @@ fun VideoScreen(
 
 	var currentIndex by remember(playable) { mutableStateOf(safeStartIndex) }
 	var muted by rememberSaveable { mutableStateOf(false) }
-	var quality by rememberSaveable(stateSaver = VideoQualitySaver) {
-		mutableStateOf(appSettings.getDownloadResolution())
-	}
-	var isFullscreen by remember { mutableStateOf(false) }
+	var quality by remember { mutableStateOf(appSettings.getPlaybackResolution()) }
+	val deviceLandscape = rememberDeviceLandscape()
+	var forcedFullscreen by remember { mutableStateOf<Boolean?>(null) }
+	val fullscreen = forcedFullscreen ?: deviceLandscape
 	var showQualityPicker by remember { mutableStateOf(false) }
 	var isPlaying by remember { mutableStateOf(false) }
 	var controlsVisible by remember { mutableStateOf(true) }
@@ -139,6 +139,12 @@ fun VideoScreen(
 		if (controlsVisible && isPlaying) {
 			delay(3_000)
 			controlsVisible = false
+		}
+	}
+
+	LaunchedEffect(deviceLandscape, forcedFullscreen) {
+		if (forcedFullscreen != null && forcedFullscreen == deviceLandscape) {
+			forcedFullscreen = null
 		}
 	}
 
@@ -162,7 +168,7 @@ fun VideoScreen(
 			.background(appBackgroundGradient()),
 	) {
 		val isLandscape = maxWidth > maxHeight
-		val expanded = isFullscreen || isLandscape
+		val expanded = fullscreen || isLandscape
 
 		Column(
 			modifier = Modifier
@@ -191,9 +197,9 @@ fun VideoScreen(
 					startIndex = safeStartIndex,
 					quality = quality,
 					muted = muted,
-					isFullscreen = isFullscreen,
+					isFullscreen = fullscreen,
 					isImmersive = expanded,
-					onFullscreenToggle = { isFullscreen = it },
+					onFullscreenToggle = { forcedFullscreen = it },
 					modifier = Modifier.fillMaxSize(),
 					onIndexChanged = { index ->
 						if (index in playable.indices) {
@@ -223,7 +229,6 @@ fun VideoScreen(
 				) {
 					PlayerOverlayControls(
 						exercise = current,
-						quality = quality,
 						muted = muted,
 						onToggleMute = { muted = !muted },
 						onShowQualityPicker = { showQualityPicker = true },
@@ -294,9 +299,9 @@ fun VideoScreen(
 				.align(Alignment.BottomCenter)
 				.navigationBarsPadding(),
 		)
-	}
 
-	PlatformBackHandler(enabled = isFullscreen) { isFullscreen = false }
+		PlatformBackHandler(enabled = expanded) { forcedFullscreen = false }
+	}
 
 	if (showQualityPicker) {
 		AlertDialog(
@@ -319,6 +324,7 @@ fun VideoScreen(
 									role = Role.RadioButton,
 									onClick = {
 										quality = option
+										appSettings.setPlaybackResolution(option)
 										showQualityPicker = false
 									},
 								)
@@ -346,7 +352,6 @@ fun VideoScreen(
 @Composable
 private fun PlayerOverlayControls(
 	exercise: ProgramExerciseDto,
-	quality: VideoQuality,
 	muted: Boolean,
 	onToggleMute: () -> Unit,
 	onShowQualityPicker: () -> Unit,
@@ -367,7 +372,6 @@ private fun PlayerOverlayControls(
 	) {
 		VideoPlayerDownloadButton(
 			exercise = exercise,
-			quality = quality,
 		)
 
 		CastButton()
@@ -393,8 +397,3 @@ private fun PlayerOverlayControls(
 		)
 	}
 }
-
-private val VideoQualitySaver: Saver<VideoQuality, String> = Saver(
-	save = { it.name },
-	restore = { VideoQuality.fromName(it) },
-)

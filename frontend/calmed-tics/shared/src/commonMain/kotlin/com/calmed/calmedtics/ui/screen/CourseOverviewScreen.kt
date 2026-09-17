@@ -126,7 +126,7 @@ fun CourseOverviewScreen(
                                 )
                             ),
                             startIndex = 0,
-                            quality = VideoQuality.R720,
+                            quality = appSettings.getPlaybackResolution(),
                             autoPlay = false,
                             allowFullscreen = false,
                             modifier = Modifier.fillMaxSize(),

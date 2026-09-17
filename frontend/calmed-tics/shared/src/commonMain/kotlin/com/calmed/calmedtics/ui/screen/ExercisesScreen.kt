@@ -58,13 +58,11 @@ import calmedtics.shared.generated.resources.duration_placeholder
 import com.calmed.calmedtics.model.dto.response.ExerciseGroupDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.theme.appBackgroundGradient
-import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.ui.component.Thumbnail
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.painterResource
-import org.koin.compose.koinInject
 
 @Composable
 fun ExercisesScreen(
@@ -234,7 +232,6 @@ private fun ExerciseCard(
     val locked = exercise.weekNumber > currentWeek
 
     val lockedMessage = stringResource(Res.string.its_not_yet_time)
-    val appSettings: AppSettings = koinInject()
 
     val formattedDuration = exercise.durationSeconds?.let { totalSeconds ->
         val minutes = totalSeconds / 60
@@ -304,7 +301,6 @@ private fun ExerciseCard(
                 ?.let {
                     VideoPlayerDownloadButton(
                         exercise = exercise,
-                        quality = appSettings.getDownloadResolution(),
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(10.dp)

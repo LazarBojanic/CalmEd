@@ -34,14 +34,12 @@ import com.calmed.calmedtics.service.specification.stateFor
 import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.util.NetworkType
 import com.calmed.calmedtics.util.currentNetworkType
-import com.calmed.calmedtics.video.VideoQuality
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
 fun VideoPlayerDownloadButton(
 	exercise: ProgramExerciseDto,
-	quality: VideoQuality,
 	modifier: Modifier = Modifier,
 ) {
 	val playbackId = exercise.playbackId
@@ -80,7 +78,7 @@ fun VideoPlayerDownloadButton(
 			}
 		}
 
-		videoDownloadManager.startDownload(exercise, quality)
+		videoDownloadManager.startDownload(exercise, appSettings.getDownloadResolution())
 	}
 
 	val onClick = {

@@ -89,19 +89,29 @@ actual fun VideoPlayer(
 	}
 
 	val windowInfo = LocalWindowInfo.current
+	val deviceLandscape = rememberDeviceLandscape()
 
 	LaunchedEffect(
 		isFullscreen,
 		isImmersive,
+		deviceLandscape,
 		activity,
+		allowFullscreen,
 		windowInfo.containerSize,
 		windowInfo.isWindowFocused,
 	) {
 		val window = activity?.window ?: return@LaunchedEffect
 		val controller = WindowCompat.getInsetsController(window, window.decorView)
 
-		if (isFullscreen) {
-			activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+		if (allowFullscreen) {
+			val displayLandscape = windowInfo.containerSize.width > windowInfo.containerSize.height
+			activity.requestedOrientation = when {
+				isFullscreen && !deviceLandscape ->
+					ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+				!isFullscreen && (deviceLandscape || displayLandscape) ->
+					ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+				else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+			}
 		} else {
 			activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 		}
