@@ -17,14 +17,17 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.cancel
+import calmedtics.shared.generated.resources.cancel_download
+import calmedtics.shared.generated.resources.cancel_download_confirm_message
+import calmedtics.shared.generated.resources.cancel_download_confirm_title
 import calmedtics.shared.generated.resources.delete
 import calmedtics.shared.generated.resources.delete_confirm_message
 import calmedtics.shared.generated.resources.delete_confirm_title
 import calmedtics.shared.generated.resources.download_video
 import calmedtics.shared.generated.resources.download_wifi_only_blocked
-import calmedtics.shared.generated.resources.downloading_video
 import calmedtics.shared.generated.resources.remove_downloaded_video
 import calmedtics.shared.generated.resources.retry_video_download
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
 import com.calmed.calmedtics.service.specification.stateFor
@@ -37,12 +40,11 @@ import org.koin.compose.koinInject
 
 @Composable
 fun VideoPlayerDownloadButton(
-	playbackId: String,
-	token: String?,
-	title: String?,
+	exercise: ProgramExerciseDto,
 	quality: VideoQuality,
 	modifier: Modifier = Modifier,
 ) {
+	val playbackId = exercise.playbackId
 	val appSettings: AppSettings = koinInject()
 	val videoDownloadManager: IVideoDownloadManager = koinInject()
 	val states by
@@ -51,6 +53,7 @@ fun VideoPlayerDownloadButton(
 	val status = state.status
 
 	var showDeleteConfirm by remember { mutableStateOf(false) }
+	var showCancelConfirm by remember { mutableStateOf(false) }
 
 	val wifiBlockedMessage = stringResource(Res.string.download_wifi_only_blocked)
 
@@ -62,7 +65,7 @@ fun VideoPlayerDownloadButton(
 		VideoDownloadStatus.Starting,
 		VideoDownloadStatus.Queued,
 		VideoDownloadStatus.Downloading,
-		VideoDownloadStatus.Removing -> stringResource(Res.string.downloading_video)
+		VideoDownloadStatus.Removing -> stringResource(Res.string.cancel_download)
 		VideoDownloadStatus.Downloaded -> stringResource(Res.string.remove_downloaded_video)
 		VideoDownloadStatus.Failed,
 		VideoDownloadStatus.Expired -> stringResource(Res.string.retry_video_download)
@@ -77,12 +80,7 @@ fun VideoPlayerDownloadButton(
 			}
 		}
 
-		videoDownloadManager.startDownload(
-			playbackId = playbackId,
-			token = token,
-			title = title,
-			quality = quality,
-		)
+		videoDownloadManager.startDownload(exercise, quality)
 	}
 
 	val onClick = {
@@ -90,7 +88,7 @@ fun VideoPlayerDownloadButton(
 			VideoDownloadStatus.Downloaded -> showDeleteConfirm = true
 			VideoDownloadStatus.Starting,
 			VideoDownloadStatus.Queued,
-			VideoDownloadStatus.Downloading,
+			VideoDownloadStatus.Downloading -> showCancelConfirm = true
 			VideoDownloadStatus.Removing -> Unit
 			VideoDownloadStatus.NotDownloaded,
 			VideoDownloadStatus.Failed,
@@ -139,6 +137,29 @@ fun VideoPlayerDownloadButton(
 			},
 			dismissButton = {
 				TextButton(onClick = { showDeleteConfirm = false }) {
+					Text(stringResource(Res.string.cancel))
+				}
+			},
+		)
+	}
+
+	if (showCancelConfirm) {
+		AlertDialog(
+			onDismissRequest = { showCancelConfirm = false },
+			title = { Text(stringResource(Res.string.cancel_download_confirm_title)) },
+			text = { Text(stringResource(Res.string.cancel_download_confirm_message)) },
+			confirmButton = {
+				TextButton(
+					onClick = {
+						videoDownloadManager.remove(playbackId)
+						showCancelConfirm = false
+					}
+				) {
+					Text(stringResource(Res.string.cancel_download))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { showCancelConfirm = false }) {
 					Text(stringResource(Res.string.cancel))
 				}
 			},

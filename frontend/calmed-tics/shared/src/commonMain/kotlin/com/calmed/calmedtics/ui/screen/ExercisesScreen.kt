@@ -301,11 +301,9 @@ private fun ExerciseCard(
 
             exercise.playbackId
                 .takeIf { it.isNotBlank() }
-                ?.let { playbackId ->
+                ?.let {
                     VideoPlayerDownloadButton(
-                        playbackId = playbackId,
-                        token = exercise.token.takeIf { it.isNotBlank() },
-                        title = exercise.title,
+                        exercise = exercise,
                         quality = appSettings.getDownloadResolution(),
                         modifier = Modifier
                             .align(Alignment.TopEnd)

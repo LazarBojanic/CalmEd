@@ -88,9 +88,7 @@ fun VideoScreen(
 	KeepScreenAwake(enabled = appSettings.isKeepScreenAwake())
 
 	val playable = remember(exercises, currentWeek) {
-		exercises
-			.filter { it.weekNumber <= currentWeek }
-			.ifEmpty { exercises }
+		exercises.filter { it.weekNumber <= currentWeek }
 	}
 
 	if (playable.isEmpty()) {
@@ -365,9 +363,7 @@ private fun PlayerOverlayControls(
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 		VideoPlayerDownloadButton(
-			playbackId = exercise.playbackId,
-			token = exercise.token.takeIf { it.isNotBlank() },
-			title = exercise.title,
+			exercise = exercise,
 			quality = quality,
 		)
 

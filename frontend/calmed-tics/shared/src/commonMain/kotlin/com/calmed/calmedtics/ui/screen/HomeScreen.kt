@@ -664,9 +664,7 @@ fun HomeScreen(
                             ?.takeIf { it.playbackId.isNotBlank() }
                             ?.let { exercise ->
                                 VideoPlayerDownloadButton(
-                                    playbackId = exercise.playbackId,
-                                    token = exercise.token.takeIf { it.isNotBlank() },
-                                    title = selectedTitle,
+                                    exercise = exercise,
                                     quality = appSettings.getDownloadResolution(),
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)

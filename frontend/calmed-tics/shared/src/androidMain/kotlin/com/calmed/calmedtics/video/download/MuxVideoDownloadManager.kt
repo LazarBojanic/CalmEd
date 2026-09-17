@@ -7,9 +7,9 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import com.calmed.calmedtics.logging.AppLog
 import com.calmed.calmedtics.logging.LogTags
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.service.specification.DownloadEvent
 import com.calmed.calmedtics.service.specification.DownloadEventType
-import com.calmed.calmedtics.service.specification.DownloadedVideo
 import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadState
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
@@ -41,9 +41,6 @@ class MuxVideoDownloadManager(
 	private val _states = MutableStateFlow<Map<String, VideoDownloadState>>(emptyMap())
 	override val states: StateFlow<Map<String, VideoDownloadState>> = _states
 
-	private val _downloadedVideos = MutableStateFlow<List<DownloadedVideo>>(emptyList())
-	override val downloadedVideos: StateFlow<List<DownloadedVideo>> = _downloadedVideos
-
 	private val _events = MutableSharedFlow<DownloadEvent>(extraBufferCapacity = 32)
 	override val events: SharedFlow<DownloadEvent> = _events
 
@@ -57,7 +54,6 @@ class MuxVideoDownloadManager(
 
 		override fun onDownloadRemoved(download: MuxDownload) {
 			_states.update { it - download.playbackId }
-			recalculateDownloaded()
 		}
 	}
 
@@ -68,27 +64,26 @@ class MuxVideoDownloadManager(
 	}
 
 	override fun startDownload(
-		playbackId: String,
-		token: String?,
-		title: String?,
+		exercise: ProgramExerciseDto,
 		quality: VideoQuality,
 	) {
+		val playbackId = exercise.playbackId
 		if (playbackId.isBlank()) return
 
 		applyRequirements()
 
 		_states.update {
-			it + (playbackId to VideoDownloadState(VideoDownloadStatus.Starting, 0f, title))
+			it + (playbackId to VideoDownloadState(VideoDownloadStatus.Starting, 0f))
 		}
 
 		val mediaItem = MediaItems.builderFromMuxPlaybackId(
 			playbackId = playbackId,
 			maxResolution = quality.toPlaybackResolution(),
-			playbackToken = token,
+			playbackToken = exercise.token.takeIf { it.isNotBlank() },
 		)
 			.setMediaMetadata(
 				MediaMetadata.Builder()
-					.setTitle(title)
+					.setTitle(exercise.title)
 					.build()
 			)
 			.build()
@@ -97,6 +92,7 @@ class MuxVideoDownloadManager(
 	}
 
 	override fun remove(playbackId: String) {
+		_states.update { it - playbackId }
 		MuxDownloadManager.removeDownload(appContext, playbackId)
 	}
 
@@ -105,10 +101,8 @@ class MuxVideoDownloadManager(
 			val downloads = runCatching { MuxDownloadManager.allDownloads(appContext) }
 				.getOrElse { emptyList() }
 			_states.value = downloads.associate { download ->
-				val existingTitle = _states.value[download.playbackId]?.title
-				download.playbackId to download.toState().copy(title = existingTitle)
+				download.playbackId to download.toState()
 			}
-			recalculateDownloaded()
 		}
 	}
 	@OptIn(UnstableApi::class)
@@ -123,37 +117,28 @@ class MuxVideoDownloadManager(
 	}
 
 	private fun applySnapshot(download: MuxDownload) {
-		val previousState = _states.value[download.playbackId]
-		val previous = previousState?.status
-		val next = download.toState().copy(title = previousState?.title)
+		val previous = _states.value[download.playbackId]?.status
+		val next = download.toState()
 
 		_states.update { it + (download.playbackId to next) }
-		recalculateDownloaded()
-		emitTransition(previous, next.status, next.title)
+		emitTransition(previous, next.status, download.playbackId)
 	}
 
 	private fun emitTransition(
 		previous: VideoDownloadStatus?,
 		current: VideoDownloadStatus,
-		title: String?,
+		playbackId: String,
 	) {
 		if (previous == current) return
 		when (current) {
 			VideoDownloadStatus.Downloaded ->
-				_events.tryEmit(DownloadEvent(DownloadEventType.Completed, title))
+				_events.tryEmit(DownloadEvent(DownloadEventType.Completed, playbackId))
 			VideoDownloadStatus.Expired ->
-				_events.tryEmit(DownloadEvent(DownloadEventType.Expired, title))
+				_events.tryEmit(DownloadEvent(DownloadEventType.Expired, playbackId))
 			VideoDownloadStatus.Failed ->
-				_events.tryEmit(DownloadEvent(DownloadEventType.Failed, title))
+				_events.tryEmit(DownloadEvent(DownloadEventType.Failed, playbackId))
 			else -> Unit
 		}
-	}
-
-	private fun recalculateDownloaded() {
-		_downloadedVideos.value = _states.value
-			.filterValues { it.status == VideoDownloadStatus.Downloaded }
-			.map { (playbackId, state) -> DownloadedVideo(playbackId, state.title) }
-			.sortedBy { it.playbackId }
 	}
 
 	private fun MuxDownload.toState(): VideoDownloadState {

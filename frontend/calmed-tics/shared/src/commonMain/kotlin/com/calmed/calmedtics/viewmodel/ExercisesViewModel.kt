@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.calmed.calmedtics.model.dto.response.ExerciseGroupDto
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.repository.DownloadedVideosRepository
 import com.calmed.calmedtics.repository.ExercisesRepository
 import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.exercises_load_failed
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 
 class ExercisesViewModel(
 	private val repository: ExercisesRepository,
+	private val downloadedVideosRepository: DownloadedVideosRepository,
 ) : ViewModel() {
 
 	val exercises: StateFlow<List<ProgramExerciseDto>> =
@@ -36,7 +38,9 @@ class ExercisesViewModel(
 		_loading.value = true
 		_error.value = null
 		try {
-			repository.refresh()
+			if (repository.refresh()) {
+				downloadedVideosRepository.removeOrphans()
+			}
 		} catch (t: CancellationException) {
 			throw t
 		} catch (t: Throwable) {

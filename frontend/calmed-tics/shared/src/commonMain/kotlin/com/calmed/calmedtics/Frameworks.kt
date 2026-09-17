@@ -5,6 +5,7 @@ import com.calmed.calmedtics.http.AppApi
 import com.calmed.calmedtics.http.AppHttpClient
 import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.navigation.appNavigationModule
+import com.calmed.calmedtics.repository.DownloadedVideosRepository
 import com.calmed.calmedtics.repository.ExercisesRepository
 import com.calmed.calmedtics.repository.HomeRepository
 import com.calmed.calmedtics.repository.ProgressRepository
@@ -30,13 +31,14 @@ fun commonModule(baseUrl: String, development: Boolean) = module {
     single<IAppApi> { AppApi(get()) }
     single { HomeRepository(api = get()) }
     single { ExercisesRepository(get(), get(), get()) }
+    single { DownloadedVideosRepository(get(), get()) }
     single { ProgressRepository(get(), get(), get()) }
     single { SessionRepository(get(), get(), get(), get(), get()) }
     single<IAuthService> { AuthService(get(), get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { SessionViewModel(get(), get(), get()) }
     viewModel { HomeViewModel(get(), get()) }
-    viewModel { ExercisesViewModel(get()) }
+    viewModel { ExercisesViewModel(get(), get()) }
     viewModel { PaymentViewModel(get(), get(), get()) }
 }
 

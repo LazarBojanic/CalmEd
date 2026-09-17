@@ -12,6 +12,12 @@ interface IProgramExerciseDao {
 	@Query("SELECT * FROM program_exercise ORDER BY week_number ASC")
 	fun getAll(): Flow<List<ProgramExerciseEntity>>
 
+	@Query("SELECT * FROM program_exercise WHERE playback_id = :playbackId LIMIT 1")
+	suspend fun getByPlaybackId(playbackId: String): ProgramExerciseEntity?
+
+	@Query("SELECT playback_id FROM program_exercise")
+	suspend fun getAllPlaybackIds(): List<String>
+
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	suspend fun upsertAll(exercises: List<ProgramExerciseEntity>)
 

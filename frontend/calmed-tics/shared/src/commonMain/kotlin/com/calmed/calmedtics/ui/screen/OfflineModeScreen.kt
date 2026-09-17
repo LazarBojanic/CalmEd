@@ -64,8 +64,8 @@ import calmedtics.shared.generated.resources.status_downloaded
 import calmedtics.shared.generated.resources.status_downloading
 import calmedtics.shared.generated.resources.status_failed
 import calmedtics.shared.generated.resources.status_not_downloaded
-import com.calmed.calmedtics.repository.ExercisesRepository
-import com.calmed.calmedtics.service.specification.DownloadedVideo
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.repository.DownloadedVideosRepository
 import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.service.specification.VideoDownloadState
 import com.calmed.calmedtics.service.specification.VideoDownloadStatus
@@ -80,29 +80,20 @@ import org.koin.compose.koinInject
 @Composable
 fun OfflineModeScreen(
 	onTryOnline: () -> Unit,
-	onOpenDownload: (playbackId: String, title: String?) -> Unit,
+	onOpenDownload: (ProgramExerciseDto) -> Unit,
 ) {
 	val videoDownloadManager: IVideoDownloadManager = koinInject()
-	val exercisesRepository: ExercisesRepository = koinInject()
-	val downloadedVideos by videoDownloadManager.downloadedVideos
-		.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
-
-	val states by videoDownloadManager.states
-		.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
-
-	val exercises by exercisesRepository.exercises
+	val downloadedVideosRepository: DownloadedVideosRepository = koinInject()
+	val downloadedVideos by downloadedVideosRepository.downloadedExercises
 		.collectAsStateWithLifecycle(
 			initialValue = emptyList(),
 			lifecycleOwner = LocalLifecycleOwner.current,
 		)
 
-	val titlesByPlaybackId = remember(exercises) {
-		exercises.mapNotNull { exercise ->
-			exercise.title.takeIf { it.isNotBlank() }?.let { exercise.playbackId to it }
-		}.toMap()
-	}
+	val states by videoDownloadManager.states
+		.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
-	var pendingDelete by remember { mutableStateOf<DownloadedVideo?>(null) }
+	var pendingDelete by remember { mutableStateOf<ProgramExerciseDto?>(null) }
 
 	LaunchedEffect(Unit) {
 		videoDownloadManager.refresh()
@@ -241,16 +232,14 @@ fun OfflineModeScreen(
 					}
 				}
 			} else {
-				items(downloadedVideos, key = { it.playbackId }) { video ->
-					val state = states.stateFor(video.playbackId)
-					val displayTitle = titlesByPlaybackId[video.playbackId]
-						?: video.title
-						?: video.playbackId
+				items(downloadedVideos, key = { it.playbackId }) { exercise ->
+					val state = states.stateFor(exercise.playbackId)
+					val displayTitle = exercise.title.ifBlank { exercise.playbackId }
 
 					Card(
 						modifier = Modifier
 							.fillMaxWidth()
-							.clickable { onOpenDownload(video.playbackId, video.title) },
+							.clickable { onOpenDownload(exercise) },
 						shape = RoundedCornerShape(20.dp),
 						colors = CardDefaults.cardColors(
 							containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
@@ -317,7 +306,7 @@ fun OfflineModeScreen(
 
 							Spacer(modifier = Modifier.width(6.dp))
 
-							IconButton(onClick = { pendingDelete = video }) {
+							IconButton(onClick = { pendingDelete = exercise }) {
 								Icon(
 									imageVector = Icons.Default.Delete,
 									contentDescription = stringResource(Res.string.remove_downloaded_video),

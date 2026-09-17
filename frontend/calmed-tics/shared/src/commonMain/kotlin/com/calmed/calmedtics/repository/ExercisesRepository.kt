@@ -19,14 +19,24 @@ class ExercisesRepository(
 	val groups: Flow<List<ExerciseGroupDto>> =
 		exerciseGroupDao.getAll().map { list -> list.map { it.toDto() } }
 
-	suspend fun refresh() {
+	/** Returns whether the remote program was applied. */
+	suspend fun refresh(): Boolean {
+		var synced = false
 		api.getAllProgramExercises()?.let { remoteExercises ->
 			programExerciseDao.clearAll()
 			programExerciseDao.upsertAll(remoteExercises.map { it.toEntity() })
+			synced = true
 		}
 		api.getAllExerciseGroups()?.let { remoteGroups ->
 			exerciseGroupDao.clearAll()
 			exerciseGroupDao.upsertAll(remoteGroups.map { it.toEntity() })
 		}
+		return synced
 	}
+
+	suspend fun findByPlaybackId(playbackId: String): ProgramExerciseDto? =
+		programExerciseDao.getByPlaybackId(playbackId)?.toDto()
+
+	suspend fun allPlaybackIds(): Set<String> =
+		programExerciseDao.getAllPlaybackIds().toSet()
 }

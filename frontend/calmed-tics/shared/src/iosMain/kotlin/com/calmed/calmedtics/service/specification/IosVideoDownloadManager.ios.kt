@@ -1,5 +1,6 @@
 package com.calmed.calmedtics.service.specification
 
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.video.VideoQuality
 import com.calmed.calmedtics.video.download.IosOfflineDownloadListener
 import com.calmed.calmedtics.video.download.IosOfflineDownloadRegistry
@@ -16,9 +17,6 @@ class IosVideoDownloadManager : IVideoDownloadManager {
 	private val _states = MutableStateFlow<Map<String, VideoDownloadState>>(emptyMap())
 	override val states: StateFlow<Map<String, VideoDownloadState>> = _states
 
-	private val _downloadedVideos = MutableStateFlow<List<DownloadedVideo>>(emptyList())
-	override val downloadedVideos: StateFlow<List<DownloadedVideo>> = _downloadedVideos
-
 	private val _events = MutableSharedFlow<DownloadEvent>(extraBufferCapacity = 32)
 	override val events: SharedFlow<DownloadEvent> = _events
 
@@ -34,17 +32,14 @@ class IosVideoDownloadManager : IVideoDownloadManager {
 			val state = VideoDownloadState(
 				status = mapped,
 				progressPercent = progress.takeIf { it >= 0.0 }?.toFloat(),
-				title = title,
 			)
 
 			_states.update { it + (playbackId to state) }
-			recalculateDownloaded()
-			emitTransition(previous, mapped, title)
+			emitTransition(previous, mapped, playbackId)
 		}
 
 		override fun onDownloadRemoved(playbackId: String) {
 			_states.update { it - playbackId }
-			recalculateDownloaded()
 		}
 	}
 
@@ -55,26 +50,26 @@ class IosVideoDownloadManager : IVideoDownloadManager {
 	}
 
 	override fun startDownload(
-		playbackId: String,
-		token: String?,
-		title: String?,
+		exercise: ProgramExerciseDto,
 		quality: VideoQuality,
 	) {
+		val playbackId = exercise.playbackId
 		if (playbackId.isBlank()) return
 
 		_states.update {
-			it + (playbackId to VideoDownloadState(VideoDownloadStatus.Starting, 0f, title))
+			it + (playbackId to VideoDownloadState(VideoDownloadStatus.Starting, 0f))
 		}
 
 		bridge?.startDownload(
 			playbackId = playbackId,
-			token = token,
-			title = title,
+			token = exercise.token.takeIf { it.isNotBlank() },
+			title = exercise.title,
 			maxResolution = quality.maxResolution,
 		)
 	}
 
 	override fun remove(playbackId: String) {
+		_states.update { it - playbackId }
 		bridge?.removeDownload(playbackId)
 	}
 
@@ -88,25 +83,18 @@ class IosVideoDownloadManager : IVideoDownloadManager {
 	private fun emitTransition(
 		previous: VideoDownloadStatus?,
 		current: VideoDownloadStatus,
-		title: String?,
+		playbackId: String,
 	) {
 		if (previous == current) return
 		when (current) {
 			VideoDownloadStatus.Downloaded ->
-				_events.tryEmit(DownloadEvent(DownloadEventType.Completed, title))
+				_events.tryEmit(DownloadEvent(DownloadEventType.Completed, playbackId))
 			VideoDownloadStatus.Expired ->
-				_events.tryEmit(DownloadEvent(DownloadEventType.Expired, title))
+				_events.tryEmit(DownloadEvent(DownloadEventType.Expired, playbackId))
 			VideoDownloadStatus.Failed ->
-				_events.tryEmit(DownloadEvent(DownloadEventType.Failed, title))
+				_events.tryEmit(DownloadEvent(DownloadEventType.Failed, playbackId))
 			else -> Unit
 		}
-	}
-
-	private fun recalculateDownloaded() {
-		_downloadedVideos.value = _states.value
-			.filterValues { it.status == VideoDownloadStatus.Downloaded }
-			.map { (playbackId, state) -> DownloadedVideo(playbackId, state.title) }
-			.sortedBy { it.playbackId }
 	}
 
 	private fun String.toDownloadStatus(): VideoDownloadStatus =

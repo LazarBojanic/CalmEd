@@ -156,7 +156,9 @@
     <string name="delete_confirm_title">Delete Downloaded Video</string>
     <string name="delete_confirm_message">Are you sure you want to remove this video from your offline downloads?</string>
     <string name="delete">Delete</string>
-    <string name="downloading_video">Downloading video…</string>
+    <string name="cancel_download">Cancel download</string>
+    <string name="cancel_download_confirm_title">Cancel Download</string>
+    <string name="cancel_download_confirm_message">Are you sure you want to cancel this download?</string>
 
     <!-- Video Download Quality -->
     <string name="download_quality">Video Downloads</string>

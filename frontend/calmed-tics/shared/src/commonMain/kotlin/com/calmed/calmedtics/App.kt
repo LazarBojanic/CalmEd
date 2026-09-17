@@ -26,6 +26,7 @@ import com.calmed.calmedtics.navigation.AppNavigator
 import com.calmed.calmedtics.navigation.AppRoute
 import com.calmed.calmedtics.navigation.LocalAppViewModelStoreOwner
 import com.calmed.calmedtics.navigation.appRouteConfig
+import com.calmed.calmedtics.repository.DownloadedVideosRepository
 import com.calmed.calmedtics.service.specification.DownloadEventType
 import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.theme.AppTheme
@@ -52,6 +53,7 @@ fun App() {
 
 	val navigator: AppNavigator = koinInject()
 	val videoDownloadManager: IVideoDownloadManager = koinInject()
+	val downloadedVideosRepository: DownloadedVideosRepository = koinInject()
 
 	val hostViewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
 		"No host ViewModelStoreOwner was provided"
@@ -64,7 +66,10 @@ fun App() {
 	AppTheme {
 		LaunchedEffect(Unit) {
 			videoDownloadManager.events.collect { event ->
-				val title = event.title?.takeIf { it.isNotBlank() }
+				val title = downloadedVideosRepository
+					.exerciseFor(event.playbackId)
+					?.title
+					?.takeIf { it.isNotBlank() }
 				when (event.type) {
 					DownloadEventType.Completed ->
 						if (title != null) {

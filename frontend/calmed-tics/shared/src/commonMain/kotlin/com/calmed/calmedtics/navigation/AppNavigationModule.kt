@@ -18,7 +18,6 @@ import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.logging.AppLog
 import com.calmed.calmedtics.logging.LogTags
 import com.calmed.calmedtics.model.dto.request.SupportMessageRequestDto
-import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.service.specification.IAuthService
 import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.store.ITokenDataStore
@@ -51,29 +50,6 @@ import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
 
 private val log = AppLog(LogTags.APP)
-
-private fun downloadExercise(playbackId: String, title: String?): ProgramExerciseDto =
-	ProgramExerciseDto(
-		id = playbackId,
-		weekNumber = 1,
-		groupId = null,
-		title = title.orEmpty(),
-		description = "",
-		token = "",
-		previewToken = "",
-		thumbnailToken = "",
-		previewThumbnailToken = "",
-		playbackId = playbackId,
-		previewPlaybackId = "",
-		url = "",
-		previewURL = "",
-		thumbnailURL = "",
-		previewThumbnailURL = "",
-		durationSeconds = null,
-		visibility = "PUBLIC",
-		createdAt = "",
-		updatedAt = "",
-	)
 
 private fun SessionRouting.toRoute(): AppRoute = when {
 	!confirmOverEighteen -> AppRoute.AgeConfirm
@@ -256,12 +232,10 @@ val appNavigationModule = module {
 					navigator.resetTo(session.nextRouteOrNull() ?: AppRoute.Login)
 				}
 			},
-			onOpenDownload = { playbackId, title ->
-				if (playbackId.isNotBlank()) {
-					navigator.goTo(
-						AppRoute.Video(listOf(downloadExercise(playbackId, title)), 0, 1)
-					)
-				}
+			onOpenDownload = { exercise ->
+				navigator.goTo(
+					AppRoute.Video(listOf(exercise), 0, exercise.weekNumber)
+				)
 			}
 		)
 	}
