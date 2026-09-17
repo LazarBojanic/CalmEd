@@ -13,8 +13,8 @@ import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.service.specification.IosVideoDownloadManager
 import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.store.ITokenDataStore
-import com.calmed.calmedtics.store.SettingsTokenDataStore
-import com.calmed.calmedtics.store.provideTokenStoreSettings
+import com.calmed.calmedtics.store.TokenDataStore
+import com.calmed.calmedtics.store.provideTokenDataStore
 import com.calmed.calmedtics.util.ImagePickerProvider
 import com.calmed.calmedtics.util.IosImagePicker
 import com.russhwolf.settings.Settings
@@ -27,8 +27,8 @@ actual fun platformEngine(): HttpClientEngineFactory<*> = Darwin
 fun iosModule() = module {
     single<Settings> { provideSettings() }
 
-    single { provideTokenStoreSettings() }
-    single<ITokenDataStore> { SettingsTokenDataStore(get()) }
+    single { provideTokenDataStore() }
+    single<ITokenDataStore> { TokenDataStore(get()) }
 
     single<AppDatabase> { getAppDatabase(getDatabaseBuilder()) }
     single { get<AppDatabase>().getUserDao() }

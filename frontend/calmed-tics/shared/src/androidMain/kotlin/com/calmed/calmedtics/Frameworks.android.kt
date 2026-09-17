@@ -1,6 +1,8 @@
 package com.calmed.calmedtics
 
 import android.content.Context
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import com.calmed.calmedtics.billing.AndroidBillingService
 import com.calmed.calmedtics.billing.BillingService
 import com.calmed.calmedtics.cast.AndroidCastController
@@ -14,15 +16,14 @@ import com.calmed.calmedtics.reminders.ReminderManager
 import com.calmed.calmedtics.service.specification.IVideoDownloadManager
 import com.calmed.calmedtics.settings.AppSettings
 import com.calmed.calmedtics.store.ITokenDataStore
-import com.calmed.calmedtics.store.SettingsTokenDataStore
-import com.calmed.calmedtics.store.provideTokenStoreSettings
+import com.calmed.calmedtics.store.TokenDataStore
+import com.calmed.calmedtics.store.provideTokenDataStore
 import com.calmed.calmedtics.util.AndroidImagePicker
 import com.calmed.calmedtics.util.ImagePickerProvider
 import com.calmed.calmedtics.video.download.MuxVideoDownloadManager
 import com.russhwolf.settings.Settings
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.okhttp.OkHttp
-import androidx.media3.common.util.UnstableApi
 import org.koin.dsl.module
 
 actual fun platformEngine(): HttpClientEngineFactory<*> = OkHttp
@@ -32,8 +33,8 @@ fun androidModule(appContext: Context) = module {
     single<Context> { appContext }
     single<Settings> { provideSettings(appContext) }
 
-    single { provideTokenStoreSettings(appContext) }
-    single<ITokenDataStore> { SettingsTokenDataStore(get()) }
+    single { provideTokenDataStore(appContext) }
+    single<ITokenDataStore> { TokenDataStore(get()) }
 
     single<AppDatabase> { getAppDatabase(getDatabaseBuilder(appContext)) }
     single { get<AppDatabase>().getUserDao() }

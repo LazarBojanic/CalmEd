@@ -11,7 +11,6 @@ androidxLifecycle = "2.11.0"
 multiplatformNav3Ui = "1.1.1"
 material3IconsExtended = "1.7.3"
 androidxDatastore = "1.2.1"
-androidxSecurityCrypto = "1.1.0"
 billing = "9.1.0"
 oAuthJavaJwt = "4.6.1"
 squareupOkio = "3.18.2"
@@ -60,7 +59,6 @@ androidxAppcompat = { module = "androidx.appcompat:appcompat", version.ref = "an
 androidxActivityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
 
 oAuthJavaJwt = { module = "com.auth0:java-jwt", version.ref = "oAuthJavaJwt" }
-androidxSecurityCrypto = { module = "androidx.security:security-crypto", version.ref = "androidxSecurityCrypto" }
 
 androidxLifecycleViewModelSavedState = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "androidxLifecycle" }
 androidxLifecycleViewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
@@ -69,6 +67,7 @@ androidxLifecycleRuntimeCompose = { module = "org.jetbrains.androidx.lifecycle:l
 jetbrainsNavigation3Ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "multiplatformNav3Ui" }
 jetbrainsLifecycleViewmodelNavigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidxLifecycle" }
 
+androidxDatastorePreferencesCore = { module = "androidx.datastore:datastore-preferences-core", version.ref = "androidxDatastore" }
 androidxDatastore = { module = "androidx.datastore:datastore", version.ref = "androidxDatastore" }
 androidxDatastorePreferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxDatastore" }
 

@@ -65,8 +65,7 @@ kotlin{
 			implementation(libs.androidxLifecycleRuntimeCompose)
 			implementation(libs.jetbrainsNavigation3Ui)
 			implementation(libs.jetbrainsLifecycleViewmodelNavigation3)
-			implementation(libs.androidxDatastore)
-			implementation(libs.androidxDatastorePreferences)
+			implementation(libs.androidxDatastorePreferencesCore)
 
 			api(libs.koinCore)
 			api(libs.koinAnnotations)
@@ -96,7 +95,6 @@ kotlin{
 			implementation(libs.androidxAppcompat)
 			implementation(libs.androidxDatastore)
 			implementation(libs.androidxDatastorePreferences)
-			implementation(libs.androidxSecurityCrypto)
 			implementation(libs.androidxCredentials)
 			implementation(libs.androidxCredentialsPlayServicesAuth)
 			implementation(libs.googleAndroidLibrariesIdentityGoogleId)

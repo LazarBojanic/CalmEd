@@ -19,7 +19,7 @@ data class CastResumeTarget(
 	val positionMs: Long,
 )
 
-@OptIn(UnstableApi::class)
+@UnstableApi
 class AndroidCastController(context: Context) {
 
 	val remotePlayer: RemoteCastPlayer =

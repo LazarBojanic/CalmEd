@@ -8,6 +8,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.platform.LocalResources
 
 actual object LocalAppLocale {
     private val LocalAppLocaleState = staticCompositionLocalOf { Locale.getDefault().toLanguageTag() }
@@ -21,13 +23,13 @@ actual object LocalAppLocale {
 
         val configLocales = LocalConfiguration.current.locales
         val newLocale = if (value == null) {
-            if (configLocales.isEmpty) Locale.getDefault() else configLocales[0]
+            if (configLocales.isEmpty) LocalLocale.current.platformLocale else configLocales[0]
         } else {
             Locale.forLanguageTag(value)
         }
         configuration.setLocale(newLocale)
 
-        val resources = LocalContext.current.resources
+        val resources = LocalResources.current
         SideEffect {
             Locale.setDefault(newLocale)
             resources.updateConfiguration(configuration, resources.displayMetrics)

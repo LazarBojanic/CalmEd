@@ -45,7 +45,7 @@ fun GoogleSignInButton(
 			disabledContainerColor = MaterialTheme.colorScheme.surface,
 			disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
 		),
-		border = ButtonDefaults.outlinedButtonBorder.copy(
+		border = ButtonDefaults.outlinedButtonBorder(enabled).copy(
 			brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outline)
 		),
 		shape = MaterialTheme.shapes.medium,

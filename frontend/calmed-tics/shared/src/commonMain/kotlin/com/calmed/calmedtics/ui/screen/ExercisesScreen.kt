@@ -265,9 +265,9 @@ private fun ExerciseCard(
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            if (!exercise.thumbnailURL.isNullOrBlank()) {
+            if (exercise.thumbnailURL.isNotBlank()) {
                 Thumbnail(
-                    url = exercise.thumbnailURL ?: "",
+                    url = exercise.thumbnailURL,
                     contentDescription = exercise.title,
                     modifier = Modifier.fillMaxSize()
                 )

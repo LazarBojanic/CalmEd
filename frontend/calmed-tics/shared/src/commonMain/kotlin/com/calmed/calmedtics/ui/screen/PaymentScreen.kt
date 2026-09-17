@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material3.Card
@@ -120,7 +121,7 @@ fun PaymentScreen(
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.ReceiptLong, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Outlined.ReceiptLong, contentDescription = null)
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             stringResource(Res.string.premium_access),

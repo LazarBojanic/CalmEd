@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -249,7 +250,7 @@ fun ProfileScreen(
 								horizontalAlignment = Alignment.CenterHorizontally
 							) {
 								val profileImageUrl =
-									user?.profileImageUrl?.let { url ->
+									user.profileImageUrl?.let { url ->
 										if (url.startsWith("http")) {
 											url
 										} else {
@@ -459,29 +460,27 @@ fun ProfileScreen(
 							onClick = {
 								val u = user
 
-								if (u != null) {
-									scope.launch {
+                                scope.launch {
 
-										val profileOk =
-											sessionViewModel.updateProfileUserInfoTics(
-												buildUpdate(u)
-											)
+                                    val profileOk =
+                                        sessionViewModel.updateProfileUserInfoTics(
+                                            buildUpdate(u)
+                                        )
 
-										if (!profileOk) {
-											return@launch
-										}
+                                    if (!profileOk) {
+                                        return@launch
+                                    }
 
-										val imageOk =
-											profileImageBytes?.let { bytes ->
-												sessionViewModel.uploadProfileImage(bytes)
-											} ?: true
+                                    val imageOk =
+                                        profileImageBytes?.let { bytes ->
+                                            sessionViewModel.uploadProfileImage(bytes)
+                                        } ?: true
 
-										if (imageOk) {
-											profileImageBytes = null
-											isEditing = false
-										}
-									}
-								}
+                                    if (imageOk) {
+                                        profileImageBytes = null
+                                        isEditing = false
+                                    }
+                                }
 							}
 						)
 					}
@@ -1130,7 +1129,7 @@ fun SettingsRow(
 			Spacer(modifier = Modifier.weight(1f))
 
 			Icon(
-				imageVector = Icons.Default.KeyboardArrowRight,
+				imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
 				contentDescription = null,
 				tint = MaterialTheme.colorScheme.onSurfaceVariant
 			)
