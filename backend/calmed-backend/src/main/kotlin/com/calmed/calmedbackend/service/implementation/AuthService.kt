@@ -85,65 +85,6 @@ class AuthService(private val userService: IUserService,
 							   val aud: String? = null
 	)
 
-	private suspend fun verifyAppleIdentityToken(identityToken: String): AppResult<AppleClaims> {
-		return try {
-			val verifier = AppleIdTokenVerifier(appleHttp, appleConfig)
-			val claims = verifier.verify(identityToken)
-
-			if (claims.sub.isEmpty()) {
-				AppResult.Failure(HttpStatusCode.Unauthorized, "Apple token missing sub")
-			} else {
-				AppResult.Success(claims)
-			}
-		} catch (e: Exception) {
-			logger.warn("Apple identity token verification failed", e)
-			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Apple token.")
-		}
-	}
-
-	private suspend fun verifyGoogleIdToken(idToken: String): AppResult<GoogleTokenInfo> {
-		return try {
-			val info: GoogleTokenInfo = googleHttp.get("https://oauth2.googleapis.com/tokeninfo") {
-				url { parameters.append("id_token", idToken) }
-			}.body()
-
-			if (info.email.isNullOrBlank()) {
-				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing email")
-			}
-
-			if (info.email_verified != "true") {
-				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google email not verified")
-			}
-
-			if (info.aud.isNullOrBlank()) {
-				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing audience")
-			}
-
-			val allowedAudiences = listOfNotNull(
-				googleOAuthConfig.webClientId,
-				googleOAuthConfig.iosClientId,
-				googleOAuthConfig.androidClientId
-			)
-
-			if (!allowedAudiences.contains(info.aud)) {
-				return AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token audience")
-			}
-
-			AppResult.Success(info)
-		} catch (e: Exception) {
-			logger.warn("Google ID token verification failed", e)
-			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token.")
-		}
-	}
-	private fun base64UrlDecode(s: String): ByteArray {
-		val padded = when (s.length % 4) {
-			2 -> "$s=="
-			3 -> "$s="
-			else -> s
-		}
-		return java.util.Base64.getUrlDecoder().decode(padded)
-	}
-
 	override fun accessVerifier(): JWTVerifier {
 		return JWT.require(jwtConfig.accessAlg).withIssuer(jwtConfig.iss).withAudience(jwtConfig.aud).build()
 	}
@@ -1194,59 +1135,7 @@ class AuthService(private val userService: IUserService,
 		}
 	}
 
-	private fun buildVerificationLink(token: String): String {
-		return "${emailConfig.verificationBaseUrl}/auth/verify-email?token=$token"
-	}
-
-	private fun buildVerificationEmailBody(verificationLink: String): String {
-		return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>Verify Your Email - Calmed</title>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-                    .content { padding: 30px; background-color: #f9f9f9; border-radius: 0 0 5px 5px; }
-                    .button { display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                    .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h1>Welcome to Calmed!</h1>
-                </div>
-                <div class="content">
-                    <h2>Verify Your Email Address</h2>
-                    <p>Thank you for registering with Calmed. To complete your registration and start using our platform, please verify your email address by clicking the button below:</p>
-                    
-                    <div style="text-align: center;">
-                        <a href="$verificationLink" class="button">Verify Email Address</a>
-                    </div>
-                    
-                    <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
-                    <p style="word-break: break-all; background-color: #eee; padding: 10px; border-radius: 3px;">
-                        $verificationLink
-                    </p>
-                    
-                    <p>This verification link will expire in <strong>24 hours</strong>.</p>
-                    
-                    <p>If you didn't create an account with Calmed, you can safely ignore this email.</p>
-                    
-                    <div class="footer">
-                        <p>Best regards,<br>The Calmed Team</p>
-                        <p>© ${
-			Instant.now().atZone(java.time.ZoneId.systemDefault()).year
-		} Calmed. All rights reserved.</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-        """.trimIndent()
-	}
-
-	public fun sendEmail(from: String, to: String, subject: String, body: String) {
+	override suspend fun sendEmail(from: String, to: String, subject: String, body: String) {
 		val config = MailtrapConfig.Builder()
 			.token(emailConfig.mailtrapApiToken)
 			.sandbox(true)
@@ -1378,6 +1267,115 @@ class AuthService(private val userService: IUserService,
 				AppResult.Failure(HttpStatusCode.InternalServerError, "Reset failed.")
 			}
 		}
+	}
+	private fun buildVerificationLink(token: String): String {
+		return "${emailConfig.verificationBaseUrl}/auth/verify-email?token=$token"
+	}
+
+	private fun buildVerificationEmailBody(verificationLink: String): String {
+		return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Verify Your Email - Calmed</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { padding: 30px; background-color: #f9f9f9; border-radius: 0 0 5px 5px; }
+                    .button { display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                    .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Welcome to Calmed!</h1>
+                </div>
+                <div class="content">
+                    <h2>Verify Your Email Address</h2>
+                    <p>Thank you for registering with Calmed. To complete your registration and start using our platform, please verify your email address by clicking the button below:</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="$verificationLink" class="button">Verify Email Address</a>
+                    </div>
+                    
+                    <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; background-color: #eee; padding: 10px; border-radius: 3px;">
+                        $verificationLink
+                    </p>
+                    
+                    <p>This verification link will expire in <strong>24 hours</strong>.</p>
+                    
+                    <p>If you didn't create an account with Calmed, you can safely ignore this email.</p>
+                    
+                    <div class="footer">
+                        <p>Best regards,<br>The Calmed Team</p>
+                        <p>© ${
+			Instant.now().atZone(java.time.ZoneId.systemDefault()).year
+		} Calmed. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        """.trimIndent()
+	}
+	private suspend fun verifyAppleIdentityToken(identityToken: String): AppResult<AppleClaims> {
+		return try {
+			val verifier = AppleIdTokenVerifier(appleHttp, appleConfig)
+			val claims = verifier.verify(identityToken)
+
+			if (claims.sub.isEmpty()) {
+				AppResult.Failure(HttpStatusCode.Unauthorized, "Apple token missing sub")
+			} else {
+				AppResult.Success(claims)
+			}
+		} catch (e: Exception) {
+			logger.warn("Apple identity token verification failed", e)
+			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Apple token.")
+		}
+	}
+
+	private suspend fun verifyGoogleIdToken(idToken: String): AppResult<GoogleTokenInfo> {
+		return try {
+			val info: GoogleTokenInfo = googleHttp.get("https://oauth2.googleapis.com/tokeninfo") {
+				url { parameters.append("id_token", idToken) }
+			}.body()
+
+			if (info.email.isNullOrBlank()) {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing email")
+			}
+
+			if (info.email_verified != "true") {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google email not verified")
+			}
+
+			if (info.aud.isNullOrBlank()) {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Google token missing audience")
+			}
+
+			val allowedAudiences = listOfNotNull(
+				googleOAuthConfig.webClientId,
+				googleOAuthConfig.iosClientId,
+				googleOAuthConfig.androidClientId
+			)
+
+			if (!allowedAudiences.contains(info.aud)) {
+				return AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token audience")
+			}
+
+			AppResult.Success(info)
+		} catch (e: Exception) {
+			logger.warn("Google ID token verification failed", e)
+			AppResult.Failure(HttpStatusCode.Unauthorized, "Invalid Google token.")
+		}
+	}
+	private fun base64UrlDecode(s: String): ByteArray {
+		val padded = when (s.length % 4) {
+			2 -> "$s=="
+			3 -> "$s="
+			else -> s
+		}
+		return java.util.Base64.getUrlDecoder().decode(padded)
 	}
 
 }

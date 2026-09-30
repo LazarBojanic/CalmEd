@@ -5,7 +5,7 @@ import com.calmed.calmedbackend.error.exception.BusinessException
 import com.calmed.calmedbackend.model.AppResult
 import com.calmed.calmedbackend.model.dto.request.SupportMessageRequest
 import com.calmed.calmedbackend.model.dto.response.SupportMessageResponse
-import com.calmed.calmedbackend.service.implementation.AuthService
+import com.calmed.calmedbackend.service.specification.IAuthService
 import com.calmed.calmedbackend.service.specification.IUserService
 import io.ktor.http.*
 import io.ktor.server.auth.*
@@ -19,7 +19,7 @@ private const val MAX_MESSAGE_LENGTH = 5000
 
 fun Route.supportRoutes() {
     val emailConfig by inject<EmailConfig>()
-    val authService by inject<AuthService>()
+    val authService by inject<IAuthService>()
     val userService by inject<IUserService>()
     authenticate("auth-jwt") {
         route("/support") {

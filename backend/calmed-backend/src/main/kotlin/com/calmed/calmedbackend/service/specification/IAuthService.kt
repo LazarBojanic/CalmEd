@@ -15,14 +15,12 @@ interface IAuthService {
 	fun emailVerificationVerifier(): JWTVerifier
 	fun passwordResetVerifier(): JWTVerifier
 
-
+	suspend fun sendEmail(from: String, to: String, subject: String, body: String)
 	suspend fun createTokenPair(userId: UUID, email: String): AppResult<TokenPairDto>
 	suspend fun generateAccessToken(id: UUID, email: String, now: Instant): AppResult<String>
 	suspend fun generateRefreshToken(userId: UUID, email: String, now: Instant): AppResult<String>
 	suspend fun generateEmailVerificationToken(userId: UUID, email: String): AppResult<String>
 	suspend fun generatePasswordResetToken(userId: UUID, email: String): AppResult<String>
-
-
 
 	suspend fun sendVerificationEmail(userId: UUID, email: String): AppResult<Unit>
 	suspend fun verifyEmail(token: String): AppResult<Unit>
@@ -37,9 +35,6 @@ interface IAuthService {
 	suspend fun logout(userId: UUID): AppResult<Unit>
 	suspend fun loginWithGoogle(idToken: String): AppResult<TokenPairDto>
 	suspend fun loginWithApple(identityToken: String): AppResult<TokenPairDto>
-
-
-
 
 	suspend fun validateEmail(email: String?): AppResult<Unit>
 	suspend fun validatePassword(p: String?, c: String?): AppResult<Unit>

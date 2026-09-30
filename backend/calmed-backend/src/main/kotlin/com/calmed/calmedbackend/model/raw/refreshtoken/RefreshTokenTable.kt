@@ -8,7 +8,7 @@ import org.jetbrains.exposed.v1.javatime.timestamp
 import java.time.Instant
 
 object RefreshTokenTable : UUIDTable("refresh_token") {
-	val replacedBy = javaUUID("replaced_by").nullable()
+	val replacedBy = javaUUID("replaced_by").references(UserTable.id).nullable()
 	val userId = javaUUID("user_id").references(UserTable.id)
 	val tokenHash = text("token_hash")
 	val issuedAt = timestamp("issued_at").defaultExpression(CurrentTimestamp)
