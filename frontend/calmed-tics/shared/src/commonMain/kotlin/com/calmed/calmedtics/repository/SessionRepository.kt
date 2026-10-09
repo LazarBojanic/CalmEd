@@ -36,6 +36,7 @@ class SessionRepository(
 	private val authService: IAuthService,
 	private val userDao: IUserDao,
 	private val userInfoDao: IUserInfoTicsDao,
+	private val exerciseCompletionDao: IExerciseCompletionDao,
 ) {
 	val user: Flow<UserJoined?> =
 		userDao.findFirst().map { it?.toJoined() }
@@ -163,6 +164,7 @@ class SessionRepository(
 	private suspend fun clearLocal() {
 		userInfoDao.clearAll()
 		userDao.clearAll()
+		exerciseCompletionDao.clearAll()
 	}
 
 	private suspend fun cacheUser(u: UserDto) {

@@ -33,7 +33,7 @@ fun commonModule(baseUrl: String, development: Boolean) = module {
     single { ExercisesRepository(get(), get(), get()) }
     single { DownloadedVideosRepository(get(), get()) }
     single { ProgressRepository(get(), get(), get()) }
-    single { SessionRepository(get(), get(), get(), get(), get()) }
+    single { SessionRepository(get(), get(), get(), get(), get(), get()) }
     single<IAuthService> { AuthService(get(), get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { SessionViewModel(get(), get(), get()) }

@@ -38,7 +38,9 @@ import com.calmed.calmedtics.ui.component.Thumbnail
 import com.calmed.calmedtics.ui.component.TimeSlider
 import com.calmed.calmedtics.util.decodeImage
 import com.calmed.calmedtics.viewmodel.SessionViewModel
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import calmedtics.shared.generated.resources.Res
@@ -777,8 +779,10 @@ fun ProfileScreen(
 					text = stringResource(Res.string.logout),
 					onClick = {
 						scope.launch {
-							sessionViewModel.logout()
-							onLogout()
+							withContext(NonCancellable) {
+								sessionViewModel.logout()
+								onLogout()
+							}
 						}
 					}
 				)
@@ -830,7 +834,9 @@ fun ProfileScreen(
 						scope.launch {
 							isDeleting = true
 							deleteError = null
-							val ok = sessionViewModel.deleteAccount()
+							val ok = withContext(NonCancellable) {
+								sessionViewModel.deleteAccount()
+							}
 							isDeleting = false
 							if (ok) {
 								showDeleteDialog = false

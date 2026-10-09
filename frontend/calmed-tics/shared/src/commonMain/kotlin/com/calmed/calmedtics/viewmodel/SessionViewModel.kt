@@ -156,6 +156,7 @@ class SessionViewModel(
 
 	suspend fun logout() {
 		_error.value = null
+		resetRoutingFlags()
 		_loading.value = true
 		try {
 			repository.logout()
@@ -164,17 +165,20 @@ class SessionViewModel(
 		}
 	}
 
-	suspend fun deleteAccount(): Boolean = runSession(
-		onFailure = { failure ->
-			when (failure) {
-				SessionFailure.MissingUserId -> getString(Res.string.session_missing_user_id)
-				else -> getString(Res.string.session_delete_account_failed)
-			}
-		},
-		onThrowable = { it.message ?: getString(Res.string.session_delete_account_failed) },
-	) {
-		repository.deleteAccount()
-	} != null
+	suspend fun deleteAccount(): Boolean {
+		resetRoutingFlags()
+		return runSession(
+			onFailure = { failure ->
+				when (failure) {
+					SessionFailure.MissingUserId -> getString(Res.string.session_missing_user_id)
+					else -> getString(Res.string.session_delete_account_failed)
+				}
+			},
+			onThrowable = { it.message ?: getString(Res.string.session_delete_account_failed) },
+		) {
+			repository.deleteAccount()
+		} != null
+	}
 
 	private suspend fun <T> runSession(
 		onFailure: suspend (SessionFailure) -> String,

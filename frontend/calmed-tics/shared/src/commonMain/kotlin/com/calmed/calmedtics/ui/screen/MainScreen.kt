@@ -29,16 +29,13 @@ import androidx.compose.ui.unit.dp
 import calmedtics.shared.generated.resources.Res
 import calmedtics.shared.generated.resources.error_prefix
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
-import calmedtics.shared.generated.resources.onboarding_error
-import calmedtics.shared.generated.resources.onboarding_title
 import calmedtics.shared.generated.resources.retry
-import calmedtics.shared.generated.resources.skip_onboarding
+import calmedtics.shared.generated.resources.session_load_failed
 import com.calmed.calmedtics.store.ITokenDataStore
 import calmedtics.shared.generated.resources.tab_exercises
 import calmedtics.shared.generated.resources.tab_home
 import calmedtics.shared.generated.resources.tab_profile
 import com.calmed.calmedtics.ui.component.PrimaryButton
-import com.calmed.calmedtics.ui.component.ScreenScaffold
 import com.calmed.calmedtics.ui.component.AppToastHost
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.viewmodel.ExercisesViewModel
@@ -78,12 +75,19 @@ fun MainScreen(
 
 	LaunchedEffect(token?.access) {
 		val access = token?.access
-		if (!access.isNullOrBlank()) {
+		if (access.isNullOrBlank()) {
+			onLogoutToLogin()
+		} else {
 			val ymd = currentYmd()
 			sessionViewModel.loadSession()
 			homeViewModel.load(year = ymd.year, month = ymd.month)
 			exercisesViewModel.load()
 		}
+	}
+
+	if (token?.access.isNullOrBlank()) {
+		Box(Modifier.fillMaxSize())
+		return
 	}
 
 	if (loading && user == null) {
@@ -102,58 +106,13 @@ fun MainScreen(
 				horizontalAlignment = Alignment.CenterHorizontally,
 				verticalArrangement = Arrangement.spacedBy(12.dp)
 			) {
-				Text(stringResource(Res.string.onboarding_error))
-				if (error != null) {
-					Text(stringResource(Res.string.error_prefix, error ?: ""))
-				}
+				Text(error ?: stringResource(Res.string.session_load_failed))
 				PrimaryButton(
 					text = stringResource(Res.string.retry),
 					onClick = { scope.launch { sessionViewModel.loadSession() } }
 				)
 			}
 		}
-		return
-	}
-
-	if (!u.isOnboarded) {
-		if (loading && ui == null) {
-			Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-				CircularProgressIndicator()
-			}
-			return
-		}
-
-		if (ui == null) {
-			ScreenScaffold(title = stringResource(Res.string.onboarding_title)) {
-				Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-					Text(stringResource(Res.string.onboarding_error))
-					if (error != null) {
-						Text(stringResource(Res.string.error_prefix, error ?: ""))
-					}
-					PrimaryButton(
-						text = stringResource(Res.string.retry),
-						onClick = { scope.launch { sessionViewModel.loadSession() } }
-					)
-					PrimaryButton(
-						text = stringResource(Res.string.skip_onboarding),
-						onClick = { scope.launch { sessionViewModel.skipOnboarding() } }
-					)
-				}
-			}
-			return
-		}
-
-		OnboardingScreen(
-			user = u,
-			userInfo = ui,
-			onSkip = { scope.launch { sessionViewModel.skipOnboarding() } },
-			onFinished = { update ->
-				scope.launch {
-					val ok = sessionViewModel.completeOnboarding(update)
-					if (ok) selectedTab.value = MainTab.Home
-				}
-			}
-		)
 		return
 	}
 
