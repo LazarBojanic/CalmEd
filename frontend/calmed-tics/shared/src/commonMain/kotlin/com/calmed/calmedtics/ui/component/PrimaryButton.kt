@@ -19,7 +19,12 @@ fun PrimaryButton(
 	enabled: Boolean = true,
 ) {
 	OutlinedButton(
-		colors = ButtonDefaults.buttonColors(),
+		colors = ButtonDefaults.outlinedButtonColors(
+			MaterialTheme.colorScheme.primary,
+			MaterialTheme.colorScheme.onPrimary,
+			MaterialTheme.colorScheme.inverseSurface,
+			MaterialTheme.colorScheme.inverseOnSurface
+		),
 		onClick = onClick,
 		enabled = enabled,
 		modifier = Modifier
