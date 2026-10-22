@@ -35,7 +35,7 @@ import com.calmed.calmedtics.store.ITokenDataStore
 import calmedtics.shared.generated.resources.tab_exercises
 import calmedtics.shared.generated.resources.tab_home
 import calmedtics.shared.generated.resources.tab_profile
-import com.calmed.calmedtics.ui.component.PrimaryButton
+import com.calmed.calmedtics.ui.component.AppButton
 import com.calmed.calmedtics.ui.component.AppToastHost
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.viewmodel.ExercisesViewModel
@@ -107,7 +107,7 @@ fun MainScreen(
 				verticalArrangement = Arrangement.spacedBy(12.dp)
 			) {
 				Text(error ?: stringResource(Res.string.session_load_failed))
-				PrimaryButton(
+				AppButton(
 					text = stringResource(Res.string.retry),
 					onClick = { scope.launch { sessionViewModel.loadSession() } }
 				)

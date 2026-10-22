@@ -1,87 +1,39 @@
 package com.calmed.calmedtics.ui.screen
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import calmedtics.shared.generated.resources.Res
-import calmedtics.shared.generated.resources.default_user
-import calmedtics.shared.generated.resources.hello_user
-import calmedtics.shared.generated.resources.home_welcome
-import calmedtics.shared.generated.resources.previous_week
-import calmedtics.shared.generated.resources.week_number
-import calmedtics.shared.generated.resources.no_image
-import calmedtics.shared.generated.resources.select_video
-import calmedtics.shared.generated.resources.home_current_exercise
-import calmedtics.shared.generated.resources.home_great_start
-import calmedtics.shared.generated.resources.home_start_your_day
-import calmedtics.shared.generated.resources.home_well_done
-import calmedtics.shared.generated.resources.home_keep_going
-import calmedtics.shared.generated.resources.completed
-import calmedtics.shared.generated.resources.pending
-import calmedtics.shared.generated.resources.morning
-import calmedtics.shared.generated.resources.evening
-import calmedtics.shared.generated.resources.next_week
-import calmedtics.shared.generated.resources.duration_min
-import calmedtics.shared.generated.resources.duration_placeholder
+import calmedtics.shared.generated.resources.its_not_yet_time_week
+import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
 import com.calmed.calmedtics.theme.appBackgroundGradient
-import com.calmed.calmedtics.ui.component.Thumbnail
-import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
+import com.calmed.calmedtics.ui.component.home.CurrentExerciseCard
+import com.calmed.calmedtics.ui.component.home.HomeHeader
+import com.calmed.calmedtics.ui.component.home.MorningEveningCheckCards
+import com.calmed.calmedtics.ui.component.home.WeekCalendarCard
 import com.calmed.calmedtics.util.currentYmd
 import com.calmed.calmedtics.util.dateToEpochDay
 import com.calmed.calmedtics.viewmodel.ExercisesViewModel
 import com.calmed.calmedtics.viewmodel.HomeViewModel
 import com.calmed.calmedtics.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
-import calmedtics.shared.generated.resources.weekday_initials
-import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import calmedtics.shared.generated.resources.its_not_yet_time_week
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.ui.unit.sp
-import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
-import com.calmed.calmedtics.util.epochDayToYmd
 
 @Composable
 fun HomeScreen(
@@ -96,19 +48,18 @@ fun HomeScreen(
     val allExercises by exercisesViewModel.exercises.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
     val allCompletions by homeViewModel.allCompletions.collectAsStateWithLifecycle(LocalLifecycleOwner.current)
 
-
     val ymd = currentYmd()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-
     val userId = user?.id ?: ""
-
     val todayEpoch = remember(ymd) { dateToEpochDay(ymd.year, ymd.month, ymd.day) }
 
     val startWeekday = remember(home?.programStartDate, user?.createdAt) {
         val startDate = home?.programStartDate ?: user?.createdAt ?: ""
-        if (startDate.isNotBlank()) {
+        if (startDate.isBlank()) {
+            1
+        } else {
             try {
                 val parts = startDate.substring(0, 10).split("-")
                 val startYear = parts[0].toInt()
@@ -117,28 +68,34 @@ fun HomeScreen(
                 val startEpoch = dateToEpochDay(startYear, startMonth, startDay)
                 ((startEpoch + 3) % 7).toInt()
             } catch (e: Exception) {
-                0
+                1
             }
-        } else {
-            0
         }
     }
 
-    val todayDayOfWeek = ((todayEpoch + 3) % 7).toInt()
-    val daysSinceWeekStart = (todayDayOfWeek - startWeekday + 7) % 7
-
     val activeWeek = home?.currentWeek ?: 1
 
-    var trackerStartEpoch by remember(todayEpoch, daysSinceWeekStart, activeWeek) {
-        mutableStateOf(todayEpoch - daysSinceWeekStart)
+    var trackerStartEpoch by remember(home?.programStartDate, user?.createdAt, startWeekday, activeWeek) {
+        val startDate = home?.programStartDate ?: user?.createdAt ?: ""
+        val epoch = if (startDate.isBlank()) {
+            0L
+        } else {
+            try {
+                val parts = startDate.substring(0, 10).split("-")
+                val startYear = parts[0].toInt()
+                val startMonth = parts[1].toInt()
+                val startDay = parts[2].toInt()
+                val startEpoch = dateToEpochDay(startYear, startMonth, startDay)
+                val startWeekMondayEpoch = startEpoch - ((startEpoch + 3) % 7 - startWeekday + 7) % 7
+                startWeekMondayEpoch + (activeWeek - 1) * 7
+            } catch (e: Exception) {
+                0L
+            }
+        }
+        mutableStateOf(epoch)
     }
 
-    var selectedTrackerDateEpoch by remember(todayEpoch) { mutableStateOf(todayEpoch) }
-    val selectedTrackerYmd =
-        remember(selectedTrackerDateEpoch) { epochDayToYmd(selectedTrackerDateEpoch) }
-    val selectedDateStr = "${selectedTrackerYmd.year}-${
-        selectedTrackerYmd.month.toString().padStart(2, '0')
-    }-${selectedTrackerYmd.day.toString().padStart(2, '0')}"
+    var selectedTrackerDateEpoch by remember { mutableStateOf(todayEpoch) }
 
     val displayWeek = remember(
         trackerStartEpoch,
@@ -167,6 +124,35 @@ fun HomeScreen(
         }
     }
 
+    val startEpoch = remember(
+        home?.programStartDate,
+        user?.createdAt
+    ) {
+        val startDate = home?.programStartDate ?: user?.createdAt ?: ""
+        if (startDate.isNotBlank()) {
+            try {
+                val parts = startDate.substring(0, 10).split("-")
+                dateToEpochDay(
+                    parts[0].toInt(),
+                    parts[1].toInt(),
+                    parts[2].toInt()
+                )
+            } catch (e: Exception) {
+                0L
+            }
+        } else {
+            0L
+        }
+    }
+
+    val startWeekMondayEpoch = remember(startEpoch, startWeekday) {
+        if (startEpoch == 0L) {
+            0L
+        } else {
+            startEpoch - ((startEpoch + 3) % 7 - startWeekday + 7) % 7
+        }
+    }
+
     val selectedDayInWeek = remember(selectedTrackerDateEpoch, trackerStartEpoch) {
         ((selectedTrackerDateEpoch - trackerStartEpoch).toInt() + 1).coerceIn(1, 7)
     }
@@ -175,12 +161,20 @@ fun HomeScreen(
         allCompletions.filter { it.userId == userId && it.day == selectedDayInWeek && it.week == displayWeek }
     }
 
+    val morningCompleted = completions.any {
+        it.session.equals("MORNING", ignoreCase = true) && it.completed
+    }
+
+    val eveningCompleted = completions.any {
+        it.session.equals("EVENING", ignoreCase = true) && it.completed
+    }
+
     val weekExercises = remember(allExercises, displayWeek) {
         allExercises.filter { it.weekNumber == displayWeek }
     }
     val selectedExercise = remember(weekExercises) { weekExercises.firstOrNull() }
-    val selectedTitle =
-        remember(selectedExercise) { selectedExercise?.title }
+
+    val itsNotYetTimeMessage = stringResource(Res.string.its_not_yet_time_week)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -198,888 +192,82 @@ fun HomeScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-
             item {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = stringResource(
-                            Res.string.hello_user,
-                            if (userInfo?.preferredName.isNullOrBlank()) {
-                                user?.username ?: stringResource(Res.string.default_user)
-                            } else {
-                                userInfo?.preferredName!!
-                            }
-                        ),
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Text(
-                        text = stringResource(Res.string.home_welcome),
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                HomeHeader(
+                    preferredName = userInfo?.preferredName,
+                    username = user?.username
+                )
             }
 
             item {
-                val startEpoch = remember(
-                    home?.programStartDate,
-                    user?.createdAt
-                ) {
-                    val startDate =
-                        home?.programStartDate ?: user?.createdAt ?: ""
-
-                    if (startDate.isNotBlank()) {
-                        try {
-                            val parts = startDate.substring(0, 10).split("-")
-
-                            dateToEpochDay(
-                                parts[0].toInt(),
-                                parts[1].toInt(),
-                                parts[2].toInt()
-                            )
-                        } catch (e: Exception) {
-                            0L
-                        }
-                    } else {
-                        0L
-                    }
-                }
-
-                val startWeekMondayEpoch =
-                    remember(startEpoch, startWeekday) {
-                        if (startEpoch == 0L) {
-                            0L
+                WeekCalendarCard(
+                    displayWeek = displayWeek,
+                    trackerStartEpoch = trackerStartEpoch,
+                    startWeekMondayEpoch = startWeekMondayEpoch,
+                    currentProgramWeek = home?.currentWeek ?: 1,
+                    selectedTrackerDateEpoch = selectedTrackerDateEpoch,
+                    todayEpoch = todayEpoch,
+                    startWeekday = startWeekday,
+                    allCompletions = allCompletions,
+                    userId = userId,
+                    onPreviousWeek = {
+                        trackerStartEpoch -= 7
+                    },
+                    onNextWeek = {
+                        if (displayWeek < (home?.currentWeek ?: 1)) {
+                            trackerStartEpoch += 7
                         } else {
-                            startEpoch -
-                                    ((startEpoch + 3) % 7 - startWeekday + 7) % 7
+                            scope.launch {
+                                snackbarHostState.showSnackbar(itsNotYetTimeMessage)
+                            }
                         }
+                    },
+                    onSelectDate = { epoch ->
+                        selectedTrackerDateEpoch = epoch
                     }
-
-                val startYmd = epochDayToYmd(trackerStartEpoch)
-                val endYmd = epochDayToYmd(trackerStartEpoch + 6)
-
-                val itsNotYetTimeMessage =
-                    stringResource(Res.string.its_not_yet_time_week)
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                    ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 5.dp
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(
-                            start = 18.dp,
-                            top = 18.dp,
-                            end = 18.dp,
-                            bottom = 17.dp
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(17.dp)
-                    ) {
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(
-                                        brush = Brush.linearGradient(
-                                            colors = listOf(
-                                                MaterialTheme.colorScheme.primaryContainer,
-                                                MaterialTheme.colorScheme.secondaryContainer
-                                            )
-                                        ),
-                                        shape = RoundedCornerShape(15.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.DateRange,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(27.dp)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(13.dp))
-
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(
-                                        Res.string.week_number,
-                                        displayWeek
-                                    ),
-                                    fontSize = 19.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-
-                                Text(
-                                    text =
-                                        "${startYmd.day}.${startYmd.month}. – " +
-                                                "${endYmd.day}.${endYmd.month}.",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                            shape = CircleShape
-                                        )
-                                        .clickable(
-                                            enabled =
-                                                trackerStartEpoch - 7 >=
-                                                        startWeekMondayEpoch
-                                        ) {
-                                            trackerStartEpoch -= 7
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ChevronLeft,
-                                        contentDescription =
-                                            stringResource(Res.string.previous_week),
-                                        tint =
-                                            if (
-                                                trackerStartEpoch - 7 >=
-                                                startWeekMondayEpoch
-                                            ) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.outlineVariant
-                                            },
-                                        modifier = Modifier.size(23.dp)
-                                    )
-                                }
-
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                            shape = CircleShape
-                                        )
-                                        .clickable {
-                                            if (
-                                                displayWeek <
-                                                (home?.currentWeek ?: 1)
-                                            ) {
-                                                trackerStartEpoch += 7
-                                            } else {
-                                                scope.launch {
-                                                    snackbarHostState.showSnackbar(
-                                                        itsNotYetTimeMessage
-                                                    )
-                                                }
-                                            }
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ChevronRight,
-                                        contentDescription = stringResource(Res.string.next_week),
-                                        tint =
-                                            if (
-                                                displayWeek <
-                                                (home?.currentWeek ?: 1)
-                                            ) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.outlineVariant
-                                            },
-                                        modifier = Modifier.size(23.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        val daysOfWeekFull =
-                            stringArrayResource(Res.array.weekday_initials)
-
-                        val daysOfWeek =
-                            List(7) { index ->
-                                daysOfWeekFull[
-                                    (startWeekday + index) % 7
-                                ]
-                            }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            for (index in 0..6) {
-                                val currentEpoch =
-                                    trackerStartEpoch + index
-
-                                val currentYmd =
-                                    epochDayToYmd(currentEpoch)
-
-                                val isSelected =
-                                    currentEpoch == selectedTrackerDateEpoch
-
-                                val isToday =
-                                    currentEpoch == todayEpoch
-
-                                val currentDayInWeek =
-                                    index + 1
-
-                                val dayCompletions =
-                                    allCompletions.filter {
-                                        it.userId == userId &&
-                                                it.day == currentDayInWeek &&
-                                                it.week == displayWeek &&
-                                                it.completed
-                                    }
-
-                                val morningCompleted =
-                                    dayCompletions.any {
-                                        it.session.equals(
-                                            "MORNING",
-                                            ignoreCase = true
-                                        )
-                                    }
-
-                                val eveningCompleted =
-                                    dayCompletions.any {
-                                        it.session.equals(
-                                            "EVENING",
-                                            ignoreCase = true
-                                        )
-                                    }
-
-                                Column(
-                                    modifier = Modifier
-                                        .width(40.dp)
-                                        .clickable {
-                                            selectedTrackerDateEpoch =
-                                                currentEpoch
-                                        },
-                                    horizontalAlignment =
-                                        Alignment.CenterHorizontally,
-                                    verticalArrangement =
-                                        Arrangement.spacedBy(7.dp)
-                                ) {
-                                    Text(
-                                        text = daysOfWeek[index],
-                                        fontSize = 11.sp,
-                                        fontWeight =
-                                            if (isSelected) {
-                                                FontWeight.Bold
-                                            } else {
-                                                FontWeight.Medium
-                                            },
-                                        color =
-                                            if (isSelected) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.onSurfaceVariant
-                                            }
-                                    )
-
-                                    Box(
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .then(
-                                                when {
-                                                    isSelected -> {
-                                                        Modifier.background(
-                                                            brush =
-                                                                Brush.linearGradient(
-                                                                    colors = listOf(
-                                                                        MaterialTheme.colorScheme.primary,
-                                                                        MaterialTheme.colorScheme.secondary
-                                                                    )
-                                                                ),
-                                                            shape = CircleShape
-                                                        )
-                                                    }
-
-                                                    isToday -> {
-                                                        Modifier
-                                                            .background(
-                                                                color = MaterialTheme.colorScheme.surface,
-                                                                shape = CircleShape
-                                                            )
-                                                            .border(
-                                                                width = 1.5.dp,
-                                                                color = MaterialTheme.colorScheme.primary,
-                                                                shape = CircleShape
-                                                            )
-                                                    }
-
-                                                    else -> {
-                                                        Modifier.background(
-                                                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                                            shape = CircleShape
-                                                        )
-                                                    }
-                                                }
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = currentYmd.day.toString(),
-                                            fontSize = 14.sp,
-                                            fontWeight =
-                                                if (isSelected || isToday) {
-                                                    FontWeight.Bold
-                                                } else {
-                                                    FontWeight.SemiBold
-                                                },
-                                            color =
-                                                if (isSelected) {
-                                                    MaterialTheme.colorScheme.onPrimary
-                                                } else {
-                                                    MaterialTheme.colorScheme.onSurface
-                                                }
-                                        )
-                                    }
-
-                                    Row(
-                                        modifier = Modifier.height(7.dp),
-                                        horizontalArrangement =
-                                            Arrangement.spacedBy(5.dp),
-                                        verticalAlignment =
-                                            Alignment.CenterVertically
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(7.dp)
-                                                .background(
-                                                    color =
-                                                        if (morningCompleted) {
-                                                            MaterialTheme.colorScheme.tertiary
-                                                        } else {
-                                                            MaterialTheme.colorScheme.outlineVariant
-                                                        },
-                                                    shape = CircleShape
-                                                )
-                                        )
-
-                                        Box(
-                                            modifier = Modifier
-                                                .size(7.dp)
-                                                .background(
-                                                    color =
-                                                        if (eveningCompleted) {
-                                                            MaterialTheme.colorScheme.primary
-                                                        } else {
-                                                            MaterialTheme.colorScheme.outlineVariant
-                                                        },
-                                                    shape = CircleShape
-                                                )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                )
             }
 
             item {
-                val thumbnailUrl = selectedExercise?.thumbnailURL
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(190.dp)
-                        .clickable(enabled = selectedExercise != null) {
-                            selectedExercise?.let { exercise ->
-                                onExerciseClick(exercise)
-                            }
-                        },
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.Transparent
-                    ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 5.dp
-                    )
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        if (!thumbnailUrl.isNullOrBlank()) {
-                            Thumbnail(
-                                url = thumbnailUrl,
-                                contentDescription = selectedTitle ?: "",
-                                modifier = Modifier.fillMaxSize()
+                MorningEveningCheckCards(
+                    morningCompleted = morningCompleted,
+                    eveningCompleted = eveningCompleted,
+                    onToggleMorning = {
+                        scope.launch {
+                            homeViewModel.markSessionCompleted(
+                                displayWeek,
+                                selectedDayInWeek,
+                                userId,
+                                "MORNING",
+                                !morningCompleted
                             )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = stringResource(Res.string.no_image),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
                         }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.horizontalGradient(
-                                        colors = listOf(
-                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f),
-                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.30f),
-                                            Color.Transparent
-                                        )
-                                    )
-                                )
-                        )
-
-                        selectedExercise
-                            ?.takeIf { it.playbackId.isNotBlank() }
-                            ?.let { exercise ->
-                                VideoPlayerDownloadButton(
-                                    exercise = exercise,
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(10.dp)
-                                )
-                            }
-
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.BottomStart)
-                                .fillMaxWidth(0.60f)
-                                .padding(
-                                    start = 18.dp,
-                                    end = 8.dp,
-                                    bottom = 16.dp
-                                ),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        brush = Brush.horizontalGradient(
-                                            colors = listOf(
-                                                MaterialTheme.colorScheme.primary,
-                                                MaterialTheme.colorScheme.secondary
-                                            )
-                                        ),
-                                        shape = RoundedCornerShape(9.dp)
-                                    )
-                                    .padding(
-                                        horizontal = 9.dp,
-                                        vertical = 4.dp
-                                    )
-                            ) {
-                                Text(
-                                    text = stringResource(Res.string.home_current_exercise),
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-
-                            Text(
-                                text = selectedTitle.orEmpty(),
-                                fontSize = 19.sp,
-                                lineHeight = 22.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(7.dp)
-                            ) {
-                                Text(
-                                    text = selectedExercise?.durationSeconds?.let { totalSeconds ->
-                                        val minutes = totalSeconds / 60
-                                        val seconds = totalSeconds % 60
-
-                                        stringResource(
-                                            Res.string.duration_min,
-                                            "$minutes:${seconds.toString().padStart(2, '0')}"
-                                        )
-                                    } ?: stringResource(Res.string.duration_placeholder),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.90f)
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .size(4.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                                            CircleShape
-                                        )
-                                )
-
-                                Text(
-                                    text = stringResource(Res.string.week_number, displayWeek),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.90f)
-                                )
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .size(52.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription =
-                                    stringResource(Res.string.select_video),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .padding(start = 2.dp)
+                    },
+                    onToggleEvening = {
+                        scope.launch {
+                            homeViewModel.markSessionCompleted(
+                                displayWeek,
+                                selectedDayInWeek,
+                                userId,
+                                "EVENING",
+                                !eveningCompleted
                             )
                         }
                     }
-                }
+                )
             }
 
             item {
-                val morningCompleted =
-                    completions.any {
-                        it.session.equals(
-                            "MORNING",
-                            ignoreCase = true
-                        ) && it.completed
-                    }
-
-                val eveningCompleted =
-                    completions.any {
-                        it.session.equals(
-                            "EVENING",
-                            ignoreCase = true
-                        ) && it.completed
-                    }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                scope.launch {
-                                    homeViewModel.markSessionCompleted(
-                                        displayWeek,
-                                        selectedDayInWeek,
-                                        userId,
-                                        "MORNING",
-                                        !morningCompleted
-                                    )
-                                }
-                            },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 3.dp
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(
-                                horizontal = 14.dp,
-                                vertical = 13.dp
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.tertiaryContainer,
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "☀",
-                                        fontSize = 23.sp,
-                                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.width(10.dp))
-
-                                Column(
-                                    modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(3.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(Res.string.morning),
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(7.dp)
-                                    ) {
-                                        Text(
-                                            text =
-                                                if (morningCompleted) {
-                                                    stringResource(Res.string.completed)
-                                                } else {
-                                                    stringResource(Res.string.pending)
-                                                },
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color =
-                                                if (morningCompleted) {
-                                                    MaterialTheme.colorScheme.tertiary
-                                                } else {
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                                }
-                                        )
-
-                                        Box(
-                                            modifier = Modifier
-                                                .size(18.dp)
-                                                .then(
-                                                    if (morningCompleted) {
-                                                        Modifier.background(
-                                                            color = MaterialTheme.colorScheme.tertiary,
-                                                            shape = CircleShape
-                                                        )
-                                                    } else {
-                                                        Modifier.border(
-                                                            width = 1.5.dp,
-                                                            color = MaterialTheme.colorScheme.outline,
-                                                            shape = CircleShape
-                                                        )
-                                                    }
-                                                ),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            if (morningCompleted) {
-                                                Text(
-                                                    text = "✓",
-                                                    fontSize = 11.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onTertiary
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(11.dp))
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(1.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                                    )
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                text =
-                                    if (morningCompleted) {
-                                        stringResource(Res.string.home_great_start)
-                                    } else {
-                                        stringResource(Res.string.home_start_your_day)
-                                    },
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                CurrentExerciseCard(
+                    exercise = selectedExercise,
+                    displayWeek = displayWeek,
+                    onClick = {
+                        selectedExercise?.let { exercise ->
+                            onExerciseClick(exercise)
                         }
                     }
-
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                scope.launch {
-                                    homeViewModel.markSessionCompleted(
-                                        displayWeek,
-                                        selectedDayInWeek,
-                                        userId,
-                                        "EVENING",
-                                        !eveningCompleted
-                                    )
-                                }
-                            },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 3.dp
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(
-                                horizontal = 14.dp,
-                                vertical = 13.dp
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.secondaryContainer,
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "☾",
-                                        fontSize = 23.sp,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.width(10.dp))
-
-                                Column(
-                                    modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(3.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(Res.string.evening),
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(7.dp)
-                                    ) {
-                                        Text(
-                                            text =
-                                                if (eveningCompleted) {
-                                                    stringResource(Res.string.completed)
-                                                } else {
-                                                    stringResource(Res.string.pending)
-                                                },
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color =
-                                                if (eveningCompleted) {
-                                                    MaterialTheme.colorScheme.primary
-                                                } else {
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                                }
-                                        )
-
-                                        Box(
-                                            modifier = Modifier
-                                                .size(18.dp)
-                                                .then(
-                                                    if (eveningCompleted) {
-                                                        Modifier.background(
-                                                            color = MaterialTheme.colorScheme.primary,
-                                                            shape = CircleShape
-                                                        )
-                                                    } else {
-                                                        Modifier.border(
-                                                            width = 1.5.dp,
-                                                            color = MaterialTheme.colorScheme.outline,
-                                                            shape = CircleShape
-                                                        )
-                                                    }
-                                                ),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            if (eveningCompleted) {
-                                                Text(
-                                                    text = "✓",
-                                                    fontSize = 11.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onPrimary
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(11.dp))
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(1.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                                    )
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                text =
-                                    if (eveningCompleted) {
-                                        stringResource(Res.string.home_well_done)
-                                    } else {
-                                        stringResource(Res.string.home_keep_going)
-                                    },
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
+                )
             }
-
         }
     }
 }

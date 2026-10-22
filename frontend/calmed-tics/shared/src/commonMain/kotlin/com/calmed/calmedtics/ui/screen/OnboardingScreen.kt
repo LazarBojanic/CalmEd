@@ -99,47 +99,6 @@ fun OnboardingScreen(
             goal = goal.value.trim()
         )
     }
-    @Composable
-    fun RadioOptionRow(
-        text: String,
-        selected: Boolean,
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier
-    ) {
-        Surface(
-            modifier = modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            color = if (selected) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surface
-            },
-            border = BorderStroke(
-                width = 1.dp,
-                color = if (selected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.outline
-                }
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .selectable(
-                        selected = selected,
-                        onClick = onClick,
-                        role = Role.RadioButton
-                    )
-                    .padding(horizontal = 12.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(selected = selected, onClick = null)
-                Spacer(Modifier.width(10.dp))
-                Text(text = text, style = MaterialTheme.typography.bodyLarge)
-            }
-        }
-    }
 
     Box(
         modifier = Modifier

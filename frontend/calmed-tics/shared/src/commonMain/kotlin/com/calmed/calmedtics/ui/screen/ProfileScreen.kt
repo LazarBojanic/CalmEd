@@ -32,7 +32,7 @@ import com.calmed.calmedtics.model.joined.UserInfoTicsJoined
 import com.calmed.calmedtics.model.joined.UserJoined
 import com.calmed.calmedtics.model.raw.TicFrequency
 import com.calmed.calmedtics.model.raw.TicType
-import com.calmed.calmedtics.ui.component.PrimaryButton
+import com.calmed.calmedtics.ui.component.AppButton
 import com.calmed.calmedtics.ui.component.TextField
 import com.calmed.calmedtics.ui.component.Thumbnail
 import com.calmed.calmedtics.ui.component.TimeSlider
@@ -106,6 +106,11 @@ import calmedtics.shared.generated.resources.keep_screen_awake
 import calmedtics.shared.generated.resources.download_wifi_only
 import calmedtics.shared.generated.resources.download_wifi_only_description
 import com.calmed.calmedtics.model.raw.TicDuration
+import com.calmed.calmedtics.ui.component.profile.InfoRow
+import com.calmed.calmedtics.ui.component.profile.InfoSection
+import com.calmed.calmedtics.ui.component.profile.ProfileHeader
+import com.calmed.calmedtics.ui.component.profile.ProfileRadioOptionRow
+import com.calmed.calmedtics.ui.component.profile.SettingsRow
 import com.calmed.calmedtics.video.VideoQuality
 
 @Composable
@@ -223,7 +228,7 @@ fun ProfileScreen(
 							)
 						}
 
-						PrimaryButton(
+						AppButton(
 							text = if (loading) {
 								stringResource(Res.string.loading)
 							} else {
@@ -239,7 +244,7 @@ fun ProfileScreen(
 			if (user != null && userInfo != null) {
 				if (!isEditing) {
 					item {
-						PrimaryButton(
+						AppButton(
 							text = stringResource(Res.string.edit_profile),
 							onClick = { isEditing = true }
 						)
@@ -379,17 +384,17 @@ fun ProfileScreen(
 							)
 
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-								RadioOptionRow(
+								ProfileRadioOptionRow(
 									text = stringResource(Res.string.tics_motor),
 									selected = ticType.value == TicType.MOTOR,
 									onClick = { ticType.value = TicType.MOTOR }
 								)
-								RadioOptionRow(
+								ProfileRadioOptionRow(
 									text = stringResource(Res.string.tics_vocal),
 									selected = ticType.value == TicType.VOCAL,
 									onClick = { ticType.value = TicType.VOCAL }
 								)
-								RadioOptionRow(
+								ProfileRadioOptionRow(
 									text = stringResource(Res.string.tics_both),
 									selected = ticType.value == TicType.BOTH,
 									onClick = { ticType.value = TicType.BOTH }
@@ -402,17 +407,17 @@ fun ProfileScreen(
 							)
 
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-								RadioOptionRow(
+								ProfileRadioOptionRow(
 									text = stringResource(Res.string.frequency_rare),
 									selected = ticFrequency.value == TicFrequency.RARE,
 									onClick = { ticFrequency.value = TicFrequency.RARE }
 								)
-								RadioOptionRow(
+								ProfileRadioOptionRow(
 									text = stringResource(Res.string.frequency_moderate),
 									selected = ticFrequency.value == TicFrequency.MODERATE,
 									onClick = { ticFrequency.value = TicFrequency.MODERATE }
 								)
-								RadioOptionRow(
+								ProfileRadioOptionRow(
 									text = stringResource(Res.string.frequency_daily),
 									selected = ticFrequency.value == TicFrequency.DAILY,
 									onClick = { ticFrequency.value = TicFrequency.DAILY }
@@ -425,17 +430,17 @@ fun ProfileScreen(
 							)
 
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-								RadioOptionRow(
+								ProfileRadioOptionRow(
 									text = stringResource(Res.string.tic_duration_0_1),
 									selected = ticDuration.value == TicDuration.ZERO_TO_ONE_YEAR,
 									onClick = { ticDuration.value = TicDuration.ZERO_TO_ONE_YEAR }
 								)
-								RadioOptionRow(
+								ProfileRadioOptionRow(
 									text = stringResource(Res.string.tic_duration_1_3),
 									selected = ticDuration.value == TicDuration.ONE_TO_THREE_YEARS,
 									onClick = { ticDuration.value = TicDuration.ONE_TO_THREE_YEARS }
 								)
-								RadioOptionRow(
+								ProfileRadioOptionRow(
 									text = stringResource(Res.string.tic_duration_3_plus),
 									selected = ticDuration.value == TicDuration.THREE_PLUS_YEARS,
 									onClick = { ticDuration.value = TicDuration.THREE_PLUS_YEARS }
@@ -452,7 +457,7 @@ fun ProfileScreen(
 					}
 
 					item {
-						PrimaryButton(
+						AppButton(
 							text = if (loading) {
 								stringResource(Res.string.saving)
 							} else {
@@ -488,7 +493,7 @@ fun ProfileScreen(
 					}
 
 					item {
-						PrimaryButton(
+						AppButton(
 							text = stringResource(Res.string.cancel),
 							enabled = !loading,
 							onClick = { isEditing = false }
@@ -760,7 +765,7 @@ fun ProfileScreen(
 
 					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 						VideoQuality.entries.forEach { resolution ->
-							RadioOptionRow(
+							ProfileRadioOptionRow(
 								text = resolution.label,
 								selected = downloadResolution == resolution,
 								onClick = {
@@ -775,7 +780,7 @@ fun ProfileScreen(
 
 			item {
 				Spacer(modifier = Modifier.height(8.dp))
-				PrimaryButton(
+				AppButton(
 					text = stringResource(Res.string.logout),
 					onClick = {
 						scope.launch {
@@ -859,286 +864,5 @@ fun ProfileScreen(
 				}
 			}
 		)
-	}
-}
-
-@Composable
-private fun RadioOptionRow(
-	text: String,
-	selected: Boolean,
-	onClick: () -> Unit,
-	modifier: Modifier = Modifier
-) {
-	Surface(
-		modifier = modifier.fillMaxWidth(),
-		shape = RoundedCornerShape(20.dp),
-		color = if (selected) {
-			MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)
-		} else {
-			MaterialTheme.colorScheme.surface.copy(alpha = 0.25f)
-		},
-		border = BorderStroke(
-			width = if (selected) 2.dp else 1.dp,
-			color = if (selected) {
-				MaterialTheme.colorScheme.primary
-			} else {
-				MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-			}
-		)
-	) {
-		Row(
-			modifier = Modifier
-				.fillMaxWidth()
-				.selectable(
-					selected = selected,
-					onClick = onClick,
-					role = Role.RadioButton
-				)
-				.padding(horizontal = 16.dp, vertical = 16.dp),
-			verticalAlignment = Alignment.CenterVertically
-		) {
-			Box(
-				modifier = Modifier
-					.size(22.dp)
-					.background(
-						color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-						shape = CircleShape
-					)
-					.border(
-						width = 2.dp,
-						color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-						shape = CircleShape
-					)
-			)
-
-			Spacer(Modifier.width(12.dp))
-
-			Text(
-				text = text,
-				style = MaterialTheme.typography.bodyLarge,
-				color = MaterialTheme.colorScheme.onSurface
-			)
-		}
-	}
-}
-
-@Composable
-fun ProfileHeader(
-	user: UserJoined?,
-	userInfo: UserInfoTicsJoined?
-) {
-	val displayName = userInfo?.preferredName
-		?: user?.username
-		?: stringResource(Res.string.default_user)
-
-	val email = user?.email ?: ""
-
-	val profileImageUrl =
-		user?.profileImageUrl?.let { url ->
-			if (url.startsWith("http")) {
-				url
-			} else {
-				"$appBaseUrl$url"
-			}
-		}
-
-	Surface(
-		modifier = Modifier.fillMaxWidth(),
-		shape = RoundedCornerShape(28.dp),
-		color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
-		border = BorderStroke(
-			1.dp,
-			MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-		)
-	) {
-		Column(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(
-					horizontal = 20.dp,
-					vertical = 28.dp
-				),
-			horizontalAlignment = Alignment.CenterHorizontally
-		) {
-
-			Box(
-				modifier = Modifier
-					.size(96.dp)
-					.clip(CircleShape)
-					.background(
-						MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)
-					)
-					.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), CircleShape),
-				contentAlignment = Alignment.Center
-			) {
-
-				if (!profileImageUrl.isNullOrBlank()) {
-
-					Thumbnail(
-						url = profileImageUrl,
-						contentDescription = stringResource(Res.string.profile_photo),
-						modifier = Modifier
-							.fillMaxSize()
-							.clip(CircleShape)
-					)
-
-				} else {
-
-					Icon(
-						imageVector = Icons.Default.Person,
-						contentDescription = null,
-						modifier = Modifier.size(52.dp),
-						tint = MaterialTheme.colorScheme.onSurface
-					)
-				}
-			}
-
-			Spacer(
-				modifier = Modifier.height(16.dp)
-			)
-
-			Text(
-				text = displayName,
-				style = MaterialTheme.typography.headlineSmall,
-				fontWeight = FontWeight.Bold,
-				color = MaterialTheme.colorScheme.onSurface
-			)
-
-			if (email.isNotEmpty()) {
-				Spacer(
-					modifier = Modifier.height(4.dp)
-				)
-
-				Text(
-					text = email,
-					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onSurfaceVariant
-				)
-			}
-		}
-	}
-}
-@Composable
-fun InfoSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-	Column(modifier = Modifier.fillMaxWidth()) {
-		Text(
-			text = title,
-			style = MaterialTheme.typography.titleMedium,
-			fontWeight = FontWeight.SemiBold,
-			color = MaterialTheme.colorScheme.onSurface,
-			modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
-		)
-
-		Surface(
-			modifier = Modifier.fillMaxWidth(),
-			shape = RoundedCornerShape(24.dp),
-			color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
-			border = BorderStroke(
-				1.dp,
-				MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-			)
-		) {
-			Column(
-				modifier = Modifier.padding(18.dp),
-				verticalArrangement = Arrangement.spacedBy(14.dp)
-			) {
-				content()
-			}
-		}
-	}
-}
-
-@Composable
-fun InfoRow(icon: ImageVector, label: String, value: String) {
-	Row(
-		modifier = Modifier.fillMaxWidth(),
-		verticalAlignment = Alignment.Top
-	) {
-		Box(
-			modifier = Modifier
-				.size(36.dp)
-				.clip(CircleShape)
-				.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.35f))
-				.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), CircleShape),
-			contentAlignment = Alignment.Center
-		) {
-			Icon(
-				imageVector = icon,
-				contentDescription = null,
-				modifier = Modifier.size(18.dp),
-				tint = MaterialTheme.colorScheme.onSurface
-			)
-		}
-
-		Spacer(modifier = Modifier.width(12.dp))
-
-		Column {
-			Text(
-				text = label,
-				style = MaterialTheme.typography.labelMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
-			)
-
-			Spacer(modifier = Modifier.height(2.dp))
-
-			Text(
-				text = value,
-				style = MaterialTheme.typography.bodyLarge,
-				fontWeight = FontWeight.Medium,
-				color = MaterialTheme.colorScheme.onSurface
-			)
-		}
-	}
-}
-
-@Composable
-fun SettingsRow(
-	icon: ImageVector,
-	label: String,
-	onClick: () -> Unit
-) {
-	Surface(
-		onClick = onClick,
-		color = Color.Transparent
-	) {
-		Row(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(vertical = 6.dp),
-			verticalAlignment = Alignment.CenterVertically
-		) {
-			Box(
-				modifier = Modifier
-					.size(36.dp)
-					.clip(CircleShape)
-					.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.35f))
-					.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), CircleShape),
-				contentAlignment = Alignment.Center
-			) {
-				Icon(
-					imageVector = icon,
-					contentDescription = null,
-					modifier = Modifier.size(18.dp),
-					tint = MaterialTheme.colorScheme.onSurface
-				)
-			}
-
-			Spacer(modifier = Modifier.width(12.dp))
-
-			Text(
-				text = label,
-				style = MaterialTheme.typography.bodyLarge,
-				fontWeight = FontWeight.Medium,
-				color = MaterialTheme.colorScheme.onSurface
-			)
-
-			Spacer(modifier = Modifier.weight(1f))
-
-			Icon(
-				imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-				contentDescription = null,
-				tint = MaterialTheme.colorScheme.onSurfaceVariant
-			)
-		}
 	}
 }

@@ -18,7 +18,7 @@ import calmedtics.shared.generated.resources.not_over_eighteen
 import calmedtics.shared.generated.resources.continue_button
 import com.calmed.calmedtics.ui.component.AuthScaffold
 import com.calmed.calmedtics.ui.component.CheckboxWithLabel
-import com.calmed.calmedtics.ui.component.PrimaryButton
+import com.calmed.calmedtics.ui.component.AppButton
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -44,7 +44,7 @@ fun AgeConfirmScreen(
 			onCheckedChange = { confirmed = it },
 		)
 
-		PrimaryButton(
+		AppButton(
 			text = stringResource(Res.string.continue_button),
 			onClick = onConfirm,
 			enabled = confirmed && !loading,

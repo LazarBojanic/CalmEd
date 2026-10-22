@@ -40,7 +40,7 @@ import calmedtics.shared.generated.resources.sending
 import calmedtics.shared.generated.resources.subject_label
 import calmedtics.shared.generated.resources.support_send_failed
 import com.calmed.calmedtics.ui.component.BackButton
-import com.calmed.calmedtics.ui.component.PrimaryButton
+import com.calmed.calmedtics.ui.component.AppButton
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -163,7 +163,7 @@ fun HelpSupportScreen(
                         )
                     )
 
-                    PrimaryButton(
+                    AppButton(
                         text = if (isSending.value) {
                             stringResource(Res.string.sending)
                         } else {

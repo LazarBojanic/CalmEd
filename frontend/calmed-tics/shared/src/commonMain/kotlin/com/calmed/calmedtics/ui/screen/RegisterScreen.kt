@@ -123,7 +123,7 @@ fun RegisterScreen(
 			)
 		}
 
-		PrimaryButton(
+		AppButton(
 			text = if (loading) {
 				stringResource(Res.string.creating)
 			} else {
@@ -132,13 +132,13 @@ fun RegisterScreen(
 			onClick = {
 				if (!isValidEmail(email)) {
 					emailError = true
-					return@PrimaryButton
+					return@AppButton
 				}
 
 				val pwError = validatePassword(password, confirmPassword)
 				if (pwError != null) {
 					passwordError = pwError
-					return@PrimaryButton
+					return@AppButton
 				}
 
 				scope.launch {

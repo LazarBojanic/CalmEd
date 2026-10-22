@@ -11,8 +11,8 @@ fun appBackgroundGradient(): Brush {
 	return remember(scheme) {
 		Brush.verticalGradient(
 			colors = listOf(
+				scheme.secondary,
 				scheme.primary,
-				scheme.secondaryContainer,
 			)
 		)
 	}

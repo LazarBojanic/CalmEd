@@ -52,7 +52,7 @@ import calmedtics.shared.generated.resources.premium_access
 import calmedtics.shared.generated.resources.processing
 import calmedtics.shared.generated.resources.secure_payment
 import com.calmed.calmedtics.theme.appBackgroundGradient
-import com.calmed.calmedtics.ui.component.PrimaryButton
+import com.calmed.calmedtics.ui.component.AppButton
 import com.calmed.calmedtics.viewmodel.PaymentViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -149,7 +149,7 @@ fun PaymentScreen(
                 }
             }
 
-            PrimaryButton(
+            AppButton(
                 text = if (loading) {
                     stringResource(Res.string.opening_payment)
                 } else {
@@ -159,7 +159,7 @@ fun PaymentScreen(
                 onClick = { viewModel.startNativePayment() }
             )
 
-            PrimaryButton(
+            AppButton(
                 text = if (loading) {
                     stringResource(Res.string.processing)
                 } else {
@@ -169,7 +169,7 @@ fun PaymentScreen(
                 onClick = { viewModel.restorePurchase() }
             )
 
-            PrimaryButton(
+            AppButton(
                 text = stringResource(Res.string.logout),
                 enabled = !loading,
                 onClick = { onLogout() }

@@ -50,6 +50,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import calmedtics.shared.generated.resources.continue_button
+import com.calmed.calmedtics.ui.component.AppButton
 
 @Composable
 fun CourseOverviewScreen(
@@ -253,15 +254,12 @@ fun CourseOverviewScreen(
                         MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     )
                 ) {
-                    TextButton(
-                        onClick = onSkip,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.skip),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+                    AppButton(
+                        text = stringResource(Res.string.skip),
+                        onClick = { onContinue(dontShowAgain) },
+                        modifier = Modifier.fillMaxWidth(),
+                        true
+                    )
                 }
 
                 Surface(
@@ -273,16 +271,12 @@ fun CourseOverviewScreen(
                         MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                     )
                 ) {
-                    TextButton(
+                    AppButton(
+                        text = stringResource(Res.string.continue_button),
                         onClick = { onContinue(dontShowAgain) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.continue_button),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                        modifier = Modifier.fillMaxWidth(),
+                        true
+                    )
                 }
             }
         }

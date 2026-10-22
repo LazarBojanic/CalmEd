@@ -18,7 +18,7 @@ import calmedtics.shared.generated.resources.email_label
 import calmedtics.shared.generated.resources.forgot_password_title
 import calmedtics.shared.generated.resources.send_reset_email
 import calmedtics.shared.generated.resources.sending
-import com.calmed.calmedtics.ui.component.PrimaryButton
+import com.calmed.calmedtics.ui.component.AppButton
 import com.calmed.calmedtics.ui.component.AuthScaffold
 import com.calmed.calmedtics.ui.component.SecondaryButton
 import com.calmed.calmedtics.ui.component.TextField
@@ -59,7 +59,7 @@ fun ForgotPasswordScreen(
                 singleLine = true,
             )
 
-            PrimaryButton(
+            AppButton(
                 text = if (loading) stringResource(Res.string.sending) else stringResource(Res.string.send_reset_email),
                 onClick = {
                     scope.launch {

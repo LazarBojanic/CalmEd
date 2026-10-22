@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import com.calmed.calmedtics.ui.component.GoogleSignInButton
 import com.calmed.calmedtics.ui.component.AppleSignInButton
 import com.calmed.calmedtics.ui.component.PasswordTextField
-import com.calmed.calmedtics.ui.component.PrimaryButton
+import com.calmed.calmedtics.ui.component.AppButton
 import com.calmed.calmedtics.ui.component.AuthScaffold
 import com.calmed.calmedtics.ui.component.SecondaryButton
 import com.calmed.calmedtics.ui.component.TextField
@@ -107,7 +107,7 @@ fun LoginScreen(
                 supportingText = null,
             )
 
-            PrimaryButton(
+            AppButton(
                 text = if (loading) stringResource(Res.string.logging_in) else stringResource(Res.string.login_title),
                 onClick = {
                     scope.launch {

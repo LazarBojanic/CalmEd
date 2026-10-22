@@ -70,6 +70,7 @@ import com.calmed.calmedtics.ui.component.VideoItem
 import com.calmed.calmedtics.ui.component.VideoOverlayButton
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.ui.component.VideoPlayerDownloadButton
+import com.calmed.calmedtics.ui.component.video.PlayerOverlayControls
 import com.calmed.calmedtics.ui.component.rememberDeviceLandscape
 import com.calmed.calmedtics.video.VideoQuality
 import kotlinx.coroutines.delay
@@ -345,55 +346,6 @@ fun VideoScreen(
 					}
 				}
 			},
-		)
-	}
-}
-
-@Composable
-private fun PlayerOverlayControls(
-	exercise: ProgramExerciseDto,
-	muted: Boolean,
-	onToggleMute: () -> Unit,
-	onShowQualityPicker: () -> Unit,
-	modifier: Modifier = Modifier,
-	onInteraction: () -> Unit = {},
-) {
-	Column(
-		modifier = modifier.pointerInput(Unit) {
-			awaitPointerEventScope {
-				while (true) {
-					awaitFirstDown(requireUnconsumed = false)
-					onInteraction()
-				}
-			}
-		},
-		verticalArrangement = Arrangement.spacedBy(4.dp),
-		horizontalAlignment = Alignment.CenterHorizontally,
-	) {
-		VideoPlayerDownloadButton(
-			exercise = exercise,
-		)
-
-		CastButton()
-
-		VideoOverlayButton(
-			icon = Icons.Default.Hd,
-			contentDescription = stringResource(Res.string.resolution),
-			onClick = onShowQualityPicker,
-		)
-
-		VideoOverlayButton(
-			icon = if (muted) {
-				Icons.AutoMirrored.Filled.VolumeOff
-			} else {
-				Icons.AutoMirrored.Filled.VolumeUp
-			},
-			contentDescription = if (muted) {
-				stringResource(Res.string.unmute)
-			} else {
-				stringResource(Res.string.mute)
-			},
-			onClick = onToggleMute,
 		)
 	}
 }

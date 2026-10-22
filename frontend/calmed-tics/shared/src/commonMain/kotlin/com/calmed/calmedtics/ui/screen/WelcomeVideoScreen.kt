@@ -44,6 +44,7 @@ import com.calmed.calmedtics.http.IAppApi
 import com.calmed.calmedtics.settings.AppSettings
 import calmedtics.shared.generated.resources.skip
 import com.calmed.calmedtics.model.dto.response.ProgramExerciseDto
+import com.calmed.calmedtics.ui.component.AppButton
 import com.calmed.calmedtics.ui.component.VideoItem
 import com.calmed.calmedtics.ui.component.VideoPlayer
 import com.calmed.calmedtics.video.VideoQuality
@@ -264,46 +265,17 @@ fun WelcomeVideoScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                    )
-                ) {
-                    TextButton(
-                        onClick = onSkip,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.skip),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
+                AppButton(
+                    text = stringResource(Res.string.skip),
+                    onClick = onSkip,
+                    modifier = Modifier.weight(1f)
+                )
 
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                    )
-                ) {
-                    TextButton(
-                        onClick = { onContinue(dontShowAgain) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.continue_button),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
+                AppButton(
+                    text = stringResource(Res.string.continue_button),
+                    onClick = { onContinue(dontShowAgain) },
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
